@@ -38,6 +38,7 @@ from sregym.conductor.problems.missing_service import MissingService
 from sregym.conductor.problems.multiple_failures import MultipleIndependentFailures  # noqa: F401
 from sregym.conductor.problems.namespace_memory_limit import NamespaceMemoryLimit
 from sregym.conductor.problems.network_policy_block import NetworkPolicyBlock
+from sregym.conductor.problems.node_conntrack_exhaustion import NodeConntrackExhaustionHotelReservation
 from sregym.conductor.problems.operator_misoperation.invalid_affinity_toleration import (
     K8SOperatorInvalidAffinityTolerationFault,
 )
@@ -243,6 +244,7 @@ class ProblemRegistry:
             # ==================== DIRECT K8S API ====================
             "ingress_misroute": lambda: IngressMisroute(path="/api", correct_service="frontend-service", wrong_service="recommendation-service"),
             "network_policy_block": lambda: NetworkPolicyBlock(faulty_service="recommendation"),
+            "node_conntrack_exhaustion_hotel_reservation": NodeConntrackExhaustionHotelReservation,
             "admission_webhook_outage_hotel_reservation": lambda: AdmissionWebhookOutage(app_name="hotel_reservation", faulty_service="recommendation"),
             # ==================== MULTIPLE INDEPENDENT FAILURES ====================
             # "port_misconfig_revoke_auth_wrong_svc_selector": \
