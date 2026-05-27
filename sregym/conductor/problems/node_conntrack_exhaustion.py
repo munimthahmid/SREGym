@@ -168,8 +168,6 @@ class NodeConntrackExhaustionHotelReservation(Problem):
             "automountServiceAccountToken": False,
             "containers": [container],
         }
-        if name == self.client_deployment:
-            spec["volumes"] = [{"name": "host-proc", "hostPath": {"path": "/proc", "type": "Directory"}}]
         return {
             "metadata": {"name": name, "labels": {"app": name}},
             "spec": {
@@ -199,8 +197,11 @@ class NodeConntrackExhaustionHotelReservation(Problem):
         return {
             "name": "gateway",
             "image": "python:3.12-alpine",
-            "command": ["python", "-c", script],
-            "env": [{"name": "PORTS", "value": ",".join(str(port) for port in self._gateway_ports())}],
+            "command": ["sh", "-c", 'ulimit -n 524288; exec python -c "$SCRIPT"'],
+            "env": [
+                {"name": "PORTS", "value": ",".join(str(port) for port in self._gateway_ports())},
+                {"name": "SCRIPT", "value": script},
+            ],
             "ports": [{"containerPort": port} for port in self._gateway_ports()],
         }
 
@@ -233,9 +234,6 @@ class NodeConntrackExhaustionHotelReservation(Problem):
                 worker.start(); workers.append(worker)
                 remaining -= goal
             while all(worker.is_alive() for worker in workers):
-                count = open("/host-proc/sys/net/netfilter/nf_conntrack_count").read().strip()
-                maximum = open("/host-proc/sys/net/netfilter/nf_conntrack_max").read().strip()
-                print(f"workers={len(workers)} target={total} nf_conntrack_count={count} nf_conntrack_max={maximum}", flush=True)
                 time.sleep(2)
             raise RuntimeError("client connection worker stopped")
             """
@@ -243,14 +241,14 @@ class NodeConntrackExhaustionHotelReservation(Problem):
         return {
             "name": "client",
             "image": "python:3.12-alpine",
-            "command": ["python", "-c", script],
+            "command": ["sh", "-c", 'ulimit -n 524288; exec python -c "$SCRIPT"'],
             "env": [
                 {"name": "TARGET_HOST", "value": f"{self.gateway_service}.{self.namespace}.svc.cluster.local."},
                 {"name": "TARGET_PORTS", "value": ",".join(str(port) for port in self._gateway_ports())},
                 {"name": "CONNECTIONS", "value": str(self.target_connections)},
                 {"name": "CONNECTIONS_PER_WORKER", "value": str(self.connections_per_worker)},
+                {"name": "SCRIPT", "value": script},
             ],
-            "volumeMounts": [{"name": "host-proc", "mountPath": "/host-proc", "readOnly": True}],
         }
 
     def _wait_for_deployment(self, name: str, replicas: int, timeout: int = 180):
