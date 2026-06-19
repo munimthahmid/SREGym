@@ -82,6 +82,21 @@ def test_check_is_kind_keeps_remote_clusters_on_remote_path():
     assert injector._check_is_kind() is False
 
 
+def test_check_is_kind_retries_after_invalid_kubectl_output():
+    injector = _injector([])
+    outputs = iter(
+        [
+            "Unable to connect to the server: connection refused",
+            json.dumps({"items": [_node("custom-worker", "kind://docker/custom/custom-worker")]}),
+        ]
+    )
+    injector.kubectl.exec_command = lambda command: next(outputs)
+
+    assert injector._check_is_kind() is False
+    assert injector._is_kind is None
+    assert injector._check_is_kind() is True
+
+
 def test_recover_disk_pressure_all_skips_remote_cluster_without_inventory():
     injector = object.__new__(RemoteOSFaultInjector)
     injector._check_is_kind = lambda: False

@@ -28,15 +28,20 @@ class RemoteOSFaultInjector(FaultInjector):
     def _check_is_kind(self):
         """Detect if the cluster is Kind-based."""
         if self._is_kind is None:
-            self._is_kind = any(
-                (node.get("spec", {}).get("providerID") or "").startswith("kind://") for node in self._get_node_items()
-            )
+            nodes = self._get_node_items()
+            if nodes is None:
+                return False
+            self._is_kind = any((node.get("spec", {}).get("providerID") or "").startswith("kind://") for node in nodes)
         return self._is_kind
 
     def _get_node_items(self):
         """Return Kubernetes node objects from the current kubectl context."""
         output = self.kubectl.exec_command("kubectl get nodes -o json")
-        return json.loads(output).get("items", [])
+        try:
+            return json.loads(output).get("items", [])
+        except (json.JSONDecodeError, AttributeError, TypeError):
+            print("Failed to read Kubernetes node data from kubectl.")
+            return None
 
     def _is_control_plane_node(self, node):
         labels = node.get("metadata", {}).get("labels", {})
@@ -112,7 +117,10 @@ class RemoteOSFaultInjector(FaultInjector):
     def _get_kind_worker_containers(self):
         """Get Kind worker container names from the current kubectl context."""
         containers = []
-        for node in self._get_node_items():
+        nodes = self._get_node_items()
+        if nodes is None:
+            return containers
+        for node in nodes:
             if self._is_control_plane_node(node):
                 continue
             provider_id = node.get("spec", {}).get("providerID") or ""
