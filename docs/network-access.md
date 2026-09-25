@@ -48,6 +48,8 @@ After an upgrade, remove `~/cache_dir/cluster_baseline_state.json` from the mach
 Do this only with the cluster healthy, all runs stopped, no active fault, and benchmark application namespaces removed.
 SREGym captures a new baseline on the next run.
 
+Baselines are tied to the cluster's `kube-system` namespace UID. After a cluster replacement, SREGym captures a new baseline instead of reusing the previous cluster's state. Older baseline files without a cluster UID stop setup with an error. Before removing one, reset the cluster to a clean state under the conditions above; otherwise leftover benchmark resources could become part of the new baseline.
+
 ```bash
 rm ~/cache_dir/cluster_baseline_state.json
 ```
