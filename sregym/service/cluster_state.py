@@ -192,17 +192,23 @@ class ClusterStateManager:
         Should be called on a freshly created cluster (after infrastructure deployment)
         to establish a known-clean reference state.
         """
+        # The namespace UID changes when a cluster is rebuilt, even under the same name.
+        cluster_uid = self.core_v1.read_namespace("kube-system").metadata.uid
         baseline = self.capture_baseline()
+        data = baseline.to_json()
+        data["cluster_uid"] = cluster_uid
         path.parent.mkdir(parents=True, exist_ok=True)
         with open(path, "w") as f:
-            json.dump(baseline.to_json(), f, indent=2)
+            json.dump(data, f, indent=2)
         logger.info(f"Baseline state snapshot saved to {path}")
 
     def load_baseline_state(self, path: Path) -> bool:
         """
         Load a previously saved baseline state snapshot and use it as the baseline.
         Returns True if the baseline state was loaded successfully, False otherwise.
+        Baselines without cluster identity require a clean reset before recapturing.
         """
+        self.baseline = None
         if not path.exists():
             logger.debug(f"No baseline state file found at {path}")
             return False
@@ -210,6 +216,14 @@ class ClusterStateManager:
         try:
             with open(path) as f:
                 data = json.load(f)
+            if not data.get("cluster_uid"):
+                raise RuntimeError(
+                    f"Baseline {path} has no cluster identity. "
+                    "Reset the cluster to a clean state and remove this file before retrying."
+                )
+            if data["cluster_uid"] != self.core_v1.read_namespace("kube-system").metadata.uid:
+                logger.warning(f"Baseline state in {path} belongs to a different cluster; capturing a new baseline")
+                return False
             self.baseline = ClusterBaseline.from_json(data)
             logger.info(f"Baseline state loaded from {path}")
             return True
