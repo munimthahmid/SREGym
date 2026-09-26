@@ -860,16 +860,20 @@ def test_cleanup_failure_makes_a_fully_graded_attempt_incomplete():
 
 
 def test_cleanup_continues_after_recovery_error_and_reaches_terminal_state():
+    from sregym.utils.decorators import mark_fault_injected
+
     conductor = _conductor()
     app_cleaned = threading.Event()
 
-    def recover_fault():
+    @mark_fault_injected
+    def recover_fault(self):
         raise RuntimeError("recovery failed")
 
     conductor.problem = SimpleNamespace(
-        recover_fault=recover_fault,
+        fault_injected=True,
         app=SimpleNamespace(cleanup=app_cleaned.set),
     )
+    conductor.problem.recover_fault = MethodType(recover_fault, conductor.problem)
     conductor._baseline_captured = False
     conductor.submission_stage = "tearing_down"
 
@@ -879,6 +883,107 @@ def test_cleanup_continues_after_recovery_error_and_reaches_terminal_state():
     assert conductor.submission_stage == "done"
     assert conductor.results["cleanup_failed"] is True
     assert "recover_fault: RuntimeError: recovery failed" in conductor.results["cleanup_error"]
+    assert conductor.problem.fault_injected is True
+
+
+def test_driver_failure_stops_agent_then_drains_evaluation_before_cleanup(monkeypatch):
+    import main as benchmark_main
+
+    gate = threading.Event()
+    events = []
+
+    def evaluate(_solution):
+        gate.wait(2)
+        events.append("evaluated")
+        return {"success": True}
+
+    conductor = _conductor(diagnosis_evaluation=evaluate)
+    conductor.problem = SimpleNamespace(
+        recover_fault=lambda: events.append("recovered"),
+        app=SimpleNamespace(cleanup=lambda: events.append("app_cleaned")),
+    )
+
+    def stop_agent():
+        events.append("agent_stopped")
+        gate.set()
+
+    monkeypatch.setattr(benchmark_main.LAUNCHER, "cleanup_all", stop_agent)
+
+    async def run():
+        await conductor.submit("diagnosis", expected_stage="diagnosis")
+        await benchmark_main._cleanup_after_driver_failure(conductor)
+
+    try:
+        asyncio.run(run())
+    finally:
+        gate.set()
+        _wait_for_current_evaluation(conductor)
+    assert events == ["agent_stopped", "evaluated", "recovered", "app_cleaned"]
+    assert conductor.submission_stage == "done"
+    assert conductor.results["run_status"] == "incomplete"
+
+
+@pytest.mark.parametrize("already_abandoned", [False, True])
+def test_driver_failure_never_cleans_up_alongside_a_stuck_evaluator(monkeypatch, already_abandoned):
+    import main as benchmark_main
+
+    gate = threading.Event()
+    conductor = _conductor(diagnosis_evaluation=lambda _solution: gate.wait(2))
+    recovered = threading.Event()
+    conductor.problem = SimpleNamespace(
+        recover_fault=recovered.set,
+        app=SimpleNamespace(cleanup=lambda: None),
+    )
+    monkeypatch.setattr(benchmark_main.LAUNCHER, "cleanup_all", lambda: None)
+    monkeypatch.setattr(benchmark_main, "EVALUATION_DRAIN_TIMEOUT_SECONDS", 0.01)
+
+    async def run():
+        await conductor.submit("diagnosis", expected_stage="diagnosis")
+        future = conductor._submit_future
+        try:
+            if already_abandoned:
+                conductor.abandon_submission_work()
+            await benchmark_main._cleanup_after_driver_failure(conductor)
+            assert conductor.submission_stage == "aborted"
+            assert not recovered.is_set()
+        finally:
+            gate.set()
+            future.result(timeout=2)
+
+    asyncio.run(run())
+    assert not recovered.is_set()
+
+
+def test_driver_failure_bounds_cleanup_and_stops_later_phases(monkeypatch):
+    import main as benchmark_main
+
+    gate = threading.Event()
+    app_cleaned = threading.Event()
+    conductor = _conductor()
+    conductor.problem = SimpleNamespace(
+        recover_fault=lambda: gate.wait(2),
+        app=SimpleNamespace(cleanup=app_cleaned.set),
+    )
+    monkeypatch.setattr(benchmark_main.LAUNCHER, "cleanup_all", lambda: None)
+    monkeypatch.setattr(benchmark_main, "CLEANUP_DRAIN_TIMEOUT_SECONDS", 0.01)
+    futures = []
+    finish = conductor.finish_problem_in_background
+
+    def track_cleanup():
+        future = finish()
+        futures.append(future)
+        return future
+
+    monkeypatch.setattr(conductor, "finish_problem_in_background", track_cleanup)
+    try:
+        asyncio.run(benchmark_main._cleanup_after_driver_failure(conductor))
+        assert conductor.submission_stage == "aborted"
+        assert conductor.results["cleanup_timed_out"] is True
+    finally:
+        gate.set()
+        for future in futures:
+            future.result(timeout=2)
+    assert not app_cleaned.is_set()
 
 
 def test_abandoned_cleanup_does_not_run_later_cleanup_phases():

@@ -2,7 +2,7 @@ import json
 import logging
 import shutil
 from types import SimpleNamespace
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, Mock
 
 import pytest
 import yaml
@@ -130,6 +130,38 @@ def test_startup_repairs_the_metrics_selector_then_waits_for_metrics(startup, mo
     )
     assert startup._metrics_server_configured.call_count == 3
     conductor_module.time.sleep.assert_called_once_with(2)
+
+
+@pytest.mark.parametrize("persisted", [False, True])
+def test_first_deploy_prepares_baseline_before_installing_infrastructure(startup, persisted):
+    startup._baseline_captured = False
+    events = []
+    startup.cluster_state = Mock()
+    startup.cluster_state.load_baseline_state.return_value = persisted
+    startup.cluster_state.reconcile_to_baseline.side_effect = lambda: events.append("reconcile")
+    startup.cluster_state.save_baseline_state.side_effect = lambda _path: events.append("capture")
+
+    def reached_infrastructure():
+        events.append("infrastructure")
+        raise ObserverSetupReached
+
+    startup._metrics_server_configured.side_effect = reached_infrastructure
+    for _ in range(2):
+        with pytest.raises(ObserverSetupReached):
+            startup.deploy_app()
+    assert events == ["reconcile" if persisted else "capture", "infrastructure", "infrastructure"]
+    startup.cluster_state.load_baseline_state.assert_called_once()
+
+
+def test_failed_startup_reconciliation_prevents_deployment_and_can_be_retried(startup):
+    startup._baseline_captured = False
+    startup.cluster_state = Mock()
+    startup.cluster_state.load_baseline_state.return_value = True
+    startup.cluster_state.reconcile_to_baseline.side_effect = RuntimeError("cluster unavailable")
+    with pytest.raises(RuntimeError, match="cluster unavailable"):
+        startup.deploy_app()
+    assert startup._baseline_captured is False
+    startup._metrics_server_configured.assert_not_called()
 
 
 @pytest.mark.parametrize("svelte", [False, True])

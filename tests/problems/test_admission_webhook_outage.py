@@ -1,6 +1,7 @@
 import json
 from types import SimpleNamespace
 
+import pytest
 from kubernetes.client.rest import ApiException
 
 from sregym.conductor.problems.admission_webhook_outage import AdmissionWebhookOutage
@@ -147,7 +148,8 @@ def test_recovery_requires_saved_ownership_state_before_deleting_webhook(tmp_pat
     admission_api = _AdmissionApi(current=SimpleNamespace(metadata=SimpleNamespace(resource_version="99")))
     problem = _problem(tmp_path, admission_api)
 
-    problem.recover_fault()
+    with pytest.raises(RuntimeError, match="Saved webhook configuration is missing"):
+        problem.recover_fault()
 
     assert admission_api.deleted == []
-    assert problem.fault_injected is False
+    assert problem.fault_injected is True

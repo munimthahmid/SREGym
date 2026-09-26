@@ -90,6 +90,8 @@ def test_judge_preflight_only_when_diagnosis_can_run(monkeypatch, stages, extern
         noise=False,
         use_external_harness=external,
         stages=stages,
+        baseline=None,
+        propagation=None,
     )
     with pytest.raises(ReachedConductor):
         benchmark_main._run_benchmark(args)
@@ -122,3 +124,33 @@ def test_deployment_retries_only_transient_failures(monkeypatch, tmp_path, platf
     assert results == [
         {None: [{"problem_id": "problem", "attempt": 1, "deployment_profile": "full", "deploy_failed": True}]}
     ]
+
+
+def test_launch_failure_runs_cleanup_and_preserves_the_original_exception(monkeypatch, tmp_path):
+    benchmark_main = _load_main_module()
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setattr(benchmark_main.asyncio, "sleep", AsyncMock())
+    monkeypatch.setattr(benchmark_main, "get_profile", lambda: "full")
+    monkeypatch.setattr(benchmark_main, "list_agents", lambda **kwargs: {"opencode": object()})
+    monkeypatch.setattr(benchmark_main, "get_agent", lambda *args, **kwargs: object())
+    conductor = SimpleNamespace(
+        problems=Mock(get_problem_ids=Mock(return_value=["problem"])),
+        results={},
+        stage_sequence=[{"name": "diagnosis"}],
+        register_agent=Mock(),
+        start_k8s_proxy=Mock(),
+        get_agent_kubeconfig_path=Mock(return_value=None),
+        bind_phase_ledger=Mock(),
+        start_problem=AsyncMock(return_value=benchmark_main.StartProblemResult.SUCCESS),
+    )
+    error = FileNotFoundError("agent executable is missing")
+    monkeypatch.setattr(benchmark_main.LAUNCHER, "ensure_started", AsyncMock(side_effect=error))
+    cleanup = AsyncMock(side_effect=RuntimeError("cleanup also failed"))
+    monkeypatch.setattr(benchmark_main, "_cleanup_after_driver_failure", cleanup)
+    try:
+        with pytest.raises(FileNotFoundError) as caught:
+            benchmark_main.driver_loop(conductor, agent_to_run="opencode")
+    finally:
+        benchmark_main.console.clear_live()
+    assert caught.value is error
+    cleanup.assert_awaited_once_with(conductor)

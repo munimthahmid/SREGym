@@ -794,7 +794,49 @@ def driver_loop(
 
         return [{agent_to_run: all_results_for_agent}]
 
-    return asyncio.run(driver())
+    async def driver_with_cleanup():
+        try:
+            return await driver()
+        except BenchmarkCampaignAborted:
+            # These paths already drained or abandoned their worker and saved
+            # the partial results. Never overlap an abandoned worker with cleanup.
+            raise
+        except BaseException:
+            try:
+                await _cleanup_after_driver_failure(conductor)
+            except BaseException:
+                logger.exception("Cleanup after driver failure failed")
+            raise
+
+    return asyncio.run(driver_with_cleanup())
+
+
+async def _cleanup_after_driver_failure(conductor: Conductor) -> None:
+    """Drain accepted work before bounded teardown of an interrupted attempt."""
+    LAUNCHER.cleanup_all()
+    if conductor.problem is None or conductor.submission_stage == "aborted":
+        return
+
+    conductor.close_submissions()
+    conductor.record_incomplete_attempt("driver_error")
+    try:
+        await conductor.wait_for_submission_evaluations(timeout=EVALUATION_DRAIN_TIMEOUT_SECONDS)
+    except Exception:
+        conductor.abandon_submission_work()
+        logger.exception("Could not drain grading after driver failure; deferring cleanup to the next startup")
+        return
+
+    try:
+        conductor.finish_problem_in_background()
+        await conductor.wait_for_submission_work(timeout=CLEANUP_DRAIN_TIMEOUT_SECONDS)
+    except TimeoutError:
+        conductor.abandon_submission_work()
+        conductor.results["cleanup_timed_out"] = True
+        logger.exception("Cleanup after driver failure timed out; deferring remaining work to the next startup")
+    except Exception as exc:
+        conductor.results["cleanup_failed"] = True
+        conductor.results["cleanup_error"] = f"{type(exc).__name__}: {exc}"
+        logger.exception("Cleanup after driver failure raised")
 
 
 def _run_driver_and_shutdown(

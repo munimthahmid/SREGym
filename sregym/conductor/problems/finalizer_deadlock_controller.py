@@ -123,8 +123,13 @@ class FinalizerDeadlockController(Problem):
 
         self._restore_clusterrole()
         if not self._wait_until_configmap_deleted(timeout_seconds=60):
-            raise TimeoutError(f"Controller did not delete ConfigMap `{self.configmap_name}` after RBAC recovery")
-        print(f"ClusterRole `{self.clusterrole_name}` restored; controller completed cleanup")
+            # Teardown must also work if the agent removed the controller or its
+            # binding. Grading has already finished, so clear the task's finalizer.
+            print("Controller cleanup timed out; removing the ConfigMap finalizers for teardown")
+            self._force_clear_finalizer()
+            if not self._wait_until_configmap_deleted(timeout_seconds=30):
+                raise TimeoutError(f"ConfigMap `{self.configmap_name}` still exists after finalizer cleanup")
+        print(f"ClusterRole `{self.clusterrole_name}` restored; ConfigMap cleanup completed")
 
         print(f"Resource: configmap/{self.configmap_name} | Namespace: {self.namespace}\n")
 

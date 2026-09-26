@@ -1,4 +1,4 @@
-"""Fault-state updates must not conceal strict recovery failures."""
+"""Fault-state updates must not conceal recovery failures."""
 
 from types import SimpleNamespace
 
@@ -29,14 +29,25 @@ def test_strict_recovery_preserves_failure_and_fault_state():
     assert problem.fault_injected is True
 
 
-def test_default_recovery_keeps_existing_behavior():
+def test_default_recovery_preserves_failure_and_fault_state():
     @mark_fault_injected
     def recover_fault(self):
         raise RuntimeError("recovery failed")
 
     problem = SimpleNamespace(fault_injected=True)
+    with pytest.raises(RuntimeError, match="recovery failed"):
+        recover_fault(problem)
+    assert problem.fault_injected is True
+
+
+def test_explicit_best_effort_recovery_keeps_fault_state_on_error():
+    @mark_fault_injected(strict=False)
+    def recover_fault(self):
+        raise RuntimeError("recovery failed")
+
+    problem = SimpleNamespace(fault_injected=True)
     assert recover_fault(problem) is None
-    assert problem.fault_injected is False
+    assert problem.fault_injected is True
 
 
 def test_injection_failure_preserves_failure_and_fault_state():

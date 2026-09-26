@@ -1391,21 +1391,25 @@ class Conductor:
 
         self.logger.info("Fix Kubernetes completed.")
 
-    def deploy_app(self):
-        """Kubectl + Prometheus + problem.app deployment."""
-        problem = self.current_problem
-        self.submission_stage = "setup"
-
+    def _prepare_cluster_baseline(self):
         # Load or capture baseline state BEFORE any infrastructure deployment.
         # This captures the bare cluster state so reconciliation can clean up
         # everything added during a problem run (including infrastructure drift).
         if not self._baseline_captured:
             if self.cluster_state.load_baseline_state(CLUSTER_BASELINE_STATE_FILE):
                 self.logger.info("[DEPLOY] Loaded persisted cluster baseline state")
+                # A previous process may have exited before per-problem cleanup.
+                self.cluster_state.reconcile_to_baseline()
             else:
                 self.logger.info("[DEPLOY] No persisted baseline state found, capturing and saving...")
                 self.cluster_state.save_baseline_state(CLUSTER_BASELINE_STATE_FILE)
             self._baseline_captured = True
+
+    def deploy_app(self):
+        """Kubectl + Prometheus + problem.app deployment."""
+        problem = self.current_problem
+        self.submission_stage = "setup"
+        self._prepare_cluster_baseline()
 
         self.logger.info("[DEPLOY] Setting up metrics-server…")
         # metrics-server lives in kube-system, which is protected from

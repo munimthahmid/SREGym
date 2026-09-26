@@ -12,6 +12,7 @@ def problem():
     instance.namespace = "astronomy-shop"
     instance.faulty_service = ["product-catalog"]
     instance._original_images = {}
+    instance.fault_injected = False
     instance.injector = Mock()
     instance.kubectl = Mock()
     instance.deployment = SimpleNamespace(
@@ -66,19 +67,20 @@ def test_partial_injection_failure_keeps_original_image(problem):
     problem.kubectl.patch_deployment.assert_called_once()
 
 
-def test_recovery_without_injection_does_not_guess_an_image(problem, capsys):
-    # The shared recovery decorator reports errors instead of re-raising them.
-    problem.recover_fault()
+def test_recovery_without_injection_does_not_guess_an_image(problem):
+    with pytest.raises(RuntimeError, match="refusing to guess"):
+        problem.recover_fault()
     problem.kubectl.patch_deployment.assert_not_called()
-    assert "refusing to guess" in capsys.readouterr().out
+    assert problem.fault_injected is False
 
 
-def test_recovery_rejects_a_recreated_deployment(problem, capsys):
+def test_recovery_rejects_a_recreated_deployment(problem):
     problem.inject_fault()
     problem.deployment.metadata.uid = "another-deployment"
-    problem.recover_fault()
+    with pytest.raises(RuntimeError, match="refusing to restore a stale image"):
+        problem.recover_fault()
     problem.kubectl.patch_deployment.assert_not_called()
-    assert "refusing to restore a stale image" in capsys.readouterr().out
+    assert problem.fault_injected is True
 
 
 def test_reinjection_rejects_a_recreated_deployment(problem):
@@ -89,17 +91,21 @@ def test_reinjection_rejects_a_recreated_deployment(problem):
     assert problem.injector.inject_incorrect_image.call_count == 1
 
 
-def test_recovery_rejects_a_removed_container(problem, capsys):
+def test_recovery_rejects_a_removed_container(problem):
     problem.inject_fault()
     problem.deployment.spec.template.spec.containers.pop(0)
-    problem.recover_fault()
+    with pytest.raises(RuntimeError, match="Original container 'product-catalog' is missing"):
+        problem.recover_fault()
     problem.kubectl.patch_deployment.assert_not_called()
-    assert "Original container 'product-catalog' is missing" in capsys.readouterr().out
+    assert problem.fault_injected is True
 
 
 def test_recovery_can_retry_a_failed_patch(problem):
     problem.inject_fault()
     problem.kubectl.patch_deployment.side_effect = [RuntimeError("patch failed"), None]
-    problem.recover_fault()
+    with pytest.raises(RuntimeError, match="patch failed"):
+        problem.recover_fault()
+    assert problem.fault_injected is True
     problem.recover_fault()
     assert problem.kubectl.patch_deployment.call_count == 2
+    assert problem.fault_injected is False
