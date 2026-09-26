@@ -123,10 +123,19 @@ class FinalizerDeadlockController(Problem):
 
         self._restore_clusterrole()
         if not self._wait_until_configmap_deleted(timeout_seconds=60):
-            # Teardown must also work if the agent removed the controller or its
-            # binding. Grading has already finished, so clear the task's finalizer.
+            # The controller or its binding may be gone. Clear the task's
+            # finalizers so they cannot block application cleanup.
             print("Controller cleanup timed out; removing the ConfigMap finalizers for teardown")
             self._force_clear_finalizer()
+            # Partial injection may have created the ConfigMap without ever
+            # requesting deletion. Removing its finalizer alone won't delete it.
+            with _ignore_not_found():
+                self.kubectl.core_v1_api.delete_namespaced_config_map(
+                    self.configmap_name,
+                    self.namespace,
+                    body=client.V1DeleteOptions(grace_period_seconds=0),
+                    _request_timeout=10,
+                )
             if not self._wait_until_configmap_deleted(timeout_seconds=30):
                 raise TimeoutError(f"ConfigMap `{self.configmap_name}` still exists after finalizer cleanup")
         print(f"ClusterRole `{self.clusterrole_name}` restored; ConfigMap cleanup completed")

@@ -26,6 +26,7 @@ def _conductor(diagnosis_evaluation=None, mitigation_evaluation=None) -> Conduct
     conductor.logger = logging.getLogger("test.submission_lifecycle")
     conductor.config = SimpleNamespace(enable_noise=False)
     conductor.problem = None
+    conductor.fault_injected = True
     conductor._baseline_captured = False
     conductor.execution_start_time = time.time()
     conductor.results = {}
@@ -886,6 +887,60 @@ def test_cleanup_continues_after_recovery_error_and_reaches_terminal_state():
     assert conductor.problem.fault_injected is True
 
 
+def test_cleanup_before_injection_does_not_require_fault_recovery_state():
+    from sregym.conductor.problems.incorrect_image import IncorrectImage
+
+    conductor = _conductor()
+    app_cleaned = threading.Event()
+    problem = IncorrectImage.__new__(IncorrectImage)
+    problem._original_images = {}
+    problem.faulty_service = ["product-catalog"]
+    problem.fault_injected = False
+    problem.app = SimpleNamespace(cleanup=app_cleaned.set)
+    conductor.problem = problem
+    conductor.fault_injected = False
+    conductor.submission_stage = "setup"
+
+    conductor.finish_problem_in_background().result(timeout=2)
+
+    assert app_cleaned.is_set()
+    assert conductor.submission_stage == "done"
+    assert not conductor.results.get("cleanup_failed")
+
+
+def test_partial_injection_failure_still_runs_recovery():
+    from sregym.utils.decorators import mark_fault_injected
+
+    events = []
+
+    class PartialInjection:
+        mitigation_oracle = None
+        fault_injected = False
+        app = SimpleNamespace(cleanup=lambda: events.append("app_cleaned"))
+
+        @mark_fault_injected
+        def inject_fault(self):
+            events.append("partially_injected")
+            raise RuntimeError("injection failed after changing the cluster")
+
+        @mark_fault_injected
+        def recover_fault(self):
+            events.append("recovered")
+
+    conductor = _conductor()
+    conductor.problem = PartialInjection()
+    conductor.fault_injected = False
+    with pytest.raises(RuntimeError, match="injection failed"):
+        conductor._inject_fault()
+    assert conductor.fault_injected is True
+    assert conductor.problem.fault_injected is False
+
+    conductor.finish_problem_in_background().result(timeout=2)
+
+    assert events == ["partially_injected", "recovered", "app_cleaned"]
+    assert not conductor.results.get("cleanup_failed")
+
+
 def test_driver_failure_stops_agent_then_drains_evaluation_before_cleanup(monkeypatch):
     import main as benchmark_main
 
@@ -1103,10 +1158,11 @@ def test_new_generation_uses_setup_state_before_early_setup_failure(monkeypatch)
         asyncio.run(conductor.start_problem())
 
     assert conductor.submission_stage == "setup"
+    assert conductor.fault_injected is False
     future = conductor.finish_problem_in_background()
     future.result(timeout=2)
 
-    assert recovered.is_set()
+    assert not recovered.is_set()
     assert app_cleaned.is_set()
     assert conductor.submission_stage == "done"
 

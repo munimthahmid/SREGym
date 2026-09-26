@@ -321,9 +321,11 @@ class Conductor:
         if mitigation_oracle is not None:
             mitigation_oracle.capture_baseline()
 
+        # Injection can change the cluster and then raise, so cleanup must try
+        # recovery once injection starts.
+        self.fault_injected = True
         problem.inject_fault()
         self.logger.info("[ENV] Injected fault")
-        self.fault_injected = True
 
         # Prepare diagnosis checkpoint if available, after fault injection but before agent stages
         if (
@@ -506,7 +508,7 @@ class Conductor:
             return
 
         # Recover fault using the captured problem reference
-        if problem:
+        if problem and self.fault_injected:
             self.logger.info("[CLEANUP] Recovering fault...")
             try:
                 problem.recover_fault()
@@ -681,6 +683,7 @@ class Conductor:
             self.submission_stage = "setup"
             self.waiting_for_agent = False
             self._evaluating = False
+            self.fault_injected = False
             self.problem = None
             self.app = None
             self.results = {}
