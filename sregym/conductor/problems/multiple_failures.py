@@ -63,10 +63,17 @@ class MultipleIndependentFailures(Problem):
     @mark_fault_injected
     def recover_fault(self):
         print("== Fault Recovery ==")
+        errors = []
         for p in self.problems:
             print(f"Recovering Fault: {p.__class__.__name__} | Namespace: {p.namespace}")
-            p.recover_fault()
+            try:
+                p.recover_fault()
+            except Exception as exc:
+                errors.append(f"{p.__class__.__name__} ({p.namespace}): {type(exc).__name__}: {exc}")
             time.sleep(1)
+        if errors:
+            raise RuntimeError("Fault recovery failed: " + "; ".join(errors))
+        faults_str = " | ".join(p.__class__.__name__ for p in self.problems)
         print(
-            f"Recovering Fault: Multiple faults from included problems: [{self.faults_str}] | Namespace: {self.namespaces}\n"
+            f"Recovering Fault: Multiple faults from included problems: [{faults_str}] | Namespace: {self.namespaces}\n"
         )
