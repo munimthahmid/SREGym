@@ -53,6 +53,13 @@ All held-out runs and the final Lite pass use exactly this commit; the other dev
 pass (results in `results/<problem>/final/`). Earlier Lite runs (mixed versions, during development) stay in the
 results file as history.
 
+## Held-out astronomy (this laptop) — PAUSED 2026-10-19 00:50: OpenRouter account out of credits
+The key is free tier and the account never bought credits; the free allowance (~$0.20) ran out after 2 held-out faults
+(DNS astronomy 89, wrong service selector astronomy 44, official v2 Jev). After credits are added on openrouter.ai,
+resume from `jev-v2-runs/` (skips the 2 done; grading covers all 21):
+`HELD="$(tr ' ' '\n' <<< "$(sed -n '/^ALL_HELD=/,/kubelet_crash"/p' chain6.sh | tr -d '"' | sed 's/ALL_HELD=//')" | grep -v -e '^$' -e '^service_dns_resolution_failure_astronomy_shop$' -e '^wrong_service_selector_astronomy_shop$' | tr '\n' ' ')" setsid nohup ./chain6.sh > chain6.out 2>&1 < /dev/null &`
+The other device needs credits too (same account).
+
 ## Running on two devices at once
 - Each device runs its own kind cluster and its own list of faults; nothing is shared but the OpenRouter key and the
   Codex (ChatGPT) login, which both work from two places.
