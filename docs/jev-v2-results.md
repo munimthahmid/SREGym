@@ -1,5 +1,51 @@
 # jev v2 results (SREGym-Lite, arms mode: one snapshot per fault, four arms; judge gpt-6-astra, high, via Codex)
 
+## Final pass: frozen v2 1d22d925, all 17 SREGym-Lite faults (2026-10-18 22:05 to 2026-10-19 00:32)
+
+One run per fault, four arms on the same snapshot, all graded by gpt-6-astra (high) through Codex with the
+same SREGym oracle. ✗ = fail (below 0.70).
+
+| Arm | Passed | Average | Input tokens (all 17) | Model cost (all 17) |
+|---|---|---|---|---|
+| **v2 + Jev 1.13** | **16/17** | 92.2 | 164k | $0.0069 |
+| v2 + Decisions | 14/17 | 83.1 | 133k | $0.0133 |
+| v1 + Jev 1.13 | 13/17 | 86.4 | 606k | $0.0255 |
+| v1 + Decisions | 13/17 | 83.2 | 388k | $0.0388 |
+| Blog v1 (Jev 1.13, 5 runs each) | 12/17 | | | |
+
+| Fault | Blog v1 | v2 Jev | v2 Decisions | v1 Jev | v1 Decisions |
+|---|---|---|---|---|---|
+| service_wrong_pod_selection_hotel_reservation | 5/5 | 89 | 89 | 100 | 89 |
+| search_rate_retry_collapse_hotel_reservation | **0/5** | 89 | 45 ✗ | 34 ✗ | 34 ✗ |
+| cronjob_sidecar_blocks_completion_hotel_reservation | 5/5 | 100 | 100 | 100 | 100 |
+| finalizer_deadlock_controller_hotel_reservation | 5/5 | 100 | 100 | 100 | 100 |
+| namespace_memory_limit | 5/5 | 89 | 89 | 89 | 89 |
+| network_policy_block | 5/5 | 100 | 100 | 100 | 100 |
+| service_dns_resolution_failure_social_network | **0/5** | 100 | 100 | 89 | 67 ✗ |
+| mutating_webhook_resource_limits_social_network | 5/5 | 89 | 89 | 89 | 89 |
+| duplicate_pvc_mounts_social_network | 5/5 | 100 | 100 | 100 | 100 |
+| rolling_update_misconfigured_social_network | 5/5 | 100 | 100 | 100 | 100 |
+| edge_request_filter_cpu_saturation | **0/5** | 89 | 89 | 67 ✗ | 89 |
+| env_variable_shadowing_astronomy_shop | 5/5 | 89 | 89 | 89 | 89 |
+| kafka_poison_pill_hol_block | **0/5** | 89 | 89 | 67 ✗ | 56 ✗ |
+| internal_traffic_policy_local_astronomy_shop | 5/5 | 89 | 89 | 100 | 89 |
+| valkey_auth_disruption | **0/5** | 67 ✗ | 67 ✗ | 45 ✗ | 23 ✗ |
+| secret_rotation_stale_env_credentials_astronomy_shop | 5/5 | 100 | 0 ✗ | 100 | 100 |
+| unschedulable_incorrect_port_assignment | 5/5 | 89 | 78 | 100 | 100 |
+
+**What it shows:**
+- v2 + Jev passes 16/17 (blog v1: 12/17; v1 here: 13/17). It passes four of the blog's five failures (retry
+  collapse, DNS, edge request filter, kafka) and loses none of the faults v1 passes. Only valkey fails, for every arm.
+- v2 uses about 3.7x fewer input tokens than v1 with Jev (2.9x with Decisions), and costs about a quarter.
+- v2 + Decisions passes 14/17. Its two extra misses are choices, not missing candidates: on retry collapse it
+  accepted "fault in rate, mechanism unknown" at 0.62 without reading detail; on secret rotation it moved from
+  the stale-read explanation (0.34) to the ConfigMap (0.45) and the budget ended.
+- Known v2 weaknesses (not fixed; the version is frozen): accepting a mechanism-unknown answer while budget
+  remains; valkey's runtime password needs a live check against the server (not built).
+- v1 + Decisions: on valkey, OpenAI's Decisions API refused one of v1's questions in the first pass (HTTP 502).
+
+The development runs below used v2 versions that changed during the day; they are kept as history.
+
 Arms: v2+Jev 1.13 (submitted officially), v2+Decisions (gpt-6-luna-decisions), v1+Jev 1.13, v1+Decisions.
 v1 = the team's jev_diag (blog version) with our PR #1118 fixes. All arms graded after the run by
 `clients.jev_v2.grade` (same oracle, same answer key); the submitted arm's official grade is a cross-check.
