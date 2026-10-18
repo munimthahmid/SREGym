@@ -53,6 +53,28 @@
   (`results/<problem>/` copies + `*_arms_graded.json`), and device A merges the scores into the table.
 - RAM: astronomy shop needs `--profile svelte` on a 14-16 GB machine; stop other apps first.
 
+### Held-out run (faults neither v1 nor v2 was built on; groups in `jev-v2-testsets.md`)
+Run with `bash docs/jev-v2-batch.sh NAME PROBLEM...` from the repo root (one fault after another, then one grading
+pass). Device B pushes `jev-v2-runs/` to its own branch `jev-v2-b` after each batch.
+
+Device B (light apps, 35 faults), in this order:
+```
+bash docs/jev-v2-batch.sh hotel duplicate_pvc_mounts_hotel_reservation rolling_update_misconfigured_hotel_reservation \
+  wrong_service_selector_hotel_reservation wrong_dns_policy_hotel_reservation readiness_probe_misconfiguration_hotel_reservation \
+  liveness_probe_too_aggressive_hotel_reservation sidecar_port_conflict_hotel_reservation service_port_conflict_hotel_reservation \
+  misconfig_app_hotel_res update_incompatible_correlated wrong_bin_usage missing_configmap_hotel_reservation \
+  missing_service_hotel_reservation configmap_drift_hotel_reservation resource_request_too_small ingress_misroute
+bash docs/jev-v2-batch.sh social stale_coredns_config_social_network wrong_dns_policy_social_network auth_miss_mongodb \
+  liveness_probe_too_aggressive_social_network sidecar_port_conflict_social_network service_port_conflict_social_network \
+  taint_no_toleration_social_network persistent_volume_affinity_violation scale_pod_zero_social_net
+bash docs/jev-v2-batch.sh blueprint capacity_decrease_rpc_retry_storm gc_capacity_degradation
+bash docs/jev-v2-batch.sh operator operator_invalid_affinity_toleration operator_non_existent_storage operator_overload_replicas \
+  operator_security_context_fault operator_wrong_operator_image operator_wrong_update_strategy_fault
+bash docs/jev-v2-batch.sh disk latent_sector_error silent_data_corruption   # may not run on kind; report as "not run"
+```
+Device A (this laptop, after Lite): the 21 astronomy shop faults with `EXTRA_ARGS="--profile svelte"` (images are
+already loaded here), then train ticket (2) only if RAM allows.
+
 ## Next steps
 1. Finish the Lite faults in arms mode: hotel (5 left at handoff), social network (4), astronomy shop (7; heavy,
    needs ~16 GB RAM). The blog's five failures: edge_request_filter_cpu_saturation, search_rate_retry_collapse,

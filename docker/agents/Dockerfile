@@ -45,6 +45,10 @@ RUN KUBECTL_ARCH="${TARGETARCH:-$(dpkg --print-architecture)}" \
 COPY docker/agents/requirements-container.txt /tmp/requirements-container.txt
 RUN python3 -m pip install --break-system-packages -r /tmp/requirements-container.txt
 
+# Codex CLI for the judge, baked in (before the code layers, so it stays cached) to skip the npm download per start.
+COPY docker/agents/install-scripts/install-codex.sh /tmp/install-codex.sh
+RUN bash /tmp/install-codex.sh
+
 # ───────────────────────────────────────────────
 # 5. Application code
 # ───────────────────────────────────────────────
