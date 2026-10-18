@@ -47,6 +47,12 @@
    slow link, pull those on every node first (`docker exec <node> crictl pull <image>`); otherwise attempt 1 fails
    and SREGym retries (attempt 2 then works because the image is cached).
 
+## Frozen v2 (2026-10-18 22:02): commit 1d22d925
+All held-out runs and the final Lite pass use exactly this commit; the other device must check out `1d22d925`
+(or `jev-v2` at that commit) before its runs. `chain5.sh` = final pass of all 17 Lite faults on it, then one grading
+pass (results in `results/<problem>/final/`). Earlier Lite runs (mixed versions, during development) stay in the
+results file as history.
+
 ## Running on two devices at once
 - Each device runs its own kind cluster and its own list of faults; nothing is shared but the OpenRouter key and the
   Codex (ChatGPT) login, which both work from two places.
