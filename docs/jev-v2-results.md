@@ -16,6 +16,28 @@ v1 = the team's jev_diag (blog version) with our PR #1118 fixes. All arms graded
 | mutating_webhook_resource_limits_social_network | 5/5 pass, 0.89 | 89 (official 89) | 89 | 89 | 89 | All four named the gatekeeper webhook. |
 | duplicate_pvc_mounts_social_network | 5/5 pass, 1.00 | **0 (official 0)** | **11** | 100 | 100 | **v2 gap.** v2 had no candidate for "a component's own setting is wrong" and skipped jaeger as a monitoring component; Jev picked a CoreDNS change left over from the previous (DNS) fault. Fixed in 3dc3e053 + c25fde1a; **live rerun with the fix: v2 Jev official 100** (other arms graded at the end). |
 | rolling_update_misconfigured_social_network | 5/5 pass, 1.00 | 89 (official 89) | 78 | 100 | 100 | v2 found custom-service but said "mechanism not established" (lost D2). With the own-setting fix, replay on this snapshot names the hang-init container and the rollout settings on both models. First attempt hit SREGym's 120 s image-pull limit; attempt 2 ran. |
+| edge_request_filter_cpu_saturation | **0/5 fail** | 89 (official 89) | 89 | 67 (fail) | 89 | **Blog failure fixed by v2 on both models.** v2 named frontend-proxy's new filter script with the catastrophic regex; v1 Jev blamed only the CPU limit (the blog's failure); v1 Decisions named the script too. |
+| env_variable_shadowing_astronomy_shop | 5/5 pass | 89 (official 89) | 89 | 89 | 89 | |
+| kafka_poison_pill_hol_block | **0/5 fail** | **11 (official 11)** | **11** | 67 (fail) | 56 (fail) | **v2 bug:** when no explanation fit, v2 re-read the same component instead of the next one, so it never read orders-validator's logs (the same message failing 51 times). Fixed in f0f42805; checked in the final pass. |
+| internal_traffic_policy_local_astronomy_shop | 5/5 pass | 89 (official 89) | 89 | 89 | 100 | |
+| valkey_auth_disruption | **0/5 fail** | 67 (official 67, fail) | 67 | 34 | 0 (API refused) | Everyone failed. v2 named valkey-cart but not the password; the password is set at runtime and nothing collected shows it (needs a probe, not built). v1 Decisions: OpenAI's Decisions API refused one of v1's questions (HTTP 502), so v1 Decisions submitted nothing. |
+| secret_rotation_stale_env_credentials_astronomy_shop | 5/5 pass | **0 (official 0)** | **0** | 100 | 100 | **v2 gap:** v2 framed the rewritten Secret, not the stale product-catalog, and both models picked a ConfigMap instead. Fixed in 1d22d925 (stale-read explanations + ranking); replay picks product-catalog on both models. |
+| unschedulable_incorrect_port_assignment | 5/5 pass | 89 (official 89) | 78 | 100 | 100 | |
+
+**All 17 Lite faults, first pass (development runs; v2 changed during the day, see Notes):**
+
+| Arm | Passed | Average score |
+|---|---|---|
+| v2 + Jev 1.13 | 13/17 | 75.9 |
+| v2 + Decisions | 13/17 | 74.6 |
+| v1 + Jev 1.13 | 13/17 | 84.5 |
+| v1 + Decisions | 13/17 | 82.5 |
+| Blog v1 (Jev 1.13, 5 runs each) | 12/17 | |
+
+v2 fixed two blog failures on both models (retry collapse, edge request filter) but had three gaps of its own
+(duplicate PVC, kafka, secret rotation), each a full miss, which pulls its average down. All three are fixed in the
+frozen v2 (**1d22d925**); valkey stays a miss for every arm. **Final pass:** all 17 faults again on the frozen
+1d22d925, four arms each (running overnight 2026-10-18); that table replaces this one for the PR.
 
 **Hotel + social, 10 faults, live runs (before the own-setting fix):**
 
