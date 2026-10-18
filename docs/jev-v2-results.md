@@ -11,5 +11,6 @@ v1 = the team's jev_diag (blog version) with our PR #1118 fixes. All arms graded
 | cronjob_sidecar_blocks_completion_hotel_reservation | 5/5 pass, 1.00 | 100 (official) | grading pending | grading pending | grading pending | All four arms named CronJob audit-log-archiver. Tokens: v2 3.8k/2.8k vs v1 31k/21k. |
 | finalizer_deadlock_controller_hotel_reservation | 5/5 pass, 1.00 | 100 (official) | grading pending | grading pending | grading pending | |
 | namespace_memory_limit | 5/5 pass, 0.89 | 89 (official) | grading pending | grading pending | grading pending | |
+| network_policy_block | 5/5 pass, 1.00 | 100 (official) | grading pending | grading pending | grading pending | |
 
 Run 1: 2026-10-18 18:45-18:59 (14 min end to end, images preloaded). Per-arm time 1-4 s, cost $0.0002-0.0019.
