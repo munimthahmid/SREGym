@@ -126,3 +126,26 @@ def test_auth_failures_and_repeated_input_failures_make_hidden_state_and_bad_inp
     hidden = found["hidden-state:deployment/valkey"]
     assert hidden.origin == "deployment/shop/valkey" and hidden.impact == ["deployment/shop/cart"]
     assert {e.origin for e in found.values() if e.pattern == "bad-input"} == {"input/shop/orders", "input/shop/fraud"}
+
+
+def test_a_wrong_setting_of_its_own_explains_a_broken_component_unless_another_object_already_does():
+    pvc = "PVC data is ReadWriteOnce (attachable to one node at a time) but 2 replicas of this Deployment mount it"
+    tracing = comp("Deployment", "jaeger", healthy=False, role="observability", signals=["firing alert X", pvc])
+    selected = comp("Deployment", "cart", healthy=False, signals=["selected by NetworkPolicy deny-all (denies all)"])
+    policy = {
+        "kind": "NetworkPolicy",
+        "name": "deny-all",
+        "namespace": "shop",
+        "signal": "denies all",
+        "components": ["deployment/cart"],
+    }
+    keys = {
+        e.key: e
+        for e in build_explanations(
+            snapshot({"deployment/jaeger": tracing, "deployment/cart": selected}, findings=[policy])
+        )
+    }
+    own = keys["own-setting:deployment/jaeger"]
+    assert own.values == [pvc] and pvc in own.mechanism and own.predictions[0].status == SUPPORTS
+    assert "partial:deployment/jaeger" not in keys  # one candidate per origin
+    assert "own-setting:deployment/cart" not in keys and "partial:deployment/cart" in keys  # the policy explains it
