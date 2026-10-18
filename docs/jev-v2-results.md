@@ -12,6 +12,23 @@ v1 = the team's jev_diag (blog version) with our PR #1118 fixes. All arms graded
 | finalizer_deadlock_controller_hotel_reservation | 5/5 pass, 1.00 | 100 (official 100) | 100 | 100 | 100 | Tokens: v2 3.8k/2.6k vs v1 30k/21k. |
 | namespace_memory_limit | 5/5 pass, 0.89 | 89 (official 89) | 89 | 89 | 89 | All four lost the same D-question. Tokens: v2 4.0k/2.9k vs v1 25k/17k. |
 | network_policy_block | 5/5 pass, 1.00 | 100 (official 100) | 100 | 100 | 100 | Tokens: v2 3.7k/2.5k vs v1 26k/17k. |
+| service_dns_resolution_failure_social_network | **0/5 fail, 0.56-0.67** | 100 (official 100) | 100 | 89 | 67 (fail) | All arms but v1 Decisions named ConfigMap coredns and the NXDOMAIN rule for user-service; v1 Decisions blamed Deployment user-service. v1 Jev also passes here with today's answer key, so this is not a clean "v2 fixed it" case. |
+| mutating_webhook_resource_limits_social_network | 5/5 pass, 0.89 | 89 (official 89) | 89 | 89 | 89 | All four named the gatekeeper webhook. |
+| duplicate_pvc_mounts_social_network | 5/5 pass, 1.00 | **0 (official 0)** | **11** | 100 | 100 | **v2 gap.** v2 had no candidate for "a component's own setting is wrong" and skipped jaeger as a monitoring component; Jev picked a CoreDNS change left over from the previous (DNS) fault. Fixed in 3dc3e053 + c25fde1a; **live rerun with the fix: v2 Jev official 100** (other arms graded at the end). |
+| rolling_update_misconfigured_social_network | 5/5 pass, 1.00 | 89 (official 89) | 78 | 100 | 100 | v2 found custom-service but said "mechanism not established" (lost D2). With the own-setting fix, replay on this snapshot names the hang-init container and the rollout settings on both models. First attempt hit SREGym's 120 s image-pull limit; attempt 2 ran. |
+
+**Hotel + social, 10 faults, live runs (before the own-setting fix):**
+
+| Arm | Passed | Average score |
+|---|---|---|
+| v2 + Jev 1.13 | 9/10 | 85.6 |
+| v2 + Decisions | 9/10 | 84.5 |
+| v1 + Jev 1.13 | 9/10 | 89.0 |
+| v1 + Decisions | 8/10 | 86.8 |
+
+v2 fixed the blog's retry-collapse failure on both models but missed duplicate PVC (see the row). The own-setting fix
+is in; reruns of duplicate PVC and cronjob with it are graded at the end. The v2 code is frozen after this fix: the
+astronomy faults and every held-out fault run on the same version.
 
 **Hotel reservation, 6 faults (all graded):**
 

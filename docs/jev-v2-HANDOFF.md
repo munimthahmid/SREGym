@@ -8,7 +8,7 @@
   `git clone --recurse-submodules -b jev-v2 git@github.com:munimthahmid/SREGym.git ~/sregym/SREGym`. Contents:
   `clients/jev_v2/` (explain, patterns, decide, report, agent, arms, grade, replay) + `clients/jev_diag/driver.py`
   modes `v2` and `arms` + harness changes (OpenRouter client, filtered-egress rule for jev_diag, judge
-  `--judge-reasoning-effort`, `SREGYM_JUDGE_STARTUP_TIMEOUT`). 168 client tests pass; ruff clean.
+  `--judge-reasoning-effort`, `SREGYM_JUDGE_STARTUP_TIMEOUT`). 169 client tests pass; ruff clean (run pytest with `PYTEST_ADDOPTS=` here: the global `-n 4` breaks it).
 - **PR:** SREGym/SREGym#1118 (base `jev`) — budget-trim crash fix + log filter fix. Review requested from yimingsu01.
 - **Results so far:** `jev-v2-results.md`. Fault 1 (service_wrong_pod_selection): v2 Jev 100, v2 Decisions 100,
   v1 Jev 89, v1 Decisions 89.
@@ -22,8 +22,8 @@
 - Afterwards grade all arms: `SREGYM_AGENT_IMAGE=sregym-agent-base:latest uv run python -m clients.jev_v2.grade
   --problem <id> <path/*_arms.json> [...]` (one judge start per batch; ~3 min startup). Output `*_arms_graded.json`.
   `jev-v2-runs/grade-batch.sh NAME PROBLEM...` finds each problem's latest run, grades it, and copies files to
-  `results/<problem>/`. `chain2.sh` = grade social, then the astronomy faults with `--profile svelte`, then grade them.
-- Speedup (local, not committed): `docker/agents/Dockerfile` bakes the Codex CLI into the agent image and
+  `results/<problem>/`. `chain3.sh` = grade social, rerun duplicate PVC + cronjob live with the own-setting fix (3dc3e053), then the astronomy faults with `--profile svelte`, then grade astro and the reruns.
+- Speedup (committed 7b199e08, fork only, not for upstream PRs): `docker/agents/Dockerfile` bakes the Codex CLI into the agent image and
   `install-codex.sh` skips the npm install when Codex is already there, so judge start no longer downloads it.
 - Run outputs: `~/sregym/SREGym-fixes/results/<MMDD_HHMM>/.runtime/jev_diag/anon_*/` (git-ignored; copies of each
   fault's files go to `Priyo Work/jev-v2-runs/results/<problem>/` — move that folder to the new laptop) (`_arms.json`, `_snapshot.json`,
@@ -43,6 +43,9 @@
    `discard_unpacked_layers = false` on the source node, pull ghcr.io directly (mirror proxy corrupted blobs on cut
    downloads), docker.io via a `registry:2` pull-through mirror is fine. On a fast connection, skip all of this.
 7. If two leftover `init-pvc-*` pods sit Completed in `openebs`, delete them (they block SREGym's readiness wait).
+8. Some faults pull their own images and allow only 120 s (rolling update: `python:3.9-slim`, `busybox:1.36`). On a
+   slow link, pull those on every node first (`docker exec <node> crictl pull <image>`); otherwise attempt 1 fails
+   and SREGym retries (attempt 2 then works because the image is cached).
 
 ## Running on two devices at once
 - Each device runs its own kind cluster and its own list of faults; nothing is shared but the OpenRouter key and the
