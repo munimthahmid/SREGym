@@ -24,6 +24,7 @@ from rich.progress import (
 
 from clients.harness.problem_id import HARNESS_ARTIFACT_ID_ENV, HARNESS_PROBLEM_ID_ENV
 from clients.jev.config import configure as configure_jev
+from clients.jev_diag.config import configure as configure_jev_diag
 from logger import console, init_logger
 from sregym.agent_launcher import AgentLauncher
 from sregym.agent_registry import get_agent, list_agents
@@ -94,6 +95,7 @@ def run_preflight_check(
         "gemini": "clients.geminicli.driver",
         "cursor": "clients.cursor.driver",
         "mini-sre": "clients.mini_sre.driver",
+        "jev_diag": "clients.jev_diag.driver",
     }
     module_path = agent_driver_modules.get(agent_name)
     if not module_path:
@@ -843,7 +845,11 @@ def _run_driver_and_shutdown(
 
 def main(args):
     configure_jev(args)
+    configure_jev_diag(args)  # after configure_jev, which clears AGENT_JEV_MODEL unless --jev-model is set
     init_logger()
+    if judge_effort := getattr(args, "judge_reasoning_effort", None):
+        # Exported before the judge bridge starts so a CLI judge receives it too.
+        os.environ["JUDGE_REASONING_EFFORT"] = judge_effort
     backend = "api" if args.use_external_harness else getattr(args, "judge_backend", "api")
     with managed_judge_backend(backend, force_build=args.force_build) as agent_image:
         return _run_benchmark(args, judge_backend=backend, agent_image=agent_image)
@@ -1095,6 +1101,12 @@ if __name__ == "__main__":
         choices=("none", "minimal", "low", "medium", "high", "xhigh", "max"),
         default=None,
         help="Reasoning effort for Codex, Copilot, OpenCode, and Claude Code (uses the agent default when omitted)",
+    )
+    parser.add_argument(
+        "--judge-reasoning-effort",
+        choices=("none", "minimal", "low", "medium", "high", "xhigh", "max"),
+        default=None,
+        help="Reasoning effort for the judge model (default: JUDGE_REASONING_EFFORT env, else the provider default)",
     )
     parser.add_argument(
         "--jev-model",

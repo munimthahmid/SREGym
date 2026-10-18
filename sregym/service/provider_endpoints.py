@@ -84,6 +84,11 @@ def provider_endpoint_rules(
         if provider == "local":
             return _required_custom_base(environment, agent, model)
         return _provider_rules(provider, environment)
+    if agent == "jev_diag":
+        # Decision requests go to OpenRouter for openrouter/ models, otherwise to TypeSafe directly.
+        if model.casefold().startswith("openrouter/"):
+            return _provider_rules("openrouter", environment)
+        return _rules_from_urls((_configured_url(environment, "TYPESAFE_BASE_URL") or "https://api.typesafe.ai",))
     if agent in {"stratus", "mini-sre"}:
         if _configured_url(environment, "AGENT_API_BASE"):
             return _required_custom_base(environment, agent, model)

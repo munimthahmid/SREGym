@@ -19,7 +19,8 @@ from sregym.service.internet_policy import InternetPolicy
 logger = logging.getLogger(__name__)
 JUDGE_BACKENDS = ("api", "codex", "claudecode", "copilot", "cursor")
 BRIDGE_PORT = 4100
-STARTUP_TIMEOUT_SECONDS = 180
+# Slow links need longer for the CLI install that runs at bridge start.
+STARTUP_TIMEOUT_SECONDS = int(os.environ.get("SREGYM_JUDGE_STARTUP_TIMEOUT", "180"))
 AUTH_VARIABLES = {
     "claudecode": "CLAUDE_CODE_OAUTH_TOKEN",
     "copilot": "COPILOT_GITHUB_TOKEN",
@@ -102,6 +103,8 @@ def managed_judge_backend(backend: str = "api", *, force_build: bool = False) ->
         )
     )
     driver = f"python /logs/judge_bridge.py --backend {backend} --host 0.0.0.0 --port {BRIDGE_PORT}"
+    if effort := os.environ.get("JUDGE_REASONING_EFFORT"):
+        driver += f" --effort {effort}"
     command = runner.build_composite_command(registration.install_script, registration.agent_version, driver)
     request = ExecInput(command=command, label=f"judge-{backend}")
     previous_url = os.environ.get("SREGYM_JUDGE_BRIDGE_URL")
