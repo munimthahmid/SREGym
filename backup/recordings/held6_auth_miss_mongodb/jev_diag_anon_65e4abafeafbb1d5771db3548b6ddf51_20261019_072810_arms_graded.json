@@ -1,0 +1,538 @@
+{
+ "problem_id": "jev_diag_anon_65e4abafeafbb1d5771db3548b6ddf51_20261019_072810",
+ "submit_arm": 0,
+ "order": [
+  1,
+  0,
+  2,
+  3
+ ],
+ "arms": [
+  {
+   "arm": 0,
+   "kind": "v2",
+   "model": "openrouter/typesafe/jev-1.13",
+   "position": 1,
+   "seconds": 7.4,
+   "requests": 4,
+   "input_tokens": 53244,
+   "cost_usd": 0.002236,
+   "error": null,
+   "investigation": {
+    "rounds": [
+     {
+      "candidates": [
+       "change:configmap/social-network/url-shorten-mongodb",
+       "dependency:deployment/url-shorten-mongodb",
+       "dependency:deployment/text-service",
+       "partial:deployment/text-service",
+       "partial:deployment/compose-post-service",
+       "partial:deployment/url-shorten-mongodb"
+      ],
+      "probabilities": {
+       "change:configmap/social-network/url-shorten-mongodb": 0.815,
+       "dependency:deployment/url-shorten-mongodb": 0.165,
+       "dependency:deployment/text-service": 0.0,
+       "partial:deployment/text-service": 0.0,
+       "partial:deployment/compose-post-service": 0.0,
+       "partial:deployment/url-shorten-mongodb": 0.0,
+       "none_of_these": 0.02
+      },
+      "picks": [
+       "change:configmap/social-network/url-shorten-mongodb",
+       "change:configmap/social-network/url-shorten-mongodb"
+      ],
+      "route": "accept"
+     }
+    ],
+    "explanations": 8,
+    "winner": "change:configmap/social-network/url-shorten-mongodb",
+    "pattern": "acts-on",
+    "key_fact": "ConfigMap url-shorten-mongodb key mongod.conf: net: \u23ce tls: \u23ce mode: requireTLS \u23ce certificateKeyFile: /etc/tls/tls.pem \u23ce",
+    "key_fact_probability": 0.565,
+    "fault_type": "config_value",
+    "fault_object": null,
+    "uncertain": false
+   },
+   "text": "Root cause: configmap `url-shorten-mongodb` in namespace `social-network`.\nMechanism: configmap url-shorten-mongodb was changed recently and breaks deployment/url-shorten-mongodb, which it acts on.\nConcrete details: ConfigMap url-shorten-mongodb was modified 134s ago, 10s after it was created; 2s before the first active symptom.\nObserved impact: deployment `url-shorten-mongodb` in namespace `social-network`.\nKey evidence: ConfigMap url-shorten-mongodb key mongod.conf: net: \u23ce tls: \u23ce mode: requireTLS \u23ce certificateKeyFile: /etc/tls/tls.pem \u23ce.\nFault type: config value (a wrong, missing, or shadowed value in this component's own configuration).\nEvidence:\n- ConfigMap url-shorten-mongodb was modified 134s ago, 10s after it was created; 2s before the first active symptom\n- deployment/url-shorten-mongodb: only 0 of 1 desired replicas are ready",
+   "grade": {
+    "judgment": "False",
+    "reasoning": "Verdict: False (composite=0.44). D1 Fault Localization: 0.33 | D2 Fault Characterization: 0.67 | D3 Scope Precision: 0.33. Weakest dimension: Fault Localization (0.33). Checklist details: [{\"id\": \"D1-Q1\", \"answer\": \"No\", \"evidence\": \"The diagnosis names configmap/url-shorten-mongodb as the origin and deployment/url-shorten-mongodb as impacted; the fault specification targets service/url-shorten-mongodb.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q2\", \"answer\": \"Yes\", \"evidence\": \"The diagnosis localizes the fault to url-shorten-mongodb in social-network rather than downstream application requests.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q3\", \"answer\": \"No\", \"evidence\": \"The stated origin is a ConfigMap, a different resource from the service identified by the authoritative fault specification.\", \"confidence\": \"Medium\"}, {\"id\": \"D2-Q1\", \"answer\": \"No\", \"evidence\": \"The diagnosis claims a recent configuration change breaks the deployment but never identifies invalid certificates or failed TLS handshakes.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q2\", \"answer\": \"Yes\", \"evidence\": \"The diagnosis supplies concrete TLS configuration: mongod.conf, mode: requireTLS, and certificateKeyFile: /etc/tls/tls.pem.\", \"confidence\": \"Medium\"}, {\"id\": \"D2-Q3\", \"answer\": \"Yes\", \"evidence\": \"The stated configuration-value fault and cited TLS settings are compatible with invalid certificate configuration; no unrelated fault type is asserted.\", \"confidence\": \"Medium\"}, {\"id\": \"D3-Q1\", \"answer\": \"Yes\", \"evidence\": \"Blame remains confined to url-shorten-mongodb and its configuration; no unrelated workload is implicated.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q2\", \"answer\": \"No\", \"evidence\": \"The diagnosis mentions MongoDB configuration and deployment but omits the affected database clients and application paths described in ground truth.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q3\", \"answer\": \"No\", \"evidence\": \"The reported symptom is zero ready deployment replicas, whereas ground truth describes client TLS handshake failures and database-dependent application request failures.\", \"confidence\": \"High\"}]",
+    "success": false,
+    "accuracy": 44.0,
+    "composite_score": 0.44,
+    "dimensions": {
+     "D1": {
+      "name": "Fault Localization",
+      "score": 0.33
+     },
+     "D2": {
+      "name": "Fault Characterization",
+      "score": 0.67
+     },
+     "D3": {
+      "name": "Scope Precision",
+      "score": 0.33
+     }
+    },
+    "checklist": [
+     {
+      "id": "D1-Q1",
+      "answer": "No",
+      "evidence": "The diagnosis names configmap/url-shorten-mongodb as the origin and deployment/url-shorten-mongodb as impacted; the fault specification targets service/url-shorten-mongodb.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q2",
+      "answer": "Yes",
+      "evidence": "The diagnosis localizes the fault to url-shorten-mongodb in social-network rather than downstream application requests.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q3",
+      "answer": "No",
+      "evidence": "The stated origin is a ConfigMap, a different resource from the service identified by the authoritative fault specification.",
+      "confidence": "Medium"
+     },
+     {
+      "id": "D2-Q1",
+      "answer": "No",
+      "evidence": "The diagnosis claims a recent configuration change breaks the deployment but never identifies invalid certificates or failed TLS handshakes.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q2",
+      "answer": "Yes",
+      "evidence": "The diagnosis supplies concrete TLS configuration: mongod.conf, mode: requireTLS, and certificateKeyFile: /etc/tls/tls.pem.",
+      "confidence": "Medium"
+     },
+     {
+      "id": "D2-Q3",
+      "answer": "Yes",
+      "evidence": "The stated configuration-value fault and cited TLS settings are compatible with invalid certificate configuration; no unrelated fault type is asserted.",
+      "confidence": "Medium"
+     },
+     {
+      "id": "D3-Q1",
+      "answer": "Yes",
+      "evidence": "Blame remains confined to url-shorten-mongodb and its configuration; no unrelated workload is implicated.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q2",
+      "answer": "No",
+      "evidence": "The diagnosis mentions MongoDB configuration and deployment but omits the affected database clients and application paths described in ground truth.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q3",
+      "answer": "No",
+      "evidence": "The reported symptom is zero ready deployment replicas, whereas ground truth describes client TLS handshake failures and database-dependent application request failures.",
+      "confidence": "High"
+     }
+    ]
+   }
+  },
+  {
+   "arm": 1,
+   "kind": "v2",
+   "model": "openrouter/openai/gpt-6-luna-decisions",
+   "position": 0,
+   "seconds": 8.8,
+   "requests": 4,
+   "input_tokens": 36398,
+   "cost_usd": 0.00364,
+   "error": null,
+   "investigation": {
+    "rounds": [
+     {
+      "candidates": [
+       "change:configmap/social-network/url-shorten-mongodb",
+       "dependency:deployment/url-shorten-mongodb",
+       "dependency:deployment/text-service",
+       "partial:deployment/text-service",
+       "partial:deployment/compose-post-service",
+       "partial:deployment/url-shorten-mongodb"
+      ],
+      "probabilities": {
+       "change:configmap/social-network/url-shorten-mongodb": 0.8999999999999999,
+       "dependency:deployment/url-shorten-mongodb": 0.07,
+       "dependency:deployment/text-service": 0.0,
+       "partial:deployment/text-service": 0.0,
+       "partial:deployment/compose-post-service": 0.005,
+       "partial:deployment/url-shorten-mongodb": 0.025,
+       "none_of_these": 0.0
+      },
+      "picks": [
+       "change:configmap/social-network/url-shorten-mongodb",
+       "change:configmap/social-network/url-shorten-mongodb"
+      ],
+      "route": "accept"
+     }
+    ],
+    "explanations": 8,
+    "winner": "change:configmap/social-network/url-shorten-mongodb",
+    "pattern": "acts-on",
+    "key_fact": "ConfigMap url-shorten-mongodb key mongod.conf: net: \u23ce tls: \u23ce mode: requireTLS \u23ce certificateKeyFile: /etc/tls/tls.pem \u23ce",
+    "key_fact_probability": 0.875,
+    "fault_type": "config_value",
+    "fault_object": null,
+    "uncertain": false
+   },
+   "text": "Root cause: configmap `url-shorten-mongodb` in namespace `social-network`.\nMechanism: configmap url-shorten-mongodb was changed recently and breaks deployment/url-shorten-mongodb, which it acts on.\nConcrete details: ConfigMap url-shorten-mongodb was modified 134s ago, 10s after it was created; 2s before the first active symptom.\nObserved impact: deployment `url-shorten-mongodb` in namespace `social-network`.\nKey evidence: ConfigMap url-shorten-mongodb key mongod.conf: net: \u23ce tls: \u23ce mode: requireTLS \u23ce certificateKeyFile: /etc/tls/tls.pem \u23ce.\nFault type: config value (a wrong, missing, or shadowed value in this component's own configuration).\nEvidence:\n- ConfigMap url-shorten-mongodb was modified 134s ago, 10s after it was created; 2s before the first active symptom\n- deployment/url-shorten-mongodb: only 0 of 1 desired replicas are ready",
+   "grade": {
+    "judgment": "False",
+    "reasoning": "Verdict: False (composite=0.33). D1 Fault Localization: 0.33 | D2 Fault Characterization: 0.67 | D3 Scope Precision: 0.00. Weakest dimension: Scope Precision (0.00). Checklist details: [{\"id\": \"D1-Q1\", \"answer\": \"No\", \"evidence\": \"Diagnosis identifies configmap/url-shorten-mongodb as the origin and deployment/url-shorten-mongodb as affected; the authoritative target is service/url-shorten-mongodb.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q2\", \"answer\": \"Yes\", \"evidence\": \"Diagnosis locates the fault within url-shorten-mongodb in social-network, rather than blaming downstream database clients or application requests.\", \"confidence\": \"Medium\"}, {\"id\": \"D1-Q3\", \"answer\": \"No\", \"evidence\": \"The explicitly blamed origin is a ConfigMap, which differs from the Service resource identified by the authoritative fault specification.\", \"confidence\": \"Medium\"}, {\"id\": \"D2-Q1\", \"answer\": \"No\", \"evidence\": \"Diagnosis reports a recent configuration change but does not identify invalid certificates or explain TLS handshake failure.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q2\", \"answer\": \"Yes\", \"evidence\": \"Diagnosis quotes mongod.conf settings net.tls.mode: requireTLS and certificateKeyFile: /etc/tls/tls.pem, concrete details relevant to the TLS certificate configuration.\", \"confidence\": \"Medium\"}, {\"id\": \"D2-Q3\", \"answer\": \"Yes\", \"evidence\": \"The stated fault type, a wrong or missing configuration value, is compatible with the ground-truth invalid TLS certificate setup.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q1\", \"answer\": \"No\", \"evidence\": \"Diagnosis explicitly attributes the fault to a recently modified ConfigMap; ground truth identifies the MongoDB Service and does not establish that ConfigMap as contributing.\", \"confidence\": \"Medium\"}, {\"id\": \"D3-Q2\", \"answer\": \"No\", \"evidence\": \"Diagnosis mentions MongoDB resources but omits affected database clients and database-dependent application paths described in the ground truth.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q3\", \"answer\": \"No\", \"evidence\": \"The stated symptom is zero ready deployment replicas; diagnosis does not describe clients failing TLS handshakes or database-dependent application requests failing.\", \"confidence\": \"High\"}]",
+    "success": false,
+    "accuracy": 33.0,
+    "composite_score": 0.33,
+    "dimensions": {
+     "D1": {
+      "name": "Fault Localization",
+      "score": 0.33
+     },
+     "D2": {
+      "name": "Fault Characterization",
+      "score": 0.67
+     },
+     "D3": {
+      "name": "Scope Precision",
+      "score": 0.0
+     }
+    },
+    "checklist": [
+     {
+      "id": "D1-Q1",
+      "answer": "No",
+      "evidence": "Diagnosis identifies configmap/url-shorten-mongodb as the origin and deployment/url-shorten-mongodb as affected; the authoritative target is service/url-shorten-mongodb.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q2",
+      "answer": "Yes",
+      "evidence": "Diagnosis locates the fault within url-shorten-mongodb in social-network, rather than blaming downstream database clients or application requests.",
+      "confidence": "Medium"
+     },
+     {
+      "id": "D1-Q3",
+      "answer": "No",
+      "evidence": "The explicitly blamed origin is a ConfigMap, which differs from the Service resource identified by the authoritative fault specification.",
+      "confidence": "Medium"
+     },
+     {
+      "id": "D2-Q1",
+      "answer": "No",
+      "evidence": "Diagnosis reports a recent configuration change but does not identify invalid certificates or explain TLS handshake failure.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q2",
+      "answer": "Yes",
+      "evidence": "Diagnosis quotes mongod.conf settings net.tls.mode: requireTLS and certificateKeyFile: /etc/tls/tls.pem, concrete details relevant to the TLS certificate configuration.",
+      "confidence": "Medium"
+     },
+     {
+      "id": "D2-Q3",
+      "answer": "Yes",
+      "evidence": "The stated fault type, a wrong or missing configuration value, is compatible with the ground-truth invalid TLS certificate setup.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q1",
+      "answer": "No",
+      "evidence": "Diagnosis explicitly attributes the fault to a recently modified ConfigMap; ground truth identifies the MongoDB Service and does not establish that ConfigMap as contributing.",
+      "confidence": "Medium"
+     },
+     {
+      "id": "D3-Q2",
+      "answer": "No",
+      "evidence": "Diagnosis mentions MongoDB resources but omits affected database clients and database-dependent application paths described in the ground truth.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q3",
+      "answer": "No",
+      "evidence": "The stated symptom is zero ready deployment replicas; diagnosis does not describe clients failing TLS handshakes or database-dependent application requests failing.",
+      "confidence": "High"
+     }
+    ]
+   }
+  },
+  {
+   "arm": 2,
+   "kind": "v1",
+   "model": "openrouter/typesafe/jev-1.13",
+   "position": 2,
+   "seconds": 2.5,
+   "requests": 2,
+   "input_tokens": 32908,
+   "cost_usd": 0.001382,
+   "error": null,
+   "investigation": {
+    "steps": [
+     {
+      "step": 1,
+      "node": "investigate",
+      "component": "deployment/url-shorten-mongodb",
+      "verdict": "origin",
+      "origin_p": 1.0,
+      "victim_p": 0.0,
+      "next": "none",
+      "next_p": 1.0,
+      "category": "config_value",
+      "spec_checks": [
+       "service url-shorten-mongodb has no ready endpoints"
+      ],
+      "blocked_input": null,
+      "key_evidence": "ConfigMap url-shorten-mongodb key mongod.conf: net: \u23ce tls: \u23ce mode: requireTLS \u23ce certificateKeyFile: /etc/tls/tls.pem \u23ce"
+     }
+    ],
+    "concluded": "deployment/url-shorten-mongodb",
+    "fallback": null,
+    "triage_top": [
+     [
+      "deployment/url-shorten-mongodb",
+      1.0
+     ],
+     [
+      "deployment/compose-post-service",
+      0.0
+     ],
+     [
+      "deployment/home-timeline-redis",
+      0.0
+     ],
+     [
+      "deployment/home-timeline-service",
+      0.0
+     ],
+     [
+      "deployment/jaeger",
+      0.0
+     ]
+    ]
+   },
+   "text": "Root cause component: Deployment `url-shorten-mongodb` in namespace `social-network`.\nMechanism: ConfigMap url-shorten-mongodb key mongod.conf: net: \u23ce tls: \u23ce mode: requireTLS \u23ce certificateKeyFile: /etc/tls/tls.pem \u23ce.\nFault object: ConfigMap `url-shorten-mongodb`: ConfigMap url-shorten-mongodb was modified 134s ago, 10s after it was created; 2s before the first active symptom.\nFault type: config value (a wrong, missing, or shadowed value in this component's own configuration).\nAbnormal state observed on this component:\n- only 0 of 1 desired replicas are ready\n- pod url-shorten-mongodb-6b486f55b8-mg49w: container url-shorten-mongodb waiting in CrashLoopBackOff\n- pod url-shorten-mongodb-6b486f55b8-mg49w: container url-shorten-mongodb restarted 4 times\n- warning events: BackOff x11\n- service url-shorten-mongodb selects this component but has 0 ready endpoints\n- firing alert PodStatusError\n- firing alert KubePodNotReady\n- firing alert DeploymentNotReady\n- warning event BackOff on pod/url-shorten-mongodb-6b486f55b8-mg49w repeated 3 more time(s) in the last 49s\n- ConfigMap url-shorten-mongodb was modified 134s ago, 10s after it was created; 2s before the first active symptom\n- 2 error-like log lines still occurring in the recent pod logs\nNotable spec settings:\n- Available=False (MinimumReplicasUnavailable)\n- container url-shorten-mongodb: image docker.io/library/mongo:4.4.6\nWarning events:\n- BackOff x11 on pod/url-shorten-mongodb-6b486f55b8-mg49w: Back-off restarting failed container url-shorten-mongodb in pod url-shorten-mongodb-6b486f55b8-mg49w_social-network(0ac614fd-da14-4b7e-b3ae-b15490caee3b)\nError-like log lines still occurring:\n- x1: url-shorten-mongodb: {\"t\":{\"$date\":\"2026-10-19T07:29:23.537+00:00\"},\"s\":\"E\", \"c\":\"NETWORK\", \"id\":23248, \"ctx\":\"main\",\"msg\":\"Cannot read certificate file\",\"attr\":{\"keyFile\":\"/etc/tls/tls.pem\",\"error\":\"error:02001002:system library:fopen:No \u2026\n- x1: url-shorten-mongodb: {\"t\":{\"$date\":\"2026-10-19T07:29:23.537+00:00\"},\"s\":\"F\", \"c\":\"CONTROL\", \"id\":20574, \"ctx\":\"main\",\"msg\":\"Error during global initialization\",\"attr\":{\"error\":{\"code\":140,\"codeName\":\"InvalidSSLConfiguration\",\"errmsg\":\"Can \u2026\nLast lines of the previous (crashed) run of container url-shorten-mongodb:\n- \"c\":\"NETWORK\", \"id\":23248, \"ctx\":\"main\",\"msg\":\"Cannot read certificate file\",\"attr\":{\"keyFile\":\"/etc/tls/tls.pem\",\"error\":\"error:02001002:system library:fopen:No such file or directory\"}}\n- \"c\":\"CONTROL\", \"id\":20574, \"ctx\":\"main\",\"msg\":\"Error during global initialization\",\"attr\":{\"error\":{\"code\":140,\"codeName\":\"InvalidSSLConfiguration\",\"errmsg\":\"Can not set up PEM key file.\"}}}\nFiring alerts on this component: PodStatusError, KubePodNotReady, DeploymentNotReady.\nClassification: Jev (typesafe/jev-1.13-20260917) confirmed this origin at investigation step 1 with probability 1.00 (triage probability 1.00).",
+   "grade": {
+    "judgment": "True",
+    "reasoning": "Verdict: True (composite=1.00). D1 Fault Localization: 1.00 | D2 Fault Characterization: 1.00 | D3 Scope Precision: 1.00. Weakest dimension: Fault Localization (1.00). Checklist details: [{\"id\": \"D1-Q1\", \"answer\": \"Yes\", \"evidence\": \"Names url-shorten-mongodb in namespace social-network and explicitly identifies the service selecting that workload.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q2\", \"answer\": \"Yes\", \"evidence\": \"Locates the fault in url-shorten-mongodb's TLS configuration, rather than a downstream application.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q3\", \"answer\": \"Yes\", \"evidence\": \"Attributes the fault to url-shorten-mongodb, matching the ground-truth component; no unrelated component is blamed.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q1\", \"answer\": \"Yes\", \"evidence\": \"Identifies requireTLS with an unreadable certificate file and InvalidSSLConfiguration, matching the invalid TLS certificate setup.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q2\", \"answer\": \"Yes\", \"evidence\": \"Specifies mongod.conf, net.tls.mode: requireTLS, and certificateKeyFile: /etc/tls/tls.pem; logs report that file is missing.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q3\", \"answer\": \"Yes\", \"evidence\": \"Classifies the fault as configuration-related and supports it with 'Can not set up PEM key file.'\", \"confidence\": \"High\"}, {\"id\": \"D3-Q1\", \"answer\": \"Yes\", \"evidence\": \"Blames only url-shorten-mongodb's configuration; its ConfigMap, pod, deployment, and service describe the same affected component.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q2\", \"answer\": \"Yes\", \"evidence\": \"Includes url-shorten-mongodb, the only specifically named affected component in the ground truth.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q3\", \"answer\": \"Yes\", \"evidence\": \"Reports certificate initialization failure and zero ready service endpoints, consistent with database unavailability from invalid TLS setup.\", \"confidence\": \"Medium\"}]",
+    "success": true,
+    "accuracy": 100.0,
+    "composite_score": 1.0,
+    "dimensions": {
+     "D1": {
+      "name": "Fault Localization",
+      "score": 1.0
+     },
+     "D2": {
+      "name": "Fault Characterization",
+      "score": 1.0
+     },
+     "D3": {
+      "name": "Scope Precision",
+      "score": 1.0
+     }
+    },
+    "checklist": [
+     {
+      "id": "D1-Q1",
+      "answer": "Yes",
+      "evidence": "Names url-shorten-mongodb in namespace social-network and explicitly identifies the service selecting that workload.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q2",
+      "answer": "Yes",
+      "evidence": "Locates the fault in url-shorten-mongodb's TLS configuration, rather than a downstream application.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q3",
+      "answer": "Yes",
+      "evidence": "Attributes the fault to url-shorten-mongodb, matching the ground-truth component; no unrelated component is blamed.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q1",
+      "answer": "Yes",
+      "evidence": "Identifies requireTLS with an unreadable certificate file and InvalidSSLConfiguration, matching the invalid TLS certificate setup.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q2",
+      "answer": "Yes",
+      "evidence": "Specifies mongod.conf, net.tls.mode: requireTLS, and certificateKeyFile: /etc/tls/tls.pem; logs report that file is missing.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q3",
+      "answer": "Yes",
+      "evidence": "Classifies the fault as configuration-related and supports it with 'Can not set up PEM key file.'",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q1",
+      "answer": "Yes",
+      "evidence": "Blames only url-shorten-mongodb's configuration; its ConfigMap, pod, deployment, and service describe the same affected component.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q2",
+      "answer": "Yes",
+      "evidence": "Includes url-shorten-mongodb, the only specifically named affected component in the ground truth.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q3",
+      "answer": "Yes",
+      "evidence": "Reports certificate initialization failure and zero ready service endpoints, consistent with database unavailability from invalid TLS setup.",
+      "confidence": "Medium"
+     }
+    ]
+   }
+  },
+  {
+   "arm": 3,
+   "kind": "v1",
+   "model": "openrouter/openai/gpt-6-luna-decisions",
+   "position": 3,
+   "seconds": 2.5,
+   "requests": 2,
+   "input_tokens": 22600,
+   "cost_usd": 0.00226,
+   "error": null,
+   "investigation": {
+    "steps": [
+     {
+      "step": 1,
+      "node": "investigate",
+      "component": "deployment/url-shorten-mongodb",
+      "verdict": "origin",
+      "origin_p": 0.98,
+      "victim_p": 0.01,
+      "next": "none",
+      "next_p": 0.85,
+      "category": "config_value",
+      "spec_checks": [
+       "service url-shorten-mongodb has no ready endpoints"
+      ],
+      "blocked_input": null,
+      "key_evidence": "ConfigMap url-shorten-mongodb key mongod.conf: net: \u23ce tls: \u23ce mode: requireTLS \u23ce certificateKeyFile: /etc/tls/tls.pem \u23ce"
+     }
+    ],
+    "concluded": "deployment/url-shorten-mongodb",
+    "fallback": null,
+    "triage_top": [
+     [
+      "deployment/url-shorten-mongodb",
+      0.99
+     ],
+     [
+      "deployment/url-shorten-service",
+      0.01
+     ],
+     [
+      "deployment/compose-post-service",
+      0.0
+     ],
+     [
+      "deployment/home-timeline-redis",
+      0.0
+     ],
+     [
+      "deployment/home-timeline-service",
+      0.0
+     ]
+    ]
+   },
+   "text": "Root cause component: Deployment `url-shorten-mongodb` in namespace `social-network`.\nMechanism: ConfigMap url-shorten-mongodb key mongod.conf: net: \u23ce tls: \u23ce mode: requireTLS \u23ce certificateKeyFile: /etc/tls/tls.pem \u23ce.\nFault object: ConfigMap `url-shorten-mongodb`: ConfigMap url-shorten-mongodb was modified 134s ago, 10s after it was created; 2s before the first active symptom.\nFault type: config value (a wrong, missing, or shadowed value in this component's own configuration).\nAbnormal state observed on this component:\n- only 0 of 1 desired replicas are ready\n- pod url-shorten-mongodb-6b486f55b8-mg49w: container url-shorten-mongodb waiting in CrashLoopBackOff\n- pod url-shorten-mongodb-6b486f55b8-mg49w: container url-shorten-mongodb restarted 4 times\n- warning events: BackOff x11\n- service url-shorten-mongodb selects this component but has 0 ready endpoints\n- firing alert PodStatusError\n- firing alert KubePodNotReady\n- firing alert DeploymentNotReady\n- warning event BackOff on pod/url-shorten-mongodb-6b486f55b8-mg49w repeated 3 more time(s) in the last 49s\n- ConfigMap url-shorten-mongodb was modified 134s ago, 10s after it was created; 2s before the first active symptom\n- 2 error-like log lines still occurring in the recent pod logs\nNotable spec settings:\n- Available=False (MinimumReplicasUnavailable)\n- container url-shorten-mongodb: image docker.io/library/mongo:4.4.6\nWarning events:\n- BackOff x11 on pod/url-shorten-mongodb-6b486f55b8-mg49w: Back-off restarting failed container url-shorten-mongodb in pod url-shorten-mongodb-6b486f55b8-mg49w_social-network(0ac614fd-da14-4b7e-b3ae-b15490caee3b)\nError-like log lines still occurring:\n- x1: url-shorten-mongodb: {\"t\":{\"$date\":\"2026-10-19T07:29:23.537+00:00\"},\"s\":\"E\", \"c\":\"NETWORK\", \"id\":23248, \"ctx\":\"main\",\"msg\":\"Cannot read certificate file\",\"attr\":{\"keyFile\":\"/etc/tls/tls.pem\",\"error\":\"error:02001002:system library:fopen:No \u2026\n- x1: url-shorten-mongodb: {\"t\":{\"$date\":\"2026-10-19T07:29:23.537+00:00\"},\"s\":\"F\", \"c\":\"CONTROL\", \"id\":20574, \"ctx\":\"main\",\"msg\":\"Error during global initialization\",\"attr\":{\"error\":{\"code\":140,\"codeName\":\"InvalidSSLConfiguration\",\"errmsg\":\"Can \u2026\nLast lines of the previous (crashed) run of container url-shorten-mongodb:\n- \"c\":\"NETWORK\", \"id\":23248, \"ctx\":\"main\",\"msg\":\"Cannot read certificate file\",\"attr\":{\"keyFile\":\"/etc/tls/tls.pem\",\"error\":\"error:02001002:system library:fopen:No such file or directory\"}}\n- \"c\":\"CONTROL\", \"id\":20574, \"ctx\":\"main\",\"msg\":\"Error during global initialization\",\"attr\":{\"error\":{\"code\":140,\"codeName\":\"InvalidSSLConfiguration\",\"errmsg\":\"Can not set up PEM key file.\"}}}\nFiring alerts on this component: PodStatusError, KubePodNotReady, DeploymentNotReady.\nClassification: Jev (openai/gpt-6-luna-decisions-20261006) confirmed this origin at investigation step 1 with probability 0.98 (triage probability 0.99).",
+   "grade": {
+    "judgment": "True",
+    "reasoning": "Verdict: True (composite=0.77). D1 Fault Localization: 1.00 | D2 Fault Characterization: 1.00 | D3 Scope Precision: 0.33. Weakest dimension: Scope Precision (0.33). Checklist details: [{\"id\": \"D1-Q1\", \"answer\": \"Yes\", \"evidence\": \"Names url-shorten-mongodb in social-network and explicitly identifies its service as selecting the diagnosed deployment.\", \"confidence\": \"Medium\"}, {\"id\": \"D1-Q2\", \"answer\": \"Yes\", \"evidence\": \"Locates the origin in url-shorten-mongodb's TLS configuration rather than a downstream application.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q3\", \"answer\": \"Yes\", \"evidence\": \"Blames url-shorten-mongodb and its configuration; no unrelated healthy component is identified as the origin.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q1\", \"answer\": \"Yes\", \"evidence\": \"Reports requireTLS with an unreadable certificate file and InvalidSSLConfiguration, matching the invalid TLS certificate setup.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q2\", \"answer\": \"Yes\", \"evidence\": \"Specifies mongod.conf, net.tls.mode: requireTLS, and certificateKeyFile: /etc/tls/tls.pem; logs report that file is missing.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q3\", \"answer\": \"Yes\", \"evidence\": \"Attributes the fault to TLS configuration and certificate loading, consistent with the ground-truth fault type.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q1\", \"answer\": \"Yes\", \"evidence\": \"Limits blame to url-shorten-mongodb and its associated ConfigMap, deployment, and pod.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q2\", \"answer\": \"No\", \"evidence\": \"Identifies MongoDB but does not mention affected database clients or application requests on database-dependent paths.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q3\", \"answer\": \"No\", \"evidence\": \"Describes initialization failure, CrashLoopBackOff, and zero ready endpoints, but does not describe client TLS handshake failures or database-dependent application request failures.\", \"confidence\": \"Medium\"}]",
+    "success": true,
+    "accuracy": 77.0,
+    "composite_score": 0.77,
+    "dimensions": {
+     "D1": {
+      "name": "Fault Localization",
+      "score": 1.0
+     },
+     "D2": {
+      "name": "Fault Characterization",
+      "score": 1.0
+     },
+     "D3": {
+      "name": "Scope Precision",
+      "score": 0.33
+     }
+    },
+    "checklist": [
+     {
+      "id": "D1-Q1",
+      "answer": "Yes",
+      "evidence": "Names url-shorten-mongodb in social-network and explicitly identifies its service as selecting the diagnosed deployment.",
+      "confidence": "Medium"
+     },
+     {
+      "id": "D1-Q2",
+      "answer": "Yes",
+      "evidence": "Locates the origin in url-shorten-mongodb's TLS configuration rather than a downstream application.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q3",
+      "answer": "Yes",
+      "evidence": "Blames url-shorten-mongodb and its configuration; no unrelated healthy component is identified as the origin.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q1",
+      "answer": "Yes",
+      "evidence": "Reports requireTLS with an unreadable certificate file and InvalidSSLConfiguration, matching the invalid TLS certificate setup.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q2",
+      "answer": "Yes",
+      "evidence": "Specifies mongod.conf, net.tls.mode: requireTLS, and certificateKeyFile: /etc/tls/tls.pem; logs report that file is missing.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q3",
+      "answer": "Yes",
+      "evidence": "Attributes the fault to TLS configuration and certificate loading, consistent with the ground-truth fault type.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q1",
+      "answer": "Yes",
+      "evidence": "Limits blame to url-shorten-mongodb and its associated ConfigMap, deployment, and pod.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q2",
+      "answer": "No",
+      "evidence": "Identifies MongoDB but does not mention affected database clients or application requests on database-dependent paths.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q3",
+      "answer": "No",
+      "evidence": "Describes initialization failure, CrashLoopBackOff, and zero ready endpoints, but does not describe client TLS handshake failures or database-dependent application request failures.",
+      "confidence": "Medium"
+     }
+    ]
+   }
+  }
+ ],
+ "submission": {
+  "status": "200",
+  "message": "Submission received",
+  "stage": "diagnosis"
+ },
+ "judge": {
+  "model": "gpt-6-astra",
+  "backend": "codex",
+  "effort": "high"
+ }
+}

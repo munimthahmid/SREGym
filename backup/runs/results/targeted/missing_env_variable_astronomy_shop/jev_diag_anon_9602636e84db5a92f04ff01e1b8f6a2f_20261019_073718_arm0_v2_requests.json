@@ -1,0 +1,4946 @@
+[
+ {
+  "label": "decide:1",
+  "state": {
+   "application": {
+    "name": "OpenTelemetry Demo Astronomy Shop",
+    "description": "An online shopping platform built with a microservices architecture, showcasing OpenTelemetry instrumentation for distributed tracing across services.",
+    "namespaces": [
+     "astronomy-shop"
+    ]
+   },
+   "evidence": {
+    "daemonset/otel-collector-agent": {
+     "kind": "DaemonSet",
+     "name": "otel-collector-agent",
+     "namespace": "astronomy-shop",
+     "healthy": false,
+     "signals": [
+      "spec modified 141s ago, 18s after this object was created (fields: template.annotations.kubectl.kubernetes.io/restartedAt); pod template changes: template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-19T13:37:04+06:00; 22s before the first active symptom"
+     ],
+     "template_changes": {
+      "revision": 2,
+      "changed_at": "2026-10-19T07:37:04Z",
+      "changes": [
+       "template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-19T13:37:04+06:00"
+      ]
+     },
+     "detail": {
+      "component": "daemonset/otel-collector-agent",
+      "namespace": "astronomy-shop",
+      "workload": {
+       "created": "2026-10-19T07:36:46Z",
+       "last_spec_write": "2026-10-19T07:37:04Z",
+       "spec_writers": [
+        {
+         "manager": "helm",
+         "op": "Apply",
+         "time": "2026-10-19T07:36:46Z"
+        },
+        {
+         "manager": "kubectl-rollout",
+         "op": "Update",
+         "time": "2026-10-19T07:37:04Z"
+        }
+       ],
+       "strategy": {
+        "rollingUpdate": {
+         "maxSurge": 0,
+         "maxUnavailable": 1
+        },
+        "type": "RollingUpdate"
+       },
+       "service_account": "otel-collector",
+       "dns_policy": "ClusterFirst",
+       "restart_policy": "Always",
+       "containers": [
+        {
+         "name": "opentelemetry-collector",
+         "image": "otel/opentelemetry-collector-contrib:0.142.0",
+         "args": [
+          "--config=/conf/relay.yaml"
+         ],
+         "env": [
+          {
+           "name": "MY_POD_IP",
+           "from": "field:status.podIP"
+          },
+          {
+           "name": "K8S_NODE_NAME",
+           "from": "field:spec.nodeName"
+          },
+          {
+           "name": "K8S_NODE_IP",
+           "from": "field:status.hostIP"
+          },
+          {
+           "name": "GOMEMLIMIT",
+           "value": "160MiB"
+          }
+         ],
+         "ports": [
+          {
+           "port": 6831,
+           "name": "jaeger-compact"
+          },
+          {
+           "port": 14250,
+           "name": "jaeger-grpc"
+          },
+          {
+           "port": 14268,
+           "name": "jaeger-thrift"
+          },
+          {
+           "port": 8888,
+           "name": "metrics"
+          },
+          {
+           "port": 4317,
+           "name": "otlp"
+          },
+          {
+           "port": 4318,
+           "name": "otlp-http"
+          },
+          {
+           "port": 9411,
+           "name": "zipkin"
+          }
+         ],
+         "resources": {
+          "limits": {
+           "memory": "200Mi"
+          }
+         },
+         "probes": {
+          "readiness": {
+           "failureThreshold": 3,
+           "httpGet": {
+            "path": "/",
+            "port": 13133,
+            "scheme": "HTTP"
+           },
+           "periodSeconds": 10,
+           "successThreshold": 1,
+           "timeoutSeconds": 1
+          },
+          "liveness": {
+           "failureThreshold": 3,
+           "httpGet": {
+            "path": "/",
+            "port": 13133,
+            "scheme": "HTTP"
+           },
+           "periodSeconds": 10,
+           "successThreshold": 1,
+           "timeoutSeconds": 1
+          }
+         },
+         "volume_mounts": [
+          {
+           "name": "opentelemetry-collector-configmap",
+           "path": "/conf"
+          },
+          {
+           "name": "hostfs",
+           "path": "/hostfs"
+          }
+         ]
+        }
+       ],
+       "volumes": [
+        {
+         "name": "opentelemetry-collector-configmap",
+         "configMap": {
+          "defaultMode": 420,
+          "items": [
+           {
+            "key": "relay",
+            "path": "relay.yaml"
+           }
+          ],
+          "name": "otel-collector-agent"
+         }
+        },
+        {
+         "name": "hostfs",
+         "hostPath": {
+          "path": "/",
+          "type": ""
+         }
+        }
+       ],
+       "template_labels": {
+        "app.kubernetes.io/instance": "astronomy-shop",
+        "app.kubernetes.io/name": "opentelemetry-collector",
+        "component": "agent-collector"
+       }
+      },
+      "pods": [
+       {
+        "name": "otel-collector-agent-5w8c8",
+        "node": "kind-worker2",
+        "phase": "Running",
+        "started": "2026-10-19T07:37:11Z",
+        "ready_since": "2026-10-19T07:37:13Z",
+        "conditions": [
+         "PodReadyToStartContainers=True",
+         "Initialized=True",
+         "Ready=True",
+         "ContainersReady=True",
+         "PodScheduled=True"
+        ],
+        "containers": [
+         {
+          "name": "opentelemetry-collector",
+          "ready": true,
+          "restarts": 0,
+          "state": {
+           "running": {
+            "startedAt": "2026-10-19T07:37:12Z"
+           }
+          }
+         }
+        ]
+       },
+       {
+        "name": "otel-collector-agent-f95pp",
+        "node": "kind-worker3",
+        "phase": "Running",
+        "started": "2026-10-19T07:37:06Z",
+        "ready_since": "2026-10-19T07:37:08Z",
+        "conditions": [
+         "PodReadyToStartContainers=True",
+         "Initialized=True",
+         "Ready=True",
+         "ContainersReady=True",
+         "PodScheduled=True"
+        ],
+        "containers": [
+         {
+          "name": "opentelemetry-collector",
+          "ready": true,
+          "restarts": 0,
+          "state": {
+           "running": {
+            "startedAt": "2026-10-19T07:37:07Z"
+           }
+          }
+         }
+        ]
+       },
+       {
+        "name": "otel-collector-agent-k62nl",
+        "node": "kind-worker",
+        "phase": "Running",
+        "started": "2026-10-19T07:37:08Z",
+        "ready_since": "2026-10-19T07:37:10Z",
+        "conditions": [
+         "PodReadyToStartContainers=True",
+         "Initialized=True",
+         "Ready=True",
+         "ContainersReady=True",
+         "PodScheduled=True"
+        ],
+        "containers": [
+         {
+          "name": "opentelemetry-collector",
+          "ready": true,
+          "restarts": 0,
+          "state": {
+           "running": {
+            "startedAt": "2026-10-19T07:37:09Z"
+           }
+          }
+         }
+        ]
+       }
+      ],
+      "events": [
+       {
+        "type": "Normal",
+        "reason": "Created",
+        "count": 1,
+        "object": "pod/otel-collector-agent-5w8c8",
+        "last": "2026-10-19T07:37:12Z",
+        "message": "Created container: opentelemetry-collector"
+       },
+       {
+        "type": "Normal",
+        "reason": "Started",
+        "count": 1,
+        "object": "pod/otel-collector-agent-5w8c8",
+        "last": "2026-10-19T07:37:12Z",
+        "message": "Started container opentelemetry-collector"
+       },
+       {
+        "type": "Normal",
+        "reason": "Pulled",
+        "count": 1,
+        "object": "pod/otel-collector-agent-5w8c8",
+        "last": "2026-10-19T07:37:11Z",
+        "message": "Container image \"otel/opentelemetry-collector-contrib:0.142.0\" already present on machine"
+       },
+       {
+        "type": "Normal",
+        "reason": "SuccessfulCreate",
+        "count": 1,
+        "object": "daemonset/otel-collector-agent",
+        "last": "2026-10-19T07:37:11Z",
+        "message": "Created pod: otel-collector-agent-5w8c8"
+       },
+       {
+        "type": "Normal",
+        "reason": "Scheduled",
+        "count": 1,
+        "object": "pod/otel-collector-agent-5w8c8",
+        "last": "2026-10-19T07:37:11.336390Z",
+        "message": "Successfully assigned astronomy-shop/otel-collector-agent-5w8c8 to kind-worker2"
+       },
+       {
+        "type": "Normal",
+        "reason": "Killing",
+        "count": 1,
+        "object": "pod/otel-collector-agent-sxwl2",
+        "last": "2026-10-19T07:37:10Z",
+        "message": "Stopping container opentelemetry-collector"
+       },
+       {
+        "type": "Normal",
+        "reason": "SuccessfulDelete",
+        "count": 1,
+        "object": "daemonset/otel-collector-agent",
+        "last": "2026-10-19T07:37:10Z",
+        "message": "Deleted pod: otel-collector-agent-sxwl2"
+       },
+       {
+        "type": "Normal",
+        "reason": "Pulled",
+        "count": 1,
+        "object": "pod/otel-collector-agent-k62nl",
+        "last": "2026-10-19T07:37:09Z",
+        "message": "Container image \"otel/opentelemetry-collector-contrib:0.142.0\" already present on machine"
+       },
+       {
+        "type": "Normal",
+        "reason": "Created",
+        "count": 1,
+        "object": "pod/otel-collector-agent-k62nl",
+        "last": "2026-10-19T07:37:09Z",
+        "message": "Created container: opentelemetry-collector"
+       },
+       {
+        "type": "Normal",
+        "reason": "Started",
+        "count": 1,
+        "object": "pod/otel-collector-agent-k62nl",
+        "last": "2026-10-19T07:37:09Z",
+        "message": "Started container opentelemetry-collector"
+       },
+       {
+        "type": "Normal",
+        "reason": "Killing",
+        "count": 1,
+        "object": "pod/otel-collector-agent-lfhpt",
+        "last": "2026-10-19T07:37:08Z",
+        "message": "Stopping container opentelemetry-collector"
+       },
+       {
+        "type": "Warning",
+        "reason": "Unhealthy",
+        "count": 1,
+        "object": "pod/otel-collector-agent-lfhpt",
+        "last": "2026-10-19T07:37:08Z",
+        "message": "Readiness probe failed: Get \"http://10.244.162.185:13133/\": dial tcp 10.244.162.185:13133: connect: invalid argument"
+       },
+       {
+        "type": "Normal",
+        "reason": "SuccessfulDelete",
+        "count": 1,
+        "object": "daemonset/otel-collector-agent",
+        "last": "2026-10-19T07:37:08Z",
+        "message": "Deleted pod: otel-collector-agent-lfhpt"
+       },
+       {
+        "type": "Normal",
+        "reason": "SuccessfulCreate",
+        "count": 1,
+        "object": "daemonset/otel-collector-agent",
+        "last": "2026-10-19T07:37:08Z",
+        "message": "Created pod: otel-collector-agent-k62nl"
+       },
+       {
+        "type": "Normal",
+        "reason": "Scheduled",
+        "count": 1,
+        "object": "pod/otel-collector-agent-k62nl",
+        "last": "2026-10-19T07:37:08.797468Z",
+        "message": "Successfully assigned astronomy-shop/otel-collector-agent-k62nl to kind-worker"
+       }
+      ],
+      "logs": {
+       "total_lines": 600,
+       "error_lines": 0,
+       "error_lines_still_occurring": 0,
+       "error_lines_stopped": 0,
+       "telemetry_export_error_lines": 44,
+       "telemetry_error_samples": [
+        {
+         "count": 1,
+         "line": "opentelemetry-collector: 2026-10-19T07:39:03.736Z info Metrics {\"resource\": {\"service.instance.id\": \"b342f172-b9b8-4a3f-bfc9-c3389d6f2586\", \"service.name\": \"otelcol-contrib\", \"service.version\": \"0.142.0\"}, \"otelcol.component.id\": \"debug\", \u2026",
+         "first_seen_seconds_ago": 53,
+         "last_seen_seconds_ago": 53,
+         "state": "ongoing"
+        },
+        {
+         "count": 1,
+         "line": "opentelemetry-collector: 2026-10-19T07:39:13.624Z error kubeletstatsreceiver@v0.142.0/scraper.go:106 call to /stats/summary endpoint failed {\"resource\": {\"service.instance.id\": \"b342f172-b9b8-4a3f-bfc9-c3389d6f2586\", \"service.name\": \"otelc\u2026",
+         "first_seen_seconds_ago": 43,
+         "last_seen_seconds_ago": 43,
+         "state": "ongoing"
+        },
+        {
+         "count": 1,
+         "line": "opentelemetry-collector: 2026-10-19T07:39:13.625Z error scraperhelper@v0.142.0/obs_metrics.go:61 Error scraping metrics {\"resource\": {\"service.instance.id\": \"b342f172-b9b8-4a3f-bfc9-c3389d6f2586\", \"service.name\": \"otelcol-contrib\", \"servic\u2026",
+         "first_seen_seconds_ago": 43,
+         "last_seen_seconds_ago": 43,
+         "state": "ongoing"
+        }
+       ],
+       "tail": [
+        "2026-10-19T07:39:48.850556354Z go.opentelemetry.io/collector/scraper/scraperhelper.NewMetricsController.func1",
+        "2026-10-19T07:39:48.850559309Z go.opentelemetry.io/collector/scraper/scraperhelper@v0.142.0/controller.go:228",
+        "2026-10-19T07:39:48.850583630Z go.opentelemetry.io/collector/scraper/scraperhelper.(*controller[...]).startScraping.func1",
+        "2026-10-19T07:39:48.850587243Z go.opentelemetry.io/collector/scraper/scraperhelper@v0.142.0/controller.go:175",
+        "2026-10-19T07:39:48.959193138Z 2026-10-19T07:39:48.959Z info Metrics {\"resource\": {\"service.instance.id\": \"fdc51856-db6f-4100-a407-d6c402214c4f\", \"service.name\": \"otelcol-contrib\", \"service.version\":\u2026",
+        "2026-10-19T07:39:48.978074325Z 2026-10-19T07:39:48.977Z info Traces {\"resource\": {\"service.instance.id\": \"fdc51856-db6f-4100-a407-d6c402214c4f\", \"service.name\": \"otelcol-contrib\", \"service.version\": \u2026",
+        "2026-10-19T07:39:51.366673366Z 2026-10-19T07:39:51.366Z info Metrics {\"resource\": {\"service.instance.id\": \"fdc51856-db6f-4100-a407-d6c402214c4f\", \"service.name\": \"otelcol-contrib\", \"service.version\":\u2026",
+        "2026-10-19T07:39:52.776869571Z 2026-10-19T07:39:52.776Z info Logs {\"resource\": {\"service.instance.id\": \"fdc51856-db6f-4100-a407-d6c402214c4f\", \"service.name\": \"otelcol-contrib\", \"service.version\": \"0\u2026",
+        "2026-10-19T07:39:53.793275415Z 2026-10-19T07:39:53.793Z info Traces {\"resource\": {\"service.instance.id\": \"fdc51856-db6f-4100-a407-d6c402214c4f\", \"service.name\": \"otelcol-contrib\", \"service.version\": \u2026",
+        "2026-10-19T07:39:54.376320758Z 2026-10-19T07:39:54.376Z info Metrics {\"resource\": {\"service.instance.id\": \"fdc51856-db6f-4100-a407-d6c402214c4f\", \"service.name\": \"otelcol-contrib\", \"service.version\":\u2026",
+        "2026-10-19T07:39:55.986648881Z 2026-10-19T07:39:55.986Z info Logs {\"resource\": {\"service.instance.id\": \"fdc51856-db6f-4100-a407-d6c402214c4f\", \"service.name\": \"otelcol-contrib\", \"service.version\": \"0\u2026",
+        "2026-10-19T07:39:56.181237583Z 2026-10-19T07:39:56.180Z info Metrics {\"resource\": {\"service.instance.id\": \"fdc51856-db6f-4100-a407-d6c402214c4f\", \"service.name\": \"otelcol-contrib\", \"service.version\":\u2026"
+       ]
+      },
+      "template_changes": {
+       "revision": 2,
+       "changed_at": "2026-10-19T07:37:04Z",
+       "changes": [
+        "template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-19T13:37:04+06:00"
+       ]
+      },
+      "clients": [
+       "deployment/accounting",
+       "deployment/ad",
+       "deployment/cart",
+       "deployment/checkout",
+       "deployment/currency",
+       "deployment/email",
+       "deployment/flagd",
+       "deployment/fraud-detection",
+       "deployment/frontend",
+       "deployment/frontend-proxy",
+       "deployment/image-provider",
+       "deployment/kafka",
+       "deployment/llm",
+       "deployment/payment",
+       "deployment/product-catalog",
+       "deployment/product-reviews",
+       "deployment/quote",
+       "deployment/recommendation",
+       "deployment/shipping"
+      ],
+      "configmaps": {
+       "otel-collector-agent": {
+        "last_update": "2026-10-19T07:36:46Z",
+        "keys": [
+         "relay"
+        ],
+        "data": {
+         "relay": "connectors: \u23ce spanmetrics: {} \u23ce exporters: \u23ce debug: {} \u23ce opensearch: \u23ce http: \u23ce endpoint: http://opensearch:9200 \u23ce tls: \u23ce insecure: true \u23ce logs_index: otel-logs \u23ce logs_index_time_format: yyyy-MM-dd \u23ce otlp/jaeger: \u23ce endpoint: jaeger:4317 \u23ce sending_queue: \u23ce batch: null \u23ce tls: \u23ce insecure: true \u23ce otlphttp/prometheus: \u23ce endpoint: http://prometheus:9090/api/v1/otlp \u23ce sending_queue: \u23ce batch: null \u23ce tls: \u2026"
+        }
+       }
+      },
+      "rbac": {
+       "service_account": "astronomy-shop/otel-collector",
+       "bindings": [
+        "ClusterRoleBinding/otel-collector -> ClusterRole/otel-collector"
+       ],
+       "can_i": [
+        "selfsubjectreviews.authentication.k8s.io [] [] [create]",
+        "selfsubjectaccessreviews.authorization.k8s.io [] [] [create]",
+        "selfsubjectrulesreviews.authorization.k8s.io [] [] [create]",
+        "leases.coordination.k8s.io [] [] [get list watch create update patch delete]",
+        "events [] [] [get list watch]",
+        "namespaces/status [] [] [get list watch]",
+        "nodes/spec [] [] [get list watch]",
+        "nodes [] [] [get list watch]",
+        "pods/status [] [] [get list watch]",
+        "replicationcontrollers/status [] [] [get list watch]",
+        "replicationcontrollers [] [] [get list watch]",
+        "resourcequotas [] [] [get list watch]",
+        "services [] [] [get list watch]"
+       ],
+       "roles": [
+        {
+         "kind": "ClusterRole",
+         "name": "otel-collector",
+         "bindings": [
+          "ClusterRoleBinding/otel-collector"
+         ],
+         "service_accounts": [
+          "astronomy-shop/otel-collector"
+         ],
+         "components": [
+          "daemonset/otel-collector-agent"
+         ],
+         "rules": [
+          "leases [coordination.k8s.io]: get,list,watch,create,update,patch,delete",
+          "pods,namespaces [core]: get,watch,list",
+          "replicasets [apps]: get,list,watch",
+          "replicasets [extensions]: get,list,watch",
+          "events,namespaces,namespaces/status,nodes,nodes/spec,pods,pods/status,replicationcontrollers,replicationcontrollers/status,resourcequotas,services [core]: get,list,watch",
+          "daemonsets,deployments,replicasets,statefulsets [apps]: get,list,watch",
+          "daemonsets,deployments,replicasets [extensions]: get,list,watch",
+          "jobs,cronjobs [batch]: get,list,watch"
+         ],
+         "created": "2026-10-19T07:36:46Z",
+         "modified": "2026-10-19T07:36:46Z"
+        }
+       ]
+      }
+     }
+    },
+    "deployment/email": {
+     "kind": "Deployment",
+     "name": "email",
+     "namespace": "astronomy-shop",
+     "healthy": false,
+     "signals": [
+      "errors logged by 1 other component(s) (deployment/frontend) name this component (error mentioning the component, 26 lines, still occurring), e.g. 'Error: 13 INTERNAL: shipping quote failure: failed POST to email service: expected 200, got 400'"
+     ],
+     "referenced_by_errors_from": [
+      "deployment/frontend"
+     ],
+     "detail": {
+      "component": "deployment/email",
+      "namespace": "astronomy-shop",
+      "workload": {
+       "created": "2026-10-19T07:36:46Z",
+       "last_spec_write": "2026-10-19T07:36:46Z",
+       "spec_writers": [
+        {
+         "manager": "helm",
+         "op": "Apply",
+         "time": "2026-10-19T07:36:46Z"
+        }
+       ],
+       "replicas": 1,
+       "strategy": {
+        "rollingUpdate": {
+         "maxSurge": "25%",
+         "maxUnavailable": "25%"
+        },
+        "type": "RollingUpdate"
+       },
+       "service_account": "astronomy-shop",
+       "dns_policy": "ClusterFirst",
+       "restart_policy": "Always",
+       "containers": [
+        {
+         "name": "email",
+         "image": "ghcr.io/open-telemetry/demo:2.2.0-email",
+         "env": [
+          {
+           "name": "OTEL_SERVICE_NAME",
+           "from": "field:metadata.labels['app.kubernetes.io/component']"
+          },
+          {
+           "name": "OTEL_COLLECTOR_NAME",
+           "value": "otel-collector"
+          },
+          {
+           "name": "OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE",
+           "value": "cumulative"
+          },
+          {
+           "name": "EMAIL_PORT",
+           "value": "8080"
+          },
+          {
+           "name": "APP_ENV",
+           "value": "production"
+          },
+          {
+           "name": "OTEL_EXPORTER_OTLP_ENDPOINT",
+           "value": "http://$(OTEL_COLLECTOR_NAME):4318"
+          },
+          {
+           "name": "FLAGD_HOST",
+           "value": "flagd"
+          },
+          {
+           "name": "FLAGD_PORT",
+           "value": "8013"
+          }
+         ],
+         "ports": [
+          {
+           "port": 8080,
+           "name": "service"
+          }
+         ],
+         "resources": {
+          "limits": {
+           "memory": "100Mi"
+          }
+         }
+        }
+       ],
+       "template_labels": {
+        "app.kubernetes.io/component": "email",
+        "app.kubernetes.io/name": "email",
+        "app.kubernetes.io/version": "2.2.0",
+        "opentelemetry.io/name": "email"
+       }
+      },
+      "pods": [
+       {
+        "name": "email-74f9c666b6-j4tgc",
+        "node": "kind-worker2",
+        "phase": "Running",
+        "started": "2026-10-19T07:36:48Z",
+        "ready_since": "2026-10-19T07:36:51Z",
+        "conditions": [
+         "PodReadyToStartContainers=True",
+         "Initialized=True",
+         "Ready=True",
+         "ContainersReady=True",
+         "PodScheduled=True"
+        ],
+        "containers": [
+         {
+          "name": "email",
+          "ready": true,
+          "restarts": 0,
+          "state": {
+           "running": {
+            "startedAt": "2026-10-19T07:36:50Z"
+           }
+          }
+         }
+        ]
+       }
+      ],
+      "events": [
+       {
+        "type": "Normal",
+        "reason": "Started",
+        "count": 1,
+        "object": "pod/email-74f9c666b6-j4tgc",
+        "last": "2026-10-19T07:36:50Z",
+        "message": "Started container email"
+       },
+       {
+        "type": "Normal",
+        "reason": "Pulled",
+        "count": 1,
+        "object": "pod/email-74f9c666b6-j4tgc",
+        "last": "2026-10-19T07:36:49Z",
+        "message": "Container image \"ghcr.io/open-telemetry/demo:2.2.0-email\" already present on machine"
+       },
+       {
+        "type": "Normal",
+        "reason": "Created",
+        "count": 1,
+        "object": "pod/email-74f9c666b6-j4tgc",
+        "last": "2026-10-19T07:36:49Z",
+        "message": "Created container: email"
+       },
+       {
+        "type": "Normal",
+        "reason": "SuccessfulCreate",
+        "count": 1,
+        "object": "replicaset/email-74f9c666b6",
+        "last": "2026-10-19T07:36:48Z",
+        "message": "Created pod: email-74f9c666b6-j4tgc"
+       },
+       {
+        "type": "Normal",
+        "reason": "Scheduled",
+        "count": 1,
+        "object": "pod/email-74f9c666b6-j4tgc",
+        "last": "2026-10-19T07:36:48.069716Z",
+        "message": "Successfully assigned astronomy-shop/email-74f9c666b6-j4tgc to kind-worker2"
+       }
+      ],
+      "logs": {
+       "total_lines": 11,
+       "error_lines": 0,
+       "error_lines_still_occurring": 0,
+       "error_lines_stopped": 0,
+       "telemetry_export_error_lines": 0,
+       "tail": [
+        "2026-10-19T07:36:52.305251601Z == Sinatra (v4.2.1) has taken the stage on 8080 for production with backup from Puma",
+        "2026-10-19T07:36:52.306096247Z I, [2026-10-19T07:36:52.210718 #1] INFO -- : Instrumentation: OpenTelemetry::Instrumentation::Sinatra was successfully installed with the following options {install_rac\u2026",
+        "2026-10-19T07:36:52.306115538Z Puma starting in single mode...",
+        "2026-10-19T07:36:52.306270367Z * Puma version: 7.1.0 (\"Neon Witch\")",
+        "2026-10-19T07:36:52.306339043Z * Ruby version: ruby 3.4.7 (2025-10-08 revision 7a5688e2a2) +PRISM [x86_64-linux-musl]",
+        "2026-10-19T07:36:52.306341744Z * Min threads: 0",
+        "2026-10-19T07:36:52.306351969Z * Max threads: 5",
+        "2026-10-19T07:36:52.306356623Z * Environment: production",
+        "2026-10-19T07:36:52.306385566Z * PID: 1",
+        "2026-10-19T07:36:52.307184238Z * Listening on http://0.0.0.0:8080",
+        "2026-10-19T07:36:52.315044060Z Use Ctrl-C to stop"
+       ]
+      },
+      "calls_services": [
+       "astronomy-shop/flagd",
+       "astronomy-shop/otel-collector"
+      ],
+      "clients": [
+       "deployment/checkout"
+      ],
+      "rbac": {
+       "service_account": "astronomy-shop/astronomy-shop",
+       "can_i": [
+        "selfsubjectreviews.authentication.k8s.io [] [] [create]",
+        "selfsubjectaccessreviews.authorization.k8s.io [] [] [create]",
+        "selfsubjectrulesreviews.authorization.k8s.io [] [] [create]",
+        "[/.well-known/openid-configuration/] [] [get]",
+        "[/.well-known/openid-configuration] [] [get]",
+        "[/api/*] [] [get]",
+        "[/api] [] [get]",
+        "[/apis/*] [] [get]",
+        "[/apis] [] [get]",
+        "[/healthz] [] [get]",
+        "[/healthz] [] [get]",
+        "[/livez] [] [get]",
+        "[/livez] [] [get]"
+       ]
+      },
+      "input_candidates": [
+       {
+        "container": "email",
+        "env": "OTEL_COLLECTOR_NAME",
+        "value": "otel-collector"
+       },
+       {
+        "container": "email",
+        "env": "OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE",
+        "value": "cumulative"
+       },
+       {
+        "container": "email",
+        "env": "APP_ENV",
+        "value": "production"
+       },
+       {
+        "container": "email",
+        "env": "FLAGD_HOST",
+        "value": "flagd"
+       }
+      ],
+      "calls": {
+       "daemonset/otel-collector-agent": {
+        "kind": "DaemonSet",
+        "pods_ready": "3/3",
+        "restarts": 0,
+        "own_evidence_kinds": [
+         "change"
+        ],
+        "own_signals": [
+         "spec modified 141s ago, 18s after this object was created (fields: template.annotations.kubectl.kubernetes.io/restartedAt); pod template changes: template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-19T13:37:04+06:00; 22s before the first active symptom"
+        ],
+        "own_error_log_lines": 8,
+        "last_spec_change": "2026-10-19T07:37:04Z",
+        "looks_healthy_on_its_own": false
+       },
+       "deployment/flagd": {
+        "kind": "Deployment",
+        "pods_ready": "1/1",
+        "restarts": 0,
+        "looks_healthy_on_its_own": true
+       }
+      },
+      "called_by_with_errors": {
+       "deployment/frontend": {
+        "error mentioning the component": 26
+       }
+      }
+     }
+    },
+    "deployment/frontend": {
+     "kind": "Deployment",
+     "name": "frontend",
+     "namespace": "astronomy-shop",
+     "healthy": false,
+     "template_changes": {
+      "revision": 2,
+      "changed_at": "2026-10-19T07:37:18Z",
+      "changes": [
+       "pod label pod-template-hash: 6859c775df -> 99b7dcfc6",
+       "container frontend env CART_ADDR removed"
+      ]
+     },
+     "errors_point_to": [
+      "deployment/email",
+      "deployment/quote",
+      "deployment/shipping"
+     ],
+     "detail": {
+      "component": "deployment/frontend",
+      "namespace": "astronomy-shop",
+      "workload": {
+       "created": "2026-10-19T07:36:46Z",
+       "last_spec_write": "2026-10-19T07:36:46Z",
+       "spec_writers": [
+        {
+         "manager": "helm",
+         "op": "Apply",
+         "time": "2026-10-19T07:36:46Z"
+        }
+       ],
+       "replicas": 1,
+       "strategy": {
+        "rollingUpdate": {
+         "maxSurge": "25%",
+         "maxUnavailable": "25%"
+        },
+        "type": "RollingUpdate"
+       },
+       "service_account": "astronomy-shop",
+       "dns_policy": "ClusterFirst",
+       "restart_policy": "Always",
+       "containers": [
+        {
+         "name": "frontend",
+         "image": "ghcr.io/open-telemetry/demo:2.2.0-frontend",
+         "env": [
+          {
+           "name": "OTEL_SERVICE_NAME",
+           "from": "field:metadata.labels['app.kubernetes.io/component']"
+          },
+          {
+           "name": "OTEL_COLLECTOR_NAME",
+           "value": "otel-collector"
+          },
+          {
+           "name": "OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE",
+           "value": "cumulative"
+          },
+          {
+           "name": "FRONTEND_PORT",
+           "value": "8080"
+          },
+          {
+           "name": "PORT",
+           "value": "$(FRONTEND_PORT)"
+          },
+          {
+           "name": "FRONTEND_ADDR",
+           "value": ":8080"
+          },
+          {
+           "name": "AD_ADDR",
+           "value": "ad:8080"
+          },
+          {
+           "name": "CHECKOUT_ADDR",
+           "value": "checkout:8080"
+          },
+          {
+           "name": "CURRENCY_ADDR",
+           "value": "currency:8080"
+          },
+          {
+           "name": "PRODUCT_CATALOG_ADDR",
+           "value": "product-catalog:8080"
+          },
+          {
+           "name": "PRODUCT_REVIEWS_ADDR",
+           "value": "product-reviews:3551"
+          },
+          {
+           "name": "RECOMMENDATION_ADDR",
+           "value": "recommendation:8080"
+          },
+          {
+           "name": "SHIPPING_ADDR",
+           "value": "http://shipping:8080"
+          },
+          {
+           "name": "FLAGD_HOST",
+           "value": "flagd"
+          },
+          {
+           "name": "FLAGD_PORT",
+           "value": "8013"
+          },
+          {
+           "name": "ENV_PLATFORM",
+           "value": "kubernetes"
+          },
+          {
+           "name": "OTEL_COLLECTOR_HOST",
+           "value": "$(OTEL_COLLECTOR_NAME)"
+          },
+          {
+           "name": "OTEL_EXPORTER_OTLP_ENDPOINT",
+           "value": "http://$(OTEL_COLLECTOR_NAME):4317"
+          },
+          {
+           "name": "WEB_OTEL_SERVICE_NAME",
+           "value": "frontend-web"
+          },
+          {
+           "name": "PUBLIC_OTEL_EXPORTER_OTLP_TRACES_ENDPOINT",
+           "value": "http://localhost:8080/otlp-http/v1/traces"
+          }
+         ],
+         "ports": [
+          {
+           "port": 8080,
+           "name": "service"
+          }
+         ],
+         "resources": {
+          "limits": {
+           "memory": "250Mi"
+          }
+         }
+        }
+       ],
+       "template_labels": {
+        "app.kubernetes.io/component": "frontend",
+        "app.kubernetes.io/name": "frontend",
+        "app.kubernetes.io/version": "2.2.0",
+        "opentelemetry.io/name": "frontend"
+       }
+      },
+      "pods": [
+       {
+        "name": "frontend-99b7dcfc6-vjk5d",
+        "node": "kind-worker",
+        "phase": "Running",
+        "started": "2026-10-19T07:37:18Z",
+        "ready_since": "2026-10-19T07:37:18Z",
+        "conditions": [
+         "PodReadyToStartContainers=True",
+         "Initialized=True",
+         "Ready=True",
+         "ContainersReady=True",
+         "PodScheduled=True"
+        ],
+        "containers": [
+         {
+          "name": "frontend",
+          "ready": true,
+          "restarts": 0,
+          "state": {
+           "running": {
+            "startedAt": "2026-10-19T07:37:18Z"
+           }
+          }
+         }
+        ]
+       }
+      ],
+      "events": [
+       {
+        "type": "Normal",
+        "reason": "Pulled",
+        "count": 1,
+        "object": "pod/frontend-99b7dcfc6-vjk5d",
+        "last": "2026-10-19T07:37:18Z",
+        "message": "Container image \"ghcr.io/open-telemetry/demo:2.2.0-frontend\" already present on machine"
+       },
+       {
+        "type": "Normal",
+        "reason": "Created",
+        "count": 1,
+        "object": "pod/frontend-99b7dcfc6-vjk5d",
+        "last": "2026-10-19T07:37:18Z",
+        "message": "Created container: frontend"
+       },
+       {
+        "type": "Normal",
+        "reason": "Started",
+        "count": 1,
+        "object": "pod/frontend-99b7dcfc6-vjk5d",
+        "last": "2026-10-19T07:37:18Z",
+        "message": "Started container frontend"
+       },
+       {
+        "type": "Normal",
+        "reason": "SuccessfulCreate",
+        "count": 1,
+        "object": "replicaset/frontend-99b7dcfc6",
+        "last": "2026-10-19T07:37:18Z",
+        "message": "Created pod: frontend-99b7dcfc6-vjk5d"
+       },
+       {
+        "type": "Normal",
+        "reason": "Scheduled",
+        "count": 1,
+        "object": "pod/frontend-99b7dcfc6-vjk5d",
+        "last": "2026-10-19T07:37:18.242914Z",
+        "message": "Successfully assigned astronomy-shop/frontend-99b7dcfc6-vjk5d to kind-worker"
+       }
+      ],
+      "logs": {
+       "total_lines": 281,
+       "error_lines": 109,
+       "error_lines_still_occurring": 109,
+       "error_lines_stopped": 0,
+       "telemetry_export_error_lines": 0,
+       "error_samples": [
+        {
+         "count": 71,
+         "line": "frontend: \u2a2f Error: Could not parse target name \"\"",
+         "first_seen_seconds_ago": 141,
+         "last_seen_seconds_ago": 1,
+         "median_gap_seconds": 1.2,
+         "state": "ongoing"
+        },
+        {
+         "count": 19,
+         "line": "frontend: Error: 13 INTERNAL: shipping quote failure: failed POST to email service: expected 200, got 400",
+         "first_seen_seconds_ago": 124,
+         "last_seen_seconds_ago": 1,
+         "median_gap_seconds": 6.0,
+         "state": "ongoing"
+        },
+        {
+         "count": 19,
+         "line": "frontend: details: 'shipping quote failure: failed POST to email service: expected 200, got 400',",
+         "first_seen_seconds_ago": 124,
+         "last_seen_seconds_ago": 1,
+         "median_gap_seconds": 6.0,
+         "state": "ongoing"
+        }
+       ],
+       "repeated_failures": [
+        {
+         "line": "Error: 13 INTERNAL: shipping quote failure: failed POST to email service: expected 200, got 400",
+         "count": 19,
+         "span_seconds": 123,
+         "constant_tokens": [
+          "13",
+          "200",
+          "400"
+         ]
+        },
+        {
+         "line": "details: 'shipping quote failure: failed POST to email service: expected 200, got 400',",
+         "count": 19,
+         "span_seconds": 123,
+         "constant_tokens": [
+          "200",
+          "400"
+         ]
+        }
+       ],
+       "tail": [
+        "2026-10-19T07:39:48.764091178Z details: 'shipping quote failure: failed POST to email service: expected 200, got 400',",
+        "2026-10-19T07:39:48.764094498Z metadata: [Metadata]",
+        "2026-10-19T07:39:48.764096741Z }",
+        "2026-10-19T07:39:51.977636713Z \u2a2f Error: Could not parse target name \"\"",
+        "2026-10-19T07:39:51.977704543Z at <unknown> (.next/server/chunks/[root-of-the-server]__828d7226._.js:1:1780)",
+        "2026-10-19T07:39:51.987332153Z Error: 13 INTERNAL: shipping quote failure: failed POST to email service: expected 200, got 400",
+        "2026-10-19T07:39:51.987368114Z at <unknown> (.next/server/chunks/[root-of-the-server]__00d48b27._.js:1:1906)",
+        "2026-10-19T07:39:51.987371144Z at new Promise (<anonymous>) {",
+        "2026-10-19T07:39:51.987372519Z code: 13,",
+        "2026-10-19T07:39:51.987373808Z details: 'shipping quote failure: failed POST to email service: expected 200, got 400',",
+        "2026-10-19T07:39:51.987375654Z metadata: [Metadata]",
+        "2026-10-19T07:39:51.987377221Z }"
+       ]
+      },
+      "template_changes": {
+       "revision": 2,
+       "changed_at": "2026-10-19T07:37:18Z",
+       "changes": [
+        "pod label pod-template-hash: 6859c775df -> 99b7dcfc6",
+        "container frontend env CART_ADDR removed"
+       ]
+      },
+      "calls_services": [
+       "astronomy-shop/ad",
+       "astronomy-shop/checkout",
+       "astronomy-shop/currency",
+       "astronomy-shop/flagd",
+       "astronomy-shop/otel-collector",
+       "astronomy-shop/product-catalog",
+       "astronomy-shop/product-reviews",
+       "astronomy-shop/recommendation",
+       "astronomy-shop/shipping"
+      ],
+      "clients": [
+       "deployment/frontend-proxy"
+      ],
+      "rbac": {
+       "service_account": "astronomy-shop/astronomy-shop",
+       "can_i": [
+        "selfsubjectreviews.authentication.k8s.io [] [] [create]",
+        "selfsubjectaccessreviews.authorization.k8s.io [] [] [create]",
+        "selfsubjectrulesreviews.authorization.k8s.io [] [] [create]",
+        "[/.well-known/openid-configuration/] [] [get]",
+        "[/.well-known/openid-configuration] [] [get]",
+        "[/api/*] [] [get]",
+        "[/api] [] [get]",
+        "[/apis/*] [] [get]",
+        "[/apis] [] [get]",
+        "[/healthz] [] [get]",
+        "[/healthz] [] [get]",
+        "[/livez] [] [get]",
+        "[/livez] [] [get]"
+       ]
+      },
+      "input_candidates": [
+       {
+        "container": "frontend",
+        "env": "OTEL_COLLECTOR_NAME",
+        "value": "otel-collector"
+       },
+       {
+        "container": "frontend",
+        "env": "OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE",
+        "value": "cumulative"
+       },
+       {
+        "container": "frontend",
+        "env": "FLAGD_HOST",
+        "value": "flagd"
+       },
+       {
+        "container": "frontend",
+        "env": "ENV_PLATFORM",
+        "value": "kubernetes"
+       },
+       {
+        "container": "frontend",
+        "env": "WEB_OTEL_SERVICE_NAME",
+        "value": "frontend-web"
+       }
+      ],
+      "calls": {
+       "daemonset/otel-collector-agent": {
+        "kind": "DaemonSet",
+        "pods_ready": "3/3",
+        "restarts": 0,
+        "own_evidence_kinds": [
+         "change"
+        ],
+        "own_signals": [
+         "spec modified 141s ago, 18s after this object was created (fields: template.annotations.kubectl.kubernetes.io/restartedAt); pod template changes: template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-19T13:37:04+06:00; 22s before the first active symptom"
+        ],
+        "own_error_log_lines": 8,
+        "last_spec_change": "2026-10-19T07:37:04Z",
+        "looks_healthy_on_its_own": false
+       },
+       "deployment/checkout": {
+        "kind": "Deployment",
+        "pods_ready": "1/1",
+        "restarts": 0,
+        "looks_healthy_on_its_own": true
+       },
+       "deployment/currency": {
+        "kind": "Deployment",
+        "pods_ready": "1/1",
+        "restarts": 0,
+        "looks_healthy_on_its_own": true
+       },
+       "deployment/email": {
+        "kind": "Deployment",
+        "pods_ready": "1/1",
+        "restarts": 0,
+        "looks_healthy_on_its_own": true
+       },
+       "deployment/flagd": {
+        "kind": "Deployment",
+        "pods_ready": "1/1",
+        "restarts": 0,
+        "looks_healthy_on_its_own": true
+       },
+       "deployment/product-catalog": {
+        "kind": "Deployment",
+        "pods_ready": "1/1",
+        "restarts": 0,
+        "looks_healthy_on_its_own": true
+       },
+       "deployment/product-reviews": {
+        "kind": "Deployment",
+        "pods_ready": "1/1",
+        "restarts": 0,
+        "looks_healthy_on_its_own": true
+       },
+       "deployment/quote": {
+        "kind": "Deployment",
+        "pods_ready": "1/1",
+        "restarts": 0,
+        "looks_healthy_on_its_own": true
+       },
+       "deployment/recommendation": {
+        "kind": "Deployment",
+        "pods_ready": "1/1",
+        "restarts": 0,
+        "looks_healthy_on_its_own": true
+       },
+       "deployment/shipping": {
+        "kind": "Deployment",
+        "pods_ready": "1/1",
+        "restarts": 0,
+        "looks_healthy_on_its_own": true
+       }
+      },
+      "failing_targets": [
+       "deployment/email",
+       "deployment/quote",
+       "deployment/shipping"
+      ]
+     }
+    },
+    "deployment/quote": {
+     "kind": "Deployment",
+     "name": "quote",
+     "namespace": "astronomy-shop",
+     "healthy": false,
+     "signals": [
+      "errors logged by 1 other component(s) (deployment/frontend) name this component (error mentioning the component, 26 lines, still occurring), e.g. 'Error: 13 INTERNAL: shipping quote failure: failed POST to email service: expected 200, got 400'"
+     ],
+     "referenced_by_errors_from": [
+      "deployment/frontend"
+     ],
+     "detail": {
+      "component": "deployment/quote",
+      "namespace": "astronomy-shop",
+      "workload": {
+       "created": "2026-10-19T07:36:46Z",
+       "last_spec_write": "2026-10-19T07:36:46Z",
+       "spec_writers": [
+        {
+         "manager": "helm",
+         "op": "Apply",
+         "time": "2026-10-19T07:36:46Z"
+        }
+       ],
+       "replicas": 1,
+       "strategy": {
+        "rollingUpdate": {
+         "maxSurge": "25%",
+         "maxUnavailable": "25%"
+        },
+        "type": "RollingUpdate"
+       },
+       "service_account": "astronomy-shop",
+       "dns_policy": "ClusterFirst",
+       "restart_policy": "Always",
+       "containers": [
+        {
+         "name": "quote",
+         "image": "ghcr.io/open-telemetry/demo:2.2.0-quote",
+         "env": [
+          {
+           "name": "OTEL_SERVICE_NAME",
+           "from": "field:metadata.labels['app.kubernetes.io/component']"
+          },
+          {
+           "name": "OTEL_COLLECTOR_NAME",
+           "value": "otel-collector"
+          },
+          {
+           "name": "OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE",
+           "value": "cumulative"
+          },
+          {
+           "name": "QUOTE_PORT",
+           "value": "8080"
+          },
+          {
+           "name": "OTEL_PHP_AUTOLOAD_ENABLED",
+           "value": "true"
+          },
+          {
+           "name": "OTEL_PHP_INTERNAL_METRICS_ENABLED",
+           "value": "true"
+          },
+          {
+           "name": "OTEL_EXPORTER_OTLP_ENDPOINT",
+           "value": "http://$(OTEL_COLLECTOR_NAME):4318"
+          },
+          {
+           "name": "IPV6_ENABLED",
+           "value": "false"
+          }
+         ],
+         "ports": [
+          {
+           "port": 8080,
+           "name": "service"
+          }
+         ],
+         "resources": {
+          "limits": {
+           "memory": "40Mi"
+          }
+         }
+        }
+       ],
+       "template_labels": {
+        "app.kubernetes.io/component": "quote",
+        "app.kubernetes.io/name": "quote",
+        "app.kubernetes.io/version": "2.2.0",
+        "opentelemetry.io/name": "quote"
+       }
+      },
+      "pods": [
+       {
+        "name": "quote-7c77885dc4-6vlh5",
+        "node": "kind-worker",
+        "phase": "Running",
+        "started": "2026-10-19T07:36:46Z",
+        "ready_since": "2026-10-19T07:36:48Z",
+        "conditions": [
+         "PodReadyToStartContainers=True",
+         "Initialized=True",
+         "Ready=True",
+         "ContainersReady=True",
+         "PodScheduled=True"
+        ],
+        "containers": [
+         {
+          "name": "quote",
+          "ready": true,
+          "restarts": 0,
+          "state": {
+           "running": {
+            "startedAt": "2026-10-19T07:36:47Z"
+           }
+          }
+         }
+        ]
+       }
+      ],
+      "events": [
+       {
+        "type": "Normal",
+        "reason": "Pulled",
+        "count": 1,
+        "object": "pod/quote-7c77885dc4-6vlh5",
+        "last": "2026-10-19T07:36:47Z",
+        "message": "Container image \"ghcr.io/open-telemetry/demo:2.2.0-quote\" already present on machine"
+       },
+       {
+        "type": "Normal",
+        "reason": "Created",
+        "count": 1,
+        "object": "pod/quote-7c77885dc4-6vlh5",
+        "last": "2026-10-19T07:36:47Z",
+        "message": "Created container: quote"
+       },
+       {
+        "type": "Normal",
+        "reason": "Started",
+        "count": 1,
+        "object": "pod/quote-7c77885dc4-6vlh5",
+        "last": "2026-10-19T07:36:47Z",
+        "message": "Started container quote"
+       },
+       {
+        "type": "Normal",
+        "reason": "SuccessfulCreate",
+        "count": 1,
+        "object": "replicaset/quote-7c77885dc4",
+        "last": "2026-10-19T07:36:46Z",
+        "message": "Created pod: quote-7c77885dc4-6vlh5"
+       },
+       {
+        "type": "Normal",
+        "reason": "Scheduled",
+        "count": 1,
+        "object": "pod/quote-7c77885dc4-6vlh5",
+        "last": "2026-10-19T07:36:46.367170Z",
+        "message": "Successfully assigned astronomy-shop/quote-7c77885dc4-6vlh5 to kind-worker"
+       }
+      ],
+      "logs": {
+       "total_lines": 1,
+       "error_lines": 0,
+       "error_lines_still_occurring": 0,
+       "error_lines_stopped": 0,
+       "telemetry_export_error_lines": 0,
+       "tail": [
+        "2026-10-19T07:36:48.157204650Z Listening on: 0.0.0.0:8080"
+       ]
+      },
+      "calls_services": [
+       "astronomy-shop/otel-collector"
+      ],
+      "clients": [
+       "deployment/shipping"
+      ],
+      "rbac": {
+       "service_account": "astronomy-shop/astronomy-shop",
+       "can_i": [
+        "selfsubjectreviews.authentication.k8s.io [] [] [create]",
+        "selfsubjectaccessreviews.authorization.k8s.io [] [] [create]",
+        "selfsubjectrulesreviews.authorization.k8s.io [] [] [create]",
+        "[/.well-known/openid-configuration/] [] [get]",
+        "[/.well-known/openid-configuration] [] [get]",
+        "[/api/*] [] [get]",
+        "[/api] [] [get]",
+        "[/apis/*] [] [get]",
+        "[/apis] [] [get]",
+        "[/healthz] [] [get]",
+        "[/healthz] [] [get]",
+        "[/livez] [] [get]",
+        "[/livez] [] [get]"
+       ]
+      },
+      "input_candidates": [
+       {
+        "container": "quote",
+        "env": "OTEL_COLLECTOR_NAME",
+        "value": "otel-collector"
+       },
+       {
+        "container": "quote",
+        "env": "OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE",
+        "value": "cumulative"
+       }
+      ],
+      "calls": {
+       "daemonset/otel-collector-agent": {
+        "kind": "DaemonSet",
+        "pods_ready": "3/3",
+        "restarts": 0,
+        "own_evidence_kinds": [
+         "change"
+        ],
+        "own_signals": [
+         "spec modified 141s ago, 18s after this object was created (fields: template.annotations.kubectl.kubernetes.io/restartedAt); pod template changes: template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-19T13:37:04+06:00; 22s before the first active symptom"
+        ],
+        "own_error_log_lines": 8,
+        "last_spec_change": "2026-10-19T07:37:04Z",
+        "looks_healthy_on_its_own": false
+       }
+      },
+      "called_by_with_errors": {
+       "deployment/frontend": {
+        "error mentioning the component": 26
+       }
+      }
+     }
+    },
+    "deployment/shipping": {
+     "kind": "Deployment",
+     "name": "shipping",
+     "namespace": "astronomy-shop",
+     "healthy": false,
+     "signals": [
+      "errors logged by 1 other component(s) (deployment/frontend) name this component (error mentioning the component, 26 lines, still occurring), e.g. 'Error: 13 INTERNAL: shipping quote failure: failed POST to email service: expected 200, got 400'"
+     ],
+     "referenced_by_errors_from": [
+      "deployment/frontend"
+     ],
+     "detail": {
+      "component": "deployment/shipping",
+      "namespace": "astronomy-shop",
+      "workload": {
+       "created": "2026-10-19T07:36:46Z",
+       "last_spec_write": "2026-10-19T07:36:46Z",
+       "spec_writers": [
+        {
+         "manager": "helm",
+         "op": "Apply",
+         "time": "2026-10-19T07:36:46Z"
+        }
+       ],
+       "replicas": 1,
+       "strategy": {
+        "rollingUpdate": {
+         "maxSurge": "25%",
+         "maxUnavailable": "25%"
+        },
+        "type": "RollingUpdate"
+       },
+       "service_account": "astronomy-shop",
+       "dns_policy": "ClusterFirst",
+       "restart_policy": "Always",
+       "containers": [
+        {
+         "name": "shipping",
+         "image": "ghcr.io/open-telemetry/demo:2.2.0-shipping",
+         "env": [
+          {
+           "name": "OTEL_SERVICE_NAME",
+           "from": "field:metadata.labels['app.kubernetes.io/component']"
+          },
+          {
+           "name": "OTEL_COLLECTOR_NAME",
+           "value": "otel-collector"
+          },
+          {
+           "name": "OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE",
+           "value": "cumulative"
+          },
+          {
+           "name": "SHIPPING_PORT",
+           "value": "8080"
+          },
+          {
+           "name": "QUOTE_ADDR",
+           "value": "http://quote:8080"
+          },
+          {
+           "name": "OTEL_EXPORTER_OTLP_ENDPOINT",
+           "value": "http://$(OTEL_COLLECTOR_NAME):4317"
+          },
+          {
+           "name": "IPV6_ENABLED",
+           "value": "false"
+          }
+         ],
+         "ports": [
+          {
+           "port": 8080,
+           "name": "service"
+          }
+         ],
+         "resources": {
+          "limits": {
+           "memory": "20Mi"
+          }
+         }
+        }
+       ],
+       "template_labels": {
+        "app.kubernetes.io/component": "shipping",
+        "app.kubernetes.io/name": "shipping",
+        "app.kubernetes.io/version": "2.2.0",
+        "opentelemetry.io/name": "shipping"
+       }
+      },
+      "pods": [
+       {
+        "name": "shipping-6d777796df-ltvj9",
+        "node": "kind-worker",
+        "phase": "Running",
+        "started": "2026-10-19T07:36:47Z",
+        "ready_since": "2026-10-19T07:36:49Z",
+        "conditions": [
+         "PodReadyToStartContainers=True",
+         "Initialized=True",
+         "Ready=True",
+         "ContainersReady=True",
+         "PodScheduled=True"
+        ],
+        "containers": [
+         {
+          "name": "shipping",
+          "ready": true,
+          "restarts": 0,
+          "state": {
+           "running": {
+            "startedAt": "2026-10-19T07:36:48Z"
+           }
+          }
+         }
+        ]
+       }
+      ],
+      "events": [
+       {
+        "type": "Normal",
+        "reason": "Pulled",
+        "count": 1,
+        "object": "pod/shipping-6d777796df-ltvj9",
+        "last": "2026-10-19T07:36:48Z",
+        "message": "Container image \"ghcr.io/open-telemetry/demo:2.2.0-shipping\" already present on machine"
+       },
+       {
+        "type": "Normal",
+        "reason": "Created",
+        "count": 1,
+        "object": "pod/shipping-6d777796df-ltvj9",
+        "last": "2026-10-19T07:36:48Z",
+        "message": "Created container: shipping"
+       },
+       {
+        "type": "Normal",
+        "reason": "Started",
+        "count": 1,
+        "object": "pod/shipping-6d777796df-ltvj9",
+        "last": "2026-10-19T07:36:48Z",
+        "message": "Started container shipping"
+       },
+       {
+        "type": "Normal",
+        "reason": "SuccessfulCreate",
+        "count": 1,
+        "object": "replicaset/shipping-6d777796df",
+        "last": "2026-10-19T07:36:47Z",
+        "message": "Created pod: shipping-6d777796df-ltvj9"
+       },
+       {
+        "type": "Normal",
+        "reason": "Scheduled",
+        "count": 1,
+        "object": "pod/shipping-6d777796df-ltvj9",
+        "last": "2026-10-19T07:36:47.463995Z",
+        "message": "Successfully assigned astronomy-shop/shipping-6d777796df-ltvj9 to kind-worker"
+       }
+      ],
+      "logs": {
+       "total_lines": 0,
+       "error_lines": 0,
+       "error_lines_still_occurring": 0,
+       "error_lines_stopped": 0,
+       "telemetry_export_error_lines": 0
+      },
+      "calls_services": [
+       "astronomy-shop/otel-collector",
+       "astronomy-shop/quote"
+      ],
+      "clients": [
+       "deployment/checkout",
+       "deployment/frontend"
+      ],
+      "rbac": {
+       "service_account": "astronomy-shop/astronomy-shop",
+       "can_i": [
+        "selfsubjectreviews.authentication.k8s.io [] [] [create]",
+        "selfsubjectaccessreviews.authorization.k8s.io [] [] [create]",
+        "selfsubjectrulesreviews.authorization.k8s.io [] [] [create]",
+        "[/.well-known/openid-configuration/] [] [get]",
+        "[/.well-known/openid-configuration] [] [get]",
+        "[/api/*] [] [get]",
+        "[/api] [] [get]",
+        "[/apis/*] [] [get]",
+        "[/apis] [] [get]",
+        "[/healthz] [] [get]",
+        "[/healthz] [] [get]",
+        "[/livez] [] [get]",
+        "[/livez] [] [get]"
+       ]
+      },
+      "input_candidates": [
+       {
+        "container": "shipping",
+        "env": "OTEL_COLLECTOR_NAME",
+        "value": "otel-collector"
+       },
+       {
+        "container": "shipping",
+        "env": "OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE",
+        "value": "cumulative"
+       }
+      ],
+      "calls": {
+       "daemonset/otel-collector-agent": {
+        "kind": "DaemonSet",
+        "pods_ready": "3/3",
+        "restarts": 0,
+        "own_evidence_kinds": [
+         "change"
+        ],
+        "own_signals": [
+         "spec modified 141s ago, 18s after this object was created (fields: template.annotations.kubectl.kubernetes.io/restartedAt); pod template changes: template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-19T13:37:04+06:00; 22s before the first active symptom"
+        ],
+        "own_error_log_lines": 8,
+        "last_spec_change": "2026-10-19T07:37:04Z",
+        "looks_healthy_on_its_own": false
+       },
+       "deployment/quote": {
+        "kind": "Deployment",
+        "pods_ready": "1/1",
+        "restarts": 0,
+        "looks_healthy_on_its_own": true
+       }
+      },
+      "called_by_with_errors": {
+       "deployment/frontend": {
+        "error mentioning the component": 26
+       }
+      }
+     }
+    }
+   },
+   "cluster": {
+    "symptom_onset": "2026-10-19T07:37:26+00:00",
+    "recent_changes": [
+     {
+      "object": "daemonset/otel-collector-agent",
+      "at": "2026-10-19T07:37:04Z",
+      "modified_after_creation_s": 18,
+      "fields": [
+       "template.annotations.kubectl.kubernetes.io/restartedAt"
+      ],
+      "seconds_ago": 141,
+      "seconds_before_symptoms": 22,
+      "role": "observability"
+     }
+    ],
+    "findings": []
+   }
+  },
+  "questions": {
+   "best_explanation": {
+    "type": "choice",
+    "criteria": {
+     "o1": "Origin: input/astronomy-shop/kubernetes. One bad item in kubernetes, which deployment/frontend reads, fails again and again and blocks the items behind it. | Details: deployment/frontend reads ENV_PLATFORM=kubernetes; Error: 13 INTERNAL: shipping quote failure: failed POST to email service: expected 200, got 400 | Observed impact on: deployment/astronomy-shop/frontend | Checks: deployment/frontend fails repeatedly on the same item (supports)",
+     "o2": "Origin: input/astronomy-shop/cumulative. One bad item in cumulative, which deployment/frontend reads, fails again and again and blocks the items behind it. | Details: deployment/frontend reads OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE=cumulative; Error: 13 INTERNAL: shipping quote failure: failed POST to email service: expected 200, got 400 | Observed impact on: deployment/astronomy-shop/frontend | Checks: deployment/frontend fails repeatedly on the same item (supports)",
+     "o3": "Origin: input/astronomy-shop/otel-collector. One bad item in otel-collector, which deployment/frontend reads, fails again and again and blocks the items behind it. | Details: deployment/frontend reads OTEL_COLLECTOR_NAME=otel-collector; Error: 13 INTERNAL: shipping quote failure: failed POST to email service: expected 200, got 400 | Observed impact on: deployment/astronomy-shop/frontend | Checks: deployment/frontend fails repeatedly on the same item (supports)",
+     "o4": "Origin: daemonset/astronomy-shop/otel-collector-agent. daemonset/otel-collector-agent is broken, so deployment/email, deployment/frontend, deployment/quote, deployment/shipping, which call it, fail. | Details: spec modified 141s ago, 18s after this object was created (fields: template.annotations.kubectl.kubernetes.io/restartedAt); pod template changes: template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-19T13:37:04+06:00; 22s before the first active symptom | Observed impact on: daemonset/astronomy-shop/otel-collector-agent, deployment/astronomy-shop/email, deployment/astronomy-shop/frontend, deployment/astronomy-shop/quote, deployment/astronomy-shop/shipping | Checks: deployment/email, deployment/frontend, deployment/quote, deployment/shipping call daemonset/otel-collector-agent (their configuration or their own errors name it) (supports); daemonset/otel-collector-agent shows failures of its own (supports)",
+     "o5": "Origin: deployment/astronomy-shop/frontend. The pod template change 'container frontend env CART_ADDR removed' in revision 2 of deployment/frontend breaks deployment/frontend. | Details: container frontend env CART_ADDR removed | Observed impact on: deployment/astronomy-shop/frontend | Checks: revision 2 of deployment/frontend was made before the symptoms began (supports); deployment/frontend shows symptoms of its own (supports)",
+     "o6": "Origin: input/astronomy-shop/flagd. One bad item in flagd, which deployment/frontend reads, fails again and again and blocks the items behind it. | Details: deployment/frontend reads FLAGD_HOST=flagd; Error: 13 INTERNAL: shipping quote failure: failed POST to email service: expected 200, got 400 | Observed impact on: deployment/astronomy-shop/frontend | Checks: deployment/frontend fails repeatedly on the same item (supports)",
+     "o7": "None of these explanations fits the evidence."
+    },
+    "instructions": {
+     "question": "Which explanation best accounts for all the observed symptoms in `evidence`?",
+     "how_to_decide": [
+      "Prefer the explanation whose chain is supported by the observed facts and explains the most symptoms; an explanation contradicted by a fact is unlikely.",
+      "A component that only fails because something it calls fails is a victim, not the origin.",
+      "Choose `o7` when none of the explanations fits the evidence."
+     ]
+    }
+   }
+  },
+  "model": "typesafe/jev-1.13-20260917",
+  "latency_ms": 672,
+  "usage": {
+   "input_tokens": 18764,
+   "output_tokens": 77,
+   "cost": 0.000788088
+  },
+  "answers": {
+   "best_explanation": {
+    "type": "choice",
+    "choice": "o4",
+    "confidence": 0.29,
+    "probabilities": {
+     "o1": 0.01,
+     "o2": 0.0,
+     "o3": 0.02,
+     "o4": 0.39,
+     "o5": 0.38,
+     "o6": 0.0,
+     "o7": 0.2
+    }
+   }
+  }
+ },
+ {
+  "label": "decide:2",
+  "state": {
+   "application": {
+    "name": "OpenTelemetry Demo Astronomy Shop",
+    "description": "An online shopping platform built with a microservices architecture, showcasing OpenTelemetry instrumentation for distributed tracing across services.",
+    "namespaces": [
+     "astronomy-shop"
+    ]
+   },
+   "evidence": {
+    "daemonset/otel-collector-agent": {
+     "kind": "DaemonSet",
+     "name": "otel-collector-agent",
+     "namespace": "astronomy-shop",
+     "healthy": false,
+     "signals": [
+      "spec modified 141s ago, 18s after this object was created (fields: template.annotations.kubectl.kubernetes.io/restartedAt); pod template changes: template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-19T13:37:04+06:00; 22s before the first active symptom"
+     ],
+     "template_changes": {
+      "revision": 2,
+      "changed_at": "2026-10-19T07:37:04Z",
+      "changes": [
+       "template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-19T13:37:04+06:00"
+      ]
+     },
+     "detail": {
+      "component": "daemonset/otel-collector-agent",
+      "namespace": "astronomy-shop",
+      "workload": {
+       "created": "2026-10-19T07:36:46Z",
+       "last_spec_write": "2026-10-19T07:37:04Z",
+       "spec_writers": [
+        {
+         "manager": "helm",
+         "op": "Apply",
+         "time": "2026-10-19T07:36:46Z"
+        },
+        {
+         "manager": "kubectl-rollout",
+         "op": "Update",
+         "time": "2026-10-19T07:37:04Z"
+        }
+       ],
+       "strategy": {
+        "rollingUpdate": {
+         "maxSurge": 0,
+         "maxUnavailable": 1
+        },
+        "type": "RollingUpdate"
+       },
+       "service_account": "otel-collector",
+       "dns_policy": "ClusterFirst",
+       "restart_policy": "Always",
+       "containers": [
+        {
+         "name": "opentelemetry-collector",
+         "image": "otel/opentelemetry-collector-contrib:0.142.0",
+         "args": [
+          "--config=/conf/relay.yaml"
+         ],
+         "env": [
+          {
+           "name": "MY_POD_IP",
+           "from": "field:status.podIP"
+          },
+          {
+           "name": "K8S_NODE_NAME",
+           "from": "field:spec.nodeName"
+          },
+          {
+           "name": "K8S_NODE_IP",
+           "from": "field:status.hostIP"
+          },
+          {
+           "name": "GOMEMLIMIT",
+           "value": "160MiB"
+          }
+         ],
+         "ports": [
+          {
+           "port": 6831,
+           "name": "jaeger-compact"
+          },
+          {
+           "port": 14250,
+           "name": "jaeger-grpc"
+          },
+          {
+           "port": 14268,
+           "name": "jaeger-thrift"
+          },
+          {
+           "port": 8888,
+           "name": "metrics"
+          },
+          {
+           "port": 4317,
+           "name": "otlp"
+          },
+          {
+           "port": 4318,
+           "name": "otlp-http"
+          },
+          {
+           "port": 9411,
+           "name": "zipkin"
+          }
+         ],
+         "resources": {
+          "limits": {
+           "memory": "200Mi"
+          }
+         },
+         "probes": {
+          "readiness": {
+           "failureThreshold": 3,
+           "httpGet": {
+            "path": "/",
+            "port": 13133,
+            "scheme": "HTTP"
+           },
+           "periodSeconds": 10,
+           "successThreshold": 1,
+           "timeoutSeconds": 1
+          },
+          "liveness": {
+           "failureThreshold": 3,
+           "httpGet": {
+            "path": "/",
+            "port": 13133,
+            "scheme": "HTTP"
+           },
+           "periodSeconds": 10,
+           "successThreshold": 1,
+           "timeoutSeconds": 1
+          }
+         },
+         "volume_mounts": [
+          {
+           "name": "opentelemetry-collector-configmap",
+           "path": "/conf"
+          },
+          {
+           "name": "hostfs",
+           "path": "/hostfs"
+          }
+         ]
+        }
+       ],
+       "volumes": [
+        {
+         "name": "opentelemetry-collector-configmap",
+         "configMap": {
+          "defaultMode": 420,
+          "items": [
+           {
+            "key": "relay",
+            "path": "relay.yaml"
+           }
+          ],
+          "name": "otel-collector-agent"
+         }
+        },
+        {
+         "name": "hostfs",
+         "hostPath": {
+          "path": "/",
+          "type": ""
+         }
+        }
+       ],
+       "template_labels": {
+        "app.kubernetes.io/instance": "astronomy-shop",
+        "app.kubernetes.io/name": "opentelemetry-collector",
+        "component": "agent-collector"
+       }
+      },
+      "pods": [
+       {
+        "name": "otel-collector-agent-5w8c8",
+        "node": "kind-worker2",
+        "phase": "Running",
+        "started": "2026-10-19T07:37:11Z",
+        "ready_since": "2026-10-19T07:37:13Z",
+        "conditions": [
+         "PodReadyToStartContainers=True",
+         "Initialized=True",
+         "Ready=True",
+         "ContainersReady=True",
+         "PodScheduled=True"
+        ],
+        "containers": [
+         {
+          "name": "opentelemetry-collector",
+          "ready": true,
+          "restarts": 0,
+          "state": {
+           "running": {
+            "startedAt": "2026-10-19T07:37:12Z"
+           }
+          }
+         }
+        ]
+       },
+       {
+        "name": "otel-collector-agent-f95pp",
+        "node": "kind-worker3",
+        "phase": "Running",
+        "started": "2026-10-19T07:37:06Z",
+        "ready_since": "2026-10-19T07:37:08Z",
+        "conditions": [
+         "PodReadyToStartContainers=True",
+         "Initialized=True",
+         "Ready=True",
+         "ContainersReady=True",
+         "PodScheduled=True"
+        ],
+        "containers": [
+         {
+          "name": "opentelemetry-collector",
+          "ready": true,
+          "restarts": 0,
+          "state": {
+           "running": {
+            "startedAt": "2026-10-19T07:37:07Z"
+           }
+          }
+         }
+        ]
+       },
+       {
+        "name": "otel-collector-agent-k62nl",
+        "node": "kind-worker",
+        "phase": "Running",
+        "started": "2026-10-19T07:37:08Z",
+        "ready_since": "2026-10-19T07:37:10Z",
+        "conditions": [
+         "PodReadyToStartContainers=True",
+         "Initialized=True",
+         "Ready=True",
+         "ContainersReady=True",
+         "PodScheduled=True"
+        ],
+        "containers": [
+         {
+          "name": "opentelemetry-collector",
+          "ready": true,
+          "restarts": 0,
+          "state": {
+           "running": {
+            "startedAt": "2026-10-19T07:37:09Z"
+           }
+          }
+         }
+        ]
+       }
+      ],
+      "events": [
+       {
+        "type": "Normal",
+        "reason": "Created",
+        "count": 1,
+        "object": "pod/otel-collector-agent-5w8c8",
+        "last": "2026-10-19T07:37:12Z",
+        "message": "Created container: opentelemetry-collector"
+       },
+       {
+        "type": "Normal",
+        "reason": "Started",
+        "count": 1,
+        "object": "pod/otel-collector-agent-5w8c8",
+        "last": "2026-10-19T07:37:12Z",
+        "message": "Started container opentelemetry-collector"
+       },
+       {
+        "type": "Normal",
+        "reason": "Pulled",
+        "count": 1,
+        "object": "pod/otel-collector-agent-5w8c8",
+        "last": "2026-10-19T07:37:11Z",
+        "message": "Container image \"otel/opentelemetry-collector-contrib:0.142.0\" already present on machine"
+       },
+       {
+        "type": "Normal",
+        "reason": "SuccessfulCreate",
+        "count": 1,
+        "object": "daemonset/otel-collector-agent",
+        "last": "2026-10-19T07:37:11Z",
+        "message": "Created pod: otel-collector-agent-5w8c8"
+       },
+       {
+        "type": "Normal",
+        "reason": "Scheduled",
+        "count": 1,
+        "object": "pod/otel-collector-agent-5w8c8",
+        "last": "2026-10-19T07:37:11.336390Z",
+        "message": "Successfully assigned astronomy-shop/otel-collector-agent-5w8c8 to kind-worker2"
+       },
+       {
+        "type": "Normal",
+        "reason": "Killing",
+        "count": 1,
+        "object": "pod/otel-collector-agent-sxwl2",
+        "last": "2026-10-19T07:37:10Z",
+        "message": "Stopping container opentelemetry-collector"
+       },
+       {
+        "type": "Normal",
+        "reason": "SuccessfulDelete",
+        "count": 1,
+        "object": "daemonset/otel-collector-agent",
+        "last": "2026-10-19T07:37:10Z",
+        "message": "Deleted pod: otel-collector-agent-sxwl2"
+       },
+       {
+        "type": "Normal",
+        "reason": "Pulled",
+        "count": 1,
+        "object": "pod/otel-collector-agent-k62nl",
+        "last": "2026-10-19T07:37:09Z",
+        "message": "Container image \"otel/opentelemetry-collector-contrib:0.142.0\" already present on machine"
+       },
+       {
+        "type": "Normal",
+        "reason": "Created",
+        "count": 1,
+        "object": "pod/otel-collector-agent-k62nl",
+        "last": "2026-10-19T07:37:09Z",
+        "message": "Created container: opentelemetry-collector"
+       },
+       {
+        "type": "Normal",
+        "reason": "Started",
+        "count": 1,
+        "object": "pod/otel-collector-agent-k62nl",
+        "last": "2026-10-19T07:37:09Z",
+        "message": "Started container opentelemetry-collector"
+       },
+       {
+        "type": "Normal",
+        "reason": "Killing",
+        "count": 1,
+        "object": "pod/otel-collector-agent-lfhpt",
+        "last": "2026-10-19T07:37:08Z",
+        "message": "Stopping container opentelemetry-collector"
+       },
+       {
+        "type": "Warning",
+        "reason": "Unhealthy",
+        "count": 1,
+        "object": "pod/otel-collector-agent-lfhpt",
+        "last": "2026-10-19T07:37:08Z",
+        "message": "Readiness probe failed: Get \"http://10.244.162.185:13133/\": dial tcp 10.244.162.185:13133: connect: invalid argument"
+       },
+       {
+        "type": "Normal",
+        "reason": "SuccessfulDelete",
+        "count": 1,
+        "object": "daemonset/otel-collector-agent",
+        "last": "2026-10-19T07:37:08Z",
+        "message": "Deleted pod: otel-collector-agent-lfhpt"
+       },
+       {
+        "type": "Normal",
+        "reason": "SuccessfulCreate",
+        "count": 1,
+        "object": "daemonset/otel-collector-agent",
+        "last": "2026-10-19T07:37:08Z",
+        "message": "Created pod: otel-collector-agent-k62nl"
+       },
+       {
+        "type": "Normal",
+        "reason": "Scheduled",
+        "count": 1,
+        "object": "pod/otel-collector-agent-k62nl",
+        "last": "2026-10-19T07:37:08.797468Z",
+        "message": "Successfully assigned astronomy-shop/otel-collector-agent-k62nl to kind-worker"
+       }
+      ],
+      "logs": {
+       "total_lines": 600,
+       "error_lines": 0,
+       "error_lines_still_occurring": 0,
+       "error_lines_stopped": 0,
+       "telemetry_export_error_lines": 44,
+       "telemetry_error_samples": [
+        {
+         "count": 1,
+         "line": "opentelemetry-collector: 2026-10-19T07:39:03.736Z info Metrics {\"resource\": {\"service.instance.id\": \"b342f172-b9b8-4a3f-bfc9-c3389d6f2586\", \"service.name\": \"otelcol-contrib\", \"service.version\": \"0.142.0\"}, \"otelcol.component.id\": \"debug\", \u2026",
+         "first_seen_seconds_ago": 53,
+         "last_seen_seconds_ago": 53,
+         "state": "ongoing"
+        },
+        {
+         "count": 1,
+         "line": "opentelemetry-collector: 2026-10-19T07:39:13.624Z error kubeletstatsreceiver@v0.142.0/scraper.go:106 call to /stats/summary endpoint failed {\"resource\": {\"service.instance.id\": \"b342f172-b9b8-4a3f-bfc9-c3389d6f2586\", \"service.name\": \"otelc\u2026",
+         "first_seen_seconds_ago": 43,
+         "last_seen_seconds_ago": 43,
+         "state": "ongoing"
+        },
+        {
+         "count": 1,
+         "line": "opentelemetry-collector: 2026-10-19T07:39:13.625Z error scraperhelper@v0.142.0/obs_metrics.go:61 Error scraping metrics {\"resource\": {\"service.instance.id\": \"b342f172-b9b8-4a3f-bfc9-c3389d6f2586\", \"service.name\": \"otelcol-contrib\", \"servic\u2026",
+         "first_seen_seconds_ago": 43,
+         "last_seen_seconds_ago": 43,
+         "state": "ongoing"
+        }
+       ],
+       "tail": [
+        "2026-10-19T07:39:48.850556354Z go.opentelemetry.io/collector/scraper/scraperhelper.NewMetricsController.func1",
+        "2026-10-19T07:39:48.850559309Z go.opentelemetry.io/collector/scraper/scraperhelper@v0.142.0/controller.go:228",
+        "2026-10-19T07:39:48.850583630Z go.opentelemetry.io/collector/scraper/scraperhelper.(*controller[...]).startScraping.func1",
+        "2026-10-19T07:39:48.850587243Z go.opentelemetry.io/collector/scraper/scraperhelper@v0.142.0/controller.go:175",
+        "2026-10-19T07:39:48.959193138Z 2026-10-19T07:39:48.959Z info Metrics {\"resource\": {\"service.instance.id\": \"fdc51856-db6f-4100-a407-d6c402214c4f\", \"service.name\": \"otelcol-contrib\", \"service.version\":\u2026",
+        "2026-10-19T07:39:48.978074325Z 2026-10-19T07:39:48.977Z info Traces {\"resource\": {\"service.instance.id\": \"fdc51856-db6f-4100-a407-d6c402214c4f\", \"service.name\": \"otelcol-contrib\", \"service.version\": \u2026",
+        "2026-10-19T07:39:51.366673366Z 2026-10-19T07:39:51.366Z info Metrics {\"resource\": {\"service.instance.id\": \"fdc51856-db6f-4100-a407-d6c402214c4f\", \"service.name\": \"otelcol-contrib\", \"service.version\":\u2026",
+        "2026-10-19T07:39:52.776869571Z 2026-10-19T07:39:52.776Z info Logs {\"resource\": {\"service.instance.id\": \"fdc51856-db6f-4100-a407-d6c402214c4f\", \"service.name\": \"otelcol-contrib\", \"service.version\": \"0\u2026",
+        "2026-10-19T07:39:53.793275415Z 2026-10-19T07:39:53.793Z info Traces {\"resource\": {\"service.instance.id\": \"fdc51856-db6f-4100-a407-d6c402214c4f\", \"service.name\": \"otelcol-contrib\", \"service.version\": \u2026",
+        "2026-10-19T07:39:54.376320758Z 2026-10-19T07:39:54.376Z info Metrics {\"resource\": {\"service.instance.id\": \"fdc51856-db6f-4100-a407-d6c402214c4f\", \"service.name\": \"otelcol-contrib\", \"service.version\":\u2026",
+        "2026-10-19T07:39:55.986648881Z 2026-10-19T07:39:55.986Z info Logs {\"resource\": {\"service.instance.id\": \"fdc51856-db6f-4100-a407-d6c402214c4f\", \"service.name\": \"otelcol-contrib\", \"service.version\": \"0\u2026",
+        "2026-10-19T07:39:56.181237583Z 2026-10-19T07:39:56.180Z info Metrics {\"resource\": {\"service.instance.id\": \"fdc51856-db6f-4100-a407-d6c402214c4f\", \"service.name\": \"otelcol-contrib\", \"service.version\":\u2026"
+       ]
+      },
+      "template_changes": {
+       "revision": 2,
+       "changed_at": "2026-10-19T07:37:04Z",
+       "changes": [
+        "template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-19T13:37:04+06:00"
+       ]
+      },
+      "clients": [
+       "deployment/accounting",
+       "deployment/ad",
+       "deployment/cart",
+       "deployment/checkout",
+       "deployment/currency",
+       "deployment/email",
+       "deployment/flagd",
+       "deployment/fraud-detection",
+       "deployment/frontend",
+       "deployment/frontend-proxy",
+       "deployment/image-provider",
+       "deployment/kafka",
+       "deployment/llm",
+       "deployment/payment",
+       "deployment/product-catalog",
+       "deployment/product-reviews",
+       "deployment/quote",
+       "deployment/recommendation",
+       "deployment/shipping"
+      ],
+      "configmaps": {
+       "otel-collector-agent": {
+        "last_update": "2026-10-19T07:36:46Z",
+        "keys": [
+         "relay"
+        ],
+        "data": {
+         "relay": "connectors: \u23ce spanmetrics: {} \u23ce exporters: \u23ce debug: {} \u23ce opensearch: \u23ce http: \u23ce endpoint: http://opensearch:9200 \u23ce tls: \u23ce insecure: true \u23ce logs_index: otel-logs \u23ce logs_index_time_format: yyyy-MM-dd \u23ce otlp/jaeger: \u23ce endpoint: jaeger:4317 \u23ce sending_queue: \u23ce batch: null \u23ce tls: \u23ce insecure: true \u23ce otlphttp/prometheus: \u23ce endpoint: http://prometheus:9090/api/v1/otlp \u23ce sending_queue: \u23ce batch: null \u23ce tls: \u2026"
+        }
+       }
+      },
+      "rbac": {
+       "service_account": "astronomy-shop/otel-collector",
+       "bindings": [
+        "ClusterRoleBinding/otel-collector -> ClusterRole/otel-collector"
+       ],
+       "can_i": [
+        "selfsubjectreviews.authentication.k8s.io [] [] [create]",
+        "selfsubjectaccessreviews.authorization.k8s.io [] [] [create]",
+        "selfsubjectrulesreviews.authorization.k8s.io [] [] [create]",
+        "leases.coordination.k8s.io [] [] [get list watch create update patch delete]",
+        "events [] [] [get list watch]",
+        "namespaces/status [] [] [get list watch]",
+        "nodes/spec [] [] [get list watch]",
+        "nodes [] [] [get list watch]",
+        "pods/status [] [] [get list watch]",
+        "replicationcontrollers/status [] [] [get list watch]",
+        "replicationcontrollers [] [] [get list watch]",
+        "resourcequotas [] [] [get list watch]",
+        "services [] [] [get list watch]"
+       ],
+       "roles": [
+        {
+         "kind": "ClusterRole",
+         "name": "otel-collector",
+         "bindings": [
+          "ClusterRoleBinding/otel-collector"
+         ],
+         "service_accounts": [
+          "astronomy-shop/otel-collector"
+         ],
+         "components": [
+          "daemonset/otel-collector-agent"
+         ],
+         "rules": [
+          "leases [coordination.k8s.io]: get,list,watch,create,update,patch,delete",
+          "pods,namespaces [core]: get,watch,list",
+          "replicasets [apps]: get,list,watch",
+          "replicasets [extensions]: get,list,watch",
+          "events,namespaces,namespaces/status,nodes,nodes/spec,pods,pods/status,replicationcontrollers,replicationcontrollers/status,resourcequotas,services [core]: get,list,watch",
+          "daemonsets,deployments,replicasets,statefulsets [apps]: get,list,watch",
+          "daemonsets,deployments,replicasets [extensions]: get,list,watch",
+          "jobs,cronjobs [batch]: get,list,watch"
+         ],
+         "created": "2026-10-19T07:36:46Z",
+         "modified": "2026-10-19T07:36:46Z"
+        }
+       ]
+      }
+     }
+    },
+    "deployment/email": {
+     "kind": "Deployment",
+     "name": "email",
+     "namespace": "astronomy-shop",
+     "healthy": false,
+     "signals": [
+      "errors logged by 1 other component(s) (deployment/frontend) name this component (error mentioning the component, 26 lines, still occurring), e.g. 'Error: 13 INTERNAL: shipping quote failure: failed POST to email service: expected 200, got 400'"
+     ],
+     "referenced_by_errors_from": [
+      "deployment/frontend"
+     ],
+     "detail": {
+      "component": "deployment/email",
+      "namespace": "astronomy-shop",
+      "workload": {
+       "created": "2026-10-19T07:36:46Z",
+       "last_spec_write": "2026-10-19T07:36:46Z",
+       "spec_writers": [
+        {
+         "manager": "helm",
+         "op": "Apply",
+         "time": "2026-10-19T07:36:46Z"
+        }
+       ],
+       "replicas": 1,
+       "strategy": {
+        "rollingUpdate": {
+         "maxSurge": "25%",
+         "maxUnavailable": "25%"
+        },
+        "type": "RollingUpdate"
+       },
+       "service_account": "astronomy-shop",
+       "dns_policy": "ClusterFirst",
+       "restart_policy": "Always",
+       "containers": [
+        {
+         "name": "email",
+         "image": "ghcr.io/open-telemetry/demo:2.2.0-email",
+         "env": [
+          {
+           "name": "OTEL_SERVICE_NAME",
+           "from": "field:metadata.labels['app.kubernetes.io/component']"
+          },
+          {
+           "name": "OTEL_COLLECTOR_NAME",
+           "value": "otel-collector"
+          },
+          {
+           "name": "OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE",
+           "value": "cumulative"
+          },
+          {
+           "name": "EMAIL_PORT",
+           "value": "8080"
+          },
+          {
+           "name": "APP_ENV",
+           "value": "production"
+          },
+          {
+           "name": "OTEL_EXPORTER_OTLP_ENDPOINT",
+           "value": "http://$(OTEL_COLLECTOR_NAME):4318"
+          },
+          {
+           "name": "FLAGD_HOST",
+           "value": "flagd"
+          },
+          {
+           "name": "FLAGD_PORT",
+           "value": "8013"
+          }
+         ],
+         "ports": [
+          {
+           "port": 8080,
+           "name": "service"
+          }
+         ],
+         "resources": {
+          "limits": {
+           "memory": "100Mi"
+          }
+         }
+        }
+       ],
+       "template_labels": {
+        "app.kubernetes.io/component": "email",
+        "app.kubernetes.io/name": "email",
+        "app.kubernetes.io/version": "2.2.0",
+        "opentelemetry.io/name": "email"
+       }
+      },
+      "pods": [
+       {
+        "name": "email-74f9c666b6-j4tgc",
+        "node": "kind-worker2",
+        "phase": "Running",
+        "started": "2026-10-19T07:36:48Z",
+        "ready_since": "2026-10-19T07:36:51Z",
+        "conditions": [
+         "PodReadyToStartContainers=True",
+         "Initialized=True",
+         "Ready=True",
+         "ContainersReady=True",
+         "PodScheduled=True"
+        ],
+        "containers": [
+         {
+          "name": "email",
+          "ready": true,
+          "restarts": 0,
+          "state": {
+           "running": {
+            "startedAt": "2026-10-19T07:36:50Z"
+           }
+          }
+         }
+        ]
+       }
+      ],
+      "events": [
+       {
+        "type": "Normal",
+        "reason": "Started",
+        "count": 1,
+        "object": "pod/email-74f9c666b6-j4tgc",
+        "last": "2026-10-19T07:36:50Z",
+        "message": "Started container email"
+       },
+       {
+        "type": "Normal",
+        "reason": "Pulled",
+        "count": 1,
+        "object": "pod/email-74f9c666b6-j4tgc",
+        "last": "2026-10-19T07:36:49Z",
+        "message": "Container image \"ghcr.io/open-telemetry/demo:2.2.0-email\" already present on machine"
+       },
+       {
+        "type": "Normal",
+        "reason": "Created",
+        "count": 1,
+        "object": "pod/email-74f9c666b6-j4tgc",
+        "last": "2026-10-19T07:36:49Z",
+        "message": "Created container: email"
+       },
+       {
+        "type": "Normal",
+        "reason": "SuccessfulCreate",
+        "count": 1,
+        "object": "replicaset/email-74f9c666b6",
+        "last": "2026-10-19T07:36:48Z",
+        "message": "Created pod: email-74f9c666b6-j4tgc"
+       },
+       {
+        "type": "Normal",
+        "reason": "Scheduled",
+        "count": 1,
+        "object": "pod/email-74f9c666b6-j4tgc",
+        "last": "2026-10-19T07:36:48.069716Z",
+        "message": "Successfully assigned astronomy-shop/email-74f9c666b6-j4tgc to kind-worker2"
+       }
+      ],
+      "logs": {
+       "total_lines": 11,
+       "error_lines": 0,
+       "error_lines_still_occurring": 0,
+       "error_lines_stopped": 0,
+       "telemetry_export_error_lines": 0,
+       "tail": [
+        "2026-10-19T07:36:52.305251601Z == Sinatra (v4.2.1) has taken the stage on 8080 for production with backup from Puma",
+        "2026-10-19T07:36:52.306096247Z I, [2026-10-19T07:36:52.210718 #1] INFO -- : Instrumentation: OpenTelemetry::Instrumentation::Sinatra was successfully installed with the following options {install_rac\u2026",
+        "2026-10-19T07:36:52.306115538Z Puma starting in single mode...",
+        "2026-10-19T07:36:52.306270367Z * Puma version: 7.1.0 (\"Neon Witch\")",
+        "2026-10-19T07:36:52.306339043Z * Ruby version: ruby 3.4.7 (2025-10-08 revision 7a5688e2a2) +PRISM [x86_64-linux-musl]",
+        "2026-10-19T07:36:52.306341744Z * Min threads: 0",
+        "2026-10-19T07:36:52.306351969Z * Max threads: 5",
+        "2026-10-19T07:36:52.306356623Z * Environment: production",
+        "2026-10-19T07:36:52.306385566Z * PID: 1",
+        "2026-10-19T07:36:52.307184238Z * Listening on http://0.0.0.0:8080",
+        "2026-10-19T07:36:52.315044060Z Use Ctrl-C to stop"
+       ]
+      },
+      "calls_services": [
+       "astronomy-shop/flagd",
+       "astronomy-shop/otel-collector"
+      ],
+      "clients": [
+       "deployment/checkout"
+      ],
+      "rbac": {
+       "service_account": "astronomy-shop/astronomy-shop",
+       "can_i": [
+        "selfsubjectreviews.authentication.k8s.io [] [] [create]",
+        "selfsubjectaccessreviews.authorization.k8s.io [] [] [create]",
+        "selfsubjectrulesreviews.authorization.k8s.io [] [] [create]",
+        "[/.well-known/openid-configuration/] [] [get]",
+        "[/.well-known/openid-configuration] [] [get]",
+        "[/api/*] [] [get]",
+        "[/api] [] [get]",
+        "[/apis/*] [] [get]",
+        "[/apis] [] [get]",
+        "[/healthz] [] [get]",
+        "[/healthz] [] [get]",
+        "[/livez] [] [get]",
+        "[/livez] [] [get]"
+       ]
+      },
+      "input_candidates": [
+       {
+        "container": "email",
+        "env": "OTEL_COLLECTOR_NAME",
+        "value": "otel-collector"
+       },
+       {
+        "container": "email",
+        "env": "OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE",
+        "value": "cumulative"
+       },
+       {
+        "container": "email",
+        "env": "APP_ENV",
+        "value": "production"
+       },
+       {
+        "container": "email",
+        "env": "FLAGD_HOST",
+        "value": "flagd"
+       }
+      ],
+      "calls": {
+       "daemonset/otel-collector-agent": {
+        "kind": "DaemonSet",
+        "pods_ready": "3/3",
+        "restarts": 0,
+        "own_evidence_kinds": [
+         "change"
+        ],
+        "own_signals": [
+         "spec modified 141s ago, 18s after this object was created (fields: template.annotations.kubectl.kubernetes.io/restartedAt); pod template changes: template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-19T13:37:04+06:00; 22s before the first active symptom"
+        ],
+        "own_error_log_lines": 8,
+        "last_spec_change": "2026-10-19T07:37:04Z",
+        "looks_healthy_on_its_own": false
+       },
+       "deployment/flagd": {
+        "kind": "Deployment",
+        "pods_ready": "1/1",
+        "restarts": 0,
+        "looks_healthy_on_its_own": true
+       }
+      },
+      "called_by_with_errors": {
+       "deployment/frontend": {
+        "error mentioning the component": 26
+       }
+      }
+     }
+    },
+    "deployment/frontend": {
+     "kind": "Deployment",
+     "name": "frontend",
+     "namespace": "astronomy-shop",
+     "healthy": false,
+     "template_changes": {
+      "revision": 2,
+      "changed_at": "2026-10-19T07:37:18Z",
+      "changes": [
+       "pod label pod-template-hash: 6859c775df -> 99b7dcfc6",
+       "container frontend env CART_ADDR removed"
+      ]
+     },
+     "errors_point_to": [
+      "deployment/email",
+      "deployment/quote",
+      "deployment/shipping"
+     ],
+     "detail": {
+      "component": "deployment/frontend",
+      "namespace": "astronomy-shop",
+      "workload": {
+       "created": "2026-10-19T07:36:46Z",
+       "last_spec_write": "2026-10-19T07:36:46Z",
+       "spec_writers": [
+        {
+         "manager": "helm",
+         "op": "Apply",
+         "time": "2026-10-19T07:36:46Z"
+        }
+       ],
+       "replicas": 1,
+       "strategy": {
+        "rollingUpdate": {
+         "maxSurge": "25%",
+         "maxUnavailable": "25%"
+        },
+        "type": "RollingUpdate"
+       },
+       "service_account": "astronomy-shop",
+       "dns_policy": "ClusterFirst",
+       "restart_policy": "Always",
+       "containers": [
+        {
+         "name": "frontend",
+         "image": "ghcr.io/open-telemetry/demo:2.2.0-frontend",
+         "env": [
+          {
+           "name": "OTEL_SERVICE_NAME",
+           "from": "field:metadata.labels['app.kubernetes.io/component']"
+          },
+          {
+           "name": "OTEL_COLLECTOR_NAME",
+           "value": "otel-collector"
+          },
+          {
+           "name": "OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE",
+           "value": "cumulative"
+          },
+          {
+           "name": "FRONTEND_PORT",
+           "value": "8080"
+          },
+          {
+           "name": "PORT",
+           "value": "$(FRONTEND_PORT)"
+          },
+          {
+           "name": "FRONTEND_ADDR",
+           "value": ":8080"
+          },
+          {
+           "name": "AD_ADDR",
+           "value": "ad:8080"
+          },
+          {
+           "name": "CHECKOUT_ADDR",
+           "value": "checkout:8080"
+          },
+          {
+           "name": "CURRENCY_ADDR",
+           "value": "currency:8080"
+          },
+          {
+           "name": "PRODUCT_CATALOG_ADDR",
+           "value": "product-catalog:8080"
+          },
+          {
+           "name": "PRODUCT_REVIEWS_ADDR",
+           "value": "product-reviews:3551"
+          },
+          {
+           "name": "RECOMMENDATION_ADDR",
+           "value": "recommendation:8080"
+          },
+          {
+           "name": "SHIPPING_ADDR",
+           "value": "http://shipping:8080"
+          },
+          {
+           "name": "FLAGD_HOST",
+           "value": "flagd"
+          },
+          {
+           "name": "FLAGD_PORT",
+           "value": "8013"
+          },
+          {
+           "name": "ENV_PLATFORM",
+           "value": "kubernetes"
+          },
+          {
+           "name": "OTEL_COLLECTOR_HOST",
+           "value": "$(OTEL_COLLECTOR_NAME)"
+          },
+          {
+           "name": "OTEL_EXPORTER_OTLP_ENDPOINT",
+           "value": "http://$(OTEL_COLLECTOR_NAME):4317"
+          },
+          {
+           "name": "WEB_OTEL_SERVICE_NAME",
+           "value": "frontend-web"
+          },
+          {
+           "name": "PUBLIC_OTEL_EXPORTER_OTLP_TRACES_ENDPOINT",
+           "value": "http://localhost:8080/otlp-http/v1/traces"
+          }
+         ],
+         "ports": [
+          {
+           "port": 8080,
+           "name": "service"
+          }
+         ],
+         "resources": {
+          "limits": {
+           "memory": "250Mi"
+          }
+         }
+        }
+       ],
+       "template_labels": {
+        "app.kubernetes.io/component": "frontend",
+        "app.kubernetes.io/name": "frontend",
+        "app.kubernetes.io/version": "2.2.0",
+        "opentelemetry.io/name": "frontend"
+       }
+      },
+      "pods": [
+       {
+        "name": "frontend-99b7dcfc6-vjk5d",
+        "node": "kind-worker",
+        "phase": "Running",
+        "started": "2026-10-19T07:37:18Z",
+        "ready_since": "2026-10-19T07:37:18Z",
+        "conditions": [
+         "PodReadyToStartContainers=True",
+         "Initialized=True",
+         "Ready=True",
+         "ContainersReady=True",
+         "PodScheduled=True"
+        ],
+        "containers": [
+         {
+          "name": "frontend",
+          "ready": true,
+          "restarts": 0,
+          "state": {
+           "running": {
+            "startedAt": "2026-10-19T07:37:18Z"
+           }
+          }
+         }
+        ]
+       }
+      ],
+      "events": [
+       {
+        "type": "Normal",
+        "reason": "Pulled",
+        "count": 1,
+        "object": "pod/frontend-99b7dcfc6-vjk5d",
+        "last": "2026-10-19T07:37:18Z",
+        "message": "Container image \"ghcr.io/open-telemetry/demo:2.2.0-frontend\" already present on machine"
+       },
+       {
+        "type": "Normal",
+        "reason": "Created",
+        "count": 1,
+        "object": "pod/frontend-99b7dcfc6-vjk5d",
+        "last": "2026-10-19T07:37:18Z",
+        "message": "Created container: frontend"
+       },
+       {
+        "type": "Normal",
+        "reason": "Started",
+        "count": 1,
+        "object": "pod/frontend-99b7dcfc6-vjk5d",
+        "last": "2026-10-19T07:37:18Z",
+        "message": "Started container frontend"
+       },
+       {
+        "type": "Normal",
+        "reason": "SuccessfulCreate",
+        "count": 1,
+        "object": "replicaset/frontend-99b7dcfc6",
+        "last": "2026-10-19T07:37:18Z",
+        "message": "Created pod: frontend-99b7dcfc6-vjk5d"
+       },
+       {
+        "type": "Normal",
+        "reason": "Scheduled",
+        "count": 1,
+        "object": "pod/frontend-99b7dcfc6-vjk5d",
+        "last": "2026-10-19T07:37:18.242914Z",
+        "message": "Successfully assigned astronomy-shop/frontend-99b7dcfc6-vjk5d to kind-worker"
+       }
+      ],
+      "logs": {
+       "total_lines": 281,
+       "error_lines": 109,
+       "error_lines_still_occurring": 109,
+       "error_lines_stopped": 0,
+       "telemetry_export_error_lines": 0,
+       "error_samples": [
+        {
+         "count": 71,
+         "line": "frontend: \u2a2f Error: Could not parse target name \"\"",
+         "first_seen_seconds_ago": 141,
+         "last_seen_seconds_ago": 1,
+         "median_gap_seconds": 1.2,
+         "state": "ongoing"
+        },
+        {
+         "count": 19,
+         "line": "frontend: Error: 13 INTERNAL: shipping quote failure: failed POST to email service: expected 200, got 400",
+         "first_seen_seconds_ago": 124,
+         "last_seen_seconds_ago": 1,
+         "median_gap_seconds": 6.0,
+         "state": "ongoing"
+        },
+        {
+         "count": 19,
+         "line": "frontend: details: 'shipping quote failure: failed POST to email service: expected 200, got 400',",
+         "first_seen_seconds_ago": 124,
+         "last_seen_seconds_ago": 1,
+         "median_gap_seconds": 6.0,
+         "state": "ongoing"
+        }
+       ],
+       "repeated_failures": [
+        {
+         "line": "Error: 13 INTERNAL: shipping quote failure: failed POST to email service: expected 200, got 400",
+         "count": 19,
+         "span_seconds": 123,
+         "constant_tokens": [
+          "13",
+          "200",
+          "400"
+         ]
+        },
+        {
+         "line": "details: 'shipping quote failure: failed POST to email service: expected 200, got 400',",
+         "count": 19,
+         "span_seconds": 123,
+         "constant_tokens": [
+          "200",
+          "400"
+         ]
+        }
+       ],
+       "tail": [
+        "2026-10-19T07:39:48.764091178Z details: 'shipping quote failure: failed POST to email service: expected 200, got 400',",
+        "2026-10-19T07:39:48.764094498Z metadata: [Metadata]",
+        "2026-10-19T07:39:48.764096741Z }",
+        "2026-10-19T07:39:51.977636713Z \u2a2f Error: Could not parse target name \"\"",
+        "2026-10-19T07:39:51.977704543Z at <unknown> (.next/server/chunks/[root-of-the-server]__828d7226._.js:1:1780)",
+        "2026-10-19T07:39:51.987332153Z Error: 13 INTERNAL: shipping quote failure: failed POST to email service: expected 200, got 400",
+        "2026-10-19T07:39:51.987368114Z at <unknown> (.next/server/chunks/[root-of-the-server]__00d48b27._.js:1:1906)",
+        "2026-10-19T07:39:51.987371144Z at new Promise (<anonymous>) {",
+        "2026-10-19T07:39:51.987372519Z code: 13,",
+        "2026-10-19T07:39:51.987373808Z details: 'shipping quote failure: failed POST to email service: expected 200, got 400',",
+        "2026-10-19T07:39:51.987375654Z metadata: [Metadata]",
+        "2026-10-19T07:39:51.987377221Z }"
+       ]
+      },
+      "template_changes": {
+       "revision": 2,
+       "changed_at": "2026-10-19T07:37:18Z",
+       "changes": [
+        "pod label pod-template-hash: 6859c775df -> 99b7dcfc6",
+        "container frontend env CART_ADDR removed"
+       ]
+      },
+      "calls_services": [
+       "astronomy-shop/ad",
+       "astronomy-shop/checkout",
+       "astronomy-shop/currency",
+       "astronomy-shop/flagd",
+       "astronomy-shop/otel-collector",
+       "astronomy-shop/product-catalog",
+       "astronomy-shop/product-reviews",
+       "astronomy-shop/recommendation",
+       "astronomy-shop/shipping"
+      ],
+      "clients": [
+       "deployment/frontend-proxy"
+      ],
+      "rbac": {
+       "service_account": "astronomy-shop/astronomy-shop",
+       "can_i": [
+        "selfsubjectreviews.authentication.k8s.io [] [] [create]",
+        "selfsubjectaccessreviews.authorization.k8s.io [] [] [create]",
+        "selfsubjectrulesreviews.authorization.k8s.io [] [] [create]",
+        "[/.well-known/openid-configuration/] [] [get]",
+        "[/.well-known/openid-configuration] [] [get]",
+        "[/api/*] [] [get]",
+        "[/api] [] [get]",
+        "[/apis/*] [] [get]",
+        "[/apis] [] [get]",
+        "[/healthz] [] [get]",
+        "[/healthz] [] [get]",
+        "[/livez] [] [get]",
+        "[/livez] [] [get]"
+       ]
+      },
+      "input_candidates": [
+       {
+        "container": "frontend",
+        "env": "OTEL_COLLECTOR_NAME",
+        "value": "otel-collector"
+       },
+       {
+        "container": "frontend",
+        "env": "OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE",
+        "value": "cumulative"
+       },
+       {
+        "container": "frontend",
+        "env": "FLAGD_HOST",
+        "value": "flagd"
+       },
+       {
+        "container": "frontend",
+        "env": "ENV_PLATFORM",
+        "value": "kubernetes"
+       },
+       {
+        "container": "frontend",
+        "env": "WEB_OTEL_SERVICE_NAME",
+        "value": "frontend-web"
+       }
+      ],
+      "calls": {
+       "daemonset/otel-collector-agent": {
+        "kind": "DaemonSet",
+        "pods_ready": "3/3",
+        "restarts": 0,
+        "own_evidence_kinds": [
+         "change"
+        ],
+        "own_signals": [
+         "spec modified 141s ago, 18s after this object was created (fields: template.annotations.kubectl.kubernetes.io/restartedAt); pod template changes: template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-19T13:37:04+06:00; 22s before the first active symptom"
+        ],
+        "own_error_log_lines": 8,
+        "last_spec_change": "2026-10-19T07:37:04Z",
+        "looks_healthy_on_its_own": false
+       },
+       "deployment/checkout": {
+        "kind": "Deployment",
+        "pods_ready": "1/1",
+        "restarts": 0,
+        "looks_healthy_on_its_own": true
+       },
+       "deployment/currency": {
+        "kind": "Deployment",
+        "pods_ready": "1/1",
+        "restarts": 0,
+        "looks_healthy_on_its_own": true
+       },
+       "deployment/email": {
+        "kind": "Deployment",
+        "pods_ready": "1/1",
+        "restarts": 0,
+        "looks_healthy_on_its_own": true
+       },
+       "deployment/flagd": {
+        "kind": "Deployment",
+        "pods_ready": "1/1",
+        "restarts": 0,
+        "looks_healthy_on_its_own": true
+       },
+       "deployment/product-catalog": {
+        "kind": "Deployment",
+        "pods_ready": "1/1",
+        "restarts": 0,
+        "looks_healthy_on_its_own": true
+       },
+       "deployment/product-reviews": {
+        "kind": "Deployment",
+        "pods_ready": "1/1",
+        "restarts": 0,
+        "looks_healthy_on_its_own": true
+       },
+       "deployment/quote": {
+        "kind": "Deployment",
+        "pods_ready": "1/1",
+        "restarts": 0,
+        "looks_healthy_on_its_own": true
+       },
+       "deployment/recommendation": {
+        "kind": "Deployment",
+        "pods_ready": "1/1",
+        "restarts": 0,
+        "looks_healthy_on_its_own": true
+       },
+       "deployment/shipping": {
+        "kind": "Deployment",
+        "pods_ready": "1/1",
+        "restarts": 0,
+        "looks_healthy_on_its_own": true
+       }
+      },
+      "failing_targets": [
+       "deployment/email",
+       "deployment/quote",
+       "deployment/shipping"
+      ]
+     }
+    },
+    "deployment/quote": {
+     "kind": "Deployment",
+     "name": "quote",
+     "namespace": "astronomy-shop",
+     "healthy": false,
+     "signals": [
+      "errors logged by 1 other component(s) (deployment/frontend) name this component (error mentioning the component, 26 lines, still occurring), e.g. 'Error: 13 INTERNAL: shipping quote failure: failed POST to email service: expected 200, got 400'"
+     ],
+     "referenced_by_errors_from": [
+      "deployment/frontend"
+     ],
+     "detail": {
+      "component": "deployment/quote",
+      "namespace": "astronomy-shop",
+      "workload": {
+       "created": "2026-10-19T07:36:46Z",
+       "last_spec_write": "2026-10-19T07:36:46Z",
+       "spec_writers": [
+        {
+         "manager": "helm",
+         "op": "Apply",
+         "time": "2026-10-19T07:36:46Z"
+        }
+       ],
+       "replicas": 1,
+       "strategy": {
+        "rollingUpdate": {
+         "maxSurge": "25%",
+         "maxUnavailable": "25%"
+        },
+        "type": "RollingUpdate"
+       },
+       "service_account": "astronomy-shop",
+       "dns_policy": "ClusterFirst",
+       "restart_policy": "Always",
+       "containers": [
+        {
+         "name": "quote",
+         "image": "ghcr.io/open-telemetry/demo:2.2.0-quote",
+         "env": [
+          {
+           "name": "OTEL_SERVICE_NAME",
+           "from": "field:metadata.labels['app.kubernetes.io/component']"
+          },
+          {
+           "name": "OTEL_COLLECTOR_NAME",
+           "value": "otel-collector"
+          },
+          {
+           "name": "OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE",
+           "value": "cumulative"
+          },
+          {
+           "name": "QUOTE_PORT",
+           "value": "8080"
+          },
+          {
+           "name": "OTEL_PHP_AUTOLOAD_ENABLED",
+           "value": "true"
+          },
+          {
+           "name": "OTEL_PHP_INTERNAL_METRICS_ENABLED",
+           "value": "true"
+          },
+          {
+           "name": "OTEL_EXPORTER_OTLP_ENDPOINT",
+           "value": "http://$(OTEL_COLLECTOR_NAME):4318"
+          },
+          {
+           "name": "IPV6_ENABLED",
+           "value": "false"
+          }
+         ],
+         "ports": [
+          {
+           "port": 8080,
+           "name": "service"
+          }
+         ],
+         "resources": {
+          "limits": {
+           "memory": "40Mi"
+          }
+         }
+        }
+       ],
+       "template_labels": {
+        "app.kubernetes.io/component": "quote",
+        "app.kubernetes.io/name": "quote",
+        "app.kubernetes.io/version": "2.2.0",
+        "opentelemetry.io/name": "quote"
+       }
+      },
+      "pods": [
+       {
+        "name": "quote-7c77885dc4-6vlh5",
+        "node": "kind-worker",
+        "phase": "Running",
+        "started": "2026-10-19T07:36:46Z",
+        "ready_since": "2026-10-19T07:36:48Z",
+        "conditions": [
+         "PodReadyToStartContainers=True",
+         "Initialized=True",
+         "Ready=True",
+         "ContainersReady=True",
+         "PodScheduled=True"
+        ],
+        "containers": [
+         {
+          "name": "quote",
+          "ready": true,
+          "restarts": 0,
+          "state": {
+           "running": {
+            "startedAt": "2026-10-19T07:36:47Z"
+           }
+          }
+         }
+        ]
+       }
+      ],
+      "events": [
+       {
+        "type": "Normal",
+        "reason": "Pulled",
+        "count": 1,
+        "object": "pod/quote-7c77885dc4-6vlh5",
+        "last": "2026-10-19T07:36:47Z",
+        "message": "Container image \"ghcr.io/open-telemetry/demo:2.2.0-quote\" already present on machine"
+       },
+       {
+        "type": "Normal",
+        "reason": "Created",
+        "count": 1,
+        "object": "pod/quote-7c77885dc4-6vlh5",
+        "last": "2026-10-19T07:36:47Z",
+        "message": "Created container: quote"
+       },
+       {
+        "type": "Normal",
+        "reason": "Started",
+        "count": 1,
+        "object": "pod/quote-7c77885dc4-6vlh5",
+        "last": "2026-10-19T07:36:47Z",
+        "message": "Started container quote"
+       },
+       {
+        "type": "Normal",
+        "reason": "SuccessfulCreate",
+        "count": 1,
+        "object": "replicaset/quote-7c77885dc4",
+        "last": "2026-10-19T07:36:46Z",
+        "message": "Created pod: quote-7c77885dc4-6vlh5"
+       },
+       {
+        "type": "Normal",
+        "reason": "Scheduled",
+        "count": 1,
+        "object": "pod/quote-7c77885dc4-6vlh5",
+        "last": "2026-10-19T07:36:46.367170Z",
+        "message": "Successfully assigned astronomy-shop/quote-7c77885dc4-6vlh5 to kind-worker"
+       }
+      ],
+      "logs": {
+       "total_lines": 1,
+       "error_lines": 0,
+       "error_lines_still_occurring": 0,
+       "error_lines_stopped": 0,
+       "telemetry_export_error_lines": 0,
+       "tail": [
+        "2026-10-19T07:36:48.157204650Z Listening on: 0.0.0.0:8080"
+       ]
+      },
+      "calls_services": [
+       "astronomy-shop/otel-collector"
+      ],
+      "clients": [
+       "deployment/shipping"
+      ],
+      "rbac": {
+       "service_account": "astronomy-shop/astronomy-shop",
+       "can_i": [
+        "selfsubjectreviews.authentication.k8s.io [] [] [create]",
+        "selfsubjectaccessreviews.authorization.k8s.io [] [] [create]",
+        "selfsubjectrulesreviews.authorization.k8s.io [] [] [create]",
+        "[/.well-known/openid-configuration/] [] [get]",
+        "[/.well-known/openid-configuration] [] [get]",
+        "[/api/*] [] [get]",
+        "[/api] [] [get]",
+        "[/apis/*] [] [get]",
+        "[/apis] [] [get]",
+        "[/healthz] [] [get]",
+        "[/healthz] [] [get]",
+        "[/livez] [] [get]",
+        "[/livez] [] [get]"
+       ]
+      },
+      "input_candidates": [
+       {
+        "container": "quote",
+        "env": "OTEL_COLLECTOR_NAME",
+        "value": "otel-collector"
+       },
+       {
+        "container": "quote",
+        "env": "OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE",
+        "value": "cumulative"
+       }
+      ],
+      "calls": {
+       "daemonset/otel-collector-agent": {
+        "kind": "DaemonSet",
+        "pods_ready": "3/3",
+        "restarts": 0,
+        "own_evidence_kinds": [
+         "change"
+        ],
+        "own_signals": [
+         "spec modified 141s ago, 18s after this object was created (fields: template.annotations.kubectl.kubernetes.io/restartedAt); pod template changes: template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-19T13:37:04+06:00; 22s before the first active symptom"
+        ],
+        "own_error_log_lines": 8,
+        "last_spec_change": "2026-10-19T07:37:04Z",
+        "looks_healthy_on_its_own": false
+       }
+      },
+      "called_by_with_errors": {
+       "deployment/frontend": {
+        "error mentioning the component": 26
+       }
+      }
+     }
+    },
+    "deployment/shipping": {
+     "kind": "Deployment",
+     "name": "shipping",
+     "namespace": "astronomy-shop",
+     "healthy": false,
+     "signals": [
+      "errors logged by 1 other component(s) (deployment/frontend) name this component (error mentioning the component, 26 lines, still occurring), e.g. 'Error: 13 INTERNAL: shipping quote failure: failed POST to email service: expected 200, got 400'"
+     ],
+     "referenced_by_errors_from": [
+      "deployment/frontend"
+     ],
+     "detail": {
+      "component": "deployment/shipping",
+      "namespace": "astronomy-shop",
+      "workload": {
+       "created": "2026-10-19T07:36:46Z",
+       "last_spec_write": "2026-10-19T07:36:46Z",
+       "spec_writers": [
+        {
+         "manager": "helm",
+         "op": "Apply",
+         "time": "2026-10-19T07:36:46Z"
+        }
+       ],
+       "replicas": 1,
+       "strategy": {
+        "rollingUpdate": {
+         "maxSurge": "25%",
+         "maxUnavailable": "25%"
+        },
+        "type": "RollingUpdate"
+       },
+       "service_account": "astronomy-shop",
+       "dns_policy": "ClusterFirst",
+       "restart_policy": "Always",
+       "containers": [
+        {
+         "name": "shipping",
+         "image": "ghcr.io/open-telemetry/demo:2.2.0-shipping",
+         "env": [
+          {
+           "name": "OTEL_SERVICE_NAME",
+           "from": "field:metadata.labels['app.kubernetes.io/component']"
+          },
+          {
+           "name": "OTEL_COLLECTOR_NAME",
+           "value": "otel-collector"
+          },
+          {
+           "name": "OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE",
+           "value": "cumulative"
+          },
+          {
+           "name": "SHIPPING_PORT",
+           "value": "8080"
+          },
+          {
+           "name": "QUOTE_ADDR",
+           "value": "http://quote:8080"
+          },
+          {
+           "name": "OTEL_EXPORTER_OTLP_ENDPOINT",
+           "value": "http://$(OTEL_COLLECTOR_NAME):4317"
+          },
+          {
+           "name": "IPV6_ENABLED",
+           "value": "false"
+          }
+         ],
+         "ports": [
+          {
+           "port": 8080,
+           "name": "service"
+          }
+         ],
+         "resources": {
+          "limits": {
+           "memory": "20Mi"
+          }
+         }
+        }
+       ],
+       "template_labels": {
+        "app.kubernetes.io/component": "shipping",
+        "app.kubernetes.io/name": "shipping",
+        "app.kubernetes.io/version": "2.2.0",
+        "opentelemetry.io/name": "shipping"
+       }
+      },
+      "pods": [
+       {
+        "name": "shipping-6d777796df-ltvj9",
+        "node": "kind-worker",
+        "phase": "Running",
+        "started": "2026-10-19T07:36:47Z",
+        "ready_since": "2026-10-19T07:36:49Z",
+        "conditions": [
+         "PodReadyToStartContainers=True",
+         "Initialized=True",
+         "Ready=True",
+         "ContainersReady=True",
+         "PodScheduled=True"
+        ],
+        "containers": [
+         {
+          "name": "shipping",
+          "ready": true,
+          "restarts": 0,
+          "state": {
+           "running": {
+            "startedAt": "2026-10-19T07:36:48Z"
+           }
+          }
+         }
+        ]
+       }
+      ],
+      "events": [
+       {
+        "type": "Normal",
+        "reason": "Pulled",
+        "count": 1,
+        "object": "pod/shipping-6d777796df-ltvj9",
+        "last": "2026-10-19T07:36:48Z",
+        "message": "Container image \"ghcr.io/open-telemetry/demo:2.2.0-shipping\" already present on machine"
+       },
+       {
+        "type": "Normal",
+        "reason": "Created",
+        "count": 1,
+        "object": "pod/shipping-6d777796df-ltvj9",
+        "last": "2026-10-19T07:36:48Z",
+        "message": "Created container: shipping"
+       },
+       {
+        "type": "Normal",
+        "reason": "Started",
+        "count": 1,
+        "object": "pod/shipping-6d777796df-ltvj9",
+        "last": "2026-10-19T07:36:48Z",
+        "message": "Started container shipping"
+       },
+       {
+        "type": "Normal",
+        "reason": "SuccessfulCreate",
+        "count": 1,
+        "object": "replicaset/shipping-6d777796df",
+        "last": "2026-10-19T07:36:47Z",
+        "message": "Created pod: shipping-6d777796df-ltvj9"
+       },
+       {
+        "type": "Normal",
+        "reason": "Scheduled",
+        "count": 1,
+        "object": "pod/shipping-6d777796df-ltvj9",
+        "last": "2026-10-19T07:36:47.463995Z",
+        "message": "Successfully assigned astronomy-shop/shipping-6d777796df-ltvj9 to kind-worker"
+       }
+      ],
+      "logs": {
+       "total_lines": 0,
+       "error_lines": 0,
+       "error_lines_still_occurring": 0,
+       "error_lines_stopped": 0,
+       "telemetry_export_error_lines": 0
+      },
+      "calls_services": [
+       "astronomy-shop/otel-collector",
+       "astronomy-shop/quote"
+      ],
+      "clients": [
+       "deployment/checkout",
+       "deployment/frontend"
+      ],
+      "rbac": {
+       "service_account": "astronomy-shop/astronomy-shop",
+       "can_i": [
+        "selfsubjectreviews.authentication.k8s.io [] [] [create]",
+        "selfsubjectaccessreviews.authorization.k8s.io [] [] [create]",
+        "selfsubjectrulesreviews.authorization.k8s.io [] [] [create]",
+        "[/.well-known/openid-configuration/] [] [get]",
+        "[/.well-known/openid-configuration] [] [get]",
+        "[/api/*] [] [get]",
+        "[/api] [] [get]",
+        "[/apis/*] [] [get]",
+        "[/apis] [] [get]",
+        "[/healthz] [] [get]",
+        "[/healthz] [] [get]",
+        "[/livez] [] [get]",
+        "[/livez] [] [get]"
+       ]
+      },
+      "input_candidates": [
+       {
+        "container": "shipping",
+        "env": "OTEL_COLLECTOR_NAME",
+        "value": "otel-collector"
+       },
+       {
+        "container": "shipping",
+        "env": "OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE",
+        "value": "cumulative"
+       }
+      ],
+      "calls": {
+       "daemonset/otel-collector-agent": {
+        "kind": "DaemonSet",
+        "pods_ready": "3/3",
+        "restarts": 0,
+        "own_evidence_kinds": [
+         "change"
+        ],
+        "own_signals": [
+         "spec modified 141s ago, 18s after this object was created (fields: template.annotations.kubectl.kubernetes.io/restartedAt); pod template changes: template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-19T13:37:04+06:00; 22s before the first active symptom"
+        ],
+        "own_error_log_lines": 8,
+        "last_spec_change": "2026-10-19T07:37:04Z",
+        "looks_healthy_on_its_own": false
+       },
+       "deployment/quote": {
+        "kind": "Deployment",
+        "pods_ready": "1/1",
+        "restarts": 0,
+        "looks_healthy_on_its_own": true
+       }
+      },
+      "called_by_with_errors": {
+       "deployment/frontend": {
+        "error mentioning the component": 26
+       }
+      }
+     }
+    }
+   },
+   "cluster": {
+    "symptom_onset": "2026-10-19T07:37:26+00:00",
+    "recent_changes": [
+     {
+      "object": "daemonset/otel-collector-agent",
+      "at": "2026-10-19T07:37:04Z",
+      "modified_after_creation_s": 18,
+      "fields": [
+       "template.annotations.kubectl.kubernetes.io/restartedAt"
+      ],
+      "seconds_ago": 141,
+      "seconds_before_symptoms": 22,
+      "role": "observability"
+     }
+    ],
+    "findings": []
+   }
+  },
+  "questions": {
+   "best_explanation": {
+    "type": "choice",
+    "criteria": {
+     "o1": "Origin: input/astronomy-shop/otel-collector. One bad item in otel-collector, which deployment/frontend reads, fails again and again and blocks the items behind it. | Details: deployment/frontend reads OTEL_COLLECTOR_NAME=otel-collector; Error: 13 INTERNAL: shipping quote failure: failed POST to email service: expected 200, got 400 | Observed impact on: deployment/astronomy-shop/frontend | Checks: deployment/frontend fails repeatedly on the same item (supports)",
+     "o2": "Origin: daemonset/astronomy-shop/otel-collector-agent. daemonset/otel-collector-agent is broken, so deployment/email, deployment/frontend, deployment/quote, deployment/shipping, which call it, fail. | Details: spec modified 141s ago, 18s after this object was created (fields: template.annotations.kubectl.kubernetes.io/restartedAt); pod template changes: template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-19T13:37:04+06:00; 22s before the first active symptom | Observed impact on: daemonset/astronomy-shop/otel-collector-agent, deployment/astronomy-shop/email, deployment/astronomy-shop/frontend, deployment/astronomy-shop/quote, deployment/astronomy-shop/shipping | Checks: deployment/email, deployment/frontend, deployment/quote, deployment/shipping call daemonset/otel-collector-agent (their configuration or their own errors name it) (supports); daemonset/otel-collector-agent shows failures of its own (supports)",
+     "o3": "Origin: input/astronomy-shop/kubernetes. One bad item in kubernetes, which deployment/frontend reads, fails again and again and blocks the items behind it. | Details: deployment/frontend reads ENV_PLATFORM=kubernetes; Error: 13 INTERNAL: shipping quote failure: failed POST to email service: expected 200, got 400 | Observed impact on: deployment/astronomy-shop/frontend | Checks: deployment/frontend fails repeatedly on the same item (supports)",
+     "o4": "Origin: deployment/astronomy-shop/frontend. The pod template change 'container frontend env CART_ADDR removed' in revision 2 of deployment/frontend breaks deployment/frontend. | Details: container frontend env CART_ADDR removed | Observed impact on: deployment/astronomy-shop/frontend | Checks: revision 2 of deployment/frontend was made before the symptoms began (supports); deployment/frontend shows symptoms of its own (supports)",
+     "o5": "None of these explanations fits the evidence.",
+     "o6": "Origin: input/astronomy-shop/cumulative. One bad item in cumulative, which deployment/frontend reads, fails again and again and blocks the items behind it. | Details: deployment/frontend reads OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE=cumulative; Error: 13 INTERNAL: shipping quote failure: failed POST to email service: expected 200, got 400 | Observed impact on: deployment/astronomy-shop/frontend | Checks: deployment/frontend fails repeatedly on the same item (supports)",
+     "o7": "Origin: input/astronomy-shop/flagd. One bad item in flagd, which deployment/frontend reads, fails again and again and blocks the items behind it. | Details: deployment/frontend reads FLAGD_HOST=flagd; Error: 13 INTERNAL: shipping quote failure: failed POST to email service: expected 200, got 400 | Observed impact on: deployment/astronomy-shop/frontend | Checks: deployment/frontend fails repeatedly on the same item (supports)"
+    },
+    "instructions": {
+     "question": "Which explanation best accounts for all the observed symptoms in `evidence`?",
+     "how_to_decide": [
+      "Prefer the explanation whose chain is supported by the observed facts and explains the most symptoms; an explanation contradicted by a fact is unlikely.",
+      "A component that only fails because something it calls fails is a victim, not the origin.",
+      "Choose `o5` when none of the explanations fits the evidence."
+     ]
+    }
+   }
+  },
+  "model": "typesafe/jev-1.13-20260917",
+  "latency_ms": 700,
+  "usage": {
+   "input_tokens": 18764,
+   "output_tokens": 77,
+   "cost": 0.000788088
+  },
+  "answers": {
+   "best_explanation": {
+    "type": "choice",
+    "choice": "o2",
+    "confidence": 0.32,
+    "probabilities": {
+     "o1": 0.03,
+     "o2": 0.42,
+     "o3": 0.0,
+     "o4": 0.41,
+     "o5": 0.14,
+     "o6": 0.0,
+     "o7": 0.0
+    }
+   }
+  }
+ },
+ {
+  "label": "characterize:1",
+  "state": {
+   "application": {
+    "name": "OpenTelemetry Demo Astronomy Shop",
+    "description": "An online shopping platform built with a microservices architecture, showcasing OpenTelemetry instrumentation for distributed tracing across services.",
+    "namespaces": [
+     "astronomy-shop"
+    ]
+   },
+   "component": {
+    "kind": "DaemonSet",
+    "name": "otel-collector-agent",
+    "namespace": "astronomy-shop",
+    "healthy": false,
+    "signals": [
+     "spec modified 141s ago, 18s after this object was created (fields: template.annotations.kubectl.kubernetes.io/restartedAt); pod template changes: template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-19T13:37:04+06:00; 22s before the first active symptom"
+    ],
+    "template_changes": {
+     "revision": 2,
+     "changed_at": "2026-10-19T07:37:04Z",
+     "changes": [
+      "template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-19T13:37:04+06:00"
+     ]
+    },
+    "detail": {
+     "component": "daemonset/otel-collector-agent",
+     "namespace": "astronomy-shop",
+     "workload": {
+      "created": "2026-10-19T07:36:46Z",
+      "last_spec_write": "2026-10-19T07:37:04Z",
+      "spec_writers": [
+       {
+        "manager": "helm",
+        "op": "Apply",
+        "time": "2026-10-19T07:36:46Z"
+       },
+       {
+        "manager": "kubectl-rollout",
+        "op": "Update",
+        "time": "2026-10-19T07:37:04Z"
+       }
+      ],
+      "strategy": {
+       "rollingUpdate": {
+        "maxSurge": 0,
+        "maxUnavailable": 1
+       },
+       "type": "RollingUpdate"
+      },
+      "service_account": "otel-collector",
+      "dns_policy": "ClusterFirst",
+      "restart_policy": "Always",
+      "containers": [
+       {
+        "name": "opentelemetry-collector",
+        "image": "otel/opentelemetry-collector-contrib:0.142.0",
+        "args": [
+         "--config=/conf/relay.yaml"
+        ],
+        "env": [
+         {
+          "name": "MY_POD_IP",
+          "from": "field:status.podIP"
+         },
+         {
+          "name": "K8S_NODE_NAME",
+          "from": "field:spec.nodeName"
+         },
+         {
+          "name": "K8S_NODE_IP",
+          "from": "field:status.hostIP"
+         },
+         {
+          "name": "GOMEMLIMIT",
+          "value": "160MiB"
+         }
+        ],
+        "ports": [
+         {
+          "port": 6831,
+          "name": "jaeger-compact"
+         },
+         {
+          "port": 14250,
+          "name": "jaeger-grpc"
+         },
+         {
+          "port": 14268,
+          "name": "jaeger-thrift"
+         },
+         {
+          "port": 8888,
+          "name": "metrics"
+         },
+         {
+          "port": 4317,
+          "name": "otlp"
+         },
+         {
+          "port": 4318,
+          "name": "otlp-http"
+         },
+         {
+          "port": 9411,
+          "name": "zipkin"
+         }
+        ],
+        "resources": {
+         "limits": {
+          "memory": "200Mi"
+         }
+        },
+        "probes": {
+         "readiness": {
+          "failureThreshold": 3,
+          "httpGet": {
+           "path": "/",
+           "port": 13133,
+           "scheme": "HTTP"
+          },
+          "periodSeconds": 10,
+          "successThreshold": 1,
+          "timeoutSeconds": 1
+         },
+         "liveness": {
+          "failureThreshold": 3,
+          "httpGet": {
+           "path": "/",
+           "port": 13133,
+           "scheme": "HTTP"
+          },
+          "periodSeconds": 10,
+          "successThreshold": 1,
+          "timeoutSeconds": 1
+         }
+        },
+        "volume_mounts": [
+         {
+          "name": "opentelemetry-collector-configmap",
+          "path": "/conf"
+         },
+         {
+          "name": "hostfs",
+          "path": "/hostfs"
+         }
+        ]
+       }
+      ],
+      "volumes": [
+       {
+        "name": "opentelemetry-collector-configmap",
+        "configMap": {
+         "defaultMode": 420,
+         "items": [
+          {
+           "key": "relay",
+           "path": "relay.yaml"
+          }
+         ],
+         "name": "otel-collector-agent"
+        }
+       },
+       {
+        "name": "hostfs",
+        "hostPath": {
+         "path": "/",
+         "type": ""
+        }
+       }
+      ],
+      "template_labels": {
+       "app.kubernetes.io/instance": "astronomy-shop",
+       "app.kubernetes.io/name": "opentelemetry-collector",
+       "component": "agent-collector"
+      }
+     },
+     "pods": [
+      {
+       "name": "otel-collector-agent-5w8c8",
+       "node": "kind-worker2",
+       "phase": "Running",
+       "started": "2026-10-19T07:37:11Z",
+       "ready_since": "2026-10-19T07:37:13Z",
+       "conditions": [
+        "PodReadyToStartContainers=True",
+        "Initialized=True",
+        "Ready=True",
+        "ContainersReady=True",
+        "PodScheduled=True"
+       ],
+       "containers": [
+        {
+         "name": "opentelemetry-collector",
+         "ready": true,
+         "restarts": 0,
+         "state": {
+          "running": {
+           "startedAt": "2026-10-19T07:37:12Z"
+          }
+         }
+        }
+       ]
+      },
+      {
+       "name": "otel-collector-agent-f95pp",
+       "node": "kind-worker3",
+       "phase": "Running",
+       "started": "2026-10-19T07:37:06Z",
+       "ready_since": "2026-10-19T07:37:08Z",
+       "conditions": [
+        "PodReadyToStartContainers=True",
+        "Initialized=True",
+        "Ready=True",
+        "ContainersReady=True",
+        "PodScheduled=True"
+       ],
+       "containers": [
+        {
+         "name": "opentelemetry-collector",
+         "ready": true,
+         "restarts": 0,
+         "state": {
+          "running": {
+           "startedAt": "2026-10-19T07:37:07Z"
+          }
+         }
+        }
+       ]
+      },
+      {
+       "name": "otel-collector-agent-k62nl",
+       "node": "kind-worker",
+       "phase": "Running",
+       "started": "2026-10-19T07:37:08Z",
+       "ready_since": "2026-10-19T07:37:10Z",
+       "conditions": [
+        "PodReadyToStartContainers=True",
+        "Initialized=True",
+        "Ready=True",
+        "ContainersReady=True",
+        "PodScheduled=True"
+       ],
+       "containers": [
+        {
+         "name": "opentelemetry-collector",
+         "ready": true,
+         "restarts": 0,
+         "state": {
+          "running": {
+           "startedAt": "2026-10-19T07:37:09Z"
+          }
+         }
+        }
+       ]
+      }
+     ],
+     "events": [
+      {
+       "type": "Normal",
+       "reason": "Created",
+       "count": 1,
+       "object": "pod/otel-collector-agent-5w8c8",
+       "last": "2026-10-19T07:37:12Z",
+       "message": "Created container: opentelemetry-collector"
+      },
+      {
+       "type": "Normal",
+       "reason": "Started",
+       "count": 1,
+       "object": "pod/otel-collector-agent-5w8c8",
+       "last": "2026-10-19T07:37:12Z",
+       "message": "Started container opentelemetry-collector"
+      },
+      {
+       "type": "Normal",
+       "reason": "Pulled",
+       "count": 1,
+       "object": "pod/otel-collector-agent-5w8c8",
+       "last": "2026-10-19T07:37:11Z",
+       "message": "Container image \"otel/opentelemetry-collector-contrib:0.142.0\" already present on machine"
+      },
+      {
+       "type": "Normal",
+       "reason": "SuccessfulCreate",
+       "count": 1,
+       "object": "daemonset/otel-collector-agent",
+       "last": "2026-10-19T07:37:11Z",
+       "message": "Created pod: otel-collector-agent-5w8c8"
+      },
+      {
+       "type": "Normal",
+       "reason": "Scheduled",
+       "count": 1,
+       "object": "pod/otel-collector-agent-5w8c8",
+       "last": "2026-10-19T07:37:11.336390Z",
+       "message": "Successfully assigned astronomy-shop/otel-collector-agent-5w8c8 to kind-worker2"
+      },
+      {
+       "type": "Normal",
+       "reason": "Killing",
+       "count": 1,
+       "object": "pod/otel-collector-agent-sxwl2",
+       "last": "2026-10-19T07:37:10Z",
+       "message": "Stopping container opentelemetry-collector"
+      },
+      {
+       "type": "Normal",
+       "reason": "SuccessfulDelete",
+       "count": 1,
+       "object": "daemonset/otel-collector-agent",
+       "last": "2026-10-19T07:37:10Z",
+       "message": "Deleted pod: otel-collector-agent-sxwl2"
+      },
+      {
+       "type": "Normal",
+       "reason": "Pulled",
+       "count": 1,
+       "object": "pod/otel-collector-agent-k62nl",
+       "last": "2026-10-19T07:37:09Z",
+       "message": "Container image \"otel/opentelemetry-collector-contrib:0.142.0\" already present on machine"
+      },
+      {
+       "type": "Normal",
+       "reason": "Created",
+       "count": 1,
+       "object": "pod/otel-collector-agent-k62nl",
+       "last": "2026-10-19T07:37:09Z",
+       "message": "Created container: opentelemetry-collector"
+      },
+      {
+       "type": "Normal",
+       "reason": "Started",
+       "count": 1,
+       "object": "pod/otel-collector-agent-k62nl",
+       "last": "2026-10-19T07:37:09Z",
+       "message": "Started container opentelemetry-collector"
+      },
+      {
+       "type": "Normal",
+       "reason": "Killing",
+       "count": 1,
+       "object": "pod/otel-collector-agent-lfhpt",
+       "last": "2026-10-19T07:37:08Z",
+       "message": "Stopping container opentelemetry-collector"
+      },
+      {
+       "type": "Warning",
+       "reason": "Unhealthy",
+       "count": 1,
+       "object": "pod/otel-collector-agent-lfhpt",
+       "last": "2026-10-19T07:37:08Z",
+       "message": "Readiness probe failed: Get \"http://10.244.162.185:13133/\": dial tcp 10.244.162.185:13133: connect: invalid argument"
+      },
+      {
+       "type": "Normal",
+       "reason": "SuccessfulDelete",
+       "count": 1,
+       "object": "daemonset/otel-collector-agent",
+       "last": "2026-10-19T07:37:08Z",
+       "message": "Deleted pod: otel-collector-agent-lfhpt"
+      },
+      {
+       "type": "Normal",
+       "reason": "SuccessfulCreate",
+       "count": 1,
+       "object": "daemonset/otel-collector-agent",
+       "last": "2026-10-19T07:37:08Z",
+       "message": "Created pod: otel-collector-agent-k62nl"
+      },
+      {
+       "type": "Normal",
+       "reason": "Scheduled",
+       "count": 1,
+       "object": "pod/otel-collector-agent-k62nl",
+       "last": "2026-10-19T07:37:08.797468Z",
+       "message": "Successfully assigned astronomy-shop/otel-collector-agent-k62nl to kind-worker"
+      }
+     ],
+     "logs": {
+      "total_lines": 600,
+      "error_lines": 0,
+      "error_lines_still_occurring": 0,
+      "error_lines_stopped": 0,
+      "telemetry_export_error_lines": 44,
+      "telemetry_error_samples": [
+       {
+        "count": 1,
+        "line": "opentelemetry-collector: 2026-10-19T07:39:03.736Z info Metrics {\"resource\": {\"service.instance.id\": \"b342f172-b9b8-4a3f-bfc9-c3389d6f2586\", \"service.name\": \"otelcol-contrib\", \"service.version\": \"0.142.0\"}, \"otelcol.component.id\": \"debug\", \u2026",
+        "first_seen_seconds_ago": 53,
+        "last_seen_seconds_ago": 53,
+        "state": "ongoing"
+       },
+       {
+        "count": 1,
+        "line": "opentelemetry-collector: 2026-10-19T07:39:13.624Z error kubeletstatsreceiver@v0.142.0/scraper.go:106 call to /stats/summary endpoint failed {\"resource\": {\"service.instance.id\": \"b342f172-b9b8-4a3f-bfc9-c3389d6f2586\", \"service.name\": \"otelc\u2026",
+        "first_seen_seconds_ago": 43,
+        "last_seen_seconds_ago": 43,
+        "state": "ongoing"
+       },
+       {
+        "count": 1,
+        "line": "opentelemetry-collector: 2026-10-19T07:39:13.625Z error scraperhelper@v0.142.0/obs_metrics.go:61 Error scraping metrics {\"resource\": {\"service.instance.id\": \"b342f172-b9b8-4a3f-bfc9-c3389d6f2586\", \"service.name\": \"otelcol-contrib\", \"servic\u2026",
+        "first_seen_seconds_ago": 43,
+        "last_seen_seconds_ago": 43,
+        "state": "ongoing"
+       }
+      ],
+      "tail": [
+       "2026-10-19T07:39:48.850556354Z go.opentelemetry.io/collector/scraper/scraperhelper.NewMetricsController.func1",
+       "2026-10-19T07:39:48.850559309Z go.opentelemetry.io/collector/scraper/scraperhelper@v0.142.0/controller.go:228",
+       "2026-10-19T07:39:48.850583630Z go.opentelemetry.io/collector/scraper/scraperhelper.(*controller[...]).startScraping.func1",
+       "2026-10-19T07:39:48.850587243Z go.opentelemetry.io/collector/scraper/scraperhelper@v0.142.0/controller.go:175",
+       "2026-10-19T07:39:48.959193138Z 2026-10-19T07:39:48.959Z info Metrics {\"resource\": {\"service.instance.id\": \"fdc51856-db6f-4100-a407-d6c402214c4f\", \"service.name\": \"otelcol-contrib\", \"service.version\":\u2026",
+       "2026-10-19T07:39:48.978074325Z 2026-10-19T07:39:48.977Z info Traces {\"resource\": {\"service.instance.id\": \"fdc51856-db6f-4100-a407-d6c402214c4f\", \"service.name\": \"otelcol-contrib\", \"service.version\": \u2026",
+       "2026-10-19T07:39:51.366673366Z 2026-10-19T07:39:51.366Z info Metrics {\"resource\": {\"service.instance.id\": \"fdc51856-db6f-4100-a407-d6c402214c4f\", \"service.name\": \"otelcol-contrib\", \"service.version\":\u2026",
+       "2026-10-19T07:39:52.776869571Z 2026-10-19T07:39:52.776Z info Logs {\"resource\": {\"service.instance.id\": \"fdc51856-db6f-4100-a407-d6c402214c4f\", \"service.name\": \"otelcol-contrib\", \"service.version\": \"0\u2026",
+       "2026-10-19T07:39:53.793275415Z 2026-10-19T07:39:53.793Z info Traces {\"resource\": {\"service.instance.id\": \"fdc51856-db6f-4100-a407-d6c402214c4f\", \"service.name\": \"otelcol-contrib\", \"service.version\": \u2026",
+       "2026-10-19T07:39:54.376320758Z 2026-10-19T07:39:54.376Z info Metrics {\"resource\": {\"service.instance.id\": \"fdc51856-db6f-4100-a407-d6c402214c4f\", \"service.name\": \"otelcol-contrib\", \"service.version\":\u2026",
+       "2026-10-19T07:39:55.986648881Z 2026-10-19T07:39:55.986Z info Logs {\"resource\": {\"service.instance.id\": \"fdc51856-db6f-4100-a407-d6c402214c4f\", \"service.name\": \"otelcol-contrib\", \"service.version\": \"0\u2026",
+       "2026-10-19T07:39:56.181237583Z 2026-10-19T07:39:56.180Z info Metrics {\"resource\": {\"service.instance.id\": \"fdc51856-db6f-4100-a407-d6c402214c4f\", \"service.name\": \"otelcol-contrib\", \"service.version\":\u2026"
+      ]
+     },
+     "template_changes": {
+      "revision": 2,
+      "changed_at": "2026-10-19T07:37:04Z",
+      "changes": [
+       "template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-19T13:37:04+06:00"
+      ]
+     },
+     "clients": [
+      "deployment/accounting",
+      "deployment/ad",
+      "deployment/cart",
+      "deployment/checkout",
+      "deployment/currency",
+      "deployment/email",
+      "deployment/flagd",
+      "deployment/fraud-detection",
+      "deployment/frontend",
+      "deployment/frontend-proxy",
+      "deployment/image-provider",
+      "deployment/kafka",
+      "deployment/llm",
+      "deployment/payment",
+      "deployment/product-catalog",
+      "deployment/product-reviews",
+      "deployment/quote",
+      "deployment/recommendation",
+      "deployment/shipping"
+     ],
+     "configmaps": {
+      "otel-collector-agent": {
+       "last_update": "2026-10-19T07:36:46Z",
+       "keys": [
+        "relay"
+       ],
+       "data": {
+        "relay": "connectors: \u23ce spanmetrics: {} \u23ce exporters: \u23ce debug: {} \u23ce opensearch: \u23ce http: \u23ce endpoint: http://opensearch:9200 \u23ce tls: \u23ce insecure: true \u23ce logs_index: otel-logs \u23ce logs_index_time_format: yyyy-MM-dd \u23ce otlp/jaeger: \u23ce endpoint: jaeger:4317 \u23ce sending_queue: \u23ce batch: null \u23ce tls: \u23ce insecure: true \u23ce otlphttp/prometheus: \u23ce endpoint: http://prometheus:9090/api/v1/otlp \u23ce sending_queue: \u23ce batch: null \u23ce tls: \u2026"
+       }
+      }
+     },
+     "rbac": {
+      "service_account": "astronomy-shop/otel-collector",
+      "bindings": [
+       "ClusterRoleBinding/otel-collector -> ClusterRole/otel-collector"
+      ],
+      "can_i": [
+       "selfsubjectreviews.authentication.k8s.io [] [] [create]",
+       "selfsubjectaccessreviews.authorization.k8s.io [] [] [create]",
+       "selfsubjectrulesreviews.authorization.k8s.io [] [] [create]",
+       "leases.coordination.k8s.io [] [] [get list watch create update patch delete]",
+       "events [] [] [get list watch]",
+       "namespaces/status [] [] [get list watch]",
+       "nodes/spec [] [] [get list watch]",
+       "nodes [] [] [get list watch]",
+       "pods/status [] [] [get list watch]",
+       "replicationcontrollers/status [] [] [get list watch]",
+       "replicationcontrollers [] [] [get list watch]",
+       "resourcequotas [] [] [get list watch]",
+       "services [] [] [get list watch]"
+      ],
+      "roles": [
+       {
+        "kind": "ClusterRole",
+        "name": "otel-collector",
+        "bindings": [
+         "ClusterRoleBinding/otel-collector"
+        ],
+        "service_accounts": [
+         "astronomy-shop/otel-collector"
+        ],
+        "components": [
+         "daemonset/otel-collector-agent"
+        ],
+        "rules": [
+         "leases [coordination.k8s.io]: get,list,watch,create,update,patch,delete",
+         "pods,namespaces [core]: get,watch,list",
+         "replicasets [apps]: get,list,watch",
+         "replicasets [extensions]: get,list,watch",
+         "events,namespaces,namespaces/status,nodes,nodes/spec,pods,pods/status,replicationcontrollers,replicationcontrollers/status,resourcequotas,services [core]: get,list,watch",
+         "daemonsets,deployments,replicasets,statefulsets [apps]: get,list,watch",
+         "daemonsets,deployments,replicasets [extensions]: get,list,watch",
+         "jobs,cronjobs [batch]: get,list,watch"
+        ],
+        "created": "2026-10-19T07:36:46Z",
+        "modified": "2026-10-19T07:36:46Z"
+       }
+      ]
+     }
+    }
+   },
+   "evidence": [
+    {
+     "id": "f1",
+     "text": "container opentelemetry-collector readiness probe: httpGet HTTP :13133/"
+    },
+    {
+     "id": "f2",
+     "text": "container opentelemetry-collector env K8S_NODE_IP=field:status.hostIP"
+    },
+    {
+     "id": "f3",
+     "text": "RBAC ClusterRole otel-collector bound via ClusterRoleBinding/otel-collector grants: leases [coordination.k8s.io]: get,list,watch,create,update,patch,delete; pods,namespaces [core]: get,watch,list; replicasets [apps]: get,list,watch; replicasets [extensions]: get,list,watch; events,namespaces,namespaces/status,nodes,nodes/spec,pods,pods/status,replicationcontrollers,replicationcontrollers/status,resourcequotas,services [core]: get,list,watch; daemonsets,deployments,replicasets,statefulsets [apps]: get,list,watch; daemonsets,deployments,replicasets [extensions]: get,list,watch; jobs,cronjobs [batch]: get,list,watch"
+    },
+    {
+     "id": "f4",
+     "text": "container opentelemetry-collector image otel/opentelemetry-collector-contrib:0.142.0 resources {'limits': {'memory': '200Mi'}}"
+    },
+    {
+     "id": "f5",
+     "text": "container opentelemetry-collector args: --config=/conf/relay.yaml"
+    },
+    {
+     "id": "f6",
+     "text": "pod template changed in revision 2: template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-19T13:37:04+06:00"
+    },
+    {
+     "id": "f7",
+     "text": "container opentelemetry-collector env GOMEMLIMIT=160MiB"
+    },
+    {
+     "id": "f8",
+     "text": "RBAC bindings for astronomy-shop/otel-collector: ['ClusterRoleBinding/otel-collector -> ClusterRole/otel-collector']"
+    },
+    {
+     "id": "f9",
+     "text": "container opentelemetry-collector env MY_POD_IP=field:status.podIP"
+    },
+    {
+     "id": "f10",
+     "text": "spec modified 141s ago, 18s after this object was created (fields: template.annotations.kubectl.kubernetes.io/restartedAt); pod template changes: template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-19T13:37:04+06:00; 22s before the first active symptom"
+    },
+    {
+     "id": "f11",
+     "text": "container opentelemetry-collector env K8S_NODE_NAME=field:spec.nodeName"
+    },
+    {
+     "id": "f12",
+     "text": "container opentelemetry-collector liveness probe: httpGet HTTP :13133/"
+    },
+    {
+     "id": "f13",
+     "text": "workload strategy: {'rollingUpdate': {'maxSurge': 0, 'maxUnavailable': 1}, 'type': 'RollingUpdate'}"
+    },
+    {
+     "id": "f14",
+     "text": "ConfigMap otel-collector-agent key relay: connectors: \u23ce spanmetrics: {} \u23ce exporters: \u23ce debug: {} \u23ce opensearch: \u23ce http: \u23ce endpoint: http://opensearch:9200 \u23ce tls: \u23ce insecure: true \u23ce logs_index: otel-logs \u23ce logs_index_time_format: yyyy-MM-dd \u23ce otlp/jaeger: \u23ce endpoint: jaeger:4317 \u23ce sending_queue: \u23ce batch: null \u23ce tls: \u23ce insecure: true \u23ce otlphttp/prometheus: \u23ce endpoint: http://prometheus:9090/api/v1/otlp \u23ce sending_queue: \u23ce batch: null \u23ce tls: \u2026"
+    }
+   ]
+  },
+  "questions": {
+   "fault_category": {
+    "type": "choice",
+    "criteria": {
+     "config_value": {
+      "what": "A wrong, missing, duplicated, or shadowed value in the component's own spec or configuration files: environment variables, command arguments, an address or port it uses to reach another component, config file content, or a setting that makes it consume more CPU or memory than before.",
+      "not_for": "Credentials (credentials_or_auth), probes (health_probe_config), resources (resource_limits), DNS settings (dns_resolution), a Service object's selector or ports (service_routing)."
+     },
+     "credentials_or_auth": {
+      "what": "Authentication between components fails: rotated or wrong credentials in a Secret, a password or auth requirement changed on a backend, stale credentials in running pods.",
+      "not_for": "Kubernetes API authorization (rbac_permission)."
+     },
+     "image_or_binary": {
+      "what": "The container image or binary is wrong: bad image name or tag, ImagePullBackOff, exec format error, a binary that crashes immediately regardless of configuration.",
+      "not_for": "A crash caused by a config value or a failing dependency."
+     },
+     "resource_limits": {
+      "what": "CPU or memory requests or limits set too low for the workload's normal needs: throttling, OOMKilled, eviction, or a request too large to schedule.",
+      "not_for": "A namespace quota that rejects pods, or values rewritten at admission (admission_or_namespace_policy); a configuration change that makes the workload consume more (config_value)."
+     },
+     "scheduling_constraint": {
+      "what": "Pods cannot be placed: nodeSelector, affinity, anti-affinity, tolerations, or taints that no node satisfies, or a volume that cannot be bound on any eligible node.",
+      "not_for": "Pods rejected before scheduling by a quota or webhook (admission_or_namespace_policy)."
+     },
+     "rollout_or_replica_config": {
+      "what": "Replica or rollout settings that stop the workload from running: replicas set to zero, a rolling update strategy that takes every pod down or can never progress, HPA misconfiguration.",
+      "not_for": "Pods that exist but fail for another reason."
+     },
+     "health_probe_config": {
+      "what": "A readiness, liveness, or startup probe points at the wrong path, port, or command, so healthy containers are reported not ready or are restarted.",
+      "not_for": "Probes that fail because the application really is broken."
+     },
+     "service_routing": {
+      "what": "A Service sends traffic to the wrong place or nowhere: its selector matches the wrong pods or none, or its port or targetPort does not match the pods' container ports.",
+      "not_for": "A client configured with the wrong address or port (config_value)."
+     },
+     "network_policy": {
+      "what": "A NetworkPolicy blocks traffic to or from the component.",
+      "not_for": "Traffic that reaches the component and is then rejected or fails."
+     },
+     "traffic_policy": {
+      "what": "A Service traffic policy (internalTrafficPolicy or externalTrafficPolicy set to Local) or session affinity restricts which endpoints receive traffic, so some clients reach no endpoint.",
+      "not_for": "A selector or port mismatch (service_routing)."
+     },
+     "dns_resolution": {
+      "what": "Name resolution fails or returns wrong answers: the pod's dnsPolicy, dnsConfig, or hostAliases, or the cluster DNS (CoreDNS) configuration.",
+      "not_for": "A name that resolves but whose backend refuses connections."
+     },
+     "storage_volume": {
+      "what": "Persistent volume problems: PVC Pending or Lost, a volume mounted twice or at the wrong path, mount failures, disk full.",
+      "not_for": "ConfigMap or Secret mounts with wrong content (config_value)."
+     },
+     "job_lifecycle": {
+      "what": "A Job or CronJob does not complete or runs wrongly: a sidecar keeps the pod alive after the main container exits, jobs pile up, restartPolicy or backoffLimit or schedule is wrong.",
+      "not_for": "A job whose main container itself fails for another category's reason."
+     },
+     "admission_or_namespace_policy": {
+      "what": "An admission webhook or namespace policy rejects or rewrites pods: a webhook with no backend and failurePolicy Fail, a mutating webhook injecting bad values, a ResourceQuota or LimitRange that rejects pods.",
+      "not_for": "Scheduling failures of pods that were admitted (scheduling_constraint)."
+     },
+     "rbac_permission": {
+      "what": "The component is denied Kubernetes API operations it needs (403 forbidden) because a Role, ClusterRole, or binding was removed or narrowed.",
+      "not_for": "Authentication between application components (credentials_or_auth)."
+     },
+     "data_or_traffic": {
+      "what": "The component's inputs are the problem: a poison message it cannot process, a retry or timeout feedback loop, a load pattern or a request filter that saturates it.",
+      "not_for": "Failures explained by the component's own spec or a Kubernetes object."
+     },
+     "code_bug": {
+      "what": "The component runs with correct configuration, resources, and inputs, and still fails because of its own logic.",
+      "not_for": "Anything explained by another category."
+     },
+     "other": {
+      "what": "None of the categories above describes the fault."
+     }
+    },
+    "instructions": {
+     "question": "Which category names the cause of the fault in `component`?",
+     "how_to_decide": [
+      "Pods Pending, not ready, restarting, or terminating are symptoms. Choose the category of what made them so: a probe pointing at the wrong port is health_probe_config, a quota rejection is admission_or_namespace_policy, a nodeSelector no node matches is scheduling_constraint, a NetworkPolicy is network_policy.",
+      "Judge from `component.signals`, `component.spec_flags`, `component.warning_events`, `component.log_findings`, `component.previous_container_logs`, and `component.containers`.",
+      "A limit is the cause only if the limit is too low for the workload's normal needs; when a recent change (see `component.template_changes`) makes the workload consume more, the change is the cause."
+     ]
+    }
+   },
+   "key_evidence": {
+    "type": "choice",
+    "criteria": {
+     "f1": "container opentelemetry-collector readiness probe: httpGet HTTP :13133/",
+     "f2": "container opentelemetry-collector env K8S_NODE_IP=field:status.hostIP",
+     "f3": "RBAC ClusterRole otel-collector bound via ClusterRoleBinding/otel-collector grants: leases [coordination.k8s.io]: get,list,watch,create,update,patch,delete; pods,namespaces [core]: get,watch,list; replicasets [apps]: get,list,watch; replicasets [extensions]: get,list,watch; events,namespaces,namespaces/status,nodes,nodes/spec,pods,pods/status,replicationcontrollers,replicationcontrollers/status,resourcequotas,services [core]: get,list,watch; daemonsets,deployments,replicasets,statefulsets [apps]: get,list,watch; daemonsets,deployments,replicasets [extensions]: get,list,watch; jobs,cronjobs [batch]: get,list,watch",
+     "f4": "container opentelemetry-collector image otel/opentelemetry-collector-contrib:0.142.0 resources {'limits': {'memory': '200Mi'}}",
+     "f5": "container opentelemetry-collector args: --config=/conf/relay.yaml",
+     "f6": "pod template changed in revision 2: template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-19T13:37:04+06:00",
+     "f7": "container opentelemetry-collector env GOMEMLIMIT=160MiB",
+     "f8": "RBAC bindings for astronomy-shop/otel-collector: ['ClusterRoleBinding/otel-collector -> ClusterRole/otel-collector']",
+     "f9": "container opentelemetry-collector env MY_POD_IP=field:status.podIP",
+     "f10": "spec modified 141s ago, 18s after this object was created (fields: template.annotations.kubectl.kubernetes.io/restartedAt); pod template changes: template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-19T13:37:04+06:00; 22s before the first active symptom",
+     "f11": "container opentelemetry-collector env K8S_NODE_NAME=field:spec.nodeName",
+     "f12": "container opentelemetry-collector liveness probe: httpGet HTTP :13133/",
+     "f13": "workload strategy: {'rollingUpdate': {'maxSurge': 0, 'maxUnavailable': 1}, 'type': 'RollingUpdate'}",
+     "f14": "ConfigMap otel-collector-agent key relay: connectors: \u23ce spanmetrics: {} \u23ce exporters: \u23ce debug: {} \u23ce opensearch: \u23ce http: \u23ce endpoint: http://opensearch:9200 \u23ce tls: \u23ce insecure: true \u23ce logs_index: otel-logs \u23ce logs_index_time_format: yyyy-MM-dd \u23ce otlp/jaeger: \u23ce endpoint: jaeger:4317 \u23ce sending_queue: \u23ce batch: null \u23ce tls: \u23ce insecure: true \u23ce otlphttp/prometheus: \u23ce endpoint: http://prometheus:9090/api/v1/otlp \u23ce sending_queue: \u23ce batch: null \u23ce tls: \u2026"
+    },
+    "instructions": {
+     "question": "Which single item in `evidence` most directly reveals the mechanism of the fault in `component`?",
+     "how_to_decide": [
+      "Prefer an item that names a configuration, policy, object, or change (a duplicated env var, a NetworkPolicy, a quota rejection message, a probe target, a modified Secret) over an item that only describes a state (Pending, terminating, not ready, restarts, replicas).",
+      "Prefer an item with a specific value or object name over a generic one.",
+      "Each option id names one item in `evidence`."
+     ]
+    }
+   }
+  },
+  "model": "typesafe/jev-1.13-20260917",
+  "latency_ms": 698,
+  "usage": {
+   "input_tokens": 10141,
+   "output_tokens": 319,
+   "cost": 0.000425922
+  },
+  "answers": {
+   "fault_category": {
+    "type": "choice",
+    "choice": "health_probe_config",
+    "confidence": 0.52,
+    "probabilities": {
+     "config_value": 0.23,
+     "credentials_or_auth": 0.0,
+     "image_or_binary": 0.01,
+     "resource_limits": 0.01,
+     "scheduling_constraint": 0.0,
+     "rollout_or_replica_config": 0.02,
+     "health_probe_config": 0.55,
+     "service_routing": 0.01,
+     "network_policy": 0.02,
+     "traffic_policy": 0.0,
+     "dns_resolution": 0.01,
+     "storage_volume": 0.01,
+     "job_lifecycle": 0.0,
+     "admission_or_namespace_policy": 0.02,
+     "rbac_permission": 0.0,
+     "data_or_traffic": 0.01,
+     "code_bug": 0.05,
+     "other": 0.05
+    }
+   },
+   "key_evidence": {
+    "type": "choice",
+    "choice": "f1",
+    "confidence": 0.59,
+    "probabilities": {
+     "f1": 0.62,
+     "f2": 0.03,
+     "f3": 0.0,
+     "f4": 0.0,
+     "f5": 0.01,
+     "f6": 0.11,
+     "f7": 0.01,
+     "f8": 0.0,
+     "f9": 0.0,
+     "f10": 0.16,
+     "f11": 0.0,
+     "f12": 0.0,
+     "f13": 0.0,
+     "f14": 0.06
+    }
+   }
+  }
+ },
+ {
+  "label": "characterize:2",
+  "state": {
+   "application": {
+    "name": "OpenTelemetry Demo Astronomy Shop",
+    "description": "An online shopping platform built with a microservices architecture, showcasing OpenTelemetry instrumentation for distributed tracing across services.",
+    "namespaces": [
+     "astronomy-shop"
+    ]
+   },
+   "component": {
+    "kind": "DaemonSet",
+    "name": "otel-collector-agent",
+    "namespace": "astronomy-shop",
+    "healthy": false,
+    "signals": [
+     "spec modified 141s ago, 18s after this object was created (fields: template.annotations.kubectl.kubernetes.io/restartedAt); pod template changes: template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-19T13:37:04+06:00; 22s before the first active symptom"
+    ],
+    "template_changes": {
+     "revision": 2,
+     "changed_at": "2026-10-19T07:37:04Z",
+     "changes": [
+      "template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-19T13:37:04+06:00"
+     ]
+    },
+    "detail": {
+     "component": "daemonset/otel-collector-agent",
+     "namespace": "astronomy-shop",
+     "workload": {
+      "created": "2026-10-19T07:36:46Z",
+      "last_spec_write": "2026-10-19T07:37:04Z",
+      "spec_writers": [
+       {
+        "manager": "helm",
+        "op": "Apply",
+        "time": "2026-10-19T07:36:46Z"
+       },
+       {
+        "manager": "kubectl-rollout",
+        "op": "Update",
+        "time": "2026-10-19T07:37:04Z"
+       }
+      ],
+      "strategy": {
+       "rollingUpdate": {
+        "maxSurge": 0,
+        "maxUnavailable": 1
+       },
+       "type": "RollingUpdate"
+      },
+      "service_account": "otel-collector",
+      "dns_policy": "ClusterFirst",
+      "restart_policy": "Always",
+      "containers": [
+       {
+        "name": "opentelemetry-collector",
+        "image": "otel/opentelemetry-collector-contrib:0.142.0",
+        "args": [
+         "--config=/conf/relay.yaml"
+        ],
+        "env": [
+         {
+          "name": "MY_POD_IP",
+          "from": "field:status.podIP"
+         },
+         {
+          "name": "K8S_NODE_NAME",
+          "from": "field:spec.nodeName"
+         },
+         {
+          "name": "K8S_NODE_IP",
+          "from": "field:status.hostIP"
+         },
+         {
+          "name": "GOMEMLIMIT",
+          "value": "160MiB"
+         }
+        ],
+        "ports": [
+         {
+          "port": 6831,
+          "name": "jaeger-compact"
+         },
+         {
+          "port": 14250,
+          "name": "jaeger-grpc"
+         },
+         {
+          "port": 14268,
+          "name": "jaeger-thrift"
+         },
+         {
+          "port": 8888,
+          "name": "metrics"
+         },
+         {
+          "port": 4317,
+          "name": "otlp"
+         },
+         {
+          "port": 4318,
+          "name": "otlp-http"
+         },
+         {
+          "port": 9411,
+          "name": "zipkin"
+         }
+        ],
+        "resources": {
+         "limits": {
+          "memory": "200Mi"
+         }
+        },
+        "probes": {
+         "readiness": {
+          "failureThreshold": 3,
+          "httpGet": {
+           "path": "/",
+           "port": 13133,
+           "scheme": "HTTP"
+          },
+          "periodSeconds": 10,
+          "successThreshold": 1,
+          "timeoutSeconds": 1
+         },
+         "liveness": {
+          "failureThreshold": 3,
+          "httpGet": {
+           "path": "/",
+           "port": 13133,
+           "scheme": "HTTP"
+          },
+          "periodSeconds": 10,
+          "successThreshold": 1,
+          "timeoutSeconds": 1
+         }
+        },
+        "volume_mounts": [
+         {
+          "name": "opentelemetry-collector-configmap",
+          "path": "/conf"
+         },
+         {
+          "name": "hostfs",
+          "path": "/hostfs"
+         }
+        ]
+       }
+      ],
+      "volumes": [
+       {
+        "name": "opentelemetry-collector-configmap",
+        "configMap": {
+         "defaultMode": 420,
+         "items": [
+          {
+           "key": "relay",
+           "path": "relay.yaml"
+          }
+         ],
+         "name": "otel-collector-agent"
+        }
+       },
+       {
+        "name": "hostfs",
+        "hostPath": {
+         "path": "/",
+         "type": ""
+        }
+       }
+      ],
+      "template_labels": {
+       "app.kubernetes.io/instance": "astronomy-shop",
+       "app.kubernetes.io/name": "opentelemetry-collector",
+       "component": "agent-collector"
+      }
+     },
+     "pods": [
+      {
+       "name": "otel-collector-agent-5w8c8",
+       "node": "kind-worker2",
+       "phase": "Running",
+       "started": "2026-10-19T07:37:11Z",
+       "ready_since": "2026-10-19T07:37:13Z",
+       "conditions": [
+        "PodReadyToStartContainers=True",
+        "Initialized=True",
+        "Ready=True",
+        "ContainersReady=True",
+        "PodScheduled=True"
+       ],
+       "containers": [
+        {
+         "name": "opentelemetry-collector",
+         "ready": true,
+         "restarts": 0,
+         "state": {
+          "running": {
+           "startedAt": "2026-10-19T07:37:12Z"
+          }
+         }
+        }
+       ]
+      },
+      {
+       "name": "otel-collector-agent-f95pp",
+       "node": "kind-worker3",
+       "phase": "Running",
+       "started": "2026-10-19T07:37:06Z",
+       "ready_since": "2026-10-19T07:37:08Z",
+       "conditions": [
+        "PodReadyToStartContainers=True",
+        "Initialized=True",
+        "Ready=True",
+        "ContainersReady=True",
+        "PodScheduled=True"
+       ],
+       "containers": [
+        {
+         "name": "opentelemetry-collector",
+         "ready": true,
+         "restarts": 0,
+         "state": {
+          "running": {
+           "startedAt": "2026-10-19T07:37:07Z"
+          }
+         }
+        }
+       ]
+      },
+      {
+       "name": "otel-collector-agent-k62nl",
+       "node": "kind-worker",
+       "phase": "Running",
+       "started": "2026-10-19T07:37:08Z",
+       "ready_since": "2026-10-19T07:37:10Z",
+       "conditions": [
+        "PodReadyToStartContainers=True",
+        "Initialized=True",
+        "Ready=True",
+        "ContainersReady=True",
+        "PodScheduled=True"
+       ],
+       "containers": [
+        {
+         "name": "opentelemetry-collector",
+         "ready": true,
+         "restarts": 0,
+         "state": {
+          "running": {
+           "startedAt": "2026-10-19T07:37:09Z"
+          }
+         }
+        }
+       ]
+      }
+     ],
+     "events": [
+      {
+       "type": "Normal",
+       "reason": "Created",
+       "count": 1,
+       "object": "pod/otel-collector-agent-5w8c8",
+       "last": "2026-10-19T07:37:12Z",
+       "message": "Created container: opentelemetry-collector"
+      },
+      {
+       "type": "Normal",
+       "reason": "Started",
+       "count": 1,
+       "object": "pod/otel-collector-agent-5w8c8",
+       "last": "2026-10-19T07:37:12Z",
+       "message": "Started container opentelemetry-collector"
+      },
+      {
+       "type": "Normal",
+       "reason": "Pulled",
+       "count": 1,
+       "object": "pod/otel-collector-agent-5w8c8",
+       "last": "2026-10-19T07:37:11Z",
+       "message": "Container image \"otel/opentelemetry-collector-contrib:0.142.0\" already present on machine"
+      },
+      {
+       "type": "Normal",
+       "reason": "SuccessfulCreate",
+       "count": 1,
+       "object": "daemonset/otel-collector-agent",
+       "last": "2026-10-19T07:37:11Z",
+       "message": "Created pod: otel-collector-agent-5w8c8"
+      },
+      {
+       "type": "Normal",
+       "reason": "Scheduled",
+       "count": 1,
+       "object": "pod/otel-collector-agent-5w8c8",
+       "last": "2026-10-19T07:37:11.336390Z",
+       "message": "Successfully assigned astronomy-shop/otel-collector-agent-5w8c8 to kind-worker2"
+      },
+      {
+       "type": "Normal",
+       "reason": "Killing",
+       "count": 1,
+       "object": "pod/otel-collector-agent-sxwl2",
+       "last": "2026-10-19T07:37:10Z",
+       "message": "Stopping container opentelemetry-collector"
+      },
+      {
+       "type": "Normal",
+       "reason": "SuccessfulDelete",
+       "count": 1,
+       "object": "daemonset/otel-collector-agent",
+       "last": "2026-10-19T07:37:10Z",
+       "message": "Deleted pod: otel-collector-agent-sxwl2"
+      },
+      {
+       "type": "Normal",
+       "reason": "Pulled",
+       "count": 1,
+       "object": "pod/otel-collector-agent-k62nl",
+       "last": "2026-10-19T07:37:09Z",
+       "message": "Container image \"otel/opentelemetry-collector-contrib:0.142.0\" already present on machine"
+      },
+      {
+       "type": "Normal",
+       "reason": "Created",
+       "count": 1,
+       "object": "pod/otel-collector-agent-k62nl",
+       "last": "2026-10-19T07:37:09Z",
+       "message": "Created container: opentelemetry-collector"
+      },
+      {
+       "type": "Normal",
+       "reason": "Started",
+       "count": 1,
+       "object": "pod/otel-collector-agent-k62nl",
+       "last": "2026-10-19T07:37:09Z",
+       "message": "Started container opentelemetry-collector"
+      },
+      {
+       "type": "Normal",
+       "reason": "Killing",
+       "count": 1,
+       "object": "pod/otel-collector-agent-lfhpt",
+       "last": "2026-10-19T07:37:08Z",
+       "message": "Stopping container opentelemetry-collector"
+      },
+      {
+       "type": "Warning",
+       "reason": "Unhealthy",
+       "count": 1,
+       "object": "pod/otel-collector-agent-lfhpt",
+       "last": "2026-10-19T07:37:08Z",
+       "message": "Readiness probe failed: Get \"http://10.244.162.185:13133/\": dial tcp 10.244.162.185:13133: connect: invalid argument"
+      },
+      {
+       "type": "Normal",
+       "reason": "SuccessfulDelete",
+       "count": 1,
+       "object": "daemonset/otel-collector-agent",
+       "last": "2026-10-19T07:37:08Z",
+       "message": "Deleted pod: otel-collector-agent-lfhpt"
+      },
+      {
+       "type": "Normal",
+       "reason": "SuccessfulCreate",
+       "count": 1,
+       "object": "daemonset/otel-collector-agent",
+       "last": "2026-10-19T07:37:08Z",
+       "message": "Created pod: otel-collector-agent-k62nl"
+      },
+      {
+       "type": "Normal",
+       "reason": "Scheduled",
+       "count": 1,
+       "object": "pod/otel-collector-agent-k62nl",
+       "last": "2026-10-19T07:37:08.797468Z",
+       "message": "Successfully assigned astronomy-shop/otel-collector-agent-k62nl to kind-worker"
+      }
+     ],
+     "logs": {
+      "total_lines": 600,
+      "error_lines": 0,
+      "error_lines_still_occurring": 0,
+      "error_lines_stopped": 0,
+      "telemetry_export_error_lines": 44,
+      "telemetry_error_samples": [
+       {
+        "count": 1,
+        "line": "opentelemetry-collector: 2026-10-19T07:39:03.736Z info Metrics {\"resource\": {\"service.instance.id\": \"b342f172-b9b8-4a3f-bfc9-c3389d6f2586\", \"service.name\": \"otelcol-contrib\", \"service.version\": \"0.142.0\"}, \"otelcol.component.id\": \"debug\", \u2026",
+        "first_seen_seconds_ago": 53,
+        "last_seen_seconds_ago": 53,
+        "state": "ongoing"
+       },
+       {
+        "count": 1,
+        "line": "opentelemetry-collector: 2026-10-19T07:39:13.624Z error kubeletstatsreceiver@v0.142.0/scraper.go:106 call to /stats/summary endpoint failed {\"resource\": {\"service.instance.id\": \"b342f172-b9b8-4a3f-bfc9-c3389d6f2586\", \"service.name\": \"otelc\u2026",
+        "first_seen_seconds_ago": 43,
+        "last_seen_seconds_ago": 43,
+        "state": "ongoing"
+       },
+       {
+        "count": 1,
+        "line": "opentelemetry-collector: 2026-10-19T07:39:13.625Z error scraperhelper@v0.142.0/obs_metrics.go:61 Error scraping metrics {\"resource\": {\"service.instance.id\": \"b342f172-b9b8-4a3f-bfc9-c3389d6f2586\", \"service.name\": \"otelcol-contrib\", \"servic\u2026",
+        "first_seen_seconds_ago": 43,
+        "last_seen_seconds_ago": 43,
+        "state": "ongoing"
+       }
+      ],
+      "tail": [
+       "2026-10-19T07:39:48.850556354Z go.opentelemetry.io/collector/scraper/scraperhelper.NewMetricsController.func1",
+       "2026-10-19T07:39:48.850559309Z go.opentelemetry.io/collector/scraper/scraperhelper@v0.142.0/controller.go:228",
+       "2026-10-19T07:39:48.850583630Z go.opentelemetry.io/collector/scraper/scraperhelper.(*controller[...]).startScraping.func1",
+       "2026-10-19T07:39:48.850587243Z go.opentelemetry.io/collector/scraper/scraperhelper@v0.142.0/controller.go:175",
+       "2026-10-19T07:39:48.959193138Z 2026-10-19T07:39:48.959Z info Metrics {\"resource\": {\"service.instance.id\": \"fdc51856-db6f-4100-a407-d6c402214c4f\", \"service.name\": \"otelcol-contrib\", \"service.version\":\u2026",
+       "2026-10-19T07:39:48.978074325Z 2026-10-19T07:39:48.977Z info Traces {\"resource\": {\"service.instance.id\": \"fdc51856-db6f-4100-a407-d6c402214c4f\", \"service.name\": \"otelcol-contrib\", \"service.version\": \u2026",
+       "2026-10-19T07:39:51.366673366Z 2026-10-19T07:39:51.366Z info Metrics {\"resource\": {\"service.instance.id\": \"fdc51856-db6f-4100-a407-d6c402214c4f\", \"service.name\": \"otelcol-contrib\", \"service.version\":\u2026",
+       "2026-10-19T07:39:52.776869571Z 2026-10-19T07:39:52.776Z info Logs {\"resource\": {\"service.instance.id\": \"fdc51856-db6f-4100-a407-d6c402214c4f\", \"service.name\": \"otelcol-contrib\", \"service.version\": \"0\u2026",
+       "2026-10-19T07:39:53.793275415Z 2026-10-19T07:39:53.793Z info Traces {\"resource\": {\"service.instance.id\": \"fdc51856-db6f-4100-a407-d6c402214c4f\", \"service.name\": \"otelcol-contrib\", \"service.version\": \u2026",
+       "2026-10-19T07:39:54.376320758Z 2026-10-19T07:39:54.376Z info Metrics {\"resource\": {\"service.instance.id\": \"fdc51856-db6f-4100-a407-d6c402214c4f\", \"service.name\": \"otelcol-contrib\", \"service.version\":\u2026",
+       "2026-10-19T07:39:55.986648881Z 2026-10-19T07:39:55.986Z info Logs {\"resource\": {\"service.instance.id\": \"fdc51856-db6f-4100-a407-d6c402214c4f\", \"service.name\": \"otelcol-contrib\", \"service.version\": \"0\u2026",
+       "2026-10-19T07:39:56.181237583Z 2026-10-19T07:39:56.180Z info Metrics {\"resource\": {\"service.instance.id\": \"fdc51856-db6f-4100-a407-d6c402214c4f\", \"service.name\": \"otelcol-contrib\", \"service.version\":\u2026"
+      ]
+     },
+     "template_changes": {
+      "revision": 2,
+      "changed_at": "2026-10-19T07:37:04Z",
+      "changes": [
+       "template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-19T13:37:04+06:00"
+      ]
+     },
+     "clients": [
+      "deployment/accounting",
+      "deployment/ad",
+      "deployment/cart",
+      "deployment/checkout",
+      "deployment/currency",
+      "deployment/email",
+      "deployment/flagd",
+      "deployment/fraud-detection",
+      "deployment/frontend",
+      "deployment/frontend-proxy",
+      "deployment/image-provider",
+      "deployment/kafka",
+      "deployment/llm",
+      "deployment/payment",
+      "deployment/product-catalog",
+      "deployment/product-reviews",
+      "deployment/quote",
+      "deployment/recommendation",
+      "deployment/shipping"
+     ],
+     "configmaps": {
+      "otel-collector-agent": {
+       "last_update": "2026-10-19T07:36:46Z",
+       "keys": [
+        "relay"
+       ],
+       "data": {
+        "relay": "connectors: \u23ce spanmetrics: {} \u23ce exporters: \u23ce debug: {} \u23ce opensearch: \u23ce http: \u23ce endpoint: http://opensearch:9200 \u23ce tls: \u23ce insecure: true \u23ce logs_index: otel-logs \u23ce logs_index_time_format: yyyy-MM-dd \u23ce otlp/jaeger: \u23ce endpoint: jaeger:4317 \u23ce sending_queue: \u23ce batch: null \u23ce tls: \u23ce insecure: true \u23ce otlphttp/prometheus: \u23ce endpoint: http://prometheus:9090/api/v1/otlp \u23ce sending_queue: \u23ce batch: null \u23ce tls: \u2026"
+       }
+      }
+     },
+     "rbac": {
+      "service_account": "astronomy-shop/otel-collector",
+      "bindings": [
+       "ClusterRoleBinding/otel-collector -> ClusterRole/otel-collector"
+      ],
+      "can_i": [
+       "selfsubjectreviews.authentication.k8s.io [] [] [create]",
+       "selfsubjectaccessreviews.authorization.k8s.io [] [] [create]",
+       "selfsubjectrulesreviews.authorization.k8s.io [] [] [create]",
+       "leases.coordination.k8s.io [] [] [get list watch create update patch delete]",
+       "events [] [] [get list watch]",
+       "namespaces/status [] [] [get list watch]",
+       "nodes/spec [] [] [get list watch]",
+       "nodes [] [] [get list watch]",
+       "pods/status [] [] [get list watch]",
+       "replicationcontrollers/status [] [] [get list watch]",
+       "replicationcontrollers [] [] [get list watch]",
+       "resourcequotas [] [] [get list watch]",
+       "services [] [] [get list watch]"
+      ],
+      "roles": [
+       {
+        "kind": "ClusterRole",
+        "name": "otel-collector",
+        "bindings": [
+         "ClusterRoleBinding/otel-collector"
+        ],
+        "service_accounts": [
+         "astronomy-shop/otel-collector"
+        ],
+        "components": [
+         "daemonset/otel-collector-agent"
+        ],
+        "rules": [
+         "leases [coordination.k8s.io]: get,list,watch,create,update,patch,delete",
+         "pods,namespaces [core]: get,watch,list",
+         "replicasets [apps]: get,list,watch",
+         "replicasets [extensions]: get,list,watch",
+         "events,namespaces,namespaces/status,nodes,nodes/spec,pods,pods/status,replicationcontrollers,replicationcontrollers/status,resourcequotas,services [core]: get,list,watch",
+         "daemonsets,deployments,replicasets,statefulsets [apps]: get,list,watch",
+         "daemonsets,deployments,replicasets [extensions]: get,list,watch",
+         "jobs,cronjobs [batch]: get,list,watch"
+        ],
+        "created": "2026-10-19T07:36:46Z",
+        "modified": "2026-10-19T07:36:46Z"
+       }
+      ]
+     }
+    }
+   },
+   "evidence": [
+    {
+     "id": "f1",
+     "text": "spec modified 141s ago, 18s after this object was created (fields: template.annotations.kubectl.kubernetes.io/restartedAt); pod template changes: template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-19T13:37:04+06:00; 22s before the first active symptom"
+    },
+    {
+     "id": "f2",
+     "text": "container opentelemetry-collector env K8S_NODE_NAME=field:spec.nodeName"
+    },
+    {
+     "id": "f3",
+     "text": "container opentelemetry-collector env MY_POD_IP=field:status.podIP"
+    },
+    {
+     "id": "f4",
+     "text": "pod template changed in revision 2: template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-19T13:37:04+06:00"
+    },
+    {
+     "id": "f5",
+     "text": "workload strategy: {'rollingUpdate': {'maxSurge': 0, 'maxUnavailable': 1}, 'type': 'RollingUpdate'}"
+    },
+    {
+     "id": "f6",
+     "text": "container opentelemetry-collector liveness probe: httpGet HTTP :13133/"
+    },
+    {
+     "id": "f7",
+     "text": "RBAC bindings for astronomy-shop/otel-collector: ['ClusterRoleBinding/otel-collector -> ClusterRole/otel-collector']"
+    },
+    {
+     "id": "f8",
+     "text": "container opentelemetry-collector env GOMEMLIMIT=160MiB"
+    },
+    {
+     "id": "f9",
+     "text": "ConfigMap otel-collector-agent key relay: connectors: \u23ce spanmetrics: {} \u23ce exporters: \u23ce debug: {} \u23ce opensearch: \u23ce http: \u23ce endpoint: http://opensearch:9200 \u23ce tls: \u23ce insecure: true \u23ce logs_index: otel-logs \u23ce logs_index_time_format: yyyy-MM-dd \u23ce otlp/jaeger: \u23ce endpoint: jaeger:4317 \u23ce sending_queue: \u23ce batch: null \u23ce tls: \u23ce insecure: true \u23ce otlphttp/prometheus: \u23ce endpoint: http://prometheus:9090/api/v1/otlp \u23ce sending_queue: \u23ce batch: null \u23ce tls: \u2026"
+    },
+    {
+     "id": "f10",
+     "text": "container opentelemetry-collector readiness probe: httpGet HTTP :13133/"
+    },
+    {
+     "id": "f11",
+     "text": "RBAC ClusterRole otel-collector bound via ClusterRoleBinding/otel-collector grants: leases [coordination.k8s.io]: get,list,watch,create,update,patch,delete; pods,namespaces [core]: get,watch,list; replicasets [apps]: get,list,watch; replicasets [extensions]: get,list,watch; events,namespaces,namespaces/status,nodes,nodes/spec,pods,pods/status,replicationcontrollers,replicationcontrollers/status,resourcequotas,services [core]: get,list,watch; daemonsets,deployments,replicasets,statefulsets [apps]: get,list,watch; daemonsets,deployments,replicasets [extensions]: get,list,watch; jobs,cronjobs [batch]: get,list,watch"
+    },
+    {
+     "id": "f12",
+     "text": "container opentelemetry-collector env K8S_NODE_IP=field:status.hostIP"
+    },
+    {
+     "id": "f13",
+     "text": "container opentelemetry-collector image otel/opentelemetry-collector-contrib:0.142.0 resources {'limits': {'memory': '200Mi'}}"
+    },
+    {
+     "id": "f14",
+     "text": "container opentelemetry-collector args: --config=/conf/relay.yaml"
+    }
+   ]
+  },
+  "questions": {
+   "fault_category": {
+    "type": "choice",
+    "criteria": {
+     "config_value": {
+      "what": "A wrong, missing, duplicated, or shadowed value in the component's own spec or configuration files: environment variables, command arguments, an address or port it uses to reach another component, config file content, or a setting that makes it consume more CPU or memory than before.",
+      "not_for": "Credentials (credentials_or_auth), probes (health_probe_config), resources (resource_limits), DNS settings (dns_resolution), a Service object's selector or ports (service_routing)."
+     },
+     "credentials_or_auth": {
+      "what": "Authentication between components fails: rotated or wrong credentials in a Secret, a password or auth requirement changed on a backend, stale credentials in running pods.",
+      "not_for": "Kubernetes API authorization (rbac_permission)."
+     },
+     "image_or_binary": {
+      "what": "The container image or binary is wrong: bad image name or tag, ImagePullBackOff, exec format error, a binary that crashes immediately regardless of configuration.",
+      "not_for": "A crash caused by a config value or a failing dependency."
+     },
+     "resource_limits": {
+      "what": "CPU or memory requests or limits set too low for the workload's normal needs: throttling, OOMKilled, eviction, or a request too large to schedule.",
+      "not_for": "A namespace quota that rejects pods, or values rewritten at admission (admission_or_namespace_policy); a configuration change that makes the workload consume more (config_value)."
+     },
+     "scheduling_constraint": {
+      "what": "Pods cannot be placed: nodeSelector, affinity, anti-affinity, tolerations, or taints that no node satisfies, or a volume that cannot be bound on any eligible node.",
+      "not_for": "Pods rejected before scheduling by a quota or webhook (admission_or_namespace_policy)."
+     },
+     "rollout_or_replica_config": {
+      "what": "Replica or rollout settings that stop the workload from running: replicas set to zero, a rolling update strategy that takes every pod down or can never progress, HPA misconfiguration.",
+      "not_for": "Pods that exist but fail for another reason."
+     },
+     "health_probe_config": {
+      "what": "A readiness, liveness, or startup probe points at the wrong path, port, or command, so healthy containers are reported not ready or are restarted.",
+      "not_for": "Probes that fail because the application really is broken."
+     },
+     "service_routing": {
+      "what": "A Service sends traffic to the wrong place or nowhere: its selector matches the wrong pods or none, or its port or targetPort does not match the pods' container ports.",
+      "not_for": "A client configured with the wrong address or port (config_value)."
+     },
+     "network_policy": {
+      "what": "A NetworkPolicy blocks traffic to or from the component.",
+      "not_for": "Traffic that reaches the component and is then rejected or fails."
+     },
+     "traffic_policy": {
+      "what": "A Service traffic policy (internalTrafficPolicy or externalTrafficPolicy set to Local) or session affinity restricts which endpoints receive traffic, so some clients reach no endpoint.",
+      "not_for": "A selector or port mismatch (service_routing)."
+     },
+     "dns_resolution": {
+      "what": "Name resolution fails or returns wrong answers: the pod's dnsPolicy, dnsConfig, or hostAliases, or the cluster DNS (CoreDNS) configuration.",
+      "not_for": "A name that resolves but whose backend refuses connections."
+     },
+     "storage_volume": {
+      "what": "Persistent volume problems: PVC Pending or Lost, a volume mounted twice or at the wrong path, mount failures, disk full.",
+      "not_for": "ConfigMap or Secret mounts with wrong content (config_value)."
+     },
+     "job_lifecycle": {
+      "what": "A Job or CronJob does not complete or runs wrongly: a sidecar keeps the pod alive after the main container exits, jobs pile up, restartPolicy or backoffLimit or schedule is wrong.",
+      "not_for": "A job whose main container itself fails for another category's reason."
+     },
+     "admission_or_namespace_policy": {
+      "what": "An admission webhook or namespace policy rejects or rewrites pods: a webhook with no backend and failurePolicy Fail, a mutating webhook injecting bad values, a ResourceQuota or LimitRange that rejects pods.",
+      "not_for": "Scheduling failures of pods that were admitted (scheduling_constraint)."
+     },
+     "rbac_permission": {
+      "what": "The component is denied Kubernetes API operations it needs (403 forbidden) because a Role, ClusterRole, or binding was removed or narrowed.",
+      "not_for": "Authentication between application components (credentials_or_auth)."
+     },
+     "data_or_traffic": {
+      "what": "The component's inputs are the problem: a poison message it cannot process, a retry or timeout feedback loop, a load pattern or a request filter that saturates it.",
+      "not_for": "Failures explained by the component's own spec or a Kubernetes object."
+     },
+     "code_bug": {
+      "what": "The component runs with correct configuration, resources, and inputs, and still fails because of its own logic.",
+      "not_for": "Anything explained by another category."
+     },
+     "other": {
+      "what": "None of the categories above describes the fault."
+     }
+    },
+    "instructions": {
+     "question": "Which category names the cause of the fault in `component`?",
+     "how_to_decide": [
+      "Pods Pending, not ready, restarting, or terminating are symptoms. Choose the category of what made them so: a probe pointing at the wrong port is health_probe_config, a quota rejection is admission_or_namespace_policy, a nodeSelector no node matches is scheduling_constraint, a NetworkPolicy is network_policy.",
+      "Judge from `component.signals`, `component.spec_flags`, `component.warning_events`, `component.log_findings`, `component.previous_container_logs`, and `component.containers`.",
+      "A limit is the cause only if the limit is too low for the workload's normal needs; when a recent change (see `component.template_changes`) makes the workload consume more, the change is the cause."
+     ]
+    }
+   },
+   "key_evidence": {
+    "type": "choice",
+    "criteria": {
+     "f1": "spec modified 141s ago, 18s after this object was created (fields: template.annotations.kubectl.kubernetes.io/restartedAt); pod template changes: template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-19T13:37:04+06:00; 22s before the first active symptom",
+     "f2": "container opentelemetry-collector env K8S_NODE_NAME=field:spec.nodeName",
+     "f3": "container opentelemetry-collector env MY_POD_IP=field:status.podIP",
+     "f4": "pod template changed in revision 2: template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-19T13:37:04+06:00",
+     "f5": "workload strategy: {'rollingUpdate': {'maxSurge': 0, 'maxUnavailable': 1}, 'type': 'RollingUpdate'}",
+     "f6": "container opentelemetry-collector liveness probe: httpGet HTTP :13133/",
+     "f7": "RBAC bindings for astronomy-shop/otel-collector: ['ClusterRoleBinding/otel-collector -> ClusterRole/otel-collector']",
+     "f8": "container opentelemetry-collector env GOMEMLIMIT=160MiB",
+     "f9": "ConfigMap otel-collector-agent key relay: connectors: \u23ce spanmetrics: {} \u23ce exporters: \u23ce debug: {} \u23ce opensearch: \u23ce http: \u23ce endpoint: http://opensearch:9200 \u23ce tls: \u23ce insecure: true \u23ce logs_index: otel-logs \u23ce logs_index_time_format: yyyy-MM-dd \u23ce otlp/jaeger: \u23ce endpoint: jaeger:4317 \u23ce sending_queue: \u23ce batch: null \u23ce tls: \u23ce insecure: true \u23ce otlphttp/prometheus: \u23ce endpoint: http://prometheus:9090/api/v1/otlp \u23ce sending_queue: \u23ce batch: null \u23ce tls: \u2026",
+     "f10": "container opentelemetry-collector readiness probe: httpGet HTTP :13133/",
+     "f11": "RBAC ClusterRole otel-collector bound via ClusterRoleBinding/otel-collector grants: leases [coordination.k8s.io]: get,list,watch,create,update,patch,delete; pods,namespaces [core]: get,watch,list; replicasets [apps]: get,list,watch; replicasets [extensions]: get,list,watch; events,namespaces,namespaces/status,nodes,nodes/spec,pods,pods/status,replicationcontrollers,replicationcontrollers/status,resourcequotas,services [core]: get,list,watch; daemonsets,deployments,replicasets,statefulsets [apps]: get,list,watch; daemonsets,deployments,replicasets [extensions]: get,list,watch; jobs,cronjobs [batch]: get,list,watch",
+     "f12": "container opentelemetry-collector env K8S_NODE_IP=field:status.hostIP",
+     "f13": "container opentelemetry-collector image otel/opentelemetry-collector-contrib:0.142.0 resources {'limits': {'memory': '200Mi'}}",
+     "f14": "container opentelemetry-collector args: --config=/conf/relay.yaml"
+    },
+    "instructions": {
+     "question": "Which single item in `evidence` most directly reveals the mechanism of the fault in `component`?",
+     "how_to_decide": [
+      "Prefer an item that names a configuration, policy, object, or change (a duplicated env var, a NetworkPolicy, a quota rejection message, a probe target, a modified Secret) over an item that only describes a state (Pending, terminating, not ready, restarts, replicas).",
+      "Prefer an item with a specific value or object name over a generic one.",
+      "Each option id names one item in `evidence`."
+     ]
+    }
+   }
+  },
+  "model": "typesafe/jev-1.13-20260917",
+  "latency_ms": 560,
+  "usage": {
+   "input_tokens": 10141,
+   "output_tokens": 319,
+   "cost": 0.000425922
+  },
+  "answers": {
+   "fault_category": {
+    "type": "choice",
+    "choice": "health_probe_config",
+    "confidence": 0.47,
+    "probabilities": {
+     "config_value": 0.27,
+     "credentials_or_auth": 0.0,
+     "image_or_binary": 0.01,
+     "resource_limits": 0.01,
+     "scheduling_constraint": 0.0,
+     "rollout_or_replica_config": 0.05,
+     "health_probe_config": 0.5,
+     "service_routing": 0.0,
+     "network_policy": 0.01,
+     "traffic_policy": 0.0,
+     "dns_resolution": 0.01,
+     "storage_volume": 0.01,
+     "job_lifecycle": 0.0,
+     "admission_or_namespace_policy": 0.02,
+     "rbac_permission": 0.0,
+     "data_or_traffic": 0.01,
+     "code_bug": 0.04,
+     "other": 0.06
+    }
+   },
+   "key_evidence": {
+    "type": "choice",
+    "choice": "f1",
+    "confidence": 0.35,
+    "probabilities": {
+     "f1": 0.4,
+     "f2": 0.0,
+     "f3": 0.0,
+     "f4": 0.19,
+     "f5": 0.01,
+     "f6": 0.03,
+     "f7": 0.0,
+     "f8": 0.04,
+     "f9": 0.07,
+     "f10": 0.24000000000000002,
+     "f11": 0.0,
+     "f12": 0.0,
+     "f13": 0.01,
+     "f14": 0.01
+    }
+   }
+  }
+ }
+]

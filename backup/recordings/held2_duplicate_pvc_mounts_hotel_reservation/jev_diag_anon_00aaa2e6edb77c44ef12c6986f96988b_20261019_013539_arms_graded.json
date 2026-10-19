@@ -1,0 +1,534 @@
+{
+ "problem_id": "jev_diag_anon_00aaa2e6edb77c44ef12c6986f96988b_20261019_013539",
+ "submit_arm": 0,
+ "order": [
+  0,
+  2,
+  3,
+  1
+ ],
+ "arms": [
+  {
+   "arm": 0,
+   "kind": "v2",
+   "model": "openrouter/typesafe/jev-1.13",
+   "position": 0,
+   "seconds": 6.6,
+   "requests": 4,
+   "input_tokens": 38622,
+   "cost_usd": 0.001622,
+   "error": null,
+   "investigation": {
+    "rounds": [
+     {
+      "candidates": [
+       "own-setting:deployment/frontend",
+       "partial:deployment/frontend",
+       "change:deployment/mongodb-geo:volume failure-script added: {\"configMap\": {\"defaultMode\": 420, \"name\": \"failure-admin-geo\"}}",
+       "change:deployment/mongodb-geo:container hotel-reserv-geo-mongo mounts volume failure-script at /scripts",
+       "change:deployment/mongodb-geo:together",
+       "change:deployment/mongodb-rate:volume failure-script added: {\"configMap\": {\"defaultMode\": 420, \"name\": \"failure-admin-rate\"}}"
+      ],
+      "probabilities": {
+       "own-setting:deployment/frontend": 1.0,
+       "partial:deployment/frontend": 0.0,
+       "change:deployment/mongodb-geo:volume failure-script added: {\"configMap\": {\"defaultMode\": 420, \"name\": \"failure-admin-geo\"}}": 0.0,
+       "change:deployment/mongodb-geo:container hotel-reserv-geo-mongo mounts volume failure-script at /scripts": 0.0,
+       "change:deployment/mongodb-geo:together": 0.0,
+       "change:deployment/mongodb-rate:volume failure-script added: {\"configMap\": {\"defaultMode\": 420, \"name\": \"failure-admin-rate\"}}": 0.0,
+       "none_of_these": 0.0
+      },
+      "picks": [
+       "own-setting:deployment/frontend",
+       "own-setting:deployment/frontend"
+      ],
+      "route": "accept"
+     }
+    ],
+    "explanations": 8,
+    "winner": "own-setting:deployment/frontend",
+    "pattern": "own-setting",
+    "key_fact": "PVC frontend-pvc is ReadWriteOnce (attachable to one node at a time) but 2 replicas of this Deployment mount it and its required pod anti-affinity places replicas on different nodes; replicas scheduled on another node cannot attach it",
+    "key_fact_probability": 0.99,
+    "fault_type": "scheduling_constraint",
+    "fault_object": null,
+    "uncertain": false
+   },
+   "text": "Root cause: deployment `frontend` in namespace `hotel-reservation`.\nMechanism: deployment/hotel-reservation/frontend has a wrong setting of its own: PVC frontend-pvc is ReadWriteOnce (attachable to one node at a time) but 2 replicas of this Deployment mount it and its required pod anti-affinity places replicas on different nodes; replicas scheduled on another node cannot attach it\nConcrete details: PVC frontend-pvc is ReadWriteOnce (attachable to one node at a time) but 2 replicas of this Deployment mount it and its required pod anti-affinity places replicas on different nodes; replicas scheduled on another node cannot attach it.\nObserved impact: deployment `frontend` in namespace `hotel-reservation`.\nFault type: scheduling constraint (no node satisfies the pod's placement constraints).\nEvidence:\n- PVC frontend-pvc is ReadWriteOnce (attachable to one node at a time) but 2 replicas of this Deployment mount it and its required pod anti-affinity places replicas on different nodes; replicas scheduled on another node cannot attach it\n- only 1 of 2 desired replicas are ready\n- pod frontend-844b789d87-zblzw: pod phase Pending\n- pod frontend-844b789d87-zblzw: pod unschedulable: 0/4 nodes are available: 1 node(s) didn't match pod anti-affinity rules, 1 node(s) had untolerated taint {node-role.kubernetes.io/control-plane: }, 2 node(s) h\u2026\n- deployment/frontend: only 1 of 2 desired replicas are ready",
+   "grade": {
+    "judgment": "True",
+    "reasoning": "Verdict: True (composite=1.00). D1 Fault Localization: 1.00 | D2 Fault Characterization: 1.00 | D3 Scope Precision: 1.00. Weakest dimension: Fault Localization (1.00). Checklist details: [{\"id\": \"D1-Q1\", \"answer\": \"Yes\", \"evidence\": \"Diagnosis explicitly names deployment frontend in namespace hotel-reservation as the root cause, matching the fault specification.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q2\", \"answer\": \"Yes\", \"evidence\": \"Diagnosis identifies frontend's own deployment settings as the origin and describes its Pending pod as a symptom.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q3\", \"answer\": \"Yes\", \"evidence\": \"The diagnosed origin is deployment frontend in hotel-reservation; no different component is identified as the origin.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q1\", \"answer\": \"Yes\", \"evidence\": \"Two replicas share one ReadWriteOnce PVC while required pod anti-affinity places them on different nodes, matching the storage and placement conflict.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q2\", \"answer\": \"Yes\", \"evidence\": \"Diagnosis specifies shared PVC frontend-pvc, ReadWriteOnce access, two replicas, and required anti-affinity separating replicas across nodes.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q3\", \"answer\": \"Yes\", \"evidence\": \"Diagnosis classifies the fault as a scheduling constraint and attributes it to incompatible shared-storage and replica-placement settings.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q1\", \"answer\": \"Yes\", \"evidence\": \"Diagnosis confines causal attribution to frontend's replicas, shared PVC, and required anti-affinity; it blames no unrelated workload.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q2\", \"answer\": \"Yes\", \"evidence\": \"Diagnosis includes frontend, its multiple replicas, their shared ReadWriteOnce PVC, and required anti-affinity, covering the ground-truth contributors.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q3\", \"answer\": \"Yes\", \"evidence\": \"Diagnosis reports only one of two desired replicas ready and a frontend pod Pending, matching the partially Ready deployment.\", \"confidence\": \"High\"}]",
+    "success": true,
+    "accuracy": 100.0,
+    "composite_score": 1.0,
+    "dimensions": {
+     "D1": {
+      "name": "Fault Localization",
+      "score": 1.0
+     },
+     "D2": {
+      "name": "Fault Characterization",
+      "score": 1.0
+     },
+     "D3": {
+      "name": "Scope Precision",
+      "score": 1.0
+     }
+    },
+    "checklist": [
+     {
+      "id": "D1-Q1",
+      "answer": "Yes",
+      "evidence": "Diagnosis explicitly names deployment frontend in namespace hotel-reservation as the root cause, matching the fault specification.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q2",
+      "answer": "Yes",
+      "evidence": "Diagnosis identifies frontend's own deployment settings as the origin and describes its Pending pod as a symptom.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q3",
+      "answer": "Yes",
+      "evidence": "The diagnosed origin is deployment frontend in hotel-reservation; no different component is identified as the origin.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q1",
+      "answer": "Yes",
+      "evidence": "Two replicas share one ReadWriteOnce PVC while required pod anti-affinity places them on different nodes, matching the storage and placement conflict.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q2",
+      "answer": "Yes",
+      "evidence": "Diagnosis specifies shared PVC frontend-pvc, ReadWriteOnce access, two replicas, and required anti-affinity separating replicas across nodes.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q3",
+      "answer": "Yes",
+      "evidence": "Diagnosis classifies the fault as a scheduling constraint and attributes it to incompatible shared-storage and replica-placement settings.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q1",
+      "answer": "Yes",
+      "evidence": "Diagnosis confines causal attribution to frontend's replicas, shared PVC, and required anti-affinity; it blames no unrelated workload.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q2",
+      "answer": "Yes",
+      "evidence": "Diagnosis includes frontend, its multiple replicas, their shared ReadWriteOnce PVC, and required anti-affinity, covering the ground-truth contributors.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q3",
+      "answer": "Yes",
+      "evidence": "Diagnosis reports only one of two desired replicas ready and a frontend pod Pending, matching the partially Ready deployment.",
+      "confidence": "High"
+     }
+    ]
+   }
+  },
+  {
+   "arm": 1,
+   "kind": "v2",
+   "model": "openrouter/openai/gpt-6-luna-decisions",
+   "position": 3,
+   "seconds": 5.7,
+   "requests": 4,
+   "input_tokens": 26928,
+   "cost_usd": 0.002693,
+   "error": null,
+   "investigation": {
+    "rounds": [
+     {
+      "candidates": [
+       "own-setting:deployment/frontend",
+       "partial:deployment/frontend",
+       "change:deployment/mongodb-geo:volume failure-script added: {\"configMap\": {\"defaultMode\": 420, \"name\": \"failure-admin-geo\"}}",
+       "change:deployment/mongodb-geo:container hotel-reserv-geo-mongo mounts volume failure-script at /scripts",
+       "change:deployment/mongodb-geo:together",
+       "change:deployment/mongodb-rate:volume failure-script added: {\"configMap\": {\"defaultMode\": 420, \"name\": \"failure-admin-rate\"}}"
+      ],
+      "probabilities": {
+       "own-setting:deployment/frontend": 0.78,
+       "partial:deployment/frontend": 0.005,
+       "change:deployment/mongodb-geo:volume failure-script added: {\"configMap\": {\"defaultMode\": 420, \"name\": \"failure-admin-geo\"}}": 0.005,
+       "change:deployment/mongodb-geo:container hotel-reserv-geo-mongo mounts volume failure-script at /scripts": 0.005,
+       "change:deployment/mongodb-geo:together": 0.0,
+       "change:deployment/mongodb-rate:volume failure-script added: {\"configMap\": {\"defaultMode\": 420, \"name\": \"failure-admin-rate\"}}": 0.2,
+       "none_of_these": 0.005
+      },
+      "picks": [
+       "own-setting:deployment/frontend",
+       "own-setting:deployment/frontend"
+      ],
+      "route": "accept"
+     }
+    ],
+    "explanations": 8,
+    "winner": "own-setting:deployment/frontend",
+    "pattern": "own-setting",
+    "key_fact": "PVC frontend-pvc is ReadWriteOnce (attachable to one node at a time) but 2 replicas of this Deployment mount it and its required pod anti-affinity places replicas on different nodes; replicas scheduled on another node cannot attach it",
+    "key_fact_probability": 0.995,
+    "fault_type": "scheduling_constraint",
+    "fault_object": null,
+    "uncertain": false
+   },
+   "text": "Root cause: deployment `frontend` in namespace `hotel-reservation`.\nMechanism: deployment/hotel-reservation/frontend has a wrong setting of its own: PVC frontend-pvc is ReadWriteOnce (attachable to one node at a time) but 2 replicas of this Deployment mount it and its required pod anti-affinity places replicas on different nodes; replicas scheduled on another node cannot attach it\nConcrete details: PVC frontend-pvc is ReadWriteOnce (attachable to one node at a time) but 2 replicas of this Deployment mount it and its required pod anti-affinity places replicas on different nodes; replicas scheduled on another node cannot attach it.\nObserved impact: deployment `frontend` in namespace `hotel-reservation`.\nFault type: scheduling constraint (no node satisfies the pod's placement constraints).\nEvidence:\n- PVC frontend-pvc is ReadWriteOnce (attachable to one node at a time) but 2 replicas of this Deployment mount it and its required pod anti-affinity places replicas on different nodes; replicas scheduled on another node cannot attach it\n- only 1 of 2 desired replicas are ready\n- pod frontend-844b789d87-zblzw: pod phase Pending\n- pod frontend-844b789d87-zblzw: pod unschedulable: 0/4 nodes are available: 1 node(s) didn't match pod anti-affinity rules, 1 node(s) had untolerated taint {node-role.kubernetes.io/control-plane: }, 2 node(s) h\u2026\n- deployment/frontend: only 1 of 2 desired replicas are ready",
+   "grade": {
+    "judgment": "True",
+    "reasoning": "Verdict: True (composite=1.00). D1 Fault Localization: 1.00 | D2 Fault Characterization: 1.00 | D3 Scope Precision: 1.00. Weakest dimension: Fault Localization (1.00). Checklist details: [{\"id\": \"D1-Q1\", \"answer\": \"Yes\", \"evidence\": \"Names deployment frontend in namespace hotel-reservation as the root cause, matching the fault specification.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q2\", \"answer\": \"Yes\", \"evidence\": \"Attributes the fault to frontend's deployment settings and identifies the Pending pod as an observed consequence.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q3\", \"answer\": \"Yes\", \"evidence\": \"Identifies deployment frontend as the origin without blaming a different component.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q1\", \"answer\": \"Yes\", \"evidence\": \"Describes two replicas sharing one ReadWriteOnce PVC while required pod anti-affinity places replicas on different nodes.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q2\", \"answer\": \"Yes\", \"evidence\": \"Specifies ReadWriteOnce access, two replicas mounting the same claim, and required anti-affinity separating replicas across nodes.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q3\", \"answer\": \"Yes\", \"evidence\": \"Identifies a scheduling constraint arising from incompatible shared-storage and pod-placement requirements, consistent with the ground truth.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q1\", \"answer\": \"Yes\", \"evidence\": \"Scopes the cause to frontend's replicas, shared PVC, and required anti-affinity; does not blame unrelated workloads.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q2\", \"answer\": \"Yes\", \"evidence\": \"Includes deployment frontend, its replicas, the shared ReadWriteOnce PVC, and required anti-affinity across nodes.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q3\", \"answer\": \"Yes\", \"evidence\": \"Reports only one of two desired replicas ready and another frontend pod Pending and unschedulable.\", \"confidence\": \"High\"}]",
+    "success": true,
+    "accuracy": 100.0,
+    "composite_score": 1.0,
+    "dimensions": {
+     "D1": {
+      "name": "Fault Localization",
+      "score": 1.0
+     },
+     "D2": {
+      "name": "Fault Characterization",
+      "score": 1.0
+     },
+     "D3": {
+      "name": "Scope Precision",
+      "score": 1.0
+     }
+    },
+    "checklist": [
+     {
+      "id": "D1-Q1",
+      "answer": "Yes",
+      "evidence": "Names deployment frontend in namespace hotel-reservation as the root cause, matching the fault specification.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q2",
+      "answer": "Yes",
+      "evidence": "Attributes the fault to frontend's deployment settings and identifies the Pending pod as an observed consequence.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q3",
+      "answer": "Yes",
+      "evidence": "Identifies deployment frontend as the origin without blaming a different component.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q1",
+      "answer": "Yes",
+      "evidence": "Describes two replicas sharing one ReadWriteOnce PVC while required pod anti-affinity places replicas on different nodes.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q2",
+      "answer": "Yes",
+      "evidence": "Specifies ReadWriteOnce access, two replicas mounting the same claim, and required anti-affinity separating replicas across nodes.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q3",
+      "answer": "Yes",
+      "evidence": "Identifies a scheduling constraint arising from incompatible shared-storage and pod-placement requirements, consistent with the ground truth.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q1",
+      "answer": "Yes",
+      "evidence": "Scopes the cause to frontend's replicas, shared PVC, and required anti-affinity; does not blame unrelated workloads.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q2",
+      "answer": "Yes",
+      "evidence": "Includes deployment frontend, its replicas, the shared ReadWriteOnce PVC, and required anti-affinity across nodes.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q3",
+      "answer": "Yes",
+      "evidence": "Reports only one of two desired replicas ready and another frontend pod Pending and unschedulable.",
+      "confidence": "High"
+     }
+    ]
+   }
+  },
+  {
+   "arm": 2,
+   "kind": "v1",
+   "model": "openrouter/typesafe/jev-1.13",
+   "position": 1,
+   "seconds": 2.3,
+   "requests": 2,
+   "input_tokens": 27277,
+   "cost_usd": 0.001146,
+   "error": null,
+   "investigation": {
+    "steps": [
+     {
+      "step": 1,
+      "node": "investigate",
+      "component": "deployment/frontend",
+      "verdict": "origin",
+      "origin_p": 1.0,
+      "victim_p": 0.0,
+      "next": "none",
+      "next_p": 0.85,
+      "category": "scheduling_constraint",
+      "spec_checks": [],
+      "blocked_input": null,
+      "key_evidence": "PVC frontend-pvc is ReadWriteOnce (attachable to one node at a time) but 2 replicas of this Deployment mount it and its required pod anti-affinity places replicas on different nodes; replicas scheduled on another node cannot attach it"
+     }
+    ],
+    "concluded": "deployment/frontend",
+    "fallback": null,
+    "triage_top": [
+     [
+      "deployment/frontend",
+      0.86
+     ],
+     [
+      "deployment/mongodb-geo",
+      0.1
+     ],
+     [
+      "other",
+      0.04
+     ],
+     [
+      "deployment/consul",
+      0.0
+     ],
+     [
+      "deployment/geo",
+      0.0
+     ]
+    ]
+   },
+   "text": "Root cause component: Deployment `frontend` in namespace `hotel-reservation`.\nMechanism: PVC frontend-pvc is ReadWriteOnce (attachable to one node at a time) but 2 replicas of this Deployment mount it and its required pod anti-affinity places replicas on different nodes; replicas scheduled on another node cannot attach it.\nFault type: scheduling constraint (no node satisfies the pod's placement constraints).\nAbnormal state observed on this component:\n- only 1 of 2 desired replicas are ready\n- pod frontend-844b789d87-zblzw: pod phase Pending\n- pod frontend-844b789d87-zblzw: pod unschedulable: 0/4 nodes are available: 1 node(s) didn't match pod anti-affinity rules, 1 node(s) had untolerated taint {node-role.kubernetes.io/control-plane: }, 2 node(s) h\u2026\n- warning events: FailedScheduling x3\n- firing alert PendingPodsDetected\n- firing alert PodSchedulingFailure\n- pod frontend-844b789d87-zblzw is still in pod phase Pending after another 48s\nNotable spec settings:\n- Available=False (MinimumReplicasUnavailable)\n- container hotel-reserv-frontend: image ghcr.io/sregym/hotel-reservation:sha-d2c036bc3d1138f5a0bdaffd3d87f37522c3461a@sha256:1c685e1c4c304f327952397b3a99c54dadb086607774d71f222b200ec0d2e65e, limits {'cpu': '1'}\nWarning events:\n- FailedScheduling x2 on pod/frontend-844b789d87-zblzw: 0/4 nodes are available: 1 node(s) didn't match pod anti-affinity rules, 1 node(s) had untolerated taint {node-role.kubernetes.io/control-plane: }, 2 node(s) didn't find available persistent volumes to bind. preemption: 0/4 nodes are avail\u2026\n- FailedScheduling x1 on pod/frontend-844b789d87-zblzw: 0/4 nodes are available: 1 node(s) didn't match pod anti-affinity rules, 1 node(s) had untolerated taint {node-role.kubernetes.io/control-plane: }, 2 node(s) didn't find available persistent volumes to bind. preemption: 0/4 nodes are avail\u2026\nFiring alerts on this component: PendingPodsDetected, PodSchedulingFailure.\nClassification: Jev (typesafe/jev-1.13-20260917) confirmed this origin at investigation step 1 with probability 1.00 (triage probability 0.86).",
+   "grade": {
+    "judgment": "True",
+    "reasoning": "Verdict: True (composite=1.00). D1 Fault Localization: 1.00 | D2 Fault Characterization: 1.00 | D3 Scope Precision: 1.00. Weakest dimension: Fault Localization (1.00). Checklist details: [{\"id\": \"D1-Q1\", \"answer\": \"Yes\", \"evidence\": \"Explicitly identifies Deployment frontend in namespace hotel-reservation as the root cause component.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q2\", \"answer\": \"Yes\", \"evidence\": \"Identifies the frontend Deployment as the origin and its Pending pod as an observed consequence.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q3\", \"answer\": \"Yes\", \"evidence\": \"Names the matching frontend Deployment as the fault origin without blaming a different component.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q1\", \"answer\": \"Yes\", \"evidence\": \"Describes two replicas sharing one ReadWriteOnce PVC while required pod anti-affinity places them on different nodes.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q2\", \"answer\": \"Yes\", \"evidence\": \"Specifies frontend-pvc, ReadWriteOnce access, two replicas mounting the claim, and required pod anti-affinity separating replicas across nodes.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q3\", \"answer\": \"Yes\", \"evidence\": \"Classifies the fault as a scheduling constraint caused by incompatible shared-storage and replica-placement requirements.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q1\", \"answer\": \"Yes\", \"evidence\": \"Attributes the fault to frontend's shared PVC and required anti-affinity; no unrelated component is identified as an origin.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q2\", \"answer\": \"Yes\", \"evidence\": \"Includes the frontend Deployment, its replicas, their shared ReadWriteOnce PVC, and the anti-affinity placement constraint.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q3\", \"answer\": \"Yes\", \"evidence\": \"Reports only one of two desired replicas ready, another pod Pending, and Available=False with MinimumReplicasUnavailable.\", \"confidence\": \"High\"}]",
+    "success": true,
+    "accuracy": 100.0,
+    "composite_score": 1.0,
+    "dimensions": {
+     "D1": {
+      "name": "Fault Localization",
+      "score": 1.0
+     },
+     "D2": {
+      "name": "Fault Characterization",
+      "score": 1.0
+     },
+     "D3": {
+      "name": "Scope Precision",
+      "score": 1.0
+     }
+    },
+    "checklist": [
+     {
+      "id": "D1-Q1",
+      "answer": "Yes",
+      "evidence": "Explicitly identifies Deployment frontend in namespace hotel-reservation as the root cause component.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q2",
+      "answer": "Yes",
+      "evidence": "Identifies the frontend Deployment as the origin and its Pending pod as an observed consequence.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q3",
+      "answer": "Yes",
+      "evidence": "Names the matching frontend Deployment as the fault origin without blaming a different component.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q1",
+      "answer": "Yes",
+      "evidence": "Describes two replicas sharing one ReadWriteOnce PVC while required pod anti-affinity places them on different nodes.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q2",
+      "answer": "Yes",
+      "evidence": "Specifies frontend-pvc, ReadWriteOnce access, two replicas mounting the claim, and required pod anti-affinity separating replicas across nodes.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q3",
+      "answer": "Yes",
+      "evidence": "Classifies the fault as a scheduling constraint caused by incompatible shared-storage and replica-placement requirements.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q1",
+      "answer": "Yes",
+      "evidence": "Attributes the fault to frontend's shared PVC and required anti-affinity; no unrelated component is identified as an origin.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q2",
+      "answer": "Yes",
+      "evidence": "Includes the frontend Deployment, its replicas, their shared ReadWriteOnce PVC, and the anti-affinity placement constraint.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q3",
+      "answer": "Yes",
+      "evidence": "Reports only one of two desired replicas ready, another pod Pending, and Available=False with MinimumReplicasUnavailable.",
+      "confidence": "High"
+     }
+    ]
+   }
+  },
+  {
+   "arm": 3,
+   "kind": "v1",
+   "model": "openrouter/openai/gpt-6-luna-decisions",
+   "position": 2,
+   "seconds": 2.6,
+   "requests": 2,
+   "input_tokens": 18166,
+   "cost_usd": 0.001817,
+   "error": null,
+   "investigation": {
+    "steps": [
+     {
+      "step": 1,
+      "node": "investigate",
+      "component": "deployment/frontend",
+      "verdict": "origin",
+      "origin_p": 0.92,
+      "victim_p": 0.04,
+      "next": "none",
+      "next_p": 0.98,
+      "category": "scheduling_constraint",
+      "spec_checks": [],
+      "blocked_input": null,
+      "key_evidence": "PVC frontend-pvc is ReadWriteOnce (attachable to one node at a time) but 2 replicas of this Deployment mount it and its required pod anti-affinity places replicas on different nodes; replicas scheduled on another node cannot attach it"
+     }
+    ],
+    "concluded": "deployment/frontend",
+    "fallback": null,
+    "triage_top": [
+     [
+      "deployment/frontend",
+      0.96
+     ],
+     [
+      "deployment/mongodb-geo",
+      0.02
+     ],
+     [
+      "deployment/mongodb-profile",
+      0.01
+     ],
+     [
+      "other",
+      0.01
+     ],
+     [
+      "deployment/consul",
+      0.0
+     ]
+    ]
+   },
+   "text": "Root cause component: Deployment `frontend` in namespace `hotel-reservation`.\nMechanism: PVC frontend-pvc is ReadWriteOnce (attachable to one node at a time) but 2 replicas of this Deployment mount it and its required pod anti-affinity places replicas on different nodes; replicas scheduled on another node cannot attach it.\nFault type: scheduling constraint (no node satisfies the pod's placement constraints).\nAbnormal state observed on this component:\n- only 1 of 2 desired replicas are ready\n- pod frontend-844b789d87-zblzw: pod phase Pending\n- pod frontend-844b789d87-zblzw: pod unschedulable: 0/4 nodes are available: 1 node(s) didn't match pod anti-affinity rules, 1 node(s) had untolerated taint {node-role.kubernetes.io/control-plane: }, 2 node(s) h\u2026\n- warning events: FailedScheduling x3\n- firing alert PendingPodsDetected\n- firing alert PodSchedulingFailure\n- pod frontend-844b789d87-zblzw is still in pod phase Pending after another 48s\nNotable spec settings:\n- Available=False (MinimumReplicasUnavailable)\n- container hotel-reserv-frontend: image ghcr.io/sregym/hotel-reservation:sha-d2c036bc3d1138f5a0bdaffd3d87f37522c3461a@sha256:1c685e1c4c304f327952397b3a99c54dadb086607774d71f222b200ec0d2e65e, limits {'cpu': '1'}\nWarning events:\n- FailedScheduling x2 on pod/frontend-844b789d87-zblzw: 0/4 nodes are available: 1 node(s) didn't match pod anti-affinity rules, 1 node(s) had untolerated taint {node-role.kubernetes.io/control-plane: }, 2 node(s) didn't find available persistent volumes to bind. preemption: 0/4 nodes are avail\u2026\n- FailedScheduling x1 on pod/frontend-844b789d87-zblzw: 0/4 nodes are available: 1 node(s) didn't match pod anti-affinity rules, 1 node(s) had untolerated taint {node-role.kubernetes.io/control-plane: }, 2 node(s) didn't find available persistent volumes to bind. preemption: 0/4 nodes are avail\u2026\nFiring alerts on this component: PendingPodsDetected, PodSchedulingFailure.\nClassification: Jev (openai/gpt-6-luna-decisions-20261006) confirmed this origin at investigation step 1 with probability 0.92 (triage probability 0.96).",
+   "grade": {
+    "judgment": "True",
+    "reasoning": "Verdict: True (composite=1.00). D1 Fault Localization: 1.00 | D2 Fault Characterization: 1.00 | D3 Scope Precision: 1.00. Weakest dimension: Fault Localization (1.00). Checklist details: [{\"id\": \"D1-Q1\", \"answer\": \"Yes\", \"evidence\": \"Explicitly identifies Deployment frontend in namespace hotel-reservation as the root cause component.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q2\", \"answer\": \"Yes\", \"evidence\": \"Locates the origin in the frontend Deployment configuration and describes its Pending pod as a resulting symptom.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q3\", \"answer\": \"Yes\", \"evidence\": \"Names the same frontend Deployment as the fault specification; no different component is identified as the origin.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q1\", \"answer\": \"Yes\", \"evidence\": \"Describes replicas sharing one ReadWriteOnce PVC while required pod anti-affinity places them on different nodes, matching the storage and placement conflict.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q2\", \"answer\": \"Yes\", \"evidence\": \"Specifies frontend-pvc, ReadWriteOnce access, two replicas mounting the claim, and required anti-affinity separating replicas across nodes.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q3\", \"answer\": \"Yes\", \"evidence\": \"Identifies a scheduling constraint caused by incompatible shared storage and replica placement requirements, consistent with the ground-truth mechanism.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q1\", \"answer\": \"Yes\", \"evidence\": \"Attributes the fault to frontend's shared PVC and required anti-affinity; additional scheduler messages are reported as observations, not separate root causes.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q2\", \"answer\": \"Yes\", \"evidence\": \"Includes the frontend Deployment, its replicas, their shared ReadWriteOnce PVC, and required anti-affinity across nodes.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q3\", \"answer\": \"Yes\", \"evidence\": \"Reports only one of two desired replicas ready and the other pod Pending, matching the partially Ready deployment in ground truth.\", \"confidence\": \"High\"}]",
+    "success": true,
+    "accuracy": 100.0,
+    "composite_score": 1.0,
+    "dimensions": {
+     "D1": {
+      "name": "Fault Localization",
+      "score": 1.0
+     },
+     "D2": {
+      "name": "Fault Characterization",
+      "score": 1.0
+     },
+     "D3": {
+      "name": "Scope Precision",
+      "score": 1.0
+     }
+    },
+    "checklist": [
+     {
+      "id": "D1-Q1",
+      "answer": "Yes",
+      "evidence": "Explicitly identifies Deployment frontend in namespace hotel-reservation as the root cause component.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q2",
+      "answer": "Yes",
+      "evidence": "Locates the origin in the frontend Deployment configuration and describes its Pending pod as a resulting symptom.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q3",
+      "answer": "Yes",
+      "evidence": "Names the same frontend Deployment as the fault specification; no different component is identified as the origin.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q1",
+      "answer": "Yes",
+      "evidence": "Describes replicas sharing one ReadWriteOnce PVC while required pod anti-affinity places them on different nodes, matching the storage and placement conflict.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q2",
+      "answer": "Yes",
+      "evidence": "Specifies frontend-pvc, ReadWriteOnce access, two replicas mounting the claim, and required anti-affinity separating replicas across nodes.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q3",
+      "answer": "Yes",
+      "evidence": "Identifies a scheduling constraint caused by incompatible shared storage and replica placement requirements, consistent with the ground-truth mechanism.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q1",
+      "answer": "Yes",
+      "evidence": "Attributes the fault to frontend's shared PVC and required anti-affinity; additional scheduler messages are reported as observations, not separate root causes.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q2",
+      "answer": "Yes",
+      "evidence": "Includes the frontend Deployment, its replicas, their shared ReadWriteOnce PVC, and required anti-affinity across nodes.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q3",
+      "answer": "Yes",
+      "evidence": "Reports only one of two desired replicas ready and the other pod Pending, matching the partially Ready deployment in ground truth.",
+      "confidence": "High"
+     }
+    ]
+   }
+  }
+ ],
+ "submission": {
+  "status": "200",
+  "message": "Submission received",
+  "stage": "diagnosis"
+ },
+ "judge": {
+  "model": "gpt-6-astra",
+  "backend": "codex",
+  "effort": "high"
+ }
+}

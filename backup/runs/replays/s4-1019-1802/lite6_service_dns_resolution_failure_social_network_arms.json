@@ -1,0 +1,133 @@
+{
+ "problem_id": "service_dns_resolution_failure_social_network",
+ "source": "lite6_service_dns_resolution_failure_social_network",
+ "replay": true,
+ "arms": [
+  {
+   "arm": 0,
+   "kind": "v2",
+   "model": "typesafe/jev-1.13",
+   "position": 0,
+   "seconds": 4.4,
+   "requests": 4,
+   "input_tokens": 52199,
+   "error": null,
+   "model_failed": false,
+   "component": "other",
+   "investigation": {
+    "steps": [
+     {
+      "step": 1,
+      "node": "investigate",
+      "component": "deployment/user-service",
+      "verdict": "origin",
+      "origin_p": 0.57,
+      "victim_p": 0.18,
+      "next": "none",
+      "next_p": 0.72,
+      "category": "dns_resolution",
+      "spec_checks": [],
+      "blocked_input": null,
+      "key_evidence": "CoreDNS rule in kube-system/coredns overrides name resolution for this component's Service user-service: template ANY ANY user-service.social-network.svc.cluster.local { \u23ce match \"^user-service.social-network.svc.cluster.local\\.$\" \u23ce rcode NXDOMAIN \u23ce fallthrough \u23ce }"
+     },
+     {
+      "step": 2,
+      "node": "cluster",
+      "result": [
+       [
+        "F1",
+        1.0
+       ],
+       [
+        "none",
+        0.0
+       ]
+      ]
+     }
+    ],
+    "concluded": "other",
+    "fallback": null,
+    "triage_top": [
+     [
+      "deployment/user-service",
+      0.51
+     ],
+     [
+      "other",
+      0.49
+     ],
+     [
+      "deployment/compose-post-service",
+      0.0
+     ],
+     [
+      "deployment/home-timeline-redis",
+      0.0
+     ],
+     [
+      "deployment/home-timeline-service",
+      0.0
+     ]
+    ],
+    "second": null
+   },
+   "text": "Root cause: ConfigMap `coredns` in namespace `kube-system`, acting on Deployment `user-service` in namespace `social-network`: rule overrides name resolution for Service social-network/user-service (deployment/user-service): template ANY ANY user-service.social-network.svc.cluster.local { \u23ce match \"^user-service.social-network.svc.cluster.local\\.$\" \u23ce rcode NXDOMAIN \u23ce fallthrough \u23ce }; ConfigMap coredns was modified 83s ago, 75707s after it was created (fields: data.Corefile); 83s before the first active symptom.\nEffect: its callers see DNS resolution failure (27 lines), connectivity or timeout (25 lines).\nObserved: CoreDNS rule in kube-system/coredns overrides name resolution for this component's Service user-service: template ANY ANY user-service.social-network.svc.cluster.local { \u23ce match \"^user-service.social-network.svc.cluster.local\\.$\" \u23ce rcode NXDOMAIN \u23ce fallthrough \u23ce }.\nAffected (symptoms only, not causes): Deployment `compose-post-service` in namespace `social-network`: DNS resolution failure, connectivity or timeout calling it (52 lines, still occurring)."
+  },
+  {
+   "arm": 1,
+   "kind": "v2",
+   "model": "openai/gpt-6-luna-decisions",
+   "position": 1,
+   "seconds": 2.8,
+   "requests": 3,
+   "input_tokens": 34972,
+   "error": null,
+   "model_failed": false,
+   "component": "deployment/user-service",
+   "investigation": {
+    "steps": [
+     {
+      "step": 1,
+      "node": "investigate",
+      "component": "deployment/user-service",
+      "verdict": "origin",
+      "origin_p": 0.98,
+      "victim_p": 0.01,
+      "next": "deployment/compose-post-service",
+      "next_p": 0.73,
+      "category": "dns_resolution",
+      "spec_checks": [],
+      "blocked_input": null,
+      "key_evidence": "CoreDNS rule in kube-system/coredns overrides name resolution for this component's Service user-service: template ANY ANY user-service.social-network.svc.cluster.local { \u23ce match \"^user-service.social-network.svc.cluster.local\\.$\" \u23ce rcode NXDOMAIN \u23ce fallthrough \u23ce }"
+     }
+    ],
+    "concluded": "deployment/user-service",
+    "fallback": null,
+    "triage_top": [
+     [
+      "deployment/user-service",
+      0.83
+     ],
+     [
+      "other",
+      0.09
+     ],
+     [
+      "deployment/compose-post-service",
+      0.015
+     ],
+     [
+      "deployment/home-timeline-redis",
+      0.01
+     ],
+     [
+      "deployment/home-timeline-service",
+      0.01
+     ]
+    ],
+    "second": null
+   },
+   "text": "Root cause: ConfigMap `coredns` in namespace `kube-system`, acting on Deployment `user-service` in namespace `social-network`: CoreDNS rule in kube-system/coredns overrides name resolution for this component's Service user-service: template ANY ANY user-service.social-network.svc.cluster.local { \u23ce match \"^user-service.social-network.svc.cluster.local\\.$\" \u23ce rcode NXDOMAIN \u23ce fallthrough \u23ce }.\nMechanism: rule overrides name resolution for Service social-network/user-service (deployment/user-service): template ANY ANY user-service.social-network.svc.cluster.local { \u23ce match \"^user-service.social-network.svc.cluster.local\\.$\" \u23ce rcode NXDOMAIN \u23ce fallthrough \u23ce }; ConfigMap coredns was modified 83s ago, 75707s after it was created (fields: data.Corefile); 83s before the first active symptom.\nEffect: its callers see DNS resolution failure (27 lines), connectivity or timeout (25 lines).\nAffected (symptoms only, not causes): Deployment `compose-post-service` in namespace `social-network`: DNS resolution failure, connectivity or timeout calling it (52 lines, still occurring)."
+  }
+ ]
+}

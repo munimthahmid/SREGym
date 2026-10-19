@@ -1,0 +1,1889 @@
+{
+  "application": {
+    "name": "Hotel Reservation",
+    "description": "A hotel reservation application built with Go and gRPC, providing backend in-memory and persistent databases, a recommender system for hotel recommendations, and a functionality to place reservations.",
+    "namespaces": [
+      "hotel-reservation"
+    ]
+  },
+  "cluster": {
+    "namespaces": [
+      "hotel-reservation"
+    ],
+    "nodes": [
+      {
+        "name": "kind-control-plane"
+      },
+      {
+        "name": "kind-worker"
+      },
+      {
+        "name": "kind-worker2"
+      },
+      {
+        "name": "kind-worker3"
+      }
+    ],
+    "cluster_dns": {
+      "configmap": "kube-system/coredns",
+      "modified": "2026-10-18T18:39:56Z",
+      "corefile_lines": 23,
+      "plugins": [
+        "disable",
+        "errors",
+        "fallthrough",
+        "lameduck",
+        "loadbalance",
+        "loop",
+        "max_concurrent",
+        "pods",
+        "prometheus",
+        "ready",
+        "reload",
+        "ttl"
+      ],
+      "pods": 2
+    },
+    "trend": {
+      "interval_s": 48,
+      "observations": 1
+    },
+    "_changes": [],
+    "symptom_onset": "2026-10-19T01:08:20+00:00",
+    "symptom_onset_source": "pod pending in deployment/frontend",
+    "recent_changes": [],
+    "findings": []
+  },
+  "components": {
+    "deployment/consul": {
+      "kind": "Deployment",
+      "name": "consul",
+      "namespace": "hotel-reservation",
+      "created": "2026-10-19T01:08:06Z",
+      "modified": "2026-10-19T01:08:06Z",
+      "service_account": "default",
+      "replicas": {
+        "desired": 1,
+        "ready": 1,
+        "available": 1,
+        "updated": 1
+      },
+      "strategy": {
+        "type": "RollingUpdate",
+        "maxSurge": "25%",
+        "maxUnavailable": "25%"
+      },
+      "rollout": {
+        "progressDeadlineSeconds": 600
+      },
+      "containers": [
+        {
+          "name": "consul",
+          "init": false,
+          "image": "hashicorp/consul:1.22.3",
+          "limits": {
+            "cpu": "1"
+          },
+          "requests": {
+            "cpu": "100m"
+          },
+          "ports": [
+            8300,
+            8400,
+            8500,
+            53
+          ]
+        }
+      ],
+      "pods": [
+        {
+          "name": "consul-5c767d7459-tm7gl",
+          "phase": "Running",
+          "ready": "1/1",
+          "restarts": 0,
+          "created": "2026-10-19T01:08:06Z",
+          "started": "2026-10-19T01:08:06Z",
+          "ready_since": "2026-10-19T01:08:08Z",
+          "node": "kind-worker",
+          "ip": "10.244.162.190"
+        }
+      ],
+      "services": [
+        {
+          "name": "consul",
+          "type": "ClusterIP",
+          "ports": [
+            "8300->8300/TCP",
+            "8400->8400/TCP",
+            "8500->8500/TCP",
+            "8600->53/UDP"
+          ],
+          "ready_endpoints": 1,
+          "not_ready_endpoints": 0
+        }
+      ],
+      "resource_usage": [
+        {
+          "pod": "consul-5c767d7459-tm7gl",
+          "container": "consul",
+          "cpu": "14m",
+          "memory": "27Mi",
+          "cpu_limit": "1"
+        }
+      ],
+      "modified_seconds_ago": 143,
+      "healthy": true,
+      "signals": [],
+      "spec_flags": [],
+      "_derived_signals": [],
+      "_derived": true,
+      "evidence_kinds": []
+    },
+    "deployment/frontend": {
+      "kind": "Deployment",
+      "name": "frontend",
+      "namespace": "hotel-reservation",
+      "created": "2026-10-19T01:08:20Z",
+      "modified": "2026-10-19T01:08:20Z",
+      "service_account": "default",
+      "replicas": {
+        "desired": 2,
+        "ready": 1,
+        "available": 1,
+        "updated": 2
+      },
+      "anti_affinity_required": true,
+      "strategy": {
+        "type": "RollingUpdate",
+        "maxSurge": "25%",
+        "maxUnavailable": "25%"
+      },
+      "rollout": {
+        "progressDeadlineSeconds": 600
+      },
+      "containers": [
+        {
+          "name": "hotel-reserv-frontend",
+          "init": false,
+          "image": "ghcr.io/sregym/hotel-reservation:sha-d2c036bc3d1138f5a0bdaffd3d87f37522c3461a@sha256:1c685e1c4c304f327952397b3a99c54dadb086607774d71f222b200ec0d2e65e",
+          "limits": {
+            "cpu": "1"
+          },
+          "requests": {
+            "cpu": "100m"
+          },
+          "ports": [
+            5000
+          ],
+          "env_names": [
+            "JAEGER_SAMPLE_RATIO"
+          ],
+          "mounts": [
+            "/frontend-data"
+          ],
+          "command": [
+            "frontend"
+          ]
+        }
+      ],
+      "volumes": [
+        {
+          "name": "frontend-volume",
+          "pvc": "frontend-pvc",
+          "phase": "Bound",
+          "access_modes": [
+            "ReadWriteOnce"
+          ]
+        }
+      ],
+      "spec_flags": [
+        "Available=False (MinimumReplicasUnavailable)"
+      ],
+      "pods": [
+        {
+          "name": "frontend-844b789d87-249tc",
+          "phase": "Pending",
+          "ready": "0/1",
+          "restarts": 0,
+          "created": "2026-10-19T01:08:20Z",
+          "conditions": [
+            "PodScheduled=False (Unschedulable): 0/4 nodes are available: 1 node(s) didn't match pod anti-affinity rules, 1 node(s) had untolerated taint {node-role.kubernetes.io/control-plane: }, 2 node(s) h\u2026"
+          ]
+        },
+        {
+          "name": "frontend-844b789d87-42ljz",
+          "phase": "Running",
+          "ready": "1/1",
+          "restarts": 0,
+          "created": "2026-10-19T01:08:20Z",
+          "started": "2026-10-19T01:08:24Z",
+          "ready_since": "2026-10-19T01:08:26Z",
+          "node": "kind-worker3",
+          "ip": "10.244.195.210"
+        }
+      ],
+      "services": [
+        {
+          "name": "frontend",
+          "type": "ClusterIP",
+          "ports": [
+            "5000->5000/TCP"
+          ],
+          "ready_endpoints": 1,
+          "not_ready_endpoints": 0
+        }
+      ],
+      "warning_events": [
+        {
+          "reason": "FailedScheduling",
+          "count": 2,
+          "object": "pod/frontend-844b789d87-249tc",
+          "first_seen": "2026-10-19T01:08:22.686481Z",
+          "last_seen": "2026-10-19T01:08:24.688046Z",
+          "message": "0/4 nodes are available: 1 node(s) didn't match pod anti-affinity rules, 1 node(s) had untolerated taint {node-role.kubernetes.io/control-plane: }, 2 node(s) didn't find available persistent volumes to bind. preemption: 0/4 nodes are avail\u2026"
+        },
+        {
+          "reason": "FailedScheduling",
+          "count": 1,
+          "object": "pod/frontend-844b789d87-249tc",
+          "first_seen": "2026-10-19T01:08:20.732523Z",
+          "last_seen": "2026-10-19T01:08:20.732523Z",
+          "message": "0/4 nodes are available: 1 node(s) didn't match pod anti-affinity rules, 1 node(s) had untolerated taint {node-role.kubernetes.io/control-plane: }, 2 node(s) didn't find available persistent volumes to bind. preemption: 0/4 nodes are avail\u2026"
+        }
+      ],
+      "resource_usage": [
+        {
+          "pod": "frontend-844b789d87-42ljz",
+          "container": "hotel-reserv-frontend",
+          "cpu": "1m",
+          "memory": "12Mi",
+          "cpu_limit": "1"
+        }
+      ],
+      "signals": [
+        "only 1 of 2 desired replicas are ready",
+        "pod frontend-844b789d87-249tc: pod phase Pending",
+        "pod frontend-844b789d87-249tc: pod unschedulable: 0/4 nodes are available: 1 node(s) didn't match pod anti-affinity rules, 1 node(s) had untolerated taint {node-role.kubernetes.io/control-plane: }, 2 node(s) h\u2026",
+        "warning events: FailedScheduling x3",
+        "PVC frontend-pvc is ReadWriteOnce (attachable to one node at a time) but 2 replicas of this Deployment mount it and its required pod anti-affinity places replicas on different nodes; replicas scheduled on another node cannot attach it",
+        "pod frontend-844b789d87-249tc is still in pod phase Pending after another 48s"
+      ],
+      "modified_seconds_ago": 129,
+      "healthy": false,
+      "_derived_signals": [],
+      "_derived": true,
+      "evidence_kinds": [
+        "configuration",
+        "symptoms"
+      ]
+    },
+    "deployment/geo": {
+      "kind": "Deployment",
+      "name": "geo",
+      "namespace": "hotel-reservation",
+      "created": "2026-10-19T01:08:06Z",
+      "modified": "2026-10-19T01:08:06Z",
+      "service_account": "default",
+      "replicas": {
+        "desired": 1,
+        "ready": 1,
+        "available": 1,
+        "updated": 1
+      },
+      "strategy": {
+        "type": "RollingUpdate",
+        "maxSurge": "25%",
+        "maxUnavailable": "25%"
+      },
+      "rollout": {
+        "progressDeadlineSeconds": 600
+      },
+      "containers": [
+        {
+          "name": "hotel-reserv-geo",
+          "init": false,
+          "image": "ghcr.io/sregym/hotel-reservation:sha-d2c036bc3d1138f5a0bdaffd3d87f37522c3461a@sha256:1c685e1c4c304f327952397b3a99c54dadb086607774d71f222b200ec0d2e65e",
+          "limits": {
+            "cpu": "1"
+          },
+          "requests": {
+            "cpu": "100m"
+          },
+          "ports": [
+            8083
+          ],
+          "env_names": [
+            "JAEGER_SAMPLE_RATIO"
+          ],
+          "command": [
+            "geo"
+          ]
+        }
+      ],
+      "pods": [
+        {
+          "name": "geo-766c64f6b4-drsvz",
+          "phase": "Running",
+          "ready": "1/1",
+          "restarts": 0,
+          "created": "2026-10-19T01:08:06Z",
+          "started": "2026-10-19T01:08:07Z",
+          "ready_since": "2026-10-19T01:08:08Z",
+          "node": "kind-worker",
+          "ip": "10.244.162.191"
+        }
+      ],
+      "services": [
+        {
+          "name": "geo",
+          "type": "ClusterIP",
+          "ports": [
+            "8083->8083/TCP"
+          ],
+          "ready_endpoints": 1,
+          "not_ready_endpoints": 0
+        }
+      ],
+      "resource_usage": [
+        {
+          "pod": "geo-766c64f6b4-drsvz",
+          "container": "hotel-reserv-geo",
+          "cpu": "1m",
+          "memory": "13Mi",
+          "cpu_limit": "1"
+        }
+      ],
+      "modified_seconds_ago": 143,
+      "healthy": true,
+      "signals": [],
+      "spec_flags": [],
+      "_derived_signals": [],
+      "_derived": true,
+      "evidence_kinds": []
+    },
+    "deployment/jaeger": {
+      "kind": "Deployment",
+      "name": "jaeger",
+      "namespace": "hotel-reservation",
+      "created": "2026-10-19T01:08:07Z",
+      "modified": "2026-10-19T01:08:07Z",
+      "service_account": "default",
+      "replicas": {
+        "desired": 1,
+        "ready": 1,
+        "available": 1,
+        "updated": 1
+      },
+      "strategy": {
+        "type": "RollingUpdate",
+        "maxSurge": "25%",
+        "maxUnavailable": "25%"
+      },
+      "rollout": {
+        "progressDeadlineSeconds": 600
+      },
+      "containers": [
+        {
+          "name": "hotel-reserv-jaeger",
+          "init": false,
+          "image": "jaegertracing/all-in-one:1.57",
+          "limits": {
+            "cpu": "1"
+          },
+          "requests": {
+            "cpu": "100m"
+          },
+          "ports": [
+            14269,
+            5778,
+            14268,
+            14267,
+            16686,
+            5775,
+            6831,
+            6832
+          ]
+        }
+      ],
+      "pods": [
+        {
+          "name": "jaeger-67445b6dd6-xlmqs",
+          "phase": "Running",
+          "ready": "1/1",
+          "restarts": 0,
+          "created": "2026-10-19T01:08:07Z",
+          "started": "2026-10-19T01:08:07Z",
+          "ready_since": "2026-10-19T01:08:08Z",
+          "node": "kind-worker2",
+          "ip": "10.244.110.177"
+        }
+      ],
+      "services": [
+        {
+          "name": "jaeger-out",
+          "type": "NodePort",
+          "ports": [
+            "16686->16686/TCP"
+          ],
+          "ready_endpoints": 1,
+          "not_ready_endpoints": 0
+        }
+      ],
+      "resource_usage": [
+        {
+          "pod": "jaeger-67445b6dd6-xlmqs",
+          "container": "hotel-reserv-jaeger",
+          "cpu": "1m",
+          "memory": "8Mi",
+          "cpu_limit": "1"
+        }
+      ],
+      "modified_seconds_ago": 142,
+      "healthy": true,
+      "signals": [],
+      "spec_flags": [],
+      "role": "observability",
+      "_derived_signals": [],
+      "_derived": true,
+      "evidence_kinds": []
+    },
+    "deployment/memcached-profile": {
+      "kind": "Deployment",
+      "name": "memcached-profile",
+      "namespace": "hotel-reservation",
+      "created": "2026-10-19T01:08:07Z",
+      "modified": "2026-10-19T01:08:07Z",
+      "service_account": "default",
+      "replicas": {
+        "desired": 1,
+        "ready": 1,
+        "available": 1,
+        "updated": 1
+      },
+      "strategy": {
+        "type": "RollingUpdate",
+        "maxSurge": "25%",
+        "maxUnavailable": "25%"
+      },
+      "rollout": {
+        "progressDeadlineSeconds": 600
+      },
+      "containers": [
+        {
+          "name": "hotel-reserv-profile-mmc",
+          "init": false,
+          "image": "memcached",
+          "limits": {
+            "cpu": "1"
+          },
+          "requests": {
+            "cpu": "100m"
+          },
+          "ports": [
+            11211
+          ],
+          "env_names": [
+            "MEMCACHED_CACHE_SIZE",
+            "MEMCACHED_THREADS"
+          ]
+        }
+      ],
+      "pods": [
+        {
+          "name": "memcached-profile-679775b4d4-r7jqr",
+          "phase": "Running",
+          "ready": "1/1",
+          "restarts": 0,
+          "created": "2026-10-19T01:08:07Z",
+          "started": "2026-10-19T01:08:07Z",
+          "ready_since": "2026-10-19T01:08:08Z",
+          "node": "kind-worker",
+          "ip": "10.244.162.179"
+        }
+      ],
+      "services": [
+        {
+          "name": "memcached-profile",
+          "type": "ClusterIP",
+          "ports": [
+            "11211->11211/TCP"
+          ],
+          "ready_endpoints": 1,
+          "not_ready_endpoints": 0
+        }
+      ],
+      "resource_usage": [
+        {
+          "pod": "memcached-profile-679775b4d4-r7jqr",
+          "container": "hotel-reserv-profile-mmc",
+          "cpu": "1m",
+          "memory": "8Mi",
+          "cpu_limit": "1"
+        }
+      ],
+      "modified_seconds_ago": 142,
+      "healthy": true,
+      "signals": [],
+      "spec_flags": [],
+      "_derived_signals": [],
+      "_derived": true,
+      "evidence_kinds": []
+    },
+    "deployment/memcached-rate": {
+      "kind": "Deployment",
+      "name": "memcached-rate",
+      "namespace": "hotel-reservation",
+      "created": "2026-10-19T01:08:07Z",
+      "modified": "2026-10-19T01:08:07Z",
+      "service_account": "default",
+      "replicas": {
+        "desired": 1,
+        "ready": 1,
+        "available": 1,
+        "updated": 1
+      },
+      "strategy": {
+        "type": "RollingUpdate",
+        "maxSurge": "25%",
+        "maxUnavailable": "25%"
+      },
+      "rollout": {
+        "progressDeadlineSeconds": 600
+      },
+      "containers": [
+        {
+          "name": "hotel-reserv-rate-mmc",
+          "init": false,
+          "image": "memcached",
+          "limits": {
+            "cpu": "1"
+          },
+          "requests": {
+            "cpu": "100m"
+          },
+          "ports": [
+            11211
+          ],
+          "env_names": [
+            "MEMCACHED_CACHE_SIZE",
+            "MEMCACHED_THREADS"
+          ]
+        }
+      ],
+      "pods": [
+        {
+          "name": "memcached-rate-5b59cb5d9d-zf2pb",
+          "phase": "Running",
+          "ready": "1/1",
+          "restarts": 0,
+          "created": "2026-10-19T01:08:07Z",
+          "started": "2026-10-19T01:08:07Z",
+          "ready_since": "2026-10-19T01:08:08Z",
+          "node": "kind-worker",
+          "ip": "10.244.162.186"
+        }
+      ],
+      "services": [
+        {
+          "name": "memcached-rate",
+          "type": "ClusterIP",
+          "ports": [
+            "11211->11211/TCP"
+          ],
+          "ready_endpoints": 1,
+          "not_ready_endpoints": 0
+        }
+      ],
+      "resource_usage": [
+        {
+          "pod": "memcached-rate-5b59cb5d9d-zf2pb",
+          "container": "hotel-reserv-rate-mmc",
+          "cpu": "1m",
+          "memory": "1Mi",
+          "cpu_limit": "1"
+        }
+      ],
+      "modified_seconds_ago": 142,
+      "healthy": true,
+      "signals": [],
+      "spec_flags": [],
+      "_derived_signals": [],
+      "_derived": true,
+      "evidence_kinds": []
+    },
+    "deployment/memcached-reserve": {
+      "kind": "Deployment",
+      "name": "memcached-reserve",
+      "namespace": "hotel-reservation",
+      "created": "2026-10-19T01:08:07Z",
+      "modified": "2026-10-19T01:08:07Z",
+      "service_account": "default",
+      "replicas": {
+        "desired": 1,
+        "ready": 1,
+        "available": 1,
+        "updated": 1
+      },
+      "strategy": {
+        "type": "RollingUpdate",
+        "maxSurge": "25%",
+        "maxUnavailable": "25%"
+      },
+      "rollout": {
+        "progressDeadlineSeconds": 600
+      },
+      "containers": [
+        {
+          "name": "hotel-reserv-reservation-mmc",
+          "init": false,
+          "image": "memcached",
+          "limits": {
+            "cpu": "1"
+          },
+          "requests": {
+            "cpu": "100m"
+          },
+          "ports": [
+            11211
+          ],
+          "env_names": [
+            "MEMCACHED_CACHE_SIZE",
+            "MEMCACHED_THREADS"
+          ]
+        }
+      ],
+      "pods": [
+        {
+          "name": "memcached-reserve-6c889f84d4-f7rsm",
+          "phase": "Running",
+          "ready": "1/1",
+          "restarts": 0,
+          "created": "2026-10-19T01:08:08Z",
+          "started": "2026-10-19T01:08:08Z",
+          "ready_since": "2026-10-19T01:08:09Z",
+          "node": "kind-worker",
+          "ip": "10.244.162.163"
+        }
+      ],
+      "services": [
+        {
+          "name": "memcached-reserve",
+          "type": "ClusterIP",
+          "ports": [
+            "11211->11211/TCP"
+          ],
+          "ready_endpoints": 1,
+          "not_ready_endpoints": 0
+        }
+      ],
+      "resource_usage": [
+        {
+          "pod": "memcached-reserve-6c889f84d4-f7rsm",
+          "container": "hotel-reserv-reservation-mmc",
+          "cpu": "1m",
+          "memory": "1Mi",
+          "cpu_limit": "1"
+        }
+      ],
+      "modified_seconds_ago": 142,
+      "healthy": true,
+      "signals": [],
+      "spec_flags": [],
+      "_derived_signals": [],
+      "_derived": true,
+      "evidence_kinds": []
+    },
+    "deployment/mongodb-geo": {
+      "kind": "Deployment",
+      "name": "mongodb-geo",
+      "namespace": "hotel-reservation",
+      "created": "2026-10-19T01:08:07Z",
+      "modified": "2026-10-19T01:08:07Z",
+      "service_account": "default",
+      "replicas": {
+        "desired": 1,
+        "ready": 1,
+        "available": 1,
+        "updated": 1
+      },
+      "strategy": {
+        "type": "Recreate"
+      },
+      "rollout": {
+        "progressDeadlineSeconds": 600
+      },
+      "containers": [
+        {
+          "name": "hotel-reserv-geo-mongo",
+          "init": false,
+          "image": "mongo:4.4.6",
+          "limits": {
+            "cpu": "1"
+          },
+          "requests": {
+            "cpu": "100m"
+          },
+          "ports": [
+            27017
+          ],
+          "mounts": [
+            "/data/db",
+            "/docker-entrypoint-initdb.d",
+            "/scripts"
+          ],
+          "args": [
+            "--auth"
+          ]
+        }
+      ],
+      "volumes": [
+        {
+          "name": "geo",
+          "pvc": "geo-pvc",
+          "phase": "Bound",
+          "access_modes": [
+            "ReadWriteOnce"
+          ]
+        },
+        {
+          "name": "init-script",
+          "configMap": "mongo-geo-script"
+        },
+        {
+          "name": "failure-script",
+          "configMap": "failure-admin-geo"
+        }
+      ],
+      "config_refs": {
+        "configmaps": [
+          "failure-admin-geo",
+          "mongo-geo-script"
+        ]
+      },
+      "pods": [
+        {
+          "name": "mongodb-geo-5ff578bcb8-c5ltp",
+          "phase": "Running",
+          "ready": "1/1",
+          "restarts": 0,
+          "created": "2026-10-19T01:08:11Z",
+          "started": "2026-10-19T01:08:11Z",
+          "ready_since": "2026-10-19T01:08:12Z",
+          "node": "kind-worker3",
+          "ip": "10.244.195.225"
+        }
+      ],
+      "services": [
+        {
+          "name": "mongodb-geo",
+          "type": "ClusterIP",
+          "ports": [
+            "27017->27017/TCP"
+          ],
+          "ready_endpoints": 1,
+          "not_ready_endpoints": 0
+        }
+      ],
+      "warning_events": [],
+      "log_signals": [
+        {
+          "count": 1,
+          "line": "hotel-reserv-geo-mongo: {\"t\":{\"$date\":\"2026-10-19T01:08:12.553+00:00\"},\"s\":\"W\", \"c\":\"ASIO\", \"id\":22601, \"ctx\":\"main\",\"msg\":\"No TransportLayer configured during NetworkInterface startup\"}",
+          "first_seen_seconds_ago": 139,
+          "last_seen_seconds_ago": 139,
+          "state": "stopped"
+        },
+        {
+          "count": 1,
+          "line": "hotel-reserv-geo-mongo: {\"t\":{\"$date\":\"2026-10-19T01:08:13.572+00:00\"},\"s\":\"W\", \"c\":\"ASIO\", \"id\":22601, \"ctx\":\"main\",\"msg\":\"No TransportLayer configured during NetworkInterface startup\"}",
+          "first_seen_seconds_ago": 138,
+          "last_seen_seconds_ago": 138,
+          "state": "stopped"
+        }
+      ],
+      "resource_usage": [
+        {
+          "pod": "mongodb-geo-5ff578bcb8-c5ltp",
+          "container": "hotel-reserv-geo-mongo",
+          "cpu": "7m",
+          "memory": "74Mi",
+          "cpu_limit": "1"
+        }
+      ],
+      "signals": [],
+      "template_changes": {
+        "revision": 2,
+        "changed_at": "2026-10-19T01:08:11Z",
+        "changes": [
+          "pod label pod-template-hash: 78487c9767 -> 5ff578bcb8",
+          "volume failure-script added: {\"configMap\": {\"defaultMode\": 420, \"name\": \"failure-admin-geo\"}}",
+          "container hotel-reserv-geo-mongo mounts volume failure-script at /scripts"
+        ]
+      },
+      "modified_seconds_ago": 142,
+      "config_objects": {
+        "configmap/failure-admin-geo": {
+          "keys": [
+            "remove-admin-mongo.sh",
+            "remove-mitigate-admin-geo-mongo.sh",
+            "revoke-admin-geo-mongo.sh",
+            "revoke-mitigate-admin-geo-mongo.sh"
+          ],
+          "last_update": "2026-10-19T01:08:07Z"
+        },
+        "configmap/mongo-geo-script": {
+          "keys": [
+            "k8s-geo-mongo.sh"
+          ],
+          "last_update": "2026-10-19T01:08:06Z"
+        }
+      },
+      "stopped_error_lines": 2,
+      "healthy": true,
+      "spec_flags": [],
+      "startup_events": [
+        {
+          "reason": "FailedScheduling",
+          "count": 1,
+          "object": "pod/mongodb-geo-78487c9767-btnps",
+          "first_seen": "2026-10-19T01:08:10.041411Z",
+          "last_seen": "2026-10-19T01:08:10.041411Z",
+          "message": "running PreBind plugin \"VolumeBinding\": binding volumes: pod does not exist any more: pod \"mongodb-geo-78487c9767-btnps\" not found"
+        }
+      ],
+      "log_error_lines": null,
+      "_derived_signals": [],
+      "_derived": true,
+      "evidence_kinds": []
+    },
+    "deployment/mongodb-profile": {
+      "kind": "Deployment",
+      "name": "mongodb-profile",
+      "namespace": "hotel-reservation",
+      "created": "2026-10-19T01:08:07Z",
+      "modified": "2026-10-19T01:08:07Z",
+      "service_account": "default",
+      "replicas": {
+        "desired": 1,
+        "ready": 1,
+        "available": 1,
+        "updated": 1
+      },
+      "strategy": {
+        "type": "Recreate"
+      },
+      "rollout": {
+        "progressDeadlineSeconds": 600
+      },
+      "containers": [
+        {
+          "name": "hotel-reserv-profile-mongo",
+          "init": false,
+          "image": "mongo:4.4.6",
+          "limits": {
+            "cpu": "1"
+          },
+          "requests": {
+            "cpu": "100m"
+          },
+          "ports": [
+            27017
+          ],
+          "mounts": [
+            "/data/db"
+          ]
+        }
+      ],
+      "volumes": [
+        {
+          "name": "profile",
+          "pvc": "profile-pvc",
+          "phase": "Bound",
+          "access_modes": [
+            "ReadWriteOnce"
+          ]
+        }
+      ],
+      "pods": [
+        {
+          "name": "mongodb-profile-758cb77f9f-6ggjz",
+          "phase": "Running",
+          "ready": "1/1",
+          "restarts": 0,
+          "created": "2026-10-19T01:08:07Z",
+          "started": "2026-10-19T01:08:14Z",
+          "ready_since": "2026-10-19T01:08:15Z",
+          "node": "kind-worker3",
+          "ip": "10.244.195.239"
+        }
+      ],
+      "services": [
+        {
+          "name": "mongodb-profile",
+          "type": "ClusterIP",
+          "ports": [
+            "27017->27017/TCP"
+          ],
+          "ready_endpoints": 1,
+          "not_ready_endpoints": 0
+        }
+      ],
+      "resource_usage": [
+        {
+          "pod": "mongodb-profile-758cb77f9f-6ggjz",
+          "container": "hotel-reserv-profile-mongo",
+          "cpu": "7m",
+          "memory": "59Mi",
+          "cpu_limit": "1"
+        }
+      ],
+      "modified_seconds_ago": 142,
+      "healthy": true,
+      "signals": [],
+      "spec_flags": [],
+      "_derived_signals": [],
+      "_derived": true,
+      "evidence_kinds": []
+    },
+    "deployment/mongodb-rate": {
+      "kind": "Deployment",
+      "name": "mongodb-rate",
+      "namespace": "hotel-reservation",
+      "created": "2026-10-19T01:08:07Z",
+      "modified": "2026-10-19T01:08:07Z",
+      "service_account": "default",
+      "replicas": {
+        "desired": 1,
+        "ready": 1,
+        "available": 1,
+        "updated": 1
+      },
+      "strategy": {
+        "type": "Recreate"
+      },
+      "rollout": {
+        "progressDeadlineSeconds": 600
+      },
+      "containers": [
+        {
+          "name": "hotel-reserv-rate-mongo",
+          "init": false,
+          "image": "mongo:4.4.6",
+          "limits": {
+            "cpu": "1"
+          },
+          "requests": {
+            "cpu": "100m"
+          },
+          "ports": [
+            27017
+          ],
+          "mounts": [
+            "/data/db",
+            "/docker-entrypoint-initdb.d",
+            "/scripts"
+          ],
+          "args": [
+            "--auth"
+          ]
+        }
+      ],
+      "volumes": [
+        {
+          "name": "rate",
+          "pvc": "rate-pvc",
+          "phase": "Bound",
+          "access_modes": [
+            "ReadWriteOnce"
+          ]
+        },
+        {
+          "name": "init-script",
+          "configMap": "mongo-rate-script"
+        },
+        {
+          "name": "failure-script",
+          "configMap": "failure-admin-rate"
+        }
+      ],
+      "config_refs": {
+        "configmaps": [
+          "failure-admin-rate",
+          "mongo-rate-script"
+        ]
+      },
+      "pods": [
+        {
+          "name": "mongodb-rate-56cc8659c9-shllw",
+          "phase": "Running",
+          "ready": "1/1",
+          "restarts": 0,
+          "created": "2026-10-19T01:08:10Z",
+          "started": "2026-10-19T01:08:12Z",
+          "ready_since": "2026-10-19T01:08:14Z",
+          "node": "kind-worker",
+          "ip": "10.244.162.129"
+        }
+      ],
+      "services": [
+        {
+          "name": "mongodb-rate",
+          "type": "ClusterIP",
+          "ports": [
+            "27017->27017/TCP"
+          ],
+          "ready_endpoints": 1,
+          "not_ready_endpoints": 0
+        }
+      ],
+      "warning_events": [],
+      "log_signals": [
+        {
+          "count": 1,
+          "line": "hotel-reserv-rate-mongo: {\"t\":{\"$date\":\"2026-10-19T01:08:15.517+00:00\"},\"s\":\"W\", \"c\":\"ASIO\", \"id\":22601, \"ctx\":\"main\",\"msg\":\"No TransportLayer configured during NetworkInterface startup\"}",
+          "first_seen_seconds_ago": 136,
+          "last_seen_seconds_ago": 136,
+          "state": "stopped"
+        }
+      ],
+      "resource_usage": [
+        {
+          "pod": "mongodb-rate-56cc8659c9-shllw",
+          "container": "hotel-reserv-rate-mongo",
+          "cpu": "7m",
+          "memory": "140Mi",
+          "cpu_limit": "1"
+        }
+      ],
+      "signals": [],
+      "template_changes": {
+        "revision": 2,
+        "changed_at": "2026-10-19T01:08:10Z",
+        "changes": [
+          "pod label pod-template-hash: 6747cb74bf -> 56cc8659c9",
+          "volume failure-script added: {\"configMap\": {\"defaultMode\": 420, \"name\": \"failure-admin-rate\"}}",
+          "container hotel-reserv-rate-mongo mounts volume failure-script at /scripts"
+        ]
+      },
+      "modified_seconds_ago": 142,
+      "config_objects": {
+        "configmap/failure-admin-rate": {
+          "keys": [
+            "remove-admin-mongo.sh",
+            "remove-mitigate-admin-rate-mongo.sh",
+            "revoke-admin-rate-mongo.sh",
+            "revoke-mitigate-admin-rate-mongo.sh"
+          ],
+          "last_update": "2026-10-19T01:08:07Z"
+        },
+        "configmap/mongo-rate-script": {
+          "keys": [
+            "k8s-rate-mongo.sh"
+          ],
+          "last_update": "2026-10-19T01:08:06Z"
+        }
+      },
+      "stopped_error_lines": 1,
+      "healthy": true,
+      "spec_flags": [],
+      "startup_events": [
+        {
+          "reason": "FailedScheduling",
+          "count": 1,
+          "object": "pod/mongodb-rate-6747cb74bf-jgfzp",
+          "first_seen": "2026-10-19T01:08:10.530186Z",
+          "last_seen": "2026-10-19T01:08:10.530186Z",
+          "message": "running PreBind plugin \"VolumeBinding\": binding volumes: pod does not exist any more: pod \"mongodb-rate-6747cb74bf-jgfzp\" not found"
+        }
+      ],
+      "log_error_lines": null,
+      "_derived_signals": [],
+      "_derived": true,
+      "evidence_kinds": []
+    },
+    "deployment/mongodb-recommendation": {
+      "kind": "Deployment",
+      "name": "mongodb-recommendation",
+      "namespace": "hotel-reservation",
+      "created": "2026-10-19T01:08:07Z",
+      "modified": "2026-10-19T01:08:07Z",
+      "service_account": "default",
+      "replicas": {
+        "desired": 1,
+        "ready": 1,
+        "available": 1,
+        "updated": 1
+      },
+      "strategy": {
+        "type": "Recreate"
+      },
+      "rollout": {
+        "progressDeadlineSeconds": 600
+      },
+      "containers": [
+        {
+          "name": "hotel-reserv-recommendation-mongo",
+          "init": false,
+          "image": "mongo:4.4.6",
+          "limits": {
+            "cpu": "1"
+          },
+          "requests": {
+            "cpu": "100m"
+          },
+          "ports": [
+            27017
+          ],
+          "mounts": [
+            "/data/db"
+          ]
+        }
+      ],
+      "volumes": [
+        {
+          "name": "recommendation",
+          "pvc": "recommendation-pvc",
+          "phase": "Bound",
+          "access_modes": [
+            "ReadWriteOnce"
+          ]
+        }
+      ],
+      "pods": [
+        {
+          "name": "mongodb-recommendation-55699465f7-b8v5v",
+          "phase": "Running",
+          "ready": "1/1",
+          "restarts": 0,
+          "created": "2026-10-19T01:08:08Z",
+          "started": "2026-10-19T01:08:14Z",
+          "ready_since": "2026-10-19T01:08:15Z",
+          "node": "kind-worker2",
+          "ip": "10.244.110.144"
+        }
+      ],
+      "services": [
+        {
+          "name": "mongodb-recommendation",
+          "type": "ClusterIP",
+          "ports": [
+            "27017->27017/TCP"
+          ],
+          "ready_endpoints": 1,
+          "not_ready_endpoints": 0
+        }
+      ],
+      "resource_usage": [
+        {
+          "pod": "mongodb-recommendation-55699465f7-b8v5v",
+          "container": "hotel-reserv-recommendation-mongo",
+          "cpu": "8m",
+          "memory": "57Mi",
+          "cpu_limit": "1"
+        }
+      ],
+      "modified_seconds_ago": 142,
+      "healthy": true,
+      "signals": [],
+      "spec_flags": [],
+      "_derived_signals": [],
+      "_derived": true,
+      "evidence_kinds": []
+    },
+    "deployment/mongodb-reservation": {
+      "kind": "Deployment",
+      "name": "mongodb-reservation",
+      "namespace": "hotel-reservation",
+      "created": "2026-10-19T01:08:07Z",
+      "modified": "2026-10-19T01:08:07Z",
+      "service_account": "default",
+      "replicas": {
+        "desired": 1,
+        "ready": 1,
+        "available": 1,
+        "updated": 1
+      },
+      "strategy": {
+        "type": "Recreate"
+      },
+      "rollout": {
+        "progressDeadlineSeconds": 600
+      },
+      "containers": [
+        {
+          "name": "hotel-reserv-reservation-mongo",
+          "init": false,
+          "image": "mongo:4.4.6",
+          "limits": {
+            "cpu": "1"
+          },
+          "requests": {
+            "cpu": "100m"
+          },
+          "ports": [
+            27017
+          ],
+          "mounts": [
+            "/data/db"
+          ]
+        }
+      ],
+      "volumes": [
+        {
+          "name": "reservation",
+          "pvc": "reservation-pvc",
+          "phase": "Bound",
+          "access_modes": [
+            "ReadWriteOnce"
+          ]
+        }
+      ],
+      "pods": [
+        {
+          "name": "mongodb-reservation-5994859869-2q4tf",
+          "phase": "Running",
+          "ready": "1/1",
+          "restarts": 0,
+          "created": "2026-10-19T01:08:08Z",
+          "started": "2026-10-19T01:08:16Z",
+          "ready_since": "2026-10-19T01:08:17Z",
+          "node": "kind-worker3",
+          "ip": "10.244.195.237"
+        }
+      ],
+      "services": [
+        {
+          "name": "mongodb-reservation",
+          "type": "ClusterIP",
+          "ports": [
+            "27017->27017/TCP"
+          ],
+          "ready_endpoints": 1,
+          "not_ready_endpoints": 0
+        }
+      ],
+      "resource_usage": [
+        {
+          "pod": "mongodb-reservation-5994859869-2q4tf",
+          "container": "hotel-reserv-reservation-mongo",
+          "cpu": "6m",
+          "memory": "56Mi",
+          "cpu_limit": "1"
+        }
+      ],
+      "modified_seconds_ago": 142,
+      "healthy": true,
+      "signals": [],
+      "spec_flags": [],
+      "_derived_signals": [],
+      "_derived": true,
+      "evidence_kinds": []
+    },
+    "deployment/mongodb-user": {
+      "kind": "Deployment",
+      "name": "mongodb-user",
+      "namespace": "hotel-reservation",
+      "created": "2026-10-19T01:08:07Z",
+      "modified": "2026-10-19T01:08:07Z",
+      "service_account": "default",
+      "replicas": {
+        "desired": 1,
+        "ready": 1,
+        "available": 1,
+        "updated": 1
+      },
+      "strategy": {
+        "type": "Recreate"
+      },
+      "rollout": {
+        "progressDeadlineSeconds": 600
+      },
+      "containers": [
+        {
+          "name": "hotel-reserv-user-mongo",
+          "init": false,
+          "image": "mongo:4.4.6",
+          "limits": {
+            "cpu": "1"
+          },
+          "requests": {
+            "cpu": "100m"
+          },
+          "ports": [
+            27017
+          ],
+          "mounts": [
+            "/data/db"
+          ]
+        }
+      ],
+      "volumes": [
+        {
+          "name": "user",
+          "pvc": "user-pvc",
+          "phase": "Bound",
+          "access_modes": [
+            "ReadWriteOnce"
+          ]
+        }
+      ],
+      "pods": [
+        {
+          "name": "mongodb-user-969c6c449-bd58c",
+          "phase": "Running",
+          "ready": "1/1",
+          "restarts": 0,
+          "created": "2026-10-19T01:08:09Z",
+          "started": "2026-10-19T01:08:18Z",
+          "ready_since": "2026-10-19T01:08:19Z",
+          "node": "kind-worker",
+          "ip": "10.244.162.151"
+        }
+      ],
+      "services": [
+        {
+          "name": "mongodb-user",
+          "type": "ClusterIP",
+          "ports": [
+            "27017->27017/TCP"
+          ],
+          "ready_endpoints": 1,
+          "not_ready_endpoints": 0
+        }
+      ],
+      "resource_usage": [
+        {
+          "pod": "mongodb-user-969c6c449-bd58c",
+          "container": "hotel-reserv-user-mongo",
+          "cpu": "6m",
+          "memory": "60Mi",
+          "cpu_limit": "1"
+        }
+      ],
+      "modified_seconds_ago": 142,
+      "healthy": true,
+      "signals": [],
+      "spec_flags": [],
+      "_derived_signals": [],
+      "_derived": true,
+      "evidence_kinds": []
+    },
+    "deployment/profile": {
+      "kind": "Deployment",
+      "name": "profile",
+      "namespace": "hotel-reservation",
+      "created": "2026-10-19T01:08:07Z",
+      "modified": "2026-10-19T01:08:07Z",
+      "service_account": "default",
+      "replicas": {
+        "desired": 1,
+        "ready": 1,
+        "available": 1,
+        "updated": 1
+      },
+      "strategy": {
+        "type": "RollingUpdate",
+        "maxSurge": "25%",
+        "maxUnavailable": "25%"
+      },
+      "rollout": {
+        "progressDeadlineSeconds": 600
+      },
+      "containers": [
+        {
+          "name": "hotel-reserv-profile",
+          "init": false,
+          "image": "ghcr.io/sregym/hotel-reservation:sha-d2c036bc3d1138f5a0bdaffd3d87f37522c3461a@sha256:1c685e1c4c304f327952397b3a99c54dadb086607774d71f222b200ec0d2e65e",
+          "limits": {
+            "cpu": "1"
+          },
+          "requests": {
+            "cpu": "100m"
+          },
+          "ports": [
+            8081
+          ],
+          "env_names": [
+            "JAEGER_SAMPLE_RATIO"
+          ],
+          "command": [
+            "profile"
+          ]
+        }
+      ],
+      "pods": [
+        {
+          "name": "profile-85c6f67954-rsc8c",
+          "phase": "Running",
+          "ready": "1/1",
+          "restarts": 0,
+          "created": "2026-10-19T01:08:07Z",
+          "started": "2026-10-19T01:08:07Z",
+          "ready_since": "2026-10-19T01:08:08Z",
+          "node": "kind-worker2",
+          "ip": "10.244.110.154"
+        }
+      ],
+      "services": [
+        {
+          "name": "profile",
+          "type": "ClusterIP",
+          "ports": [
+            "8081->8081/TCP"
+          ],
+          "ready_endpoints": 1,
+          "not_ready_endpoints": 0
+        }
+      ],
+      "resource_usage": [
+        {
+          "pod": "profile-85c6f67954-rsc8c",
+          "container": "hotel-reserv-profile",
+          "cpu": "1m",
+          "memory": "6Mi",
+          "cpu_limit": "1"
+        }
+      ],
+      "modified_seconds_ago": 142,
+      "healthy": true,
+      "signals": [],
+      "spec_flags": [],
+      "_derived_signals": [],
+      "_derived": true,
+      "evidence_kinds": []
+    },
+    "deployment/rate": {
+      "kind": "Deployment",
+      "name": "rate",
+      "namespace": "hotel-reservation",
+      "created": "2026-10-19T01:08:07Z",
+      "modified": "2026-10-19T01:08:07Z",
+      "service_account": "default",
+      "replicas": {
+        "desired": 1,
+        "ready": 1,
+        "available": 1,
+        "updated": 1
+      },
+      "strategy": {
+        "type": "RollingUpdate",
+        "maxSurge": "25%",
+        "maxUnavailable": "25%"
+      },
+      "rollout": {
+        "progressDeadlineSeconds": 600
+      },
+      "containers": [
+        {
+          "name": "hotel-reserv-rate",
+          "init": false,
+          "image": "ghcr.io/sregym/hotel-reservation:sha-d2c036bc3d1138f5a0bdaffd3d87f37522c3461a@sha256:1c685e1c4c304f327952397b3a99c54dadb086607774d71f222b200ec0d2e65e",
+          "limits": {
+            "cpu": "1"
+          },
+          "requests": {
+            "cpu": "100m"
+          },
+          "ports": [
+            8084,
+            9091
+          ],
+          "env_names": [
+            "JAEGER_SAMPLE_RATIO",
+            "RATE_BACKEND_QPS_LIMIT",
+            "RATE_QUEUE_CAPACITY"
+          ],
+          "command": [
+            "rate"
+          ]
+        }
+      ],
+      "pods": [
+        {
+          "name": "rate-b6dc6465f-k4mzb",
+          "phase": "Running",
+          "ready": "1/1",
+          "restarts": 0,
+          "created": "2026-10-19T01:08:07Z",
+          "started": "2026-10-19T01:08:07Z",
+          "ready_since": "2026-10-19T01:08:08Z",
+          "node": "kind-worker2",
+          "ip": "10.244.110.188"
+        }
+      ],
+      "services": [
+        {
+          "name": "rate",
+          "type": "ClusterIP",
+          "ports": [
+            "8084->8084/TCP",
+            "9091->9091/TCP"
+          ],
+          "ready_endpoints": 1,
+          "not_ready_endpoints": 0
+        }
+      ],
+      "resource_usage": [
+        {
+          "pod": "rate-b6dc6465f-k4mzb",
+          "container": "hotel-reserv-rate",
+          "cpu": "39m",
+          "memory": "13Mi",
+          "cpu_limit": "1"
+        }
+      ],
+      "modified_seconds_ago": 142,
+      "healthy": true,
+      "signals": [],
+      "spec_flags": [],
+      "_derived_signals": [],
+      "_derived": true,
+      "evidence_kinds": []
+    },
+    "deployment/recommendation": {
+      "kind": "Deployment",
+      "name": "recommendation",
+      "namespace": "hotel-reservation",
+      "created": "2026-10-19T01:08:07Z",
+      "modified": "2026-10-19T01:08:07Z",
+      "service_account": "default",
+      "replicas": {
+        "desired": 1,
+        "ready": 1,
+        "available": 1,
+        "updated": 1
+      },
+      "strategy": {
+        "type": "RollingUpdate",
+        "maxSurge": "25%",
+        "maxUnavailable": "25%"
+      },
+      "rollout": {
+        "progressDeadlineSeconds": 600
+      },
+      "containers": [
+        {
+          "name": "hotel-reserv-recommendation",
+          "init": false,
+          "image": "ghcr.io/sregym/hotel-reservation:sha-d2c036bc3d1138f5a0bdaffd3d87f37522c3461a@sha256:1c685e1c4c304f327952397b3a99c54dadb086607774d71f222b200ec0d2e65e",
+          "limits": {
+            "cpu": "1"
+          },
+          "requests": {
+            "cpu": "100m"
+          },
+          "ports": [
+            8085
+          ],
+          "env_names": [
+            "JAEGER_SAMPLE_RATIO"
+          ],
+          "command": [
+            "recommendation"
+          ]
+        }
+      ],
+      "pods": [
+        {
+          "name": "recommendation-6bf7689fdb-jrfft",
+          "phase": "Running",
+          "ready": "1/1",
+          "restarts": 0,
+          "created": "2026-10-19T01:08:08Z",
+          "started": "2026-10-19T01:08:08Z",
+          "ready_since": "2026-10-19T01:08:09Z",
+          "node": "kind-worker3",
+          "ip": "10.244.195.215"
+        }
+      ],
+      "services": [
+        {
+          "name": "recommendation",
+          "type": "ClusterIP",
+          "ports": [
+            "8085->8085/TCP"
+          ],
+          "ready_endpoints": 1,
+          "not_ready_endpoints": 0
+        }
+      ],
+      "resource_usage": [
+        {
+          "pod": "recommendation-6bf7689fdb-jrfft",
+          "container": "hotel-reserv-recommendation",
+          "cpu": "1m",
+          "memory": "14Mi",
+          "cpu_limit": "1"
+        }
+      ],
+      "modified_seconds_ago": 142,
+      "healthy": true,
+      "signals": [],
+      "spec_flags": [],
+      "_derived_signals": [],
+      "_derived": true,
+      "evidence_kinds": []
+    },
+    "deployment/reservation": {
+      "kind": "Deployment",
+      "name": "reservation",
+      "namespace": "hotel-reservation",
+      "created": "2026-10-19T01:08:07Z",
+      "modified": "2026-10-19T01:08:07Z",
+      "service_account": "default",
+      "replicas": {
+        "desired": 1,
+        "ready": 1,
+        "available": 1,
+        "updated": 1
+      },
+      "strategy": {
+        "type": "RollingUpdate",
+        "maxSurge": "25%",
+        "maxUnavailable": "25%"
+      },
+      "rollout": {
+        "progressDeadlineSeconds": 600
+      },
+      "containers": [
+        {
+          "name": "hotel-reserv-reservation",
+          "init": false,
+          "image": "ghcr.io/sregym/hotel-reservation:sha-d2c036bc3d1138f5a0bdaffd3d87f37522c3461a@sha256:1c685e1c4c304f327952397b3a99c54dadb086607774d71f222b200ec0d2e65e",
+          "limits": {
+            "cpu": "1"
+          },
+          "requests": {
+            "cpu": "100m"
+          },
+          "ports": [
+            8087
+          ],
+          "env_names": [
+            "JAEGER_SAMPLE_RATIO"
+          ],
+          "command": [
+            "reservation"
+          ]
+        }
+      ],
+      "pods": [
+        {
+          "name": "reservation-57b8ccd5dc-c59sh",
+          "phase": "Running",
+          "ready": "1/1",
+          "restarts": 0,
+          "created": "2026-10-19T01:08:08Z",
+          "started": "2026-10-19T01:08:08Z",
+          "ready_since": "2026-10-19T01:08:10Z",
+          "node": "kind-worker3",
+          "ip": "10.244.195.223"
+        }
+      ],
+      "services": [
+        {
+          "name": "reservation",
+          "type": "ClusterIP",
+          "ports": [
+            "8087->8087/TCP"
+          ],
+          "ready_endpoints": 1,
+          "not_ready_endpoints": 0
+        }
+      ],
+      "resource_usage": [
+        {
+          "pod": "reservation-57b8ccd5dc-c59sh",
+          "container": "hotel-reserv-reservation",
+          "cpu": "1m",
+          "memory": "5Mi",
+          "cpu_limit": "1"
+        }
+      ],
+      "modified_seconds_ago": 142,
+      "healthy": true,
+      "signals": [],
+      "spec_flags": [],
+      "_derived_signals": [],
+      "_derived": true,
+      "evidence_kinds": []
+    },
+    "deployment/search": {
+      "kind": "Deployment",
+      "name": "search",
+      "namespace": "hotel-reservation",
+      "created": "2026-10-19T01:08:07Z",
+      "modified": "2026-10-19T01:08:07Z",
+      "service_account": "default",
+      "replicas": {
+        "desired": 1,
+        "ready": 1,
+        "available": 1,
+        "updated": 1
+      },
+      "strategy": {
+        "type": "RollingUpdate",
+        "maxSurge": "25%",
+        "maxUnavailable": "25%"
+      },
+      "rollout": {
+        "progressDeadlineSeconds": 600
+      },
+      "containers": [
+        {
+          "name": "hotel-reserv-search",
+          "init": false,
+          "image": "ghcr.io/sregym/hotel-reservation:sha-d2c036bc3d1138f5a0bdaffd3d87f37522c3461a@sha256:1c685e1c4c304f327952397b3a99c54dadb086607774d71f222b200ec0d2e65e",
+          "limits": {
+            "cpu": "1"
+          },
+          "requests": {
+            "cpu": "100m"
+          },
+          "ports": [
+            8082,
+            9092
+          ],
+          "env_names": [
+            "JAEGER_SAMPLE_RATIO",
+            "RATE_RPC_TIMEOUT_MS",
+            "RATE_RPC_MAX_ATTEMPTS",
+            "RATE_RPC_INITIAL_BACKOFF_MS",
+            "RATE_RPC_BACKOFF_MULTIPLIER",
+            "RATE_RPC_JITTER"
+          ],
+          "command": [
+            "search"
+          ]
+        }
+      ],
+      "pods": [
+        {
+          "name": "search-7d996cf85b-hzj9c",
+          "phase": "Running",
+          "ready": "1/1",
+          "restarts": 0,
+          "created": "2026-10-19T01:08:09Z",
+          "started": "2026-10-19T01:08:09Z",
+          "ready_since": "2026-10-19T01:08:09Z",
+          "node": "kind-worker2",
+          "ip": "10.244.110.167"
+        }
+      ],
+      "services": [
+        {
+          "name": "search",
+          "type": "ClusterIP",
+          "ports": [
+            "8082->8082/TCP",
+            "9092->9092/TCP"
+          ],
+          "ready_endpoints": 1,
+          "not_ready_endpoints": 0
+        }
+      ],
+      "resource_usage": [
+        {
+          "pod": "search-7d996cf85b-hzj9c",
+          "container": "hotel-reserv-search",
+          "cpu": "1m",
+          "memory": "4Mi",
+          "cpu_limit": "1"
+        }
+      ],
+      "modified_seconds_ago": 142,
+      "healthy": true,
+      "signals": [],
+      "spec_flags": [],
+      "_derived_signals": [],
+      "_derived": true,
+      "evidence_kinds": []
+    },
+    "deployment/user": {
+      "kind": "Deployment",
+      "name": "user",
+      "namespace": "hotel-reservation",
+      "created": "2026-10-19T01:08:07Z",
+      "modified": "2026-10-19T01:08:07Z",
+      "service_account": "default",
+      "replicas": {
+        "desired": 1,
+        "ready": 1,
+        "available": 1,
+        "updated": 1
+      },
+      "strategy": {
+        "type": "RollingUpdate",
+        "maxSurge": "25%",
+        "maxUnavailable": "25%"
+      },
+      "rollout": {
+        "progressDeadlineSeconds": 600
+      },
+      "containers": [
+        {
+          "name": "hotel-reserv-user",
+          "init": false,
+          "image": "ghcr.io/sregym/hotel-reservation:sha-d2c036bc3d1138f5a0bdaffd3d87f37522c3461a@sha256:1c685e1c4c304f327952397b3a99c54dadb086607774d71f222b200ec0d2e65e",
+          "limits": {
+            "cpu": "1"
+          },
+          "requests": {
+            "cpu": "100m"
+          },
+          "ports": [
+            8086
+          ],
+          "env_names": [
+            "JAEGER_SAMPLE_RATIO"
+          ],
+          "command": [
+            "user"
+          ]
+        }
+      ],
+      "pods": [
+        {
+          "name": "user-5c4d969c85-f2lms",
+          "phase": "Running",
+          "ready": "1/1",
+          "restarts": 0,
+          "created": "2026-10-19T01:08:09Z",
+          "started": "2026-10-19T01:08:09Z",
+          "ready_since": "2026-10-19T01:08:10Z",
+          "node": "kind-worker2",
+          "ip": "10.244.110.186"
+        }
+      ],
+      "services": [
+        {
+          "name": "user",
+          "type": "ClusterIP",
+          "ports": [
+            "8086->8086/TCP"
+          ],
+          "ready_endpoints": 1,
+          "not_ready_endpoints": 0
+        }
+      ],
+      "resource_usage": [
+        {
+          "pod": "user-5c4d969c85-f2lms",
+          "container": "hotel-reserv-user",
+          "cpu": "2m",
+          "memory": "7Mi",
+          "cpu_limit": "1"
+        }
+      ],
+      "modified_seconds_ago": 142,
+      "healthy": true,
+      "signals": [],
+      "spec_flags": [],
+      "_derived_signals": [],
+      "_derived": true,
+      "evidence_kinds": []
+    }
+  },
+  "collection_errors": [],
+  "collected_at": "2026-10-19T01:10:32+00:00"
+}

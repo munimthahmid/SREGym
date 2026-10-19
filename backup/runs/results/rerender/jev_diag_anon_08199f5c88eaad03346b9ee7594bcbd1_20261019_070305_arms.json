@@ -1,0 +1,115 @@
+{
+ "problem_id": "jev_diag_anon_08199f5c88eaad03346b9ee7594bcbd1_20261019_070305",
+ "submit_arm": 0,
+ "order": [
+  0,
+  1,
+  3,
+  2
+ ],
+ "arms": [
+  {
+   "arm": 0,
+   "kind": "v2",
+   "model": "openrouter/typesafe/jev-1.13",
+   "position": 0,
+   "seconds": 9.4,
+   "requests": 4,
+   "input_tokens": 60922,
+   "cost_usd": 0.002559,
+   "error": null,
+   "investigation": {
+    "rounds": [
+     {
+      "candidates": [
+       "dependency:daemonset/otel-collector-agent",
+       "change:configmap/astronomy-shop/postgresql-init",
+       "change:secret/astronomy-shop/product-catalog-db-conn",
+       "stale-read:deployment/product-catalog:secret/astronomy-shop/product-catalog-db-conn",
+       "bad-input:deployment/postgresql:root",
+       "bad-input:deployment/postgresql:otel"
+      ],
+      "probabilities": {
+       "dependency:daemonset/otel-collector-agent": 0.015,
+       "change:configmap/astronomy-shop/postgresql-init": 0.41000000000000003,
+       "change:secret/astronomy-shop/product-catalog-db-conn": 0.10500000000000001,
+       "stale-read:deployment/product-catalog:secret/astronomy-shop/product-catalog-db-conn": 0.36,
+       "bad-input:deployment/postgresql:root": 0.01,
+       "bad-input:deployment/postgresql:otel": 0.015,
+       "none_of_these": 0.08499999999999999
+      },
+      "picks": [
+       "change:configmap/astronomy-shop/postgresql-init",
+       "stale-read:deployment/product-catalog:secret/astronomy-shop/product-catalog-db-conn"
+      ],
+      "route": "check"
+     }
+    ],
+    "explanations": 20,
+    "winner": "change:configmap/astronomy-shop/postgresql-init",
+    "pattern": "acts-on",
+    "key_fact": "ConfigMap postgresql-init was rewritten at 2026-10-19T07:02:53Z, after 1 of 1 running containers of this workload started; it is mounted as files (volume /docker-entrypoint-initdb.d), which the kubelet updates in place, so the running process sees the new content only if it re-reads the files",
+    "key_fact_probability": 0.755,
+    "fault_type": "credentials_or_auth",
+    "fault_object": null,
+    "uncertain": true
+   },
+   "text": "Root cause: deployment `postgresql` in namespace `astronomy-shop`.\nMechanism: ConfigMap postgresql-init was rewritten at 2026-10-19T07:02:53Z, after 1 of 1 running containers of this workload started; it is mounted as files (volume /docker-entrypoint-initdb.d), which the kubelet updates in place, so the running process sees the new content only if it re-reads the files.\nHow it fails: configmap postgresql-init was changed recently and breaks deployment/postgresql, which it acts on.\nConcrete details: configmap postgresql-init fields written: data.init.sql; ConfigMap postgresql-init was rewritten at 2026-10-19T07:02:53Z, after 1 of 1 running containers of this workload started; it is mounted as files (volume /docker-entrypoint-initdb.d), which the kubelet updates in place, so the running process sees the new content only if it re-reads the files; ConfigMap postgresql-init was modified 138s ago, 106s after it was created (fields: data.init.sql); 26s after the first active symptom.\nObserved impact: deployment `postgresql` in namespace `astronomy-shop`.\nFault type: credentials or auth (authentication between components fails because credentials or auth settings changed).\nFault object: configmap `postgresql-init` in namespace `astronomy-shop`.\nEvidence:\n- configmap postgresql-init fields written: data.init.sql\n- ConfigMap postgresql-init was rewritten at 2026-10-19T07:02:53Z, after 1 of 1 running containers of this workload started; it is mounted as files (volume /docker-entrypoint-initdb.d), which the kubelet updates in place, so the running process sees the new content only if it re-reads the files\n- ConfigMap postgresql-init was modified 138s ago, 106s after it was created (fields: data.init.sql); 26s after the first active symptom\n- deployment/postgresql: ConfigMap postgresql-init was rewritten at 2026-10-19T07:02:53Z, after 1 of 1 running containers of this workload started; it is mounted as files (volume /docker-entrypoint-initdb.d), which the kubelet updates in place, so the running process sees the new content only if it re-reads the files\nConfidence: low; the investigation budget ended before the leading explanation was confirmed.",
+   "text_before_rerender": "Root cause: configmap `postgresql-init` in namespace `astronomy-shop`.\nMechanism: configmap postgresql-init was changed recently and breaks deployment/postgresql, which it acts on.\nConcrete details: configmap postgresql-init fields written: data.init.sql; ConfigMap postgresql-init was rewritten at 2026-10-19T07:02:53Z, after 1 of 1 running containers of this workload started; it is mounted as files (volume /docker-entrypoint-initdb.d), which the kubelet updates in place, so the running process sees the new content only if it re-reads the files; ConfigMap postgresql-init was modified 138s ago, 106s after it was created (fields: data.init.sql); 26s after the first active symptom.\nObserved impact: deployment `postgresql` in namespace `astronomy-shop`.\nFault type: credentials or auth (authentication between components fails because credentials or auth settings changed).\nEvidence:\n- configmap postgresql-init fields written: data.init.sql\n- ConfigMap postgresql-init was rewritten at 2026-10-19T07:02:53Z, after 1 of 1 running containers of this workload started; it is mounted as files (volume /docker-entrypoint-initdb.d), which the kubelet updates in place, so the running process sees the new content only if it re-reads the files\n- ConfigMap postgresql-init was modified 138s ago, 106s after it was created (fields: data.init.sql); 26s after the first active symptom\n- deployment/postgresql: ConfigMap postgresql-init was rewritten at 2026-10-19T07:02:53Z, after 1 of 1 running containers of this workload started; it is mounted as files (volume /docker-entrypoint-initdb.d), which the kubelet updates in place, so the running process sees the new content only if it re-reads the files\nConfidence: low; the investigation budget ended before the leading explanation was confirmed."
+  },
+  {
+   "arm": 1,
+   "kind": "v2",
+   "model": "openrouter/openai/gpt-6-luna-decisions",
+   "position": 1,
+   "seconds": 9.0,
+   "requests": 4,
+   "input_tokens": 41140,
+   "cost_usd": 0.004114,
+   "error": null,
+   "investigation": {
+    "rounds": [
+     {
+      "candidates": [
+       "dependency:daemonset/otel-collector-agent",
+       "change:configmap/astronomy-shop/postgresql-init",
+       "change:secret/astronomy-shop/product-catalog-db-conn",
+       "stale-read:deployment/product-catalog:secret/astronomy-shop/product-catalog-db-conn",
+       "bad-input:deployment/postgresql:root",
+       "bad-input:deployment/postgresql:otel"
+      ],
+      "probabilities": {
+       "dependency:daemonset/otel-collector-agent": 0.1,
+       "change:configmap/astronomy-shop/postgresql-init": 0.5549999999999999,
+       "change:secret/astronomy-shop/product-catalog-db-conn": 0.06,
+       "stale-read:deployment/product-catalog:secret/astronomy-shop/product-catalog-db-conn": 0.13,
+       "bad-input:deployment/postgresql:root": 0.035,
+       "bad-input:deployment/postgresql:otel": 0.025,
+       "none_of_these": 0.095
+      },
+      "picks": [
+       "change:configmap/astronomy-shop/postgresql-init",
+       "change:configmap/astronomy-shop/postgresql-init"
+      ],
+      "route": "check"
+     }
+    ],
+    "explanations": 20,
+    "winner": "change:configmap/astronomy-shop/postgresql-init",
+    "pattern": "acts-on",
+    "key_fact": "rejects logins for account otelu (19 lines, still occurring); the rejected credentials come from its clients: candidates deployment/product-catalog (secret/product-catalog-db-conn, which it reads through env values, was rewritten 83s before the rejections began and after its containers started, its env var DB_CONNECTION_STRING names a database connection and postgresql is the application's only database)",
+    "key_fact_probability": 0.385,
+    "fault_type": "credentials_or_auth",
+    "fault_object": null,
+    "uncertain": true
+   },
+   "text": "Root cause: deployment `postgresql` in namespace `astronomy-shop`.\nMechanism: rejects logins for account otelu (19 lines, still occurring); the rejected credentials come from its clients: candidates deployment/product-catalog (secret/product-catalog-db-conn, which it reads through env values, was rewritten 83s before the rejections began and after its containers started, its env var DB_CONNECTION_STRING names a database connection and postgresql is the application's only database).\nHow it fails: configmap postgresql-init was changed recently and breaks deployment/postgresql, which it acts on.\nConcrete details: configmap postgresql-init fields written: data.init.sql; ConfigMap postgresql-init was rewritten at 2026-10-19T07:02:53Z, after 1 of 1 running containers of this workload started; it is mounted as files (volume /docker-entrypoint-initdb.d), which the kubelet updates in place, so the running process sees the new content only if it re-reads the files; ConfigMap postgresql-init was modified 138s ago, 106s after it was created (fields: data.init.sql); 26s after the first active symptom.\nObserved impact: deployment `postgresql` in namespace `astronomy-shop`.\nFault type: credentials or auth (authentication between components fails because credentials or auth settings changed).\nFault object: configmap `postgresql-init` in namespace `astronomy-shop`.\nEvidence:\n- configmap postgresql-init fields written: data.init.sql\n- ConfigMap postgresql-init was rewritten at 2026-10-19T07:02:53Z, after 1 of 1 running containers of this workload started; it is mounted as files (volume /docker-entrypoint-initdb.d), which the kubelet updates in place, so the running process sees the new content only if it re-reads the files\n- ConfigMap postgresql-init was modified 138s ago, 106s after it was created (fields: data.init.sql); 26s after the first active symptom\n- deployment/postgresql: ConfigMap postgresql-init was rewritten at 2026-10-19T07:02:53Z, after 1 of 1 running containers of this workload started; it is mounted as files (volume /docker-entrypoint-initdb.d), which the kubelet updates in place, so the running process sees the new content only if it re-reads the files\nConfidence: low; the investigation budget ended before the leading explanation was confirmed.",
+   "text_before_rerender": "Root cause: configmap `postgresql-init` in namespace `astronomy-shop`.\nMechanism: configmap postgresql-init was changed recently and breaks deployment/postgresql, which it acts on.\nConcrete details: configmap postgresql-init fields written: data.init.sql; ConfigMap postgresql-init was rewritten at 2026-10-19T07:02:53Z, after 1 of 1 running containers of this workload started; it is mounted as files (volume /docker-entrypoint-initdb.d), which the kubelet updates in place, so the running process sees the new content only if it re-reads the files; ConfigMap postgresql-init was modified 138s ago, 106s after it was created (fields: data.init.sql); 26s after the first active symptom.\nObserved impact: deployment `postgresql` in namespace `astronomy-shop`.\nKey evidence: rejects logins for account otelu (19 lines, still occurring); the rejected credentials come from its clients: candidates deployment/product-catalog (secret/product-catalog-db-conn, which it reads through env values, was rewritten 83s before the rejections began and after its containers started, its env var DB_CONNECTION_STRING names a database connection and postgresql is the application's only database).\nFault type: credentials or auth (authentication between components fails because credentials or auth settings changed).\nEvidence:\n- configmap postgresql-init fields written: data.init.sql\n- ConfigMap postgresql-init was rewritten at 2026-10-19T07:02:53Z, after 1 of 1 running containers of this workload started; it is mounted as files (volume /docker-entrypoint-initdb.d), which the kubelet updates in place, so the running process sees the new content only if it re-reads the files\n- ConfigMap postgresql-init was modified 138s ago, 106s after it was created (fields: data.init.sql); 26s after the first active symptom\n- deployment/postgresql: ConfigMap postgresql-init was rewritten at 2026-10-19T07:02:53Z, after 1 of 1 running containers of this workload started; it is mounted as files (volume /docker-entrypoint-initdb.d), which the kubelet updates in place, so the running process sees the new content only if it re-reads the files\nConfidence: low; the investigation budget ended before the leading explanation was confirmed."
+  }
+ ],
+ "submission": {
+  "status": "200",
+  "message": "Submission received",
+  "stage": "diagnosis"
+ }
+}

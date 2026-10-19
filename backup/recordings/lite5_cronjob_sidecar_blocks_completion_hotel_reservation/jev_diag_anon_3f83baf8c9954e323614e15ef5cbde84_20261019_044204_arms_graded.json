@@ -1,0 +1,534 @@
+{
+ "problem_id": "jev_diag_anon_3f83baf8c9954e323614e15ef5cbde84_20261019_044204",
+ "submit_arm": 0,
+ "order": [
+  3,
+  2,
+  1,
+  0
+ ],
+ "arms": [
+  {
+   "arm": 0,
+   "kind": "v2",
+   "model": "openrouter/typesafe/jev-1.13",
+   "position": 3,
+   "seconds": 5.8,
+   "requests": 4,
+   "input_tokens": 44496,
+   "cost_usd": 0.001869,
+   "error": null,
+   "investigation": {
+    "rounds": [
+     {
+      "candidates": [
+       "own-setting:cronjob/audit-log-archiver",
+       "partial:cronjob/audit-log-archiver",
+       "change:deployment/mongodb-geo:volume failure-script added: {\"configMap\": {\"defaultMode\": 420, \"name\": \"failure-admin-geo\"}}",
+       "change:deployment/mongodb-geo:container hotel-reserv-geo-mongo mounts volume failure-script at /scripts",
+       "change:deployment/mongodb-geo:together",
+       "change:deployment/mongodb-rate:volume failure-script added: {\"configMap\": {\"defaultMode\": 420, \"name\": \"failure-admin-rate\"}}"
+      ],
+      "probabilities": {
+       "own-setting:cronjob/audit-log-archiver": 0.985,
+       "partial:cronjob/audit-log-archiver": 0.01,
+       "change:deployment/mongodb-geo:volume failure-script added: {\"configMap\": {\"defaultMode\": 420, \"name\": \"failure-admin-geo\"}}": 0.0,
+       "change:deployment/mongodb-geo:container hotel-reserv-geo-mongo mounts volume failure-script at /scripts": 0.0,
+       "change:deployment/mongodb-geo:together": 0.0,
+       "change:deployment/mongodb-rate:volume failure-script added: {\"configMap\": {\"defaultMode\": 420, \"name\": \"failure-admin-rate\"}}": 0.0,
+       "none_of_these": 0.005
+      },
+      "picks": [
+       "own-setting:cronjob/audit-log-archiver",
+       "own-setting:cronjob/audit-log-archiver"
+      ],
+      "route": "accept"
+     }
+    ],
+    "explanations": 8,
+    "winner": "own-setting:cronjob/audit-log-archiver",
+    "pattern": "own-setting",
+    "key_fact": "container fluent-bit-sidecar command: sh -c echo \"[$(date -u '+%FT%TZ')] fluent-bit: binding to forward port 24224\"\necho \"[$(date -u '+%FT%TZ')] fluent-bit: ready to receive log streams\"\nexec nc -lk -p 24224 -e cat\n",
+    "key_fact_probability": 0.74,
+    "fault_type": "job_lifecycle",
+    "fault_object": null,
+    "uncertain": false
+   },
+   "text": "Root cause: cronjob `audit-log-archiver` in namespace `hotel-reservation`.\nMechanism: cronjob/hotel-reservation/audit-log-archiver has a wrong setting of its own: 4 job(s) still active and no successful completion since the last schedule at 2026-10-19T04:44:00Z (last success: never); 4 jobs of this cronjob are active without completing (they pile up); container archiver completed but container fluent-bit-sidecar keeps running, so this job pod never completes\nConcrete details: 4 job(s) still active and no successful completion since the last schedule at 2026-10-19T04:44:00Z (last success: never); 4 jobs of this cronjob are active without completing (they pile up); container archiver completed but container fluent-bit-sidecar keeps running, so this job pod never completes.\nObserved impact: cronjob `audit-log-archiver` in namespace `hotel-reservation`.\nKey evidence: container fluent-bit-sidecar command: sh -c echo \"[$(date -u '+%FT%TZ')] fluent-bit: binding to forward port 24224\"\necho \"[$(date -u '+%FT%TZ')] fluent-bit: ready to receive log streams\"\nexec nc -lk -p 24224 -e cat\n.\nFault type: job lifecycle (the job pod cannot complete or the job runs wrongly).\nEvidence:\n- 4 job(s) still active and no successful completion since the last schedule at 2026-10-19T04:44:00Z (last success: never)\n- 4 jobs of this cronjob are active without completing (they pile up)\n- container archiver completed but container fluent-bit-sidecar keeps running, so this job pod never completes\n- pod audit-log-archiver-29873081-25p4x: container archiver completed but container fluent-bit-sidecar keeps running, so this job pod never completes\n- cronjob/audit-log-archiver: 4 job(s) still active and no successful completion since the last schedule at 2026-10-19T04:44:00Z (last success: never)",
+   "grade": {
+    "judgment": "True",
+    "reasoning": "Verdict: True (composite=1.00). D1 Fault Localization: 1.00 | D2 Fault Characterization: 1.00 | D3 Scope Precision: 1.00. Weakest dimension: Fault Localization (1.00). Checklist details: [{\"id\": \"D1-Q1\", \"answer\": \"Yes\", \"evidence\": \"Names CronJob audit-log-archiver in namespace hotel-reservation, matching the fault specification.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q2\", \"answer\": \"Yes\", \"evidence\": \"Identifies the CronJob as the origin and describes its accumulating active Jobs as consequences.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q3\", \"answer\": \"Yes\", \"evidence\": \"Attributes the fault to audit-log-archiver, without blaming a different component.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q1\", \"answer\": \"Yes\", \"evidence\": \"States that archiver completed while fluent-bit-sidecar keeps running, preventing the Job pod from completing.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q2\", \"answer\": \"Yes\", \"evidence\": \"Names archiver and fluent-bit-sidecar, specifies their completed versus running states, and provides the sidecar's persistent listener command.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q3\", \"answer\": \"Yes\", \"evidence\": \"Classifies the fault as a Job lifecycle problem caused by the running sidecar preventing completion.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q1\", \"answer\": \"Yes\", \"evidence\": \"Limits attribution to audit-log-archiver and its containers, Jobs, and pod.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q2\", \"answer\": \"Yes\", \"evidence\": \"Includes the CronJob, its active Jobs and pod, and both contributing containers: archiver and fluent-bit-sidecar.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q3\", \"answer\": \"Yes\", \"evidence\": \"Reports four active Jobs accumulating without successful completion because the sidecar continues running after archiver completes.\", \"confidence\": \"High\"}]",
+    "success": true,
+    "accuracy": 100.0,
+    "composite_score": 1.0,
+    "dimensions": {
+     "D1": {
+      "name": "Fault Localization",
+      "score": 1.0
+     },
+     "D2": {
+      "name": "Fault Characterization",
+      "score": 1.0
+     },
+     "D3": {
+      "name": "Scope Precision",
+      "score": 1.0
+     }
+    },
+    "checklist": [
+     {
+      "id": "D1-Q1",
+      "answer": "Yes",
+      "evidence": "Names CronJob audit-log-archiver in namespace hotel-reservation, matching the fault specification.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q2",
+      "answer": "Yes",
+      "evidence": "Identifies the CronJob as the origin and describes its accumulating active Jobs as consequences.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q3",
+      "answer": "Yes",
+      "evidence": "Attributes the fault to audit-log-archiver, without blaming a different component.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q1",
+      "answer": "Yes",
+      "evidence": "States that archiver completed while fluent-bit-sidecar keeps running, preventing the Job pod from completing.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q2",
+      "answer": "Yes",
+      "evidence": "Names archiver and fluent-bit-sidecar, specifies their completed versus running states, and provides the sidecar's persistent listener command.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q3",
+      "answer": "Yes",
+      "evidence": "Classifies the fault as a Job lifecycle problem caused by the running sidecar preventing completion.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q1",
+      "answer": "Yes",
+      "evidence": "Limits attribution to audit-log-archiver and its containers, Jobs, and pod.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q2",
+      "answer": "Yes",
+      "evidence": "Includes the CronJob, its active Jobs and pod, and both contributing containers: archiver and fluent-bit-sidecar.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q3",
+      "answer": "Yes",
+      "evidence": "Reports four active Jobs accumulating without successful completion because the sidecar continues running after archiver completes.",
+      "confidence": "High"
+     }
+    ]
+   }
+  },
+  {
+   "arm": 1,
+   "kind": "v2",
+   "model": "openrouter/openai/gpt-6-luna-decisions",
+   "position": 2,
+   "seconds": 5.9,
+   "requests": 4,
+   "input_tokens": 30922,
+   "cost_usd": 0.003092,
+   "error": null,
+   "investigation": {
+    "rounds": [
+     {
+      "candidates": [
+       "own-setting:cronjob/audit-log-archiver",
+       "partial:cronjob/audit-log-archiver",
+       "change:deployment/mongodb-geo:volume failure-script added: {\"configMap\": {\"defaultMode\": 420, \"name\": \"failure-admin-geo\"}}",
+       "change:deployment/mongodb-geo:container hotel-reserv-geo-mongo mounts volume failure-script at /scripts",
+       "change:deployment/mongodb-geo:together",
+       "change:deployment/mongodb-rate:volume failure-script added: {\"configMap\": {\"defaultMode\": 420, \"name\": \"failure-admin-rate\"}}"
+      ],
+      "probabilities": {
+       "own-setting:cronjob/audit-log-archiver": 0.775,
+       "partial:cronjob/audit-log-archiver": 0.08,
+       "change:deployment/mongodb-geo:volume failure-script added: {\"configMap\": {\"defaultMode\": 420, \"name\": \"failure-admin-geo\"}}": 0.005,
+       "change:deployment/mongodb-geo:container hotel-reserv-geo-mongo mounts volume failure-script at /scripts": 0.005,
+       "change:deployment/mongodb-geo:together": 0.005,
+       "change:deployment/mongodb-rate:volume failure-script added: {\"configMap\": {\"defaultMode\": 420, \"name\": \"failure-admin-rate\"}}": 0.125,
+       "none_of_these": 0.005
+      },
+      "picks": [
+       "own-setting:cronjob/audit-log-archiver",
+       "own-setting:cronjob/audit-log-archiver"
+      ],
+      "route": "accept"
+     }
+    ],
+    "explanations": 8,
+    "winner": "own-setting:cronjob/audit-log-archiver",
+    "pattern": "own-setting",
+    "key_fact": "container fluent-bit-sidecar command: sh -c echo \"[$(date -u '+%FT%TZ')] fluent-bit: binding to forward port 24224\"\necho \"[$(date -u '+%FT%TZ')] fluent-bit: ready to receive log streams\"\nexec nc -lk -p 24224 -e cat\n",
+    "key_fact_probability": 0.615,
+    "fault_type": "job_lifecycle",
+    "fault_object": null,
+    "uncertain": false
+   },
+   "text": "Root cause: cronjob `audit-log-archiver` in namespace `hotel-reservation`.\nMechanism: cronjob/hotel-reservation/audit-log-archiver has a wrong setting of its own: 4 job(s) still active and no successful completion since the last schedule at 2026-10-19T04:44:00Z (last success: never); 4 jobs of this cronjob are active without completing (they pile up); container archiver completed but container fluent-bit-sidecar keeps running, so this job pod never completes\nConcrete details: 4 job(s) still active and no successful completion since the last schedule at 2026-10-19T04:44:00Z (last success: never); 4 jobs of this cronjob are active without completing (they pile up); container archiver completed but container fluent-bit-sidecar keeps running, so this job pod never completes.\nObserved impact: cronjob `audit-log-archiver` in namespace `hotel-reservation`.\nKey evidence: container fluent-bit-sidecar command: sh -c echo \"[$(date -u '+%FT%TZ')] fluent-bit: binding to forward port 24224\"\necho \"[$(date -u '+%FT%TZ')] fluent-bit: ready to receive log streams\"\nexec nc -lk -p 24224 -e cat\n.\nFault type: job lifecycle (the job pod cannot complete or the job runs wrongly).\nEvidence:\n- 4 job(s) still active and no successful completion since the last schedule at 2026-10-19T04:44:00Z (last success: never)\n- 4 jobs of this cronjob are active without completing (they pile up)\n- container archiver completed but container fluent-bit-sidecar keeps running, so this job pod never completes\n- pod audit-log-archiver-29873081-25p4x: container archiver completed but container fluent-bit-sidecar keeps running, so this job pod never completes\n- cronjob/audit-log-archiver: 4 job(s) still active and no successful completion since the last schedule at 2026-10-19T04:44:00Z (last success: never)",
+   "grade": {
+    "judgment": "True",
+    "reasoning": "Verdict: True (composite=1.00). D1 Fault Localization: 1.00 | D2 Fault Characterization: 1.00 | D3 Scope Precision: 1.00. Weakest dimension: Fault Localization (1.00). Checklist details: [{\"id\": \"D1-Q1\", \"answer\": \"Yes\", \"evidence\": \"Names CronJob audit-log-archiver in namespace hotel-reservation as the root cause, matching the fault specification.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q2\", \"answer\": \"Yes\", \"evidence\": \"Attributes the fault to the CronJob's own configuration and describes its noncompleting Jobs and pods as consequences.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q3\", \"answer\": \"Yes\", \"evidence\": \"Identifies audit-log-archiver as the fault origin and does not blame a different component.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q1\", \"answer\": \"Yes\", \"evidence\": \"States that archiver completed but fluent-bit-sidecar keeps running, preventing the Job pod from completing.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q2\", \"answer\": \"Yes\", \"evidence\": \"Names archiver and fluent-bit-sidecar, specifies their completed versus running states, and provides the sidecar's long-running command.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q3\", \"answer\": \"Yes\", \"evidence\": \"Classifies the fault as a Job lifecycle problem caused by the pod's inability to complete.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q1\", \"answer\": \"Yes\", \"evidence\": \"Confines attribution to audit-log-archiver and its running fluent-bit-sidecar; no unrelated components are blamed.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q2\", \"answer\": \"Yes\", \"evidence\": \"Includes the affected CronJob, its Jobs and pods, and both archiver and fluent-bit-sidecar containers.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q3\", \"answer\": \"Yes\", \"evidence\": \"Reports four active Jobs accumulating without successful completion because the sidecar continues running after archiver completes.\", \"confidence\": \"High\"}]",
+    "success": true,
+    "accuracy": 100.0,
+    "composite_score": 1.0,
+    "dimensions": {
+     "D1": {
+      "name": "Fault Localization",
+      "score": 1.0
+     },
+     "D2": {
+      "name": "Fault Characterization",
+      "score": 1.0
+     },
+     "D3": {
+      "name": "Scope Precision",
+      "score": 1.0
+     }
+    },
+    "checklist": [
+     {
+      "id": "D1-Q1",
+      "answer": "Yes",
+      "evidence": "Names CronJob audit-log-archiver in namespace hotel-reservation as the root cause, matching the fault specification.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q2",
+      "answer": "Yes",
+      "evidence": "Attributes the fault to the CronJob's own configuration and describes its noncompleting Jobs and pods as consequences.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q3",
+      "answer": "Yes",
+      "evidence": "Identifies audit-log-archiver as the fault origin and does not blame a different component.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q1",
+      "answer": "Yes",
+      "evidence": "States that archiver completed but fluent-bit-sidecar keeps running, preventing the Job pod from completing.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q2",
+      "answer": "Yes",
+      "evidence": "Names archiver and fluent-bit-sidecar, specifies their completed versus running states, and provides the sidecar's long-running command.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q3",
+      "answer": "Yes",
+      "evidence": "Classifies the fault as a Job lifecycle problem caused by the pod's inability to complete.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q1",
+      "answer": "Yes",
+      "evidence": "Confines attribution to audit-log-archiver and its running fluent-bit-sidecar; no unrelated components are blamed.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q2",
+      "answer": "Yes",
+      "evidence": "Includes the affected CronJob, its Jobs and pods, and both archiver and fluent-bit-sidecar containers.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q3",
+      "answer": "Yes",
+      "evidence": "Reports four active Jobs accumulating without successful completion because the sidecar continues running after archiver completes.",
+      "confidence": "High"
+     }
+    ]
+   }
+  },
+  {
+   "arm": 2,
+   "kind": "v1",
+   "model": "openrouter/typesafe/jev-1.13",
+   "position": 1,
+   "seconds": 3.1,
+   "requests": 2,
+   "input_tokens": 30488,
+   "cost_usd": 0.00128,
+   "error": null,
+   "investigation": {
+    "steps": [
+     {
+      "step": 1,
+      "node": "investigate",
+      "component": "cronjob/audit-log-archiver",
+      "verdict": "origin",
+      "origin_p": 0.99,
+      "victim_p": 0.0,
+      "next": "none",
+      "next_p": 0.82,
+      "category": "job_lifecycle",
+      "spec_checks": [],
+      "blocked_input": null,
+      "key_evidence": "container fluent-bit-sidecar command: sh -c echo \"[$(date -u '+%FT%TZ')] fluent-bit: binding to forward port 24224\"\necho \"[$(date -u '+%FT%TZ')] fluent-bit: ready to receive log streams\"\nexec nc -lk -p 24224 -e cat\n"
+     }
+    ],
+    "concluded": "cronjob/audit-log-archiver",
+    "fallback": null,
+    "triage_top": [
+     [
+      "cronjob/audit-log-archiver",
+      0.96
+     ],
+     [
+      "deployment/mongodb-geo",
+      0.04
+     ],
+     [
+      "deployment/consul",
+      0.0
+     ],
+     [
+      "deployment/frontend",
+      0.0
+     ],
+     [
+      "deployment/geo",
+      0.0
+     ]
+    ]
+   },
+   "text": "Root cause component: CronJob `audit-log-archiver` in namespace `hotel-reservation`.\nMechanism: container fluent-bit-sidecar command: sh -c echo \"[$(date -u '+%FT%TZ')] fluent-bit: binding to forward port 24224\"\necho \"[$(date -u '+%FT%TZ')] fluent-bit: ready to receive log streams\"\nexec nc -lk -p 24224 -e cat\n.\nFault type: job lifecycle (the job pod cannot complete or the job runs wrongly).\nAbnormal state observed on this component:\n- 4 job(s) still active and no successful completion since the last schedule at 2026-10-19T04:44:00Z (last success: never)\n- 4 jobs of this cronjob are active without completing (they pile up)\n- pod audit-log-archiver-29873081-25p4x: container archiver completed but container fluent-bit-sidecar keeps running, so this job pod never completes\n- pod audit-log-archiver-29873082-j8vft: container archiver completed but container fluent-bit-sidecar keeps running, so this job pod never completes\n- pod audit-log-archiver-29873083-qs45b: container archiver completed but container fluent-bit-sidecar keeps running, so this job pod never completes\n- pod audit-log-archiver-29873084-qddqk: container archiver completed but container fluent-bit-sidecar keeps running, so this job pod never completes\n- firing alert KubePodNotReady\n- container archiver: image busybox:1.36, limits {'cpu': '50m', 'memory': '32Mi'}\n- container fluent-bit-sidecar: image busybox:1.36, limits {'cpu': '50m', 'memory': '32Mi'}\nFiring alerts on this component: KubePodNotReady.\nClassification: Jev (typesafe/jev-1.13-20260917) confirmed this origin at investigation step 1 with probability 0.99 (triage probability 0.96).",
+   "grade": {
+    "judgment": "True",
+    "reasoning": "Verdict: True (composite=1.00). D1 Fault Localization: 1.00 | D2 Fault Characterization: 1.00 | D3 Scope Precision: 1.00. Weakest dimension: Fault Localization (1.00). Checklist details: [{\"id\": \"D1-Q1\", \"answer\": \"Yes\", \"evidence\": \"Names CronJob audit-log-archiver in namespace hotel-reservation as the root cause component, exactly matching the fault specification.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q2\", \"answer\": \"Yes\", \"evidence\": \"Identifies the CronJob as the origin and describes its noncompleting Jobs and pods as consequences.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q3\", \"answer\": \"Yes\", \"evidence\": \"Attributes the fault to audit-log-archiver; no different or healthy component is blamed.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q1\", \"answer\": \"Yes\", \"evidence\": \"States that archiver completed but fluent-bit-sidecar keeps running, preventing the Job pod from completing.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q2\", \"answer\": \"Yes\", \"evidence\": \"Specifically identifies fluent-bit-sidecar as the persistent container and archiver as completed, and supplies the sidecar's long-running command.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q3\", \"answer\": \"Yes\", \"evidence\": \"Classifies the fault as a Job lifecycle problem in which the pod cannot complete, consistent with the ground truth.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q1\", \"answer\": \"Yes\", \"evidence\": \"Limits causal attribution to the CronJob and its running fluent-bit-sidecar; no uninvolved components are blamed.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q2\", \"answer\": \"Yes\", \"evidence\": \"Includes audit-log-archiver, its active Jobs and pods, and both archiver and fluent-bit-sidecar containers.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q3\", \"answer\": \"Yes\", \"evidence\": \"Reports four active Jobs piling up without successful completion because their sidecars continue running after the primary containers complete.\", \"confidence\": \"High\"}]",
+    "success": true,
+    "accuracy": 100.0,
+    "composite_score": 1.0,
+    "dimensions": {
+     "D1": {
+      "name": "Fault Localization",
+      "score": 1.0
+     },
+     "D2": {
+      "name": "Fault Characterization",
+      "score": 1.0
+     },
+     "D3": {
+      "name": "Scope Precision",
+      "score": 1.0
+     }
+    },
+    "checklist": [
+     {
+      "id": "D1-Q1",
+      "answer": "Yes",
+      "evidence": "Names CronJob audit-log-archiver in namespace hotel-reservation as the root cause component, exactly matching the fault specification.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q2",
+      "answer": "Yes",
+      "evidence": "Identifies the CronJob as the origin and describes its noncompleting Jobs and pods as consequences.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q3",
+      "answer": "Yes",
+      "evidence": "Attributes the fault to audit-log-archiver; no different or healthy component is blamed.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q1",
+      "answer": "Yes",
+      "evidence": "States that archiver completed but fluent-bit-sidecar keeps running, preventing the Job pod from completing.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q2",
+      "answer": "Yes",
+      "evidence": "Specifically identifies fluent-bit-sidecar as the persistent container and archiver as completed, and supplies the sidecar's long-running command.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q3",
+      "answer": "Yes",
+      "evidence": "Classifies the fault as a Job lifecycle problem in which the pod cannot complete, consistent with the ground truth.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q1",
+      "answer": "Yes",
+      "evidence": "Limits causal attribution to the CronJob and its running fluent-bit-sidecar; no uninvolved components are blamed.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q2",
+      "answer": "Yes",
+      "evidence": "Includes audit-log-archiver, its active Jobs and pods, and both archiver and fluent-bit-sidecar containers.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q3",
+      "answer": "Yes",
+      "evidence": "Reports four active Jobs piling up without successful completion because their sidecars continue running after the primary containers complete.",
+      "confidence": "High"
+     }
+    ]
+   }
+  },
+  {
+   "arm": 3,
+   "kind": "v1",
+   "model": "openrouter/openai/gpt-6-luna-decisions",
+   "position": 0,
+   "seconds": 3.0,
+   "requests": 2,
+   "input_tokens": 20378,
+   "cost_usd": 0.002038,
+   "error": null,
+   "investigation": {
+    "steps": [
+     {
+      "step": 1,
+      "node": "investigate",
+      "component": "cronjob/audit-log-archiver",
+      "verdict": "origin",
+      "origin_p": 0.96,
+      "victim_p": 0.02,
+      "next": "none",
+      "next_p": 0.93,
+      "category": "job_lifecycle",
+      "spec_checks": [],
+      "blocked_input": null,
+      "key_evidence": "container archiver command: sh -c set -eu\necho \"[$(date -u '+%FT%TZ')] archiver: starting audit log archive\"\necho \"[$(date -u '+%FT%TZ')] archiver: bundling /var/log/audit\"\nattempt=0\nuntil printf 'audit-archive-ready\\n' | nc -w 2 127.0.0.1 24224 >/dev/null; do\n  attempt=$((attempt + 1))\n  if [ \"$attempt\" -ge 10 ]; then\n    echo \"archiver: log forwarding unavailable\" >&2\n    exit 1\n  fi\n  sleep 1\ndone\necho \"[$(date -u '+%FT%TZ')] archiver: audit record forwarded\"\nsleep 1\necho \"[$(date -u '+%FT%TZ')] archiver: upload complet"
+     }
+    ],
+    "concluded": "cronjob/audit-log-archiver",
+    "fallback": null,
+    "triage_top": [
+     [
+      "cronjob/audit-log-archiver",
+      1.0
+     ],
+     [
+      "deployment/consul",
+      0.0
+     ],
+     [
+      "deployment/frontend",
+      0.0
+     ],
+     [
+      "deployment/geo",
+      0.0
+     ],
+     [
+      "deployment/jaeger",
+      0.0
+     ]
+    ]
+   },
+   "text": "Root cause component: CronJob `audit-log-archiver` in namespace `hotel-reservation`.\nMechanism: container archiver command: sh -c set -eu\necho \"[$(date -u '+%FT%TZ')] archiver: starting audit log archive\"\necho \"[$(date -u '+%FT%TZ')] archiver: bundling /var/log/audit\"\nattempt=0\nuntil printf 'audit-archive-ready\\n' | nc -w 2 127.0.0.1 24224 >/dev/null; do\n  attempt=$((attempt + 1))\n  if [ \"$attempt\" -ge 10 ]; then\n    echo \"archiver: log forwarding unavailable\" >&2\n    exit 1\n  fi\n  sleep 1\ndone\necho \"[$(date -u '+%FT%TZ')] archiver: audit record forwarded\"\nsleep 1\necho \"[$(date -u '+%FT%TZ')] archiver: upload complet.\nFault type: job lifecycle (the job pod cannot complete or the job runs wrongly).\nAbnormal state observed on this component:\n- 4 job(s) still active and no successful completion since the last schedule at 2026-10-19T04:44:00Z (last success: never)\n- 4 jobs of this cronjob are active without completing (they pile up)\n- pod audit-log-archiver-29873081-25p4x: container archiver completed but container fluent-bit-sidecar keeps running, so this job pod never completes\n- pod audit-log-archiver-29873082-j8vft: container archiver completed but container fluent-bit-sidecar keeps running, so this job pod never completes\n- pod audit-log-archiver-29873083-qs45b: container archiver completed but container fluent-bit-sidecar keeps running, so this job pod never completes\n- pod audit-log-archiver-29873084-qddqk: container archiver completed but container fluent-bit-sidecar keeps running, so this job pod never completes\n- firing alert KubePodNotReady\n- container archiver: image busybox:1.36, limits {'cpu': '50m', 'memory': '32Mi'}\n- container fluent-bit-sidecar: image busybox:1.36, limits {'cpu': '50m', 'memory': '32Mi'}\nFiring alerts on this component: KubePodNotReady.\nClassification: Jev (openai/gpt-6-luna-decisions-20261006) confirmed this origin at investigation step 1 with probability 0.96 (triage probability 1.00).",
+   "grade": {
+    "judgment": "True",
+    "reasoning": "Verdict: True (composite=1.00). D1 Fault Localization: 1.00 | D2 Fault Characterization: 1.00 | D3 Scope Precision: 1.00. Weakest dimension: Fault Localization (1.00). Checklist details: [{\"id\": \"D1-Q1\", \"answer\": \"Yes\", \"evidence\": \"Names CronJob audit-log-archiver in namespace hotel-reservation as the root cause component, exactly matching the fault specification.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q2\", \"answer\": \"Yes\", \"evidence\": \"Identifies the CronJob as the origin and describes its noncompleting Jobs and pods as consequences.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q3\", \"answer\": \"Yes\", \"evidence\": \"Attributes the fault to audit-log-archiver; no different or healthy component is blamed.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q1\", \"answer\": \"Yes\", \"evidence\": \"States that archiver completed but fluent-bit-sidecar keeps running, preventing the Job pod from completing.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q2\", \"answer\": \"Yes\", \"evidence\": \"Specifically names archiver as completed and fluent-bit-sidecar as still running in four affected pods.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q3\", \"answer\": \"Yes\", \"evidence\": \"Classifies the fault as job lifecycle and explicitly connects noncompletion to the running sidecar.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q1\", \"answer\": \"Yes\", \"evidence\": \"Limits fault attribution to the CronJob and its archiver and fluent-bit-sidecar containers within affected Job pods.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q2\", \"answer\": \"Yes\", \"evidence\": \"Includes audit-log-archiver, its Jobs and pods, and both archiver and fluent-bit-sidecar containers.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q3\", \"answer\": \"Yes\", \"evidence\": \"Reports four active Jobs piling up without successful completion because the sidecar continues running after archiver completes.\", \"confidence\": \"High\"}]",
+    "success": true,
+    "accuracy": 100.0,
+    "composite_score": 1.0,
+    "dimensions": {
+     "D1": {
+      "name": "Fault Localization",
+      "score": 1.0
+     },
+     "D2": {
+      "name": "Fault Characterization",
+      "score": 1.0
+     },
+     "D3": {
+      "name": "Scope Precision",
+      "score": 1.0
+     }
+    },
+    "checklist": [
+     {
+      "id": "D1-Q1",
+      "answer": "Yes",
+      "evidence": "Names CronJob audit-log-archiver in namespace hotel-reservation as the root cause component, exactly matching the fault specification.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q2",
+      "answer": "Yes",
+      "evidence": "Identifies the CronJob as the origin and describes its noncompleting Jobs and pods as consequences.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q3",
+      "answer": "Yes",
+      "evidence": "Attributes the fault to audit-log-archiver; no different or healthy component is blamed.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q1",
+      "answer": "Yes",
+      "evidence": "States that archiver completed but fluent-bit-sidecar keeps running, preventing the Job pod from completing.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q2",
+      "answer": "Yes",
+      "evidence": "Specifically names archiver as completed and fluent-bit-sidecar as still running in four affected pods.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q3",
+      "answer": "Yes",
+      "evidence": "Classifies the fault as job lifecycle and explicitly connects noncompletion to the running sidecar.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q1",
+      "answer": "Yes",
+      "evidence": "Limits fault attribution to the CronJob and its archiver and fluent-bit-sidecar containers within affected Job pods.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q2",
+      "answer": "Yes",
+      "evidence": "Includes audit-log-archiver, its Jobs and pods, and both archiver and fluent-bit-sidecar containers.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q3",
+      "answer": "Yes",
+      "evidence": "Reports four active Jobs piling up without successful completion because the sidecar continues running after archiver completes.",
+      "confidence": "High"
+     }
+    ]
+   }
+  }
+ ],
+ "submission": {
+  "status": "200",
+  "message": "Submission received",
+  "stage": "diagnosis"
+ },
+ "judge": {
+  "model": "gpt-6-astra",
+  "backend": "codex",
+  "effort": "high"
+ }
+}

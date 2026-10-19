@@ -1,0 +1,217 @@
+{
+ "problem_id": "jev_diag_anon_90f693c2c7067792a8851426a9c92a23_20261019_021511",
+ "submit_arm": 0,
+ "order": [
+  0,
+  3,
+  1,
+  2
+ ],
+ "arms": [
+  {
+   "arm": 0,
+   "kind": "v2",
+   "model": "openrouter/typesafe/jev-1.13",
+   "position": 0,
+   "seconds": 8.3,
+   "requests": 4,
+   "input_tokens": 48012,
+   "cost_usd": 0.002017,
+   "error": null,
+   "investigation": {
+    "rounds": [
+     {
+      "candidates": [
+       "change:configmap/kube-system/coredns",
+       "change:daemonset/otel-collector-agent:template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-19T08:14:49+06:00",
+       "change:daemonset/astronomy-shop/otel-collector-agent",
+       "partial:deployment/accounting",
+       "partial:deployment/frontend"
+      ],
+      "probabilities": {
+       "change:configmap/kube-system/coredns": 0.9550000000000001,
+       "change:daemonset/otel-collector-agent:template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-19T08:14:49+06:00": 0.01,
+       "change:daemonset/astronomy-shop/otel-collector-agent": 0.005,
+       "partial:deployment/accounting": 0.0,
+       "partial:deployment/frontend": 0.0,
+       "none_of_these": 0.030000000000000002
+      },
+      "picks": [
+       "change:configmap/kube-system/coredns",
+       "change:configmap/kube-system/coredns"
+      ],
+      "route": "accept"
+     }
+    ],
+    "explanations": 5,
+    "winner": "change:configmap/kube-system/coredns",
+    "pattern": "acts-on",
+    "key_fact": "CoreDNS rule in kube-system/coredns overrides name resolution for this component's Service frontend: template ANY ANY frontend.astronomy-shop.svc.cluster.local { \u23ce match \"^frontend.astronomy-shop.svc.cluster.local\\.$\" \u23ce rcode NXDOMAIN \u23ce fallthrough \u23ce }",
+    "key_fact_probability": 1.0,
+    "fault_type": "dns_resolution",
+    "fault_object": null,
+    "uncertain": false
+   },
+   "text": "Root cause: configmap `coredns` in namespace `kube-system`.\nMechanism: configmap coredns was changed recently and breaks deployment/frontend, which it acts on.\nConcrete details: configmap coredns fields written: data.Corefile; rule overrides name resolution for Service astronomy-shop/frontend (deployment/frontend): template ANY ANY frontend.astronomy-shop.svc.cluster.local { \u23ce match \"^frontend.astronomy-shop.svc.cluster.local\\.$\" \u23ce rcode NXDOMAIN \u23ce fallthrough \u23ce }; ConfigMap coredns was modified 134s ago, 63201s after it was created (fields: data.Corefile).\nObserved impact: deployment `frontend` in namespace `astronomy-shop`.\nKey evidence: CoreDNS rule in kube-system/coredns overrides name resolution for this component's Service frontend: template ANY ANY frontend.astronomy-shop.svc.cluster.local { \u23ce match \"^frontend.astronomy-shop.svc.cluster.local\\.$\" \u23ce rcode NXDOMAIN \u23ce fallthrough \u23ce }.\nFault type: dns resolution (name resolution fails or returns wrong answers).\nEvidence:\n- configmap coredns fields written: data.Corefile\n- rule overrides name resolution for Service astronomy-shop/frontend (deployment/frontend): template ANY ANY frontend.astronomy-shop.svc.cluster.local { \u23ce match \"^frontend.astronomy-shop.svc.cluster.local\\.$\" \u23ce rcode NXDOMAIN \u23ce fallthrough \u23ce }; ConfigMap coredns was modified 134s ago, 63201s after it was created (fields: data.Corefile)\n- deployment/frontend: CoreDNS rule in kube-system/coredns overrides name resolution for this component's Service frontend: template ANY ANY frontend.astronomy-shop.svc.cluster.local { \u23ce match \"^frontend.astronomy-shop.svc.cluster.local\\.$\" \u23ce rcode NXDOMAIN \u23ce fallthrough \u23ce }"
+  },
+  {
+   "arm": 1,
+   "kind": "v2",
+   "model": "openrouter/openai/gpt-6-luna-decisions",
+   "position": 2,
+   "seconds": 6.4,
+   "requests": 4,
+   "input_tokens": 31776,
+   "cost_usd": 0.003178,
+   "error": null,
+   "investigation": {
+    "rounds": [
+     {
+      "candidates": [
+       "change:configmap/kube-system/coredns",
+       "change:daemonset/otel-collector-agent:template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-19T08:14:49+06:00",
+       "change:daemonset/astronomy-shop/otel-collector-agent",
+       "partial:deployment/accounting",
+       "partial:deployment/frontend"
+      ],
+      "probabilities": {
+       "change:configmap/kube-system/coredns": 0.915,
+       "change:daemonset/otel-collector-agent:template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-19T08:14:49+06:00": 0.01,
+       "change:daemonset/astronomy-shop/otel-collector-agent": 0.005,
+       "partial:deployment/accounting": 0.005,
+       "partial:deployment/frontend": 0.03,
+       "none_of_these": 0.035
+      },
+      "picks": [
+       "change:configmap/kube-system/coredns",
+       "change:configmap/kube-system/coredns"
+      ],
+      "route": "accept"
+     }
+    ],
+    "explanations": 5,
+    "winner": "change:configmap/kube-system/coredns",
+    "pattern": "acts-on",
+    "key_fact": "CoreDNS rule in kube-system/coredns overrides name resolution for this component's Service frontend: template ANY ANY frontend.astronomy-shop.svc.cluster.local { \u23ce match \"^frontend.astronomy-shop.svc.cluster.local\\.$\" \u23ce rcode NXDOMAIN \u23ce fallthrough \u23ce }",
+    "key_fact_probability": 0.93,
+    "fault_type": "dns_resolution",
+    "fault_object": null,
+    "uncertain": false
+   },
+   "text": "Root cause: configmap `coredns` in namespace `kube-system`.\nMechanism: configmap coredns was changed recently and breaks deployment/frontend, which it acts on.\nConcrete details: configmap coredns fields written: data.Corefile; rule overrides name resolution for Service astronomy-shop/frontend (deployment/frontend): template ANY ANY frontend.astronomy-shop.svc.cluster.local { \u23ce match \"^frontend.astronomy-shop.svc.cluster.local\\.$\" \u23ce rcode NXDOMAIN \u23ce fallthrough \u23ce }; ConfigMap coredns was modified 134s ago, 63201s after it was created (fields: data.Corefile).\nObserved impact: deployment `frontend` in namespace `astronomy-shop`.\nKey evidence: CoreDNS rule in kube-system/coredns overrides name resolution for this component's Service frontend: template ANY ANY frontend.astronomy-shop.svc.cluster.local { \u23ce match \"^frontend.astronomy-shop.svc.cluster.local\\.$\" \u23ce rcode NXDOMAIN \u23ce fallthrough \u23ce }.\nFault type: dns resolution (name resolution fails or returns wrong answers).\nEvidence:\n- configmap coredns fields written: data.Corefile\n- rule overrides name resolution for Service astronomy-shop/frontend (deployment/frontend): template ANY ANY frontend.astronomy-shop.svc.cluster.local { \u23ce match \"^frontend.astronomy-shop.svc.cluster.local\\.$\" \u23ce rcode NXDOMAIN \u23ce fallthrough \u23ce }; ConfigMap coredns was modified 134s ago, 63201s after it was created (fields: data.Corefile)\n- deployment/frontend: CoreDNS rule in kube-system/coredns overrides name resolution for this component's Service frontend: template ANY ANY frontend.astronomy-shop.svc.cluster.local { \u23ce match \"^frontend.astronomy-shop.svc.cluster.local\\.$\" \u23ce rcode NXDOMAIN \u23ce fallthrough \u23ce }"
+  },
+  {
+   "arm": 2,
+   "kind": "v1",
+   "model": "openrouter/typesafe/jev-1.13",
+   "position": 3,
+   "seconds": 2.5,
+   "requests": 2,
+   "input_tokens": 36761,
+   "cost_usd": 0.001544,
+   "error": null,
+   "investigation": {
+    "steps": [
+     {
+      "step": 1,
+      "node": "investigate",
+      "component": "deployment/frontend",
+      "verdict": "origin",
+      "origin_p": 0.67,
+      "victim_p": 0.08,
+      "next": "deployment/frontend-proxy",
+      "next_p": 0.41,
+      "category": "dns_resolution",
+      "spec_checks": [],
+      "blocked_input": null,
+      "key_evidence": "CoreDNS rule in kube-system/coredns overrides name resolution for this component's Service frontend: template ANY ANY frontend.astronomy-shop.svc.cluster.local { \u23ce match \"^frontend.astronomy-shop.svc.cluster.local\\.$\" \u23ce rcode NXDOMAIN \u23ce fallthrough \u23ce }"
+     }
+    ],
+    "concluded": "deployment/frontend",
+    "fallback": null,
+    "triage_top": [
+     [
+      "other",
+      0.72
+     ],
+     [
+      "deployment/frontend",
+      0.28
+     ],
+     [
+      "deployment/accounting",
+      0.0
+     ],
+     [
+      "deployment/ad",
+      0.0
+     ],
+     [
+      "deployment/cart",
+      0.0
+     ]
+    ]
+   },
+   "text": "Root cause component: Deployment `frontend` in namespace `astronomy-shop`.\nMechanism: CoreDNS rule in kube-system/coredns overrides name resolution for this component's Service frontend: template ANY ANY frontend.astronomy-shop.svc.cluster.local { \u23ce match \"^frontend.astronomy-shop.svc.cluster.local\\.$\" \u23ce rcode NXDOMAIN \u23ce fallthrough \u23ce }.\nFault object: ConfigMap `coredns`: rule overrides name resolution for Service astronomy-shop/frontend (deployment/frontend): template ANY ANY frontend.astronomy-shop.svc.cluster.local { \u23ce match \"^frontend.astronomy-shop.svc.cluster.local\\.$\" \u23ce rcode NXDOMAIN \u23ce fallthrough \u23ce }; ConfigMap coredns was modified 134s ago, 63201s after it was created (fields: data.Corefile).\nFault type: dns resolution (name resolution fails or returns wrong answers).\nAbnormal state observed on this component:\n- ConfigMap coredns was modified 134s ago, 63201s after it was created (fields: data.Corefile)\n- container frontend: image ghcr.io/open-telemetry/demo:2.2.0-frontend, limits {'memory': '250Mi'}\nClassification: Jev (typesafe/jev-1.13-20260917) confirmed this origin at investigation step 1 with probability 0.67 (triage probability 0.28)."
+  },
+  {
+   "arm": 3,
+   "kind": "v1",
+   "model": "openrouter/openai/gpt-6-luna-decisions",
+   "position": 1,
+   "seconds": 2.8,
+   "requests": 2,
+   "input_tokens": 24631,
+   "cost_usd": 0.002463,
+   "error": null,
+   "investigation": {
+    "steps": [
+     {
+      "step": 1,
+      "node": "investigate",
+      "component": "deployment/frontend",
+      "verdict": "origin",
+      "origin_p": 0.95,
+      "victim_p": 0.03,
+      "next": "deployment/frontend-proxy",
+      "next_p": 0.46,
+      "category": "dns_resolution",
+      "spec_checks": [],
+      "blocked_input": null,
+      "key_evidence": "CoreDNS rule in kube-system/coredns overrides name resolution for this component's Service frontend: template ANY ANY frontend.astronomy-shop.svc.cluster.local { \u23ce match \"^frontend.astronomy-shop.svc.cluster.local\\.$\" \u23ce rcode NXDOMAIN \u23ce fallthrough \u23ce }"
+     }
+    ],
+    "concluded": "deployment/frontend",
+    "fallback": null,
+    "triage_top": [
+     [
+      "deployment/frontend",
+      0.96
+     ],
+     [
+      "other",
+      0.02
+     ],
+     [
+      "deployment/accounting",
+      0.01
+     ],
+     [
+      "deployment/cart",
+      0.01
+     ],
+     [
+      "deployment/ad",
+      0.0
+     ]
+    ]
+   },
+   "text": "Root cause component: Deployment `frontend` in namespace `astronomy-shop`.\nMechanism: CoreDNS rule in kube-system/coredns overrides name resolution for this component's Service frontend: template ANY ANY frontend.astronomy-shop.svc.cluster.local { \u23ce match \"^frontend.astronomy-shop.svc.cluster.local\\.$\" \u23ce rcode NXDOMAIN \u23ce fallthrough \u23ce }.\nFault object: ConfigMap `coredns`: rule overrides name resolution for Service astronomy-shop/frontend (deployment/frontend): template ANY ANY frontend.astronomy-shop.svc.cluster.local { \u23ce match \"^frontend.astronomy-shop.svc.cluster.local\\.$\" \u23ce rcode NXDOMAIN \u23ce fallthrough \u23ce }; ConfigMap coredns was modified 134s ago, 63201s after it was created (fields: data.Corefile).\nFault type: dns resolution (name resolution fails or returns wrong answers).\nAbnormal state observed on this component:\n- ConfigMap coredns was modified 134s ago, 63201s after it was created (fields: data.Corefile)\n- container frontend: image ghcr.io/open-telemetry/demo:2.2.0-frontend, limits {'memory': '250Mi'}\nClassification: Jev (openai/gpt-6-luna-decisions-20261006) confirmed this origin at investigation step 1 with probability 0.95 (triage probability 0.96)."
+  }
+ ],
+ "submission": {
+  "status": "200",
+  "message": "Submission received",
+  "stage": "diagnosis"
+ }
+}

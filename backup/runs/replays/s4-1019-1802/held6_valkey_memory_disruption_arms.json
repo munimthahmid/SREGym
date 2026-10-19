@@ -1,0 +1,119 @@
+{
+ "problem_id": "valkey_memory_disruption",
+ "source": "held6_valkey_memory_disruption",
+ "replay": true,
+ "arms": [
+  {
+   "arm": 0,
+   "kind": "v2",
+   "model": "typesafe/jev-1.13",
+   "position": 0,
+   "seconds": 3.1,
+   "requests": 2,
+   "input_tokens": 32663,
+   "error": null,
+   "model_failed": false,
+   "component": "job/valkey-memory-flood",
+   "investigation": {
+    "steps": [
+     {
+      "step": 1,
+      "node": "investigate",
+      "component": "job/valkey-memory-flood",
+      "verdict": "origin",
+      "origin_p": 1.0,
+      "victim_p": 0.0,
+      "next": "none",
+      "next_p": 0.74,
+      "category": "job_lifecycle",
+      "spec_checks": [],
+      "blocked_input": null,
+      "key_evidence": "container flooder command: python3 -c import base64; exec(base64.b64decode('aW1wb3J0IHJlZGlzCmltcG9ydCB0aHJlYWRpbmcKaW1wb3J0IHRpbWUKCmRlZiBmbG9vZF9yZWRpcygpOgogICAgY2xpZW50ID0gcmVkaXMuUmVkaXMoaG9zdD0ndmFsa2V5LWNhcnQnLCBwb3J0PTYzNzkpCiAgICB3aGlsZSBUcnVlOgogICAgICAgIHRyeToKICAgICAgICAgICAgcGF5bG9hZCA9ICd4JyAqIDEwMDAwMDAKICAgICAgICAgICAgY2xpZW50LnNldChmImtleV97dGltZS50aW1lKCl9IiwgcGF5bG9hZCkKICAgICAgICBleGNlcHQgRXhjZXB0aW9uIGFzIGU6CiAgICAgICAgICAgIHByaW50KGYiRXJyb3I6IHtlfSIpCiAgICAgICAgICAgIHRpbWUuc2xlZXAoMSkKCnRocmVhZHMgPSB"
+     }
+    ],
+    "concluded": "job/valkey-memory-flood",
+    "fallback": null,
+    "triage_top": [
+     [
+      "job/valkey-memory-flood",
+      0.94
+     ],
+     [
+      "deployment/valkey-cart",
+      0.06
+     ],
+     [
+      "deployment/accounting",
+      0.0
+     ],
+     [
+      "deployment/ad",
+      0.0
+     ],
+     [
+      "deployment/cart",
+      0.0
+     ]
+    ],
+    "second": null
+   },
+   "text": "Root cause: Service `valkey-cart` (Deployment `valkey-cart`) in namespace `astronomy-shop`, driven by Job `valkey-memory-flood`, which calls it: pod valkey-cart-859985f49d-dxcvn: container valkey-cart was OOMKilled.\nMechanism: Job `valkey-memory-flood` calls valkey-cart (job has 1 active pod(s) and has not completed); the script it runs (decoded from base64): import redis import threading import time def flood_redis(): client = redis.Redis(host='valkey-cart', port=6379) while True: try: payload = 'x' * 1000000 client.set(f\"key_{time.time()}\", payload) except Exception as e: print(f\"Error: {e}\") time.sleep(1) threads = [] for _ in range(10): t = threading.Thread(target=flood.\nEffect: only 0 of 1 desired replicas are ready; pod valkey-cart-859985f49d-dxcvn: container valkey-cart waiting in CrashLoopBackOff; its callers see connectivity or timeout (5 lines).\nObserved: pod valkey-cart-859985f49d-dxcvn: container valkey-cart restarted 4 times; warning events: BackOff x10; service valkey-cart selects this component but has 0 ready endpoints; pod valkey-cart-859985f49d-dxcvn: container valkey-cart restarted 1 more time(s) in the last 0s; warning event BackOff on pod/valkey-cart-859985f49d-dxcvn repeated 4 more time(s) in the last 0s.\nAffected (symptoms only, not causes): Deployment `cart` in namespace `astronomy-shop`: connectivity or timeout calling it (5 lines, still occurring)."
+  },
+  {
+   "arm": 1,
+   "kind": "v2",
+   "model": "openai/gpt-6-luna-decisions",
+   "position": 1,
+   "seconds": 2.0,
+   "requests": 2,
+   "input_tokens": 22169,
+   "error": null,
+   "model_failed": false,
+   "component": "job/valkey-memory-flood",
+   "investigation": {
+    "steps": [
+     {
+      "step": 1,
+      "node": "investigate",
+      "component": "job/valkey-memory-flood",
+      "verdict": "origin",
+      "origin_p": 0.97,
+      "victim_p": 0.02,
+      "next": "deployment/valkey-cart",
+      "next_p": 0.53,
+      "category": "config_value",
+      "spec_checks": [],
+      "blocked_input": null,
+      "key_evidence": "container flooder command: python3 -c import base64; exec(base64.b64decode('aW1wb3J0IHJlZGlzCmltcG9ydCB0aHJlYWRpbmcKaW1wb3J0IHRpbWUKCmRlZiBmbG9vZF9yZWRpcygpOgogICAgY2xpZW50ID0gcmVkaXMuUmVkaXMoaG9zdD0ndmFsa2V5LWNhcnQnLCBwb3J0PTYzNzkpCiAgICB3aGlsZSBUcnVlOgogICAgICAgIHRyeToKICAgICAgICAgICAgcGF5bG9hZCA9ICd4JyAqIDEwMDAwMDAKICAgICAgICAgICAgY2xpZW50LnNldChmImtleV97dGltZS50aW1lKCl9IiwgcGF5bG9hZCkKICAgICAgICBleGNlcHQgRXhjZXB0aW9uIGFzIGU6CiAgICAgICAgICAgIHByaW50KGYiRXJyb3I6IHtlfSIpCiAgICAgICAgICAgIHRpbWUuc2xlZXAoMSkKCnRocmVhZHMgPSB"
+     }
+    ],
+    "concluded": "job/valkey-memory-flood",
+    "fallback": null,
+    "triage_top": [
+     [
+      "job/valkey-memory-flood",
+      0.93
+     ],
+     [
+      "deployment/valkey-cart",
+      0.06
+     ],
+     [
+      "daemonset/otel-collector-agent",
+      0.01
+     ],
+     [
+      "deployment/accounting",
+      0.0
+     ],
+     [
+      "deployment/ad",
+      0.0
+     ]
+    ],
+    "second": null
+   },
+   "text": "Root cause: Service `valkey-cart` (Deployment `valkey-cart`) in namespace `astronomy-shop`, driven by Job `valkey-memory-flood`, which calls it: pod valkey-cart-859985f49d-dxcvn: container valkey-cart was OOMKilled.\nMechanism: Job `valkey-memory-flood` calls valkey-cart (job has 1 active pod(s) and has not completed); the script it runs (decoded from base64): import redis import threading import time def flood_redis(): client = redis.Redis(host='valkey-cart', port=6379) while True: try: payload = 'x' * 1000000 client.set(f\"key_{time.time()}\", payload) except Exception as e: print(f\"Error: {e}\") time.sleep(1) threads = [] for _ in range(10): t = threading.Thread(target=flood.\nEffect: only 0 of 1 desired replicas are ready; pod valkey-cart-859985f49d-dxcvn: container valkey-cart waiting in CrashLoopBackOff; its callers see connectivity or timeout (5 lines).\nObserved: pod valkey-cart-859985f49d-dxcvn: container valkey-cart restarted 4 times; warning events: BackOff x10; service valkey-cart selects this component but has 0 ready endpoints; pod valkey-cart-859985f49d-dxcvn: container valkey-cart restarted 1 more time(s) in the last 0s; warning event BackOff on pod/valkey-cart-859985f49d-dxcvn repeated 4 more time(s) in the last 0s.\nAffected (symptoms only, not causes): Deployment `cart` in namespace `astronomy-shop`: connectivity or timeout calling it (5 lines, still occurring)."
+  }
+ ]
+}

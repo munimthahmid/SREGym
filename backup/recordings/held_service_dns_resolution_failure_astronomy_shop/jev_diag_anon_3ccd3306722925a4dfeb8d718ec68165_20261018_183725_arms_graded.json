@@ -1,0 +1,540 @@
+{
+ "problem_id": "jev_diag_anon_3ccd3306722925a4dfeb8d718ec68165_20261018_183725",
+ "submit_arm": 0,
+ "order": [
+  1,
+  0,
+  3,
+  2
+ ],
+ "arms": [
+  {
+   "arm": 0,
+   "kind": "v2",
+   "model": "openrouter/typesafe/jev-1.13",
+   "position": 1,
+   "seconds": 1.0,
+   "requests": 2,
+   "input_tokens": 4216,
+   "cost_usd": 0.000177,
+   "error": null,
+   "investigation": {
+    "rounds": [
+     {
+      "candidates": [
+       "change:daemonset/otel-collector-agent:template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-19T00:37:02+06:00",
+       "change:daemonset/astronomy-shop/otel-collector-agent",
+       "change:configmap/kube-system/coredns",
+       "partial:deployment/accounting",
+       "partial:deployment/frontend",
+       "partial:deployment/payment"
+      ],
+      "probabilities": {
+       "change:daemonset/otel-collector-agent:template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-19T00:37:02+06:00": 0.01,
+       "change:daemonset/astronomy-shop/otel-collector-agent": 0.005,
+       "change:configmap/kube-system/coredns": 0.88,
+       "partial:deployment/accounting": 0.0,
+       "partial:deployment/frontend": 0.0,
+       "partial:deployment/payment": 0.0,
+       "none_of_these": 0.10500000000000001
+      },
+      "picks": [
+       "change:configmap/kube-system/coredns",
+       "change:configmap/kube-system/coredns"
+      ],
+      "route": "accept"
+     }
+    ],
+    "explanations": 6,
+    "winner": "change:configmap/kube-system/coredns",
+    "pattern": "acts-on",
+    "uncertain": false
+   },
+   "text": "Root cause: configmap `coredns` in namespace `kube-system`.\nMechanism: configmap coredns was changed recently and breaks deployment/frontend, which it acts on.\nConcrete details: configmap coredns fields written: data.Corefile; rule overrides name resolution for Service astronomy-shop/frontend (deployment/frontend): template ANY ANY frontend.astronomy-shop.svc.cluster.local { \u23ce match \"^frontend.astronomy-shop.svc.cluster.local\\.$\" \u23ce rcode NXDOMAIN \u23ce fallthrough \u23ce }; ConfigMap coredns was modified 135s ago, 35736s after it was created (fields: data.Corefile); 32s before the first active symptom.\nObserved impact: deployment `frontend` in namespace `astronomy-shop`.\nEvidence:\n- configmap coredns fields written: data.Corefile\n- rule overrides name resolution for Service astronomy-shop/frontend (deployment/frontend): template ANY ANY frontend.astronomy-shop.svc.cluster.local { \u23ce match \"^frontend.astronomy-shop.svc.cluster.local\\.$\" \u23ce rcode NXDOMAIN \u23ce fallthrough \u23ce }; ConfigMap coredns was modified 135s ago, 35736s after it was created (fields: data.Corefile); 32s before the first active symptom\n- deployment/frontend: CoreDNS rule in kube-system/coredns overrides name resolution for this component's Service frontend: template ANY ANY frontend.astronomy-shop.svc.cluster.local { \u23ce match \"^frontend.astronomy-shop.svc.cluster.local\\.$\" \u23ce rcode NXDOMAIN \u23ce fallthrough \u23ce }",
+   "grade": {
+    "judgment": "True",
+    "reasoning": "Verdict: True (composite=0.89). D1 Fault Localization: 1.00 | D2 Fault Characterization: 1.00 | D3 Scope Precision: 0.67. Weakest dimension: Scope Precision (0.67). Checklist details: [{\"id\": \"D1-Q1\", \"answer\": \"Yes\", \"evidence\": \"Explicitly identifies configmap coredns in namespace kube-system as the root cause, matching the fault specification.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q2\", \"answer\": \"Yes\", \"evidence\": \"Identifies coredns as the root cause and deployment/frontend as the observed impact, distinguishing origin from the affected endpoint.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q3\", \"answer\": \"Yes\", \"evidence\": \"Blames the specified coredns ConfigMap; frontend is described as affected rather than the fault origin.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q1\", \"answer\": \"Yes\", \"evidence\": \"Describes a CoreDNS template overriding frontend.astronomy-shop.svc.cluster.local resolution with rcode NXDOMAIN.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q2\", \"answer\": \"Yes\", \"evidence\": \"Names data.Corefile and provides the template rule, exact frontend service hostname, and rcode NXDOMAIN.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q3\", \"answer\": \"Yes\", \"evidence\": \"Attributes the fault to a CoreDNS name-resolution override, consistent with the injected DNS configuration fault.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q1\", \"answer\": \"Yes\", \"evidence\": \"Attributes causation only to coredns and identifies frontend as affected; no unrelated components are blamed.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q2\", \"answer\": \"No\", \"evidence\": \"Mentions coredns and frontend but omits the dependent services affected by resolution and connection failures described in the ground truth.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q3\", \"answer\": \"Yes\", \"evidence\": \"States the rule overrides frontend service name resolution with NXDOMAIN, consistent with the ground-truth DNS resolution failure.\", \"confidence\": \"High\"}]",
+    "success": true,
+    "accuracy": 89.0,
+    "composite_score": 0.89,
+    "dimensions": {
+     "D1": {
+      "name": "Fault Localization",
+      "score": 1.0
+     },
+     "D2": {
+      "name": "Fault Characterization",
+      "score": 1.0
+     },
+     "D3": {
+      "name": "Scope Precision",
+      "score": 0.67
+     }
+    },
+    "checklist": [
+     {
+      "id": "D1-Q1",
+      "answer": "Yes",
+      "evidence": "Explicitly identifies configmap coredns in namespace kube-system as the root cause, matching the fault specification.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q2",
+      "answer": "Yes",
+      "evidence": "Identifies coredns as the root cause and deployment/frontend as the observed impact, distinguishing origin from the affected endpoint.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q3",
+      "answer": "Yes",
+      "evidence": "Blames the specified coredns ConfigMap; frontend is described as affected rather than the fault origin.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q1",
+      "answer": "Yes",
+      "evidence": "Describes a CoreDNS template overriding frontend.astronomy-shop.svc.cluster.local resolution with rcode NXDOMAIN.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q2",
+      "answer": "Yes",
+      "evidence": "Names data.Corefile and provides the template rule, exact frontend service hostname, and rcode NXDOMAIN.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q3",
+      "answer": "Yes",
+      "evidence": "Attributes the fault to a CoreDNS name-resolution override, consistent with the injected DNS configuration fault.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q1",
+      "answer": "Yes",
+      "evidence": "Attributes causation only to coredns and identifies frontend as affected; no unrelated components are blamed.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q2",
+      "answer": "No",
+      "evidence": "Mentions coredns and frontend but omits the dependent services affected by resolution and connection failures described in the ground truth.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q3",
+      "answer": "Yes",
+      "evidence": "States the rule overrides frontend service name resolution with NXDOMAIN, consistent with the ground-truth DNS resolution failure.",
+      "confidence": "High"
+     }
+    ]
+   }
+  },
+  {
+   "arm": 1,
+   "kind": "v2",
+   "model": "openrouter/openai/gpt-6-luna-decisions",
+   "position": 0,
+   "seconds": 2.1,
+   "requests": 2,
+   "input_tokens": 2930,
+   "cost_usd": 0.000293,
+   "error": null,
+   "investigation": {
+    "rounds": [
+     {
+      "candidates": [
+       "change:daemonset/otel-collector-agent:template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-19T00:37:02+06:00",
+       "change:daemonset/astronomy-shop/otel-collector-agent",
+       "change:configmap/kube-system/coredns",
+       "partial:deployment/accounting",
+       "partial:deployment/frontend",
+       "partial:deployment/payment"
+      ],
+      "probabilities": {
+       "change:daemonset/otel-collector-agent:template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-19T00:37:02+06:00": 0.0,
+       "change:daemonset/astronomy-shop/otel-collector-agent": 0.015,
+       "change:configmap/kube-system/coredns": 0.96,
+       "partial:deployment/accounting": 0.015,
+       "partial:deployment/frontend": 0.005,
+       "partial:deployment/payment": 0.0,
+       "none_of_these": 0.005
+      },
+      "picks": [
+       "change:configmap/kube-system/coredns",
+       "change:configmap/kube-system/coredns"
+      ],
+      "route": "accept"
+     }
+    ],
+    "explanations": 6,
+    "winner": "change:configmap/kube-system/coredns",
+    "pattern": "acts-on",
+    "uncertain": false
+   },
+   "text": "Root cause: configmap `coredns` in namespace `kube-system`.\nMechanism: configmap coredns was changed recently and breaks deployment/frontend, which it acts on.\nConcrete details: configmap coredns fields written: data.Corefile; rule overrides name resolution for Service astronomy-shop/frontend (deployment/frontend): template ANY ANY frontend.astronomy-shop.svc.cluster.local { \u23ce match \"^frontend.astronomy-shop.svc.cluster.local\\.$\" \u23ce rcode NXDOMAIN \u23ce fallthrough \u23ce }; ConfigMap coredns was modified 135s ago, 35736s after it was created (fields: data.Corefile); 32s before the first active symptom.\nObserved impact: deployment `frontend` in namespace `astronomy-shop`.\nEvidence:\n- configmap coredns fields written: data.Corefile\n- rule overrides name resolution for Service astronomy-shop/frontend (deployment/frontend): template ANY ANY frontend.astronomy-shop.svc.cluster.local { \u23ce match \"^frontend.astronomy-shop.svc.cluster.local\\.$\" \u23ce rcode NXDOMAIN \u23ce fallthrough \u23ce }; ConfigMap coredns was modified 135s ago, 35736s after it was created (fields: data.Corefile); 32s before the first active symptom\n- deployment/frontend: CoreDNS rule in kube-system/coredns overrides name resolution for this component's Service frontend: template ANY ANY frontend.astronomy-shop.svc.cluster.local { \u23ce match \"^frontend.astronomy-shop.svc.cluster.local\\.$\" \u23ce rcode NXDOMAIN \u23ce fallthrough \u23ce }",
+   "grade": {
+    "judgment": "True",
+    "reasoning": "Verdict: True (composite=0.89). D1 Fault Localization: 1.00 | D2 Fault Characterization: 1.00 | D3 Scope Precision: 0.67. Weakest dimension: Scope Precision (0.67). Checklist details: [{\"id\": \"D1-Q1\", \"answer\": \"Yes\", \"evidence\": \"Explicitly identifies configmap coredns in namespace kube-system as the root cause, matching the fault specification.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q2\", \"answer\": \"Yes\", \"evidence\": \"Identifies coredns as the root cause and deployment/frontend as the observed impact, distinguishing origin from victim.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q3\", \"answer\": \"Yes\", \"evidence\": \"Blames the matching coredns ConfigMap; frontend is described as affected rather than the fault origin.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q1\", \"answer\": \"Yes\", \"evidence\": \"Describes a CoreDNS template overriding resolution for frontend.astronomy-shop.svc.cluster.local with rcode NXDOMAIN.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q2\", \"answer\": \"Yes\", \"evidence\": \"Names data.Corefile, the exact frontend service hostname, template ANY ANY, and rcode NXDOMAIN.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q3\", \"answer\": \"Yes\", \"evidence\": \"Attributes the fault to a CoreDNS name-resolution override, consistent with the ground-truth DNS configuration fault.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q1\", \"answer\": \"Yes\", \"evidence\": \"Attributes causation only to coredns and identifies frontend as affected; no unrelated components are blamed.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q2\", \"answer\": \"No\", \"evidence\": \"Lists only deployment/frontend as observed impact; omits the dependent services affected by resolution failures and cascading failures described in ground truth.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q3\", \"answer\": \"Yes\", \"evidence\": \"States that the CoreDNS rule overrides frontend Service name resolution with NXDOMAIN, matching the ground-truth DNS failure.\", \"confidence\": \"High\"}]",
+    "success": true,
+    "accuracy": 89.0,
+    "composite_score": 0.89,
+    "dimensions": {
+     "D1": {
+      "name": "Fault Localization",
+      "score": 1.0
+     },
+     "D2": {
+      "name": "Fault Characterization",
+      "score": 1.0
+     },
+     "D3": {
+      "name": "Scope Precision",
+      "score": 0.67
+     }
+    },
+    "checklist": [
+     {
+      "id": "D1-Q1",
+      "answer": "Yes",
+      "evidence": "Explicitly identifies configmap coredns in namespace kube-system as the root cause, matching the fault specification.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q2",
+      "answer": "Yes",
+      "evidence": "Identifies coredns as the root cause and deployment/frontend as the observed impact, distinguishing origin from victim.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q3",
+      "answer": "Yes",
+      "evidence": "Blames the matching coredns ConfigMap; frontend is described as affected rather than the fault origin.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q1",
+      "answer": "Yes",
+      "evidence": "Describes a CoreDNS template overriding resolution for frontend.astronomy-shop.svc.cluster.local with rcode NXDOMAIN.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q2",
+      "answer": "Yes",
+      "evidence": "Names data.Corefile, the exact frontend service hostname, template ANY ANY, and rcode NXDOMAIN.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q3",
+      "answer": "Yes",
+      "evidence": "Attributes the fault to a CoreDNS name-resolution override, consistent with the ground-truth DNS configuration fault.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q1",
+      "answer": "Yes",
+      "evidence": "Attributes causation only to coredns and identifies frontend as affected; no unrelated components are blamed.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q2",
+      "answer": "No",
+      "evidence": "Lists only deployment/frontend as observed impact; omits the dependent services affected by resolution failures and cascading failures described in ground truth.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q3",
+      "answer": "Yes",
+      "evidence": "States that the CoreDNS rule overrides frontend Service name resolution with NXDOMAIN, matching the ground-truth DNS failure.",
+      "confidence": "High"
+     }
+    ]
+   }
+  },
+  {
+   "arm": 2,
+   "kind": "v1",
+   "model": "openrouter/typesafe/jev-1.13",
+   "position": 3,
+   "seconds": 3.0,
+   "requests": 3,
+   "input_tokens": 39647,
+   "cost_usd": 0.001665,
+   "error": null,
+   "investigation": {
+    "steps": [
+     {
+      "step": 1,
+      "node": "investigate",
+      "component": "deployment/frontend",
+      "verdict": "origin",
+      "origin_p": 0.56,
+      "victim_p": 0.23,
+      "next": "deployment/frontend-proxy",
+      "next_p": 0.44,
+      "category": "dns_resolution",
+      "spec_checks": [],
+      "blocked_input": null,
+      "key_evidence": "CoreDNS rule in kube-system/coredns overrides name resolution for this component's Service frontend: template ANY ANY frontend.astronomy-shop.svc.cluster.local { \u23ce match \"^frontend.astronomy-shop.svc.cluster.local\\.$\" \u23ce rcode NXDOMAIN \u23ce fallthrough \u23ce }"
+     },
+     {
+      "step": 2,
+      "node": "cluster",
+      "result": [
+       [
+        "F1",
+        1.0
+       ],
+       [
+        "none",
+        0.0
+       ]
+      ]
+     }
+    ],
+    "concluded": "other",
+    "fallback": null,
+    "triage_top": [
+     [
+      "other",
+      0.78
+     ],
+     [
+      "deployment/frontend",
+      0.2
+     ],
+     [
+      "daemonset/otel-collector-agent",
+      0.02
+     ],
+     [
+      "deployment/accounting",
+      0.0
+     ],
+     [
+      "deployment/ad",
+      0.0
+     ]
+    ]
+   },
+   "text": "Root cause object: ConfigMap `coredns` in namespace `kube-system`.\nMechanism: rule overrides name resolution for Service astronomy-shop/frontend (deployment/frontend): template ANY ANY frontend.astronomy-shop.svc.cluster.local { \u23ce match \"^frontend.astronomy-shop.svc.cluster.local\\.$\" \u23ce rcode NXDOMAIN \u23ce fallthrough \u23ce }; ConfigMap coredns was modified 135s ago, 35736s after it was created (fields: data.Corefile); 32s before the first active symptom.\nImpact on workloads:\n- deployment/frontend: CoreDNS rule in kube-system/coredns overrides name resolution for this component's Service frontend: template ANY ANY frontend.astronomy-shop.svc.cluster.local { \u23ce match \"^frontend.astronomy-shop.svc.cluster.local\\.$\" \u23ce rcode NXDOMAIN \u23ce fallthrough \u23ce }\nClassification: Jev (typesafe/jev-1.13-20260917) selected this origin with triage probability 0.78 after 2 investigation step(s).",
+   "grade": {
+    "judgment": "True",
+    "reasoning": "Verdict: True (composite=0.89). D1 Fault Localization: 1.00 | D2 Fault Characterization: 1.00 | D3 Scope Precision: 0.67. Weakest dimension: Scope Precision (0.67). Checklist details: [{\"id\": \"D1-Q1\", \"answer\": \"Yes\", \"evidence\": \"Names ConfigMap coredns in namespace kube-system as the root cause object, exactly matching the fault specification.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q2\", \"answer\": \"Yes\", \"evidence\": \"Identifies coredns as the origin and lists deployment/frontend separately under workload impact.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q3\", \"answer\": \"Yes\", \"evidence\": \"Attributes the fault to the coredns ConfigMap rule, without blaming healthy frontend pods.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q1\", \"answer\": \"Yes\", \"evidence\": \"Describes a CoreDNS template overriding frontend.astronomy-shop.svc.cluster.local resolution with rcode NXDOMAIN.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q2\", \"answer\": \"Yes\", \"evidence\": \"Includes data.Corefile, the exact frontend service hostname, template ANY ANY, and rcode NXDOMAIN.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q3\", \"answer\": \"Yes\", \"evidence\": \"Consistently attributes the fault to a DNS configuration override; no unrelated fault type is asserted.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q1\", \"answer\": \"Yes\", \"evidence\": \"Blames only the coredns ConfigMap and identifies frontend as the service targeted by its rule.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q2\", \"answer\": \"No\", \"evidence\": \"Lists only deployment/frontend under workload impact; omits the dependent services described as affected in the ground truth.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q3\", \"answer\": \"Yes\", \"evidence\": \"States that the CoreDNS rule overrides frontend service name resolution with NXDOMAIN, consistent with the ground-truth DNS failure.\", \"confidence\": \"High\"}]",
+    "success": true,
+    "accuracy": 89.0,
+    "composite_score": 0.89,
+    "dimensions": {
+     "D1": {
+      "name": "Fault Localization",
+      "score": 1.0
+     },
+     "D2": {
+      "name": "Fault Characterization",
+      "score": 1.0
+     },
+     "D3": {
+      "name": "Scope Precision",
+      "score": 0.67
+     }
+    },
+    "checklist": [
+     {
+      "id": "D1-Q1",
+      "answer": "Yes",
+      "evidence": "Names ConfigMap coredns in namespace kube-system as the root cause object, exactly matching the fault specification.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q2",
+      "answer": "Yes",
+      "evidence": "Identifies coredns as the origin and lists deployment/frontend separately under workload impact.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q3",
+      "answer": "Yes",
+      "evidence": "Attributes the fault to the coredns ConfigMap rule, without blaming healthy frontend pods.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q1",
+      "answer": "Yes",
+      "evidence": "Describes a CoreDNS template overriding frontend.astronomy-shop.svc.cluster.local resolution with rcode NXDOMAIN.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q2",
+      "answer": "Yes",
+      "evidence": "Includes data.Corefile, the exact frontend service hostname, template ANY ANY, and rcode NXDOMAIN.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q3",
+      "answer": "Yes",
+      "evidence": "Consistently attributes the fault to a DNS configuration override; no unrelated fault type is asserted.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q1",
+      "answer": "Yes",
+      "evidence": "Blames only the coredns ConfigMap and identifies frontend as the service targeted by its rule.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q2",
+      "answer": "No",
+      "evidence": "Lists only deployment/frontend under workload impact; omits the dependent services described as affected in the ground truth.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q3",
+      "answer": "Yes",
+      "evidence": "States that the CoreDNS rule overrides frontend service name resolution with NXDOMAIN, consistent with the ground-truth DNS failure.",
+      "confidence": "High"
+     }
+    ]
+   }
+  },
+  {
+   "arm": 3,
+   "kind": "v1",
+   "model": "openrouter/openai/gpt-6-luna-decisions",
+   "position": 2,
+   "seconds": 2.8,
+   "requests": 2,
+   "input_tokens": 25719,
+   "cost_usd": 0.002572,
+   "error": null,
+   "investigation": {
+    "steps": [
+     {
+      "step": 1,
+      "node": "investigate",
+      "component": "deployment/frontend",
+      "verdict": "origin",
+      "origin_p": 0.94,
+      "victim_p": 0.03,
+      "next": "none",
+      "next_p": 0.43,
+      "category": "dns_resolution",
+      "spec_checks": [],
+      "blocked_input": null,
+      "key_evidence": "CoreDNS rule in kube-system/coredns overrides name resolution for this component's Service frontend: template ANY ANY frontend.astronomy-shop.svc.cluster.local { \u23ce match \"^frontend.astronomy-shop.svc.cluster.local\\.$\" \u23ce rcode NXDOMAIN \u23ce fallthrough \u23ce }"
+     }
+    ],
+    "concluded": "deployment/frontend",
+    "fallback": null,
+    "triage_top": [
+     [
+      "deployment/frontend",
+      0.96
+     ],
+     [
+      "other",
+      0.02
+     ],
+     [
+      "deployment/recommendation",
+      0.01
+     ],
+     [
+      "daemonset/otel-collector-agent",
+      0.01
+     ],
+     [
+      "deployment/accounting",
+      0.0
+     ]
+    ]
+   },
+   "text": "Root cause component: Deployment `frontend` in namespace `astronomy-shop`.\nMechanism: CoreDNS rule in kube-system/coredns overrides name resolution for this component's Service frontend: template ANY ANY frontend.astronomy-shop.svc.cluster.local { \u23ce match \"^frontend.astronomy-shop.svc.cluster.local\\.$\" \u23ce rcode NXDOMAIN \u23ce fallthrough \u23ce }.\nFault object: ConfigMap `coredns`: rule overrides name resolution for Service astronomy-shop/frontend (deployment/frontend): template ANY ANY frontend.astronomy-shop.svc.cluster.local { \u23ce match \"^frontend.astronomy-shop.svc.cluster.local\\.$\" \u23ce rcode NXDOMAIN \u23ce fallthrough \u23ce }; ConfigMap coredns was modified 135s ago, 35736s after it was created (fields: data.Corefile); 32s before the first active symptom.\nFault type: dns resolution (name resolution fails or returns wrong answers).\nAbnormal state observed on this component:\n- firing alert ServiceEndpointDown\n- ConfigMap coredns was modified 135s ago, 35736s after it was created (fields: data.Corefile); 32s before the first active symptom\n- container frontend: image ghcr.io/open-telemetry/demo:2.2.0-frontend, limits {'memory': '250Mi'}\nFiring alerts on this component: ServiceEndpointDown.\nClassification: Jev (openai/gpt-6-luna-decisions-20261006) confirmed this origin at investigation step 1 with probability 0.94 (triage probability 0.96).",
+   "grade": {
+    "judgment": "False",
+    "reasoning": "Verdict: False (composite=0.55). D1 Fault Localization: 0.33 | D2 Fault Characterization: 1.00 | D3 Scope Precision: 0.33. Weakest dimension: Fault Localization (0.33). Checklist details: [{\"id\": \"D1-Q1\", \"answer\": \"Yes\", \"evidence\": \"The diagnosis explicitly identifies \\u201cFault object: ConfigMap coredns\\u201d and locates the CoreDNS rule in kube-system/coredns.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q2\", \"answer\": \"No\", \"evidence\": \"Despite identifying the faulty ConfigMap, it labels Deployment frontend as the \\u201cRoot cause component,\\u201d conflating the affected endpoint with the origin.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q3\", \"answer\": \"No\", \"evidence\": \"\\u201cRoot cause component: Deployment frontend\\u201d incorrectly assigns fault origin to a component other than the ground-truth CoreDNS ConfigMap.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q1\", \"answer\": \"Yes\", \"evidence\": \"It describes a CoreDNS template overriding frontend.astronomy-shop.svc.cluster.local resolution with NXDOMAIN.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q2\", \"answer\": \"Yes\", \"evidence\": \"It supplies the exact service hostname, template rule, rcode NXDOMAIN, and mutated ConfigMap field data.Corefile.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q3\", \"answer\": \"Yes\", \"evidence\": \"\\u201cFault type: dns resolution\\u201d matches the injected DNS failure; no unrelated fault mechanism is asserted.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q1\", \"answer\": \"No\", \"evidence\": \"It blames Deployment frontend as the root-cause component, although the ground truth attributes the fault to ConfigMap coredns.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q2\", \"answer\": \"No\", \"evidence\": \"It mentions CoreDNS and frontend but omits the dependent services affected by failed resolution and cascading failures.\", \"confidence\": \"Medium\"}, {\"id\": \"D3-Q3\", \"answer\": \"Yes\", \"evidence\": \"It states name resolution fails and reports ServiceEndpointDown, consistent with the NXDOMAIN-induced endpoint unavailability.\", \"confidence\": \"High\"}]",
+    "success": false,
+    "accuracy": 55.0,
+    "composite_score": 0.55,
+    "dimensions": {
+     "D1": {
+      "name": "Fault Localization",
+      "score": 0.33
+     },
+     "D2": {
+      "name": "Fault Characterization",
+      "score": 1.0
+     },
+     "D3": {
+      "name": "Scope Precision",
+      "score": 0.33
+     }
+    },
+    "checklist": [
+     {
+      "id": "D1-Q1",
+      "answer": "Yes",
+      "evidence": "The diagnosis explicitly identifies \u201cFault object: ConfigMap coredns\u201d and locates the CoreDNS rule in kube-system/coredns.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q2",
+      "answer": "No",
+      "evidence": "Despite identifying the faulty ConfigMap, it labels Deployment frontend as the \u201cRoot cause component,\u201d conflating the affected endpoint with the origin.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q3",
+      "answer": "No",
+      "evidence": "\u201cRoot cause component: Deployment frontend\u201d incorrectly assigns fault origin to a component other than the ground-truth CoreDNS ConfigMap.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q1",
+      "answer": "Yes",
+      "evidence": "It describes a CoreDNS template overriding frontend.astronomy-shop.svc.cluster.local resolution with NXDOMAIN.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q2",
+      "answer": "Yes",
+      "evidence": "It supplies the exact service hostname, template rule, rcode NXDOMAIN, and mutated ConfigMap field data.Corefile.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q3",
+      "answer": "Yes",
+      "evidence": "\u201cFault type: dns resolution\u201d matches the injected DNS failure; no unrelated fault mechanism is asserted.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q1",
+      "answer": "No",
+      "evidence": "It blames Deployment frontend as the root-cause component, although the ground truth attributes the fault to ConfigMap coredns.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q2",
+      "answer": "No",
+      "evidence": "It mentions CoreDNS and frontend but omits the dependent services affected by failed resolution and cascading failures.",
+      "confidence": "Medium"
+     },
+     {
+      "id": "D3-Q3",
+      "answer": "Yes",
+      "evidence": "It states name resolution fails and reports ServiceEndpointDown, consistent with the NXDOMAIN-induced endpoint unavailability.",
+      "confidence": "High"
+     }
+    ]
+   }
+  }
+ ],
+ "submission": {
+  "status": "200",
+  "message": "Submission received",
+  "stage": "diagnosis"
+ },
+ "judge": {
+  "model": "gpt-6-astra",
+  "backend": "codex",
+  "effort": "high"
+ }
+}

@@ -1,0 +1,115 @@
+{
+ "problem_id": "jev_diag_anon_1d9c3c75b25262d0e40768e558ff112a_20261019_063259",
+ "submit_arm": 0,
+ "order": [
+  0,
+  3,
+  2,
+  1
+ ],
+ "arms": [
+  {
+   "arm": 0,
+   "kind": "v2",
+   "model": "openrouter/typesafe/jev-1.13",
+   "position": 0,
+   "seconds": 6.9,
+   "requests": 4,
+   "input_tokens": 45706,
+   "cost_usd": 0.00192,
+   "error": null,
+   "investigation": {
+    "rounds": [
+     {
+      "candidates": [
+       "bad-input:deployment/orders-validator:orders-fulfillment",
+       "bad-input:deployment/orders-validator:orders-processed",
+       "bad-input:deployment/orders-validator:orders-validator",
+       "change:daemonset/otel-collector-agent:template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-19T12:32:24+06:00",
+       "change:deployment/astronomy-shop/order-stream",
+       "change:deployment/astronomy-shop/orders-validator"
+      ],
+      "probabilities": {
+       "bad-input:deployment/orders-validator:orders-fulfillment": 0.9450000000000001,
+       "bad-input:deployment/orders-validator:orders-processed": 0.005,
+       "bad-input:deployment/orders-validator:orders-validator": 0.015,
+       "change:daemonset/otel-collector-agent:template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-19T12:32:24+06:00": 0.02,
+       "change:deployment/astronomy-shop/order-stream": 0.0,
+       "change:deployment/astronomy-shop/orders-validator": 0.005,
+       "none_of_these": 0.01
+      },
+      "picks": [
+       "bad-input:deployment/orders-validator:orders-fulfillment",
+       "bad-input:deployment/orders-validator:orders-fulfillment"
+      ],
+      "route": "accept"
+     }
+    ],
+    "explanations": 13,
+    "winner": "bad-input:deployment/orders-validator:orders-fulfillment",
+    "pattern": "bad-input",
+    "key_fact": "log x1 (stopped, last seen 134s ago): orders-validator: 2026-10-19 06:32:55,489 ERROR record validation failed at offset=20: Expecting value: line 1 column 35 (char 34)",
+    "key_fact_probability": 0.98,
+    "fault_type": "data_or_traffic",
+    "fault_object": null,
+    "uncertain": false
+   },
+   "text": "Root cause: input source `orders-fulfillment` in namespace `astronomy-shop`.\nMechanism: log x1 (stopped, last seen 134s ago): orders-validator: 2026-10-19 06:32:55,489 ERROR record validation failed at offset=20: Expecting value: line 1 column 35 (char 34).\nHow it fails: One bad item in orders-fulfillment, which deployment/orders-validator reads, fails again and again and blocks the items behind it.\nConcrete details: deployment/orders-validator reads ORDERS_TOPIC=orders-fulfillment; 2026-10-19 06:34:55,505 ERROR partition remains paused at offset=20.\nObserved impact: deployment `orders-validator` in namespace `astronomy-shop`.\nFault type: data or traffic (the component's inputs or traffic pattern overwhelm or break it).\nEvidence:\n- deployment/orders-validator reads ORDERS_TOPIC=orders-fulfillment\n- 2026-10-19 06:34:55,505 ERROR partition remains paused at offset=20\n- deployment/orders-validator: created 133s ago, 48s after the workloads it calls; 78s before the first active symptom",
+   "text_before_rerender": "Root cause: input source `orders-fulfillment` in namespace `astronomy-shop`.\nMechanism: One bad item in orders-fulfillment, which deployment/orders-validator reads, fails again and again and blocks the items behind it.\nConcrete details: deployment/orders-validator reads ORDERS_TOPIC=orders-fulfillment; 2026-10-19 06:34:55,505 ERROR partition remains paused at offset=20.\nObserved impact: deployment `orders-validator` in namespace `astronomy-shop`.\nKey evidence: log x1 (stopped, last seen 134s ago): orders-validator: 2026-10-19 06:32:55,489 ERROR record validation failed at offset=20: Expecting value: line 1 column 35 (char 34).\nFault type: data or traffic (the component's inputs or traffic pattern overwhelm or break it).\nEvidence:\n- deployment/orders-validator reads ORDERS_TOPIC=orders-fulfillment\n- 2026-10-19 06:34:55,505 ERROR partition remains paused at offset=20\n- deployment/orders-validator: created 133s ago, 48s after the workloads it calls; 78s before the first active symptom"
+  },
+  {
+   "arm": 1,
+   "kind": "v2",
+   "model": "openrouter/openai/gpt-6-luna-decisions",
+   "position": 3,
+   "seconds": 6.2,
+   "requests": 4,
+   "input_tokens": 30174,
+   "cost_usd": 0.003017,
+   "error": null,
+   "investigation": {
+    "rounds": [
+     {
+      "candidates": [
+       "bad-input:deployment/orders-validator:orders-fulfillment",
+       "bad-input:deployment/orders-validator:orders-processed",
+       "bad-input:deployment/orders-validator:orders-validator",
+       "change:daemonset/otel-collector-agent:template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-19T12:32:24+06:00",
+       "change:deployment/astronomy-shop/order-stream",
+       "change:deployment/astronomy-shop/orders-validator"
+      ],
+      "probabilities": {
+       "bad-input:deployment/orders-validator:orders-fulfillment": 0.745,
+       "bad-input:deployment/orders-validator:orders-processed": 0.02,
+       "bad-input:deployment/orders-validator:orders-validator": 0.14,
+       "change:daemonset/otel-collector-agent:template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-19T12:32:24+06:00": 0.01,
+       "change:deployment/astronomy-shop/order-stream": 0.025,
+       "change:deployment/astronomy-shop/orders-validator": 0.045,
+       "none_of_these": 0.015
+      },
+      "picks": [
+       "bad-input:deployment/orders-validator:orders-fulfillment",
+       "bad-input:deployment/orders-validator:orders-fulfillment"
+      ],
+      "route": "accept"
+     }
+    ],
+    "explanations": 13,
+    "winner": "bad-input:deployment/orders-validator:orders-fulfillment",
+    "pattern": "bad-input",
+    "key_fact": "log x1 (stopped, last seen 146s ago): orders-validator: 2026-10-19 06:32:55,489 ERROR record validation failed at offset=20: Expecting value: line 1 column 35 (char 34)",
+    "key_fact_probability": 0.59,
+    "fault_type": "data_or_traffic",
+    "fault_object": null,
+    "uncertain": false
+   },
+   "text": "Root cause: input source `orders-fulfillment` in namespace `astronomy-shop`.\nMechanism: log x1 (stopped, last seen 146s ago): orders-validator: 2026-10-19 06:32:55,489 ERROR record validation failed at offset=20: Expecting value: line 1 column 35 (char 34).\nHow it fails: One bad item in orders-fulfillment, which deployment/orders-validator reads, fails again and again and blocks the items behind it.\nConcrete details: deployment/orders-validator reads ORDERS_TOPIC=orders-fulfillment; 2026-10-19 06:35:10,506 ERROR partition remains paused at offset=20.\nObserved impact: deployment `orders-validator` in namespace `astronomy-shop`.\nFault type: data or traffic (the component's inputs or traffic pattern overwhelm or break it).\nEvidence:\n- deployment/orders-validator reads ORDERS_TOPIC=orders-fulfillment\n- 2026-10-19 06:35:10,506 ERROR partition remains paused at offset=20\n- deployment/orders-validator: created 133s ago, 48s after the workloads it calls; 78s before the first active symptom",
+   "text_before_rerender": "Root cause: input source `orders-fulfillment` in namespace `astronomy-shop`.\nMechanism: One bad item in orders-fulfillment, which deployment/orders-validator reads, fails again and again and blocks the items behind it.\nConcrete details: deployment/orders-validator reads ORDERS_TOPIC=orders-fulfillment; 2026-10-19 06:35:10,506 ERROR partition remains paused at offset=20.\nObserved impact: deployment `orders-validator` in namespace `astronomy-shop`.\nKey evidence: log x1 (stopped, last seen 146s ago): orders-validator: 2026-10-19 06:32:55,489 ERROR record validation failed at offset=20: Expecting value: line 1 column 35 (char 34).\nFault type: data or traffic (the component's inputs or traffic pattern overwhelm or break it).\nEvidence:\n- deployment/orders-validator reads ORDERS_TOPIC=orders-fulfillment\n- 2026-10-19 06:35:10,506 ERROR partition remains paused at offset=20\n- deployment/orders-validator: created 133s ago, 48s after the workloads it calls; 78s before the first active symptom"
+  }
+ ],
+ "submission": {
+  "status": "200",
+  "message": "Submission received",
+  "stage": "diagnosis"
+ }
+}

@@ -1,0 +1,234 @@
+[
+ {
+  "label": "decide:1",
+  "state": {
+   "application": {
+    "name": "Hotel Reservation",
+    "description": "A hotel reservation application built with Go and gRPC, providing backend in-memory and persistent databases, a recommender system for hotel recommendations, and a functionality to place reservations.",
+    "namespaces": [
+     "hotel-reservation"
+    ]
+   },
+   "evidence": {
+    "deployment/cleanup-controller": {
+     "kind": "Deployment",
+     "name": "cleanup-controller",
+     "namespace": "hotel-reservation",
+     "healthy": false,
+     "signals": [
+      "service account hotel-reservation/cleanup-controller is bound to ClusterRole/configmap-cleanup-controller granting: configmaps [core]: get,list,watch",
+      "ConfigMap reservation-cleanup-token has been terminating for 260s, held by finalizer cleanup.reservations.io/pending-cleanup; linked to this component because its ClusterRole configmap-cleanup-controller covers configmaps and its logs show authorization denials; removing a finalizer requires patch or update on configmaps, which ClusterRole configmap-cleanup-controller does not grant (it grants get, list, watch)",
+      "logs report authorization denied (RBAC) (60 lines): controller: cleanup-controller reconciliation failed: Kubernetes API denied cleanup request with HTTP 403 Forbidden",
+      "ClusterRole configmap-cleanup-controller was modified 260s ago, 50s after it was created; 2s before the first active symptom"
+     ]
+    },
+    "deployment/consul": {
+     "kind": "Deployment",
+     "name": "consul",
+     "namespace": "hotel-reservation",
+     "healthy": false
+    },
+    "deployment/rate": {
+     "kind": "Deployment",
+     "name": "rate",
+     "namespace": "hotel-reservation",
+     "healthy": false,
+     "signals": [
+      "pod rate-b6dc6465f-rthqk: container hotel-reserv-rate restarted 1 times",
+      "pod rate-b6dc6465f-rthqk: container hotel-reserv-rate restarted 1 more time(s) in the last 179s"
+     ]
+    }
+   },
+   "cluster": {
+    "symptom_onset": "2026-10-18T13:39:53+00:00",
+    "recent_changes": [
+     {
+      "object": "clusterrole/configmap-cleanup-controller",
+      "at": "2026-10-18T13:39:51Z",
+      "modified_after_creation_s": 50,
+      "seconds_ago": 260,
+      "seconds_before_symptoms": 2
+     }
+    ],
+    "findings": [
+     {
+      "kind": "ClusterRole",
+      "name": "configmap-cleanup-controller",
+      "signal": "bound workload deployment/cleanup-controller logs authorization denials (60 lines); bound via ClusterRoleBinding/configmap-cleanup-controller to deployment/cleanup-controller; ClusterRole configmap-cleanup-controller was modified 260s ago, 50s after it was created; 2s before the first active symptom",
+      "components": [
+       "deployment/cleanup-controller"
+      ]
+     },
+     {
+      "kind": "ConfigMap",
+      "name": "reservation-cleanup-token",
+      "namespace": "hotel-reservation",
+      "signal": "terminating for 260s, held by finalizer cleanup.reservations.io/pending-cleanup",
+      "components": [
+       "deployment/cleanup-controller"
+      ]
+     }
+    ]
+   }
+  },
+  "questions": {
+   "best_explanation": {
+    "type": "choice",
+    "criteria": {
+     "o1": "Origin: deployment/hotel-reservation/rate. The fault is in this component; the mechanism is not established. | Observed impact on: deployment/hotel-reservation/rate",
+     "o2": "Origin: deployment/hotel-reservation/cleanup-controller. The fault is in this component; the mechanism is not established. | Observed impact on: deployment/hotel-reservation/cleanup-controller",
+     "o3": "Origin: configmap/hotel-reservation/reservation-cleanup-token. configmap reservation-cleanup-token acts on deployment/cleanup-controller: terminating for 260s, held by finalizer cleanup.reservations.io/pending-cleanup. | Details: terminating for 260s, held by finalizer cleanup.reservations.io/pending-cleanup; ConfigMap reservation-cleanup-token has been terminating for 260s, held by finalizer cleanup.reservations.io/pending-cleanup; linked to this component because its ClusterRole configmap-cleanup-controller covers configmaps and its logs show authorization denials; removing a finalizer requires patch or update on configmaps, which ClusterRole configmap-cleanup-controller does not grant (it grants get, list, watch) | Observed impact on: deployment/hotel-reservation/cleanup-controller | Checks: deployment/cleanup-controller shows symptoms of its own (supports)",
+     "o4": "Origin: clusterrole/configmap-cleanup-controller. clusterrole configmap-cleanup-controller was changed recently and breaks deployment/cleanup-controller, which it acts on. | Details: ConfigMap reservation-cleanup-token has been terminating for 260s, held by finalizer cleanup.reservations.io/pending-cleanup; linked to this component because its ClusterRole configmap-cleanup-controller covers configmaps and its logs show authorization denials; removing a finalizer requires patch or update on configmaps, which ClusterRole configmap-cleanup-controller does not grant (it grants get, list, watch); bound workload deployment/cleanup-controller logs authorization denials (60 lines); bound via ClusterRoleBinding/configmap-cleanup-controller to deployment/cleanup-controller; ClusterRole configmap-cleanup-controller was modified 260s ago, 50s after it was created; 2s before the first active symptom | Observed impact on: deployment/hotel-reservation/cleanup-controller | Checks: clusterrole/configmap-cleanup-controller was made before the symptoms began (supports); deployment/cleanup-controller shows symptoms of its own (supports)",
+     "o5": "None of these explanations fits the evidence.",
+     "o6": "Origin: deployment/hotel-reservation/consul. The fault is in this component; the mechanism is not established. | Observed impact on: deployment/hotel-reservation/consul"
+    },
+    "instructions": {
+     "question": "Which explanation best accounts for all the observed symptoms in `evidence`?",
+     "how_to_decide": [
+      "Prefer the explanation whose chain is supported by the observed facts and explains the most symptoms; an explanation contradicted by a fact is unlikely.",
+      "A component that only fails because something it calls fails is a victim, not the origin.",
+      "Choose `o5` when none of the explanations fits the evidence."
+     ]
+    }
+   }
+  },
+  "model": "typesafe/jev-1.13-20260917",
+  "latency_ms": 798,
+  "usage": {
+   "input_tokens": 1915,
+   "output_tokens": 69,
+   "cost": 8.043e-05
+  },
+  "answers": {
+   "best_explanation": {
+    "type": "choice",
+    "choice": "o4",
+    "confidence": 0.98,
+    "probabilities": {
+     "o1": 0.0,
+     "o2": 0.0,
+     "o3": 0.01,
+     "o4": 0.98,
+     "o5": 0.01,
+     "o6": 0.0
+    }
+   }
+  }
+ },
+ {
+  "label": "decide:2",
+  "state": {
+   "application": {
+    "name": "Hotel Reservation",
+    "description": "A hotel reservation application built with Go and gRPC, providing backend in-memory and persistent databases, a recommender system for hotel recommendations, and a functionality to place reservations.",
+    "namespaces": [
+     "hotel-reservation"
+    ]
+   },
+   "evidence": {
+    "deployment/cleanup-controller": {
+     "kind": "Deployment",
+     "name": "cleanup-controller",
+     "namespace": "hotel-reservation",
+     "healthy": false,
+     "signals": [
+      "service account hotel-reservation/cleanup-controller is bound to ClusterRole/configmap-cleanup-controller granting: configmaps [core]: get,list,watch",
+      "ConfigMap reservation-cleanup-token has been terminating for 260s, held by finalizer cleanup.reservations.io/pending-cleanup; linked to this component because its ClusterRole configmap-cleanup-controller covers configmaps and its logs show authorization denials; removing a finalizer requires patch or update on configmaps, which ClusterRole configmap-cleanup-controller does not grant (it grants get, list, watch)",
+      "logs report authorization denied (RBAC) (60 lines): controller: cleanup-controller reconciliation failed: Kubernetes API denied cleanup request with HTTP 403 Forbidden",
+      "ClusterRole configmap-cleanup-controller was modified 260s ago, 50s after it was created; 2s before the first active symptom"
+     ]
+    },
+    "deployment/consul": {
+     "kind": "Deployment",
+     "name": "consul",
+     "namespace": "hotel-reservation",
+     "healthy": false
+    },
+    "deployment/rate": {
+     "kind": "Deployment",
+     "name": "rate",
+     "namespace": "hotel-reservation",
+     "healthy": false,
+     "signals": [
+      "pod rate-b6dc6465f-rthqk: container hotel-reserv-rate restarted 1 times",
+      "pod rate-b6dc6465f-rthqk: container hotel-reserv-rate restarted 1 more time(s) in the last 179s"
+     ]
+    }
+   },
+   "cluster": {
+    "symptom_onset": "2026-10-18T13:39:53+00:00",
+    "recent_changes": [
+     {
+      "object": "clusterrole/configmap-cleanup-controller",
+      "at": "2026-10-18T13:39:51Z",
+      "modified_after_creation_s": 50,
+      "seconds_ago": 260,
+      "seconds_before_symptoms": 2
+     }
+    ],
+    "findings": [
+     {
+      "kind": "ClusterRole",
+      "name": "configmap-cleanup-controller",
+      "signal": "bound workload deployment/cleanup-controller logs authorization denials (60 lines); bound via ClusterRoleBinding/configmap-cleanup-controller to deployment/cleanup-controller; ClusterRole configmap-cleanup-controller was modified 260s ago, 50s after it was created; 2s before the first active symptom",
+      "components": [
+       "deployment/cleanup-controller"
+      ]
+     },
+     {
+      "kind": "ConfigMap",
+      "name": "reservation-cleanup-token",
+      "namespace": "hotel-reservation",
+      "signal": "terminating for 260s, held by finalizer cleanup.reservations.io/pending-cleanup",
+      "components": [
+       "deployment/cleanup-controller"
+      ]
+     }
+    ]
+   }
+  },
+  "questions": {
+   "best_explanation": {
+    "type": "choice",
+    "criteria": {
+     "o1": "Origin: deployment/hotel-reservation/rate. The fault is in this component; the mechanism is not established. | Observed impact on: deployment/hotel-reservation/rate",
+     "o2": "Origin: clusterrole/configmap-cleanup-controller. clusterrole configmap-cleanup-controller was changed recently and breaks deployment/cleanup-controller, which it acts on. | Details: ConfigMap reservation-cleanup-token has been terminating for 260s, held by finalizer cleanup.reservations.io/pending-cleanup; linked to this component because its ClusterRole configmap-cleanup-controller covers configmaps and its logs show authorization denials; removing a finalizer requires patch or update on configmaps, which ClusterRole configmap-cleanup-controller does not grant (it grants get, list, watch); bound workload deployment/cleanup-controller logs authorization denials (60 lines); bound via ClusterRoleBinding/configmap-cleanup-controller to deployment/cleanup-controller; ClusterRole configmap-cleanup-controller was modified 260s ago, 50s after it was created; 2s before the first active symptom | Observed impact on: deployment/hotel-reservation/cleanup-controller | Checks: clusterrole/configmap-cleanup-controller was made before the symptoms began (supports); deployment/cleanup-controller shows symptoms of its own (supports)",
+     "o3": "Origin: configmap/hotel-reservation/reservation-cleanup-token. configmap reservation-cleanup-token acts on deployment/cleanup-controller: terminating for 260s, held by finalizer cleanup.reservations.io/pending-cleanup. | Details: terminating for 260s, held by finalizer cleanup.reservations.io/pending-cleanup; ConfigMap reservation-cleanup-token has been terminating for 260s, held by finalizer cleanup.reservations.io/pending-cleanup; linked to this component because its ClusterRole configmap-cleanup-controller covers configmaps and its logs show authorization denials; removing a finalizer requires patch or update on configmaps, which ClusterRole configmap-cleanup-controller does not grant (it grants get, list, watch) | Observed impact on: deployment/hotel-reservation/cleanup-controller | Checks: deployment/cleanup-controller shows symptoms of its own (supports)",
+     "o4": "None of these explanations fits the evidence.",
+     "o5": "Origin: deployment/hotel-reservation/cleanup-controller. The fault is in this component; the mechanism is not established. | Observed impact on: deployment/hotel-reservation/cleanup-controller",
+     "o6": "Origin: deployment/hotel-reservation/consul. The fault is in this component; the mechanism is not established. | Observed impact on: deployment/hotel-reservation/consul"
+    },
+    "instructions": {
+     "question": "Which explanation best accounts for all the observed symptoms in `evidence`?",
+     "how_to_decide": [
+      "Prefer the explanation whose chain is supported by the observed facts and explains the most symptoms; an explanation contradicted by a fact is unlikely.",
+      "A component that only fails because something it calls fails is a victim, not the origin.",
+      "Choose `o4` when none of the explanations fits the evidence."
+     ]
+    }
+   }
+  },
+  "model": "typesafe/jev-1.13-20260917",
+  "latency_ms": 1139,
+  "usage": {
+   "input_tokens": 1915,
+   "output_tokens": 69,
+   "cost": 8.043e-05
+  },
+  "answers": {
+   "best_explanation": {
+    "type": "choice",
+    "choice": "o2",
+    "confidence": 0.96,
+    "probabilities": {
+     "o1": 0.0,
+     "o2": 0.97,
+     "o3": 0.0,
+     "o4": 0.03,
+     "o5": 0.0,
+     "o6": 0.0
+    }
+   }
+  }
+ }
+]

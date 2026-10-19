@@ -1,0 +1,542 @@
+{
+ "problem_id": "network_policy_block",
+ "source": "lite6_network_policy_block",
+ "replay": true,
+ "arms": [
+  {
+   "arm": 0,
+   "kind": "v1",
+   "model": "typesafe/jev-1.13",
+   "position": 0,
+   "seconds": 1.1,
+   "requests": 2,
+   "input_tokens": 25572,
+   "error": null,
+   "model_failed": false,
+   "component": "deployment/recommendation",
+   "investigation": {
+    "steps": [
+     {
+      "step": 1,
+      "node": "investigate",
+      "component": "deployment/recommendation",
+      "verdict": "origin",
+      "origin_p": 0.77,
+      "victim_p": 0.02,
+      "next": "none",
+      "next_p": 0.9,
+      "category": "network_policy",
+      "spec_checks": [],
+      "blocked_input": null,
+      "key_evidence": "selected by NetworkPolicy deny-all-recommendation (denies all ingress; denies all egress)"
+     }
+    ],
+    "concluded": "deployment/recommendation",
+    "fallback": null,
+    "triage_top": [
+     [
+      "deployment/recommendation",
+      0.58
+     ],
+     [
+      "other",
+      0.42
+     ],
+     [
+      "deployment/consul",
+      0.0
+     ],
+     [
+      "deployment/frontend",
+      0.0
+     ],
+     [
+      "deployment/geo",
+      0.0
+     ]
+    ]
+   },
+   "text": "Root cause object: NetworkPolicy `deny-all-recommendation` in namespace `hotel-reservation`, acting on Deployment `recommendation` in namespace `hotel-reservation`.\nWhat the object does: denies all ingress; denies all egress; NetworkPolicy deny-all-recommendation was created 76s ago, 13s after the workloads it selects.\nMechanism: selected by NetworkPolicy deny-all-recommendation (denies all ingress; denies all egress).\nFault type: network policy (a NetworkPolicy blocks traffic to or from this component).\nAbnormal state observed on this component:\n- NetworkPolicy deny-all-recommendation was created 76s ago, 13s after the workloads it selects\n- container hotel-reserv-recommendation: image ghcr.io/sregym/hotel-reservation:sha-d2c036bc3d1138f5a0bdaffd3d87f37522c3461a@sha256:1c685e1c4c304f327952397b3a99c54dadb086607774d71f222b200ec0d2e65e, limits {'cpu': '1'}\nClassification: Jev (typesafe/jev-1.13-20260917) confirmed this origin at investigation step 1 with probability 0.77 (triage probability 0.58).",
+   "grade": {
+    "judgment": "True",
+    "reasoning": "Verdict: True (composite=1.00). D1 Fault Localization: 1.00 | D2 Fault Characterization: 1.00 | D3 Scope Precision: 1.00. Weakest dimension: Fault Localization (1.00). Checklist details: [{\"id\": \"D1-Q1\", \"answer\": \"Yes\", \"evidence\": \"Names Deployment recommendation in namespace hotel-reservation as the workload affected by NetworkPolicy deny-all-recommendation.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q2\", \"answer\": \"Yes\", \"evidence\": \"Identifies the policy acting on recommendation as the root cause, rather than a dependent request path.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q3\", \"answer\": \"Yes\", \"evidence\": \"Attributes the fault to the policy isolating recommendation; no different workload is blamed.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q1\", \"answer\": \"Yes\", \"evidence\": \"Explicitly states that NetworkPolicy deny-all-recommendation denies all ingress and all egress.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q2\", \"answer\": \"Yes\", \"evidence\": \"Provides the exact policy name deny-all-recommendation, namespace hotel-reservation, and concrete restrictions denying all ingress and egress.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q3\", \"answer\": \"Yes\", \"evidence\": \"Classifies the fault as a network policy blocking traffic to or from the component, matching the ground truth.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q1\", \"answer\": \"Yes\", \"evidence\": \"Blames only deny-all-recommendation acting on recommendation; no uninvolved component is identified as causal.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q2\", \"answer\": \"Yes\", \"evidence\": \"Includes recommendation, the only specifically identified affected workload, and its causal NetworkPolicy.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q3\", \"answer\": \"Yes\", \"evidence\": \"States that all ingress and egress are denied and traffic to or from the component is blocked, consistent with complete network isolation.\", \"confidence\": \"High\"}]",
+    "success": true,
+    "accuracy": 100.0,
+    "composite_score": 1.0,
+    "dimensions": {
+     "D1": {
+      "name": "Fault Localization",
+      "score": 1.0
+     },
+     "D2": {
+      "name": "Fault Characterization",
+      "score": 1.0
+     },
+     "D3": {
+      "name": "Scope Precision",
+      "score": 1.0
+     }
+    },
+    "checklist": [
+     {
+      "id": "D1-Q1",
+      "answer": "Yes",
+      "evidence": "Names Deployment recommendation in namespace hotel-reservation as the workload affected by NetworkPolicy deny-all-recommendation.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q2",
+      "answer": "Yes",
+      "evidence": "Identifies the policy acting on recommendation as the root cause, rather than a dependent request path.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q3",
+      "answer": "Yes",
+      "evidence": "Attributes the fault to the policy isolating recommendation; no different workload is blamed.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q1",
+      "answer": "Yes",
+      "evidence": "Explicitly states that NetworkPolicy deny-all-recommendation denies all ingress and all egress.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q2",
+      "answer": "Yes",
+      "evidence": "Provides the exact policy name deny-all-recommendation, namespace hotel-reservation, and concrete restrictions denying all ingress and egress.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q3",
+      "answer": "Yes",
+      "evidence": "Classifies the fault as a network policy blocking traffic to or from the component, matching the ground truth.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q1",
+      "answer": "Yes",
+      "evidence": "Blames only deny-all-recommendation acting on recommendation; no uninvolved component is identified as causal.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q2",
+      "answer": "Yes",
+      "evidence": "Includes recommendation, the only specifically identified affected workload, and its causal NetworkPolicy.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q3",
+      "answer": "Yes",
+      "evidence": "States that all ingress and egress are denied and traffic to or from the component is blocked, consistent with complete network isolation.",
+      "confidence": "High"
+     }
+    ]
+   }
+  },
+  {
+   "arm": 1,
+   "kind": "v1",
+   "model": "openai/gpt-6-luna-decisions",
+   "position": 1,
+   "seconds": 1.4,
+   "requests": 2,
+   "input_tokens": 16949,
+   "error": null,
+   "model_failed": false,
+   "component": "deployment/recommendation",
+   "investigation": {
+    "steps": [
+     {
+      "step": 1,
+      "node": "investigate",
+      "component": "deployment/recommendation",
+      "verdict": "origin",
+      "origin_p": 0.96,
+      "victim_p": 0.01,
+      "next": "none",
+      "next_p": 0.52,
+      "category": "network_policy",
+      "spec_checks": [],
+      "blocked_input": null,
+      "key_evidence": "selected by NetworkPolicy deny-all-recommendation (denies all ingress; denies all egress)"
+     }
+    ],
+    "concluded": "deployment/recommendation",
+    "fallback": null,
+    "triage_top": [
+     [
+      "deployment/recommendation",
+      1.0
+     ],
+     [
+      "deployment/consul",
+      0.0
+     ],
+     [
+      "deployment/frontend",
+      0.0
+     ],
+     [
+      "deployment/geo",
+      0.0
+     ],
+     [
+      "deployment/jaeger",
+      0.0
+     ]
+    ]
+   },
+   "text": "Root cause object: NetworkPolicy `deny-all-recommendation` in namespace `hotel-reservation`, acting on Deployment `recommendation` in namespace `hotel-reservation`.\nWhat the object does: denies all ingress; denies all egress; NetworkPolicy deny-all-recommendation was created 76s ago, 13s after the workloads it selects.\nMechanism: selected by NetworkPolicy deny-all-recommendation (denies all ingress; denies all egress).\nFault type: network policy (a NetworkPolicy blocks traffic to or from this component).\nAbnormal state observed on this component:\n- NetworkPolicy deny-all-recommendation was created 76s ago, 13s after the workloads it selects\n- container hotel-reserv-recommendation: image ghcr.io/sregym/hotel-reservation:sha-d2c036bc3d1138f5a0bdaffd3d87f37522c3461a@sha256:1c685e1c4c304f327952397b3a99c54dadb086607774d71f222b200ec0d2e65e, limits {'cpu': '1'}\nClassification: Jev (openai/gpt-6-luna-decisions-20261006) confirmed this origin at investigation step 1 with probability 0.96 (triage probability 1.00).",
+   "grade": {
+    "judgment": "True",
+    "reasoning": "Verdict: True (composite=1.00). D1 Fault Localization: 1.00 | D2 Fault Characterization: 1.00 | D3 Scope Precision: 1.00. Weakest dimension: Fault Localization (1.00). Checklist details: [{\"id\": \"D1-Q1\", \"answer\": \"Yes\", \"evidence\": \"Names Deployment recommendation in namespace hotel-reservation as the workload targeted by the root-cause NetworkPolicy.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q2\", \"answer\": \"Yes\", \"evidence\": \"Identifies deny-all-recommendation acting on recommendation as the origin; does not attribute the fault to dependent request paths.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q3\", \"answer\": \"Yes\", \"evidence\": \"The diagnosed workload is recommendation, matching the ground-truth target; no different workload is blamed.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q1\", \"answer\": \"Yes\", \"evidence\": \"States that NetworkPolicy deny-all-recommendation denies all ingress and all egress, matching the injected network isolation.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q2\", \"answer\": \"Yes\", \"evidence\": \"Provides the exact policy name deny-all-recommendation, namespace hotel-reservation, and concrete deny-all ingress and egress behavior.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q3\", \"answer\": \"Yes\", \"evidence\": \"Explicitly classifies the fault as a network policy blocking component traffic; no unrelated fault type is asserted.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q1\", \"answer\": \"Yes\", \"evidence\": \"Attributes the fault only to deny-all-recommendation acting on recommendation.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q2\", \"answer\": \"Yes\", \"evidence\": \"Includes recommendation, the only specifically identified affected workload in the ground truth, and its blocking NetworkPolicy.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q3\", \"answer\": \"Yes\", \"evidence\": \"Describes all ingress and egress being denied and traffic to or from the component being blocked, consistent with complete network isolation.\", \"confidence\": \"High\"}]",
+    "success": true,
+    "accuracy": 100.0,
+    "composite_score": 1.0,
+    "dimensions": {
+     "D1": {
+      "name": "Fault Localization",
+      "score": 1.0
+     },
+     "D2": {
+      "name": "Fault Characterization",
+      "score": 1.0
+     },
+     "D3": {
+      "name": "Scope Precision",
+      "score": 1.0
+     }
+    },
+    "checklist": [
+     {
+      "id": "D1-Q1",
+      "answer": "Yes",
+      "evidence": "Names Deployment recommendation in namespace hotel-reservation as the workload targeted by the root-cause NetworkPolicy.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q2",
+      "answer": "Yes",
+      "evidence": "Identifies deny-all-recommendation acting on recommendation as the origin; does not attribute the fault to dependent request paths.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q3",
+      "answer": "Yes",
+      "evidence": "The diagnosed workload is recommendation, matching the ground-truth target; no different workload is blamed.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q1",
+      "answer": "Yes",
+      "evidence": "States that NetworkPolicy deny-all-recommendation denies all ingress and all egress, matching the injected network isolation.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q2",
+      "answer": "Yes",
+      "evidence": "Provides the exact policy name deny-all-recommendation, namespace hotel-reservation, and concrete deny-all ingress and egress behavior.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q3",
+      "answer": "Yes",
+      "evidence": "Explicitly classifies the fault as a network policy blocking component traffic; no unrelated fault type is asserted.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q1",
+      "answer": "Yes",
+      "evidence": "Attributes the fault only to deny-all-recommendation acting on recommendation.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q2",
+      "answer": "Yes",
+      "evidence": "Includes recommendation, the only specifically identified affected workload in the ground truth, and its blocking NetworkPolicy.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q3",
+      "answer": "Yes",
+      "evidence": "Describes all ingress and egress being denied and traffic to or from the component being blocked, consistent with complete network isolation.",
+      "confidence": "High"
+     }
+    ]
+   }
+  },
+  {
+   "arm": 2,
+   "kind": "v2",
+   "model": "typesafe/jev-1.13",
+   "position": 2,
+   "seconds": 1.8,
+   "requests": 3,
+   "input_tokens": 44049,
+   "error": null,
+   "model_failed": false,
+   "component": "deployment/recommendation",
+   "investigation": {
+    "steps": [
+     {
+      "step": 1,
+      "node": "investigate",
+      "component": "deployment/recommendation",
+      "verdict": "origin",
+      "origin_p": 0.81,
+      "victim_p": 0.01,
+      "next": "none",
+      "next_p": 0.9,
+      "category": "network_policy",
+      "spec_checks": [],
+      "blocked_input": null,
+      "key_evidence": "selected by NetworkPolicy deny-all-recommendation (denies all ingress; denies all egress)"
+     }
+    ],
+    "concluded": "deployment/recommendation",
+    "fallback": null,
+    "triage_top": [
+     [
+      "deployment/recommendation",
+      0.64
+     ],
+     [
+      "other",
+      0.36
+     ],
+     [
+      "deployment/consul",
+      0.0
+     ],
+     [
+      "deployment/frontend",
+      0.0
+     ],
+     [
+      "deployment/geo",
+      0.0
+     ]
+    ],
+    "second": null
+   },
+   "text": "Root cause: NetworkPolicy `deny-all-recommendation` in namespace `hotel-reservation`, acting on Deployment `recommendation` in namespace `hotel-reservation`: selected by NetworkPolicy deny-all-recommendation (denies all ingress; denies all egress).\nMechanism: denies all ingress; denies all egress; NetworkPolicy deny-all-recommendation was created 76s ago, 13s after the workloads it selects.",
+   "grade": {
+    "judgment": "True",
+    "reasoning": "Verdict: True (composite=1.00). D1 Fault Localization: 1.00 | D2 Fault Characterization: 1.00 | D3 Scope Precision: 1.00. Weakest dimension: Fault Localization (1.00). Checklist details: [{\"id\": \"D1-Q1\", \"answer\": \"Yes\", \"evidence\": \"Names Deployment recommendation in namespace hotel-reservation as the workload acted on by the policy.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q2\", \"answer\": \"Yes\", \"evidence\": \"Identifies deny-all-recommendation acting on recommendation as the root cause, without attributing the fault to dependent request paths.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q3\", \"answer\": \"Yes\", \"evidence\": \"The diagnosed workload is recommendation, matching the ground-truth target; no different workload is blamed.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q1\", \"answer\": \"Yes\", \"evidence\": \"Identifies a NetworkPolicy that denies all ingress and all egress, matching the injected network isolation mechanism.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q2\", \"answer\": \"Yes\", \"evidence\": \"Specifies policy deny-all-recommendation, namespace hotel-reservation, target recommendation, and denial of all ingress and egress.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q3\", \"answer\": \"Yes\", \"evidence\": \"Attributes the fault exclusively to NetworkPolicy traffic denial, consistent with the ground-truth fault type.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q1\", \"answer\": \"Yes\", \"evidence\": \"Blames only deny-all-recommendation acting on recommendation; no uninvolved components are implicated.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q2\", \"answer\": \"Yes\", \"evidence\": \"Includes recommendation and deny-all-recommendation in hotel-reservation, covering all specifically identified ground-truth components.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q3\", \"answer\": \"Yes\", \"evidence\": \"States that the policy denies all ingress and all egress for recommendation, matching the ground-truth complete network isolation.\", \"confidence\": \"High\"}]",
+    "success": true,
+    "accuracy": 100.0,
+    "composite_score": 1.0,
+    "dimensions": {
+     "D1": {
+      "name": "Fault Localization",
+      "score": 1.0
+     },
+     "D2": {
+      "name": "Fault Characterization",
+      "score": 1.0
+     },
+     "D3": {
+      "name": "Scope Precision",
+      "score": 1.0
+     }
+    },
+    "checklist": [
+     {
+      "id": "D1-Q1",
+      "answer": "Yes",
+      "evidence": "Names Deployment recommendation in namespace hotel-reservation as the workload acted on by the policy.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q2",
+      "answer": "Yes",
+      "evidence": "Identifies deny-all-recommendation acting on recommendation as the root cause, without attributing the fault to dependent request paths.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q3",
+      "answer": "Yes",
+      "evidence": "The diagnosed workload is recommendation, matching the ground-truth target; no different workload is blamed.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q1",
+      "answer": "Yes",
+      "evidence": "Identifies a NetworkPolicy that denies all ingress and all egress, matching the injected network isolation mechanism.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q2",
+      "answer": "Yes",
+      "evidence": "Specifies policy deny-all-recommendation, namespace hotel-reservation, target recommendation, and denial of all ingress and egress.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q3",
+      "answer": "Yes",
+      "evidence": "Attributes the fault exclusively to NetworkPolicy traffic denial, consistent with the ground-truth fault type.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q1",
+      "answer": "Yes",
+      "evidence": "Blames only deny-all-recommendation acting on recommendation; no uninvolved components are implicated.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q2",
+      "answer": "Yes",
+      "evidence": "Includes recommendation and deny-all-recommendation in hotel-reservation, covering all specifically identified ground-truth components.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q3",
+      "answer": "Yes",
+      "evidence": "States that the policy denies all ingress and all egress for recommendation, matching the ground-truth complete network isolation.",
+      "confidence": "High"
+     }
+    ]
+   }
+  },
+  {
+   "arm": 3,
+   "kind": "v2",
+   "model": "openai/gpt-6-luna-decisions",
+   "position": 3,
+   "seconds": 1.3,
+   "requests": 2,
+   "input_tokens": 16774,
+   "error": null,
+   "model_failed": false,
+   "component": "deployment/recommendation",
+   "investigation": {
+    "steps": [
+     {
+      "step": 1,
+      "node": "investigate",
+      "component": "deployment/recommendation",
+      "verdict": "origin",
+      "origin_p": 0.96,
+      "victim_p": 0.02,
+      "next": "none",
+      "next_p": 0.53,
+      "category": "network_policy",
+      "spec_checks": [],
+      "blocked_input": null,
+      "key_evidence": "selected by NetworkPolicy deny-all-recommendation (denies all ingress; denies all egress)"
+     }
+    ],
+    "concluded": "deployment/recommendation",
+    "fallback": null,
+    "triage_top": [
+     [
+      "deployment/recommendation",
+      1.0
+     ],
+     [
+      "deployment/consul",
+      0.0
+     ],
+     [
+      "deployment/frontend",
+      0.0
+     ],
+     [
+      "deployment/geo",
+      0.0
+     ],
+     [
+      "deployment/jaeger",
+      0.0
+     ]
+    ],
+    "second": null
+   },
+   "text": "Root cause: NetworkPolicy `deny-all-recommendation` in namespace `hotel-reservation`, acting on Deployment `recommendation` in namespace `hotel-reservation`: selected by NetworkPolicy deny-all-recommendation (denies all ingress; denies all egress).\nMechanism: denies all ingress; denies all egress; NetworkPolicy deny-all-recommendation was created 76s ago, 13s after the workloads it selects.",
+   "grade": {
+    "judgment": "True",
+    "reasoning": "Verdict: True (composite=1.00). D1 Fault Localization: 1.00 | D2 Fault Characterization: 1.00 | D3 Scope Precision: 1.00. Weakest dimension: Fault Localization (1.00). Checklist details: [{\"id\": \"D1-Q1\", \"answer\": \"Yes\", \"evidence\": \"Names Deployment recommendation in namespace hotel-reservation as the workload acted on by the policy.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q2\", \"answer\": \"Yes\", \"evidence\": \"Identifies deny-all-recommendation acting on recommendation as the root cause, without attributing the fault to dependent request paths.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q3\", \"answer\": \"Yes\", \"evidence\": \"The diagnosed workload is recommendation, matching the ground-truth target; no different workload is blamed.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q1\", \"answer\": \"Yes\", \"evidence\": \"Identifies a NetworkPolicy that denies all ingress and all egress, matching the injected network isolation mechanism.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q2\", \"answer\": \"Yes\", \"evidence\": \"Specifies policy deny-all-recommendation, namespace hotel-reservation, target recommendation, and denial of all ingress and egress.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q3\", \"answer\": \"Yes\", \"evidence\": \"Attributes the fault exclusively to NetworkPolicy traffic denial, consistent with the ground-truth fault type.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q1\", \"answer\": \"Yes\", \"evidence\": \"Blames only deny-all-recommendation acting on recommendation; no uninvolved components are implicated.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q2\", \"answer\": \"Yes\", \"evidence\": \"Includes recommendation and deny-all-recommendation in hotel-reservation, covering all specifically identified ground-truth components.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q3\", \"answer\": \"Yes\", \"evidence\": \"States that the policy denies all ingress and all egress for recommendation, matching the ground-truth complete network isolation.\", \"confidence\": \"High\"}]",
+    "success": true,
+    "accuracy": 100.0,
+    "composite_score": 1.0,
+    "dimensions": {
+     "D1": {
+      "name": "Fault Localization",
+      "score": 1.0
+     },
+     "D2": {
+      "name": "Fault Characterization",
+      "score": 1.0
+     },
+     "D3": {
+      "name": "Scope Precision",
+      "score": 1.0
+     }
+    },
+    "checklist": [
+     {
+      "id": "D1-Q1",
+      "answer": "Yes",
+      "evidence": "Names Deployment recommendation in namespace hotel-reservation as the workload acted on by the policy.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q2",
+      "answer": "Yes",
+      "evidence": "Identifies deny-all-recommendation acting on recommendation as the root cause, without attributing the fault to dependent request paths.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q3",
+      "answer": "Yes",
+      "evidence": "The diagnosed workload is recommendation, matching the ground-truth target; no different workload is blamed.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q1",
+      "answer": "Yes",
+      "evidence": "Identifies a NetworkPolicy that denies all ingress and all egress, matching the injected network isolation mechanism.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q2",
+      "answer": "Yes",
+      "evidence": "Specifies policy deny-all-recommendation, namespace hotel-reservation, target recommendation, and denial of all ingress and egress.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q3",
+      "answer": "Yes",
+      "evidence": "Attributes the fault exclusively to NetworkPolicy traffic denial, consistent with the ground-truth fault type.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q1",
+      "answer": "Yes",
+      "evidence": "Blames only deny-all-recommendation acting on recommendation; no uninvolved components are implicated.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q2",
+      "answer": "Yes",
+      "evidence": "Includes recommendation and deny-all-recommendation in hotel-reservation, covering all specifically identified ground-truth components.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q3",
+      "answer": "Yes",
+      "evidence": "States that the policy denies all ingress and all egress for recommendation, matching the ground-truth complete network isolation.",
+      "confidence": "High"
+     }
+    ]
+   }
+  }
+ ],
+ "judge": {
+  "model": "gpt-6-astra",
+  "backend": "codex",
+  "effort": "high"
+ }
+}

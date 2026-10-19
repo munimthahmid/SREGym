@@ -1,0 +1,540 @@
+{
+ "problem_id": "jev_diag_anon_60d105156dbc61f036e3cad28f428ac9_20261019_035440",
+ "submit_arm": 0,
+ "order": [
+  2,
+  3,
+  0,
+  1
+ ],
+ "arms": [
+  {
+   "arm": 0,
+   "kind": "v2",
+   "model": "openrouter/typesafe/jev-1.13",
+   "position": 2,
+   "seconds": 5.6,
+   "requests": 4,
+   "input_tokens": 36456,
+   "cost_usd": 0.001531,
+   "error": null,
+   "investigation": {
+    "rounds": [
+     {
+      "candidates": [
+       "partial:deployment/frontend",
+       "acts-on:configmap/kube-system/coredns:ConfigMap coredns was modified 3039s ago, 66266s after it wa",
+       "change:deployment/mongodb-geo:volume failure-script added: {\"configMap\": {\"defaultMode\": 420, \"name\": \"failure-admin-geo\"}}",
+       "change:deployment/mongodb-geo:container hotel-reserv-geo-mongo mounts volume failure-script at /scripts",
+       "change:deployment/mongodb-geo:together",
+       "change:deployment/mongodb-rate:volume failure-script added: {\"configMap\": {\"defaultMode\": 420, \"name\": \"failure-admin-rate\"}}"
+      ],
+      "probabilities": {
+       "partial:deployment/frontend": 0.775,
+       "acts-on:configmap/kube-system/coredns:ConfigMap coredns was modified 3039s ago, 66266s after it wa": 0.11499999999999999,
+       "change:deployment/mongodb-geo:volume failure-script added: {\"configMap\": {\"defaultMode\": 420, \"name\": \"failure-admin-geo\"}}": 0.0,
+       "change:deployment/mongodb-geo:container hotel-reserv-geo-mongo mounts volume failure-script at /scripts": 0.0,
+       "change:deployment/mongodb-geo:together": 0.0,
+       "change:deployment/mongodb-rate:volume failure-script added: {\"configMap\": {\"defaultMode\": 420, \"name\": \"failure-admin-rate\"}}": 0.0,
+       "none_of_these": 0.11
+      },
+      "picks": [
+       "partial:deployment/frontend",
+       "partial:deployment/frontend"
+      ],
+      "route": "accept"
+     }
+    ],
+    "explanations": 8,
+    "winner": "key-fact:deployment/frontend",
+    "pattern": "key-fact",
+    "key_fact": "container hotel-reserv-frontend readiness probe (httpGet HTTP :8080/healthz) targets port 8080; the container declares ports [5000] and is not ready",
+    "key_fact_probability": 0.96,
+    "fault_type": "health_probe_config",
+    "fault_object": null,
+    "uncertain": false
+   },
+   "text": "Root cause: deployment `frontend` in namespace `hotel-reservation`.\nMechanism: container hotel-reserv-frontend readiness probe (httpGet HTTP :8080/healthz) targets port 8080; the container declares ports [5000] and is not ready.\nConcrete details: container hotel-reserv-frontend readiness probe (httpGet HTTP :8080/healthz) targets port 8080; the container declares ports [5000] and is not ready.\nObserved impact: deployment `frontend` in namespace `hotel-reservation`.\nFault type: health probe config (a health probe is misconfigured, so healthy containers are reported unhealthy).\nEvidence:\n- container hotel-reserv-frontend readiness probe (httpGet HTTP :8080/healthz) targets port 8080; the container declares ports [5000] and is not ready\n- only 0 of 1 desired replicas are ready\n- pod frontend-57cc6d6598-x4lng: container hotel-reserv-frontend is running but not ready\n- warning events: Unhealthy x12, FailedScheduling x2\n- deployment/frontend: only 0 of 1 desired replicas are ready",
+   "grade": {
+    "judgment": "True",
+    "reasoning": "Verdict: True (composite=1.00). D1 Fault Localization: 1.00 | D2 Fault Characterization: 1.00 | D3 Scope Precision: 1.00. Weakest dimension: Fault Localization (1.00). Checklist details: [{\"id\": \"D1-Q1\", \"answer\": \"Yes\", \"evidence\": \"Diagnosis identifies deployment `frontend` in namespace `hotel-reservation`, matching the ground-truth fault origin.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q2\", \"answer\": \"Yes\", \"evidence\": \"Diagnosis explicitly locates the root cause in deployment `frontend` and its readiness probe, rather than a secondary failure point.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q3\", \"answer\": \"Yes\", \"evidence\": \"Only `frontend` and its container are identified as the fault origin; no different component is blamed.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q1\", \"answer\": \"Yes\", \"evidence\": \"Diagnosis identifies a misconfigured HTTP readiness probe at :8080/healthz that leaves the container not ready.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q2\", \"answer\": \"Yes\", \"evidence\": \"Diagnosis specifies the readiness probe's HTTP endpoint `/healthz` on port `8080`, matching the concrete faulty configuration.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q3\", \"answer\": \"Yes\", \"evidence\": \"The stated fault type is 'health probe config'; scheduling warnings are listed as observations, not an alternative root cause.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q1\", \"answer\": \"Yes\", \"evidence\": \"Diagnosis attributes the fault solely to the `frontend` deployment's readiness probe.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q2\", \"answer\": \"Yes\", \"evidence\": \"Diagnosis includes `frontend` in `hotel-reservation`, the only component identified as faulty or affected in the ground truth.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q3\", \"answer\": \"Yes\", \"evidence\": \"Diagnosis reports a running but not ready frontend container and zero ready replicas, consistent with the ground-truth readiness failure.\", \"confidence\": \"High\"}]",
+    "success": true,
+    "accuracy": 100.0,
+    "composite_score": 1.0,
+    "dimensions": {
+     "D1": {
+      "name": "Fault Localization",
+      "score": 1.0
+     },
+     "D2": {
+      "name": "Fault Characterization",
+      "score": 1.0
+     },
+     "D3": {
+      "name": "Scope Precision",
+      "score": 1.0
+     }
+    },
+    "checklist": [
+     {
+      "id": "D1-Q1",
+      "answer": "Yes",
+      "evidence": "Diagnosis identifies deployment `frontend` in namespace `hotel-reservation`, matching the ground-truth fault origin.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q2",
+      "answer": "Yes",
+      "evidence": "Diagnosis explicitly locates the root cause in deployment `frontend` and its readiness probe, rather than a secondary failure point.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q3",
+      "answer": "Yes",
+      "evidence": "Only `frontend` and its container are identified as the fault origin; no different component is blamed.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q1",
+      "answer": "Yes",
+      "evidence": "Diagnosis identifies a misconfigured HTTP readiness probe at :8080/healthz that leaves the container not ready.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q2",
+      "answer": "Yes",
+      "evidence": "Diagnosis specifies the readiness probe's HTTP endpoint `/healthz` on port `8080`, matching the concrete faulty configuration.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q3",
+      "answer": "Yes",
+      "evidence": "The stated fault type is 'health probe config'; scheduling warnings are listed as observations, not an alternative root cause.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q1",
+      "answer": "Yes",
+      "evidence": "Diagnosis attributes the fault solely to the `frontend` deployment's readiness probe.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q2",
+      "answer": "Yes",
+      "evidence": "Diagnosis includes `frontend` in `hotel-reservation`, the only component identified as faulty or affected in the ground truth.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q3",
+      "answer": "Yes",
+      "evidence": "Diagnosis reports a running but not ready frontend container and zero ready replicas, consistent with the ground-truth readiness failure.",
+      "confidence": "High"
+     }
+    ]
+   }
+  },
+  {
+   "arm": 1,
+   "kind": "v2",
+   "model": "openrouter/openai/gpt-6-luna-decisions",
+   "position": 3,
+   "seconds": 5.5,
+   "requests": 4,
+   "input_tokens": 25096,
+   "cost_usd": 0.00251,
+   "error": null,
+   "investigation": {
+    "rounds": [
+     {
+      "candidates": [
+       "partial:deployment/frontend",
+       "acts-on:configmap/kube-system/coredns:ConfigMap coredns was modified 3039s ago, 66266s after it wa",
+       "change:deployment/mongodb-geo:volume failure-script added: {\"configMap\": {\"defaultMode\": 420, \"name\": \"failure-admin-geo\"}}",
+       "change:deployment/mongodb-geo:container hotel-reserv-geo-mongo mounts volume failure-script at /scripts",
+       "change:deployment/mongodb-geo:together",
+       "change:deployment/mongodb-rate:volume failure-script added: {\"configMap\": {\"defaultMode\": 420, \"name\": \"failure-admin-rate\"}}"
+      ],
+      "probabilities": {
+       "partial:deployment/frontend": 0.775,
+       "acts-on:configmap/kube-system/coredns:ConfigMap coredns was modified 3039s ago, 66266s after it wa": 0.08499999999999999,
+       "change:deployment/mongodb-geo:volume failure-script added: {\"configMap\": {\"defaultMode\": 420, \"name\": \"failure-admin-geo\"}}": 0.01,
+       "change:deployment/mongodb-geo:container hotel-reserv-geo-mongo mounts volume failure-script at /scripts": 0.005,
+       "change:deployment/mongodb-geo:together": 0.025,
+       "change:deployment/mongodb-rate:volume failure-script added: {\"configMap\": {\"defaultMode\": 420, \"name\": \"failure-admin-rate\"}}": 0.015,
+       "none_of_these": 0.085
+      },
+      "picks": [
+       "partial:deployment/frontend",
+       "partial:deployment/frontend"
+      ],
+      "route": "accept"
+     }
+    ],
+    "explanations": 8,
+    "winner": "key-fact:deployment/frontend",
+    "pattern": "key-fact",
+    "key_fact": "container hotel-reserv-frontend readiness probe (httpGet HTTP :8080/healthz) targets port 8080; the container declares ports [5000] and is not ready",
+    "key_fact_probability": 0.935,
+    "fault_type": "health_probe_config",
+    "fault_object": null,
+    "uncertain": false
+   },
+   "text": "Root cause: deployment `frontend` in namespace `hotel-reservation`.\nMechanism: container hotel-reserv-frontend readiness probe (httpGet HTTP :8080/healthz) targets port 8080; the container declares ports [5000] and is not ready.\nConcrete details: container hotel-reserv-frontend readiness probe (httpGet HTTP :8080/healthz) targets port 8080; the container declares ports [5000] and is not ready.\nObserved impact: deployment `frontend` in namespace `hotel-reservation`.\nFault type: health probe config (a health probe is misconfigured, so healthy containers are reported unhealthy).\nEvidence:\n- container hotel-reserv-frontend readiness probe (httpGet HTTP :8080/healthz) targets port 8080; the container declares ports [5000] and is not ready\n- only 0 of 1 desired replicas are ready\n- pod frontend-57cc6d6598-x4lng: container hotel-reserv-frontend is running but not ready\n- warning events: Unhealthy x12, FailedScheduling x2\n- deployment/frontend: only 0 of 1 desired replicas are ready",
+   "grade": {
+    "judgment": "True",
+    "reasoning": "Verdict: True (composite=1.00). D1 Fault Localization: 1.00 | D2 Fault Characterization: 1.00 | D3 Scope Precision: 1.00. Weakest dimension: Fault Localization (1.00). Checklist details: [{\"id\": \"D1-Q1\", \"answer\": \"Yes\", \"evidence\": \"Names deployment `frontend` in namespace `hotel-reservation` as the root cause, matching ground truth.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q2\", \"answer\": \"Yes\", \"evidence\": \"Locates the fault in frontend's readiness probe, rather than a downstream failure point.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q3\", \"answer\": \"Yes\", \"evidence\": \"Identifies only the frontend deployment and its container as the fault origin.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q1\", \"answer\": \"Yes\", \"evidence\": \"Explicitly identifies a misconfigured readiness probe that leaves the frontend container not ready.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q2\", \"answer\": \"Yes\", \"evidence\": \"Specifies the readiness probe's HTTP target as port 8080 and path `/healthz`, matching the mutated endpoint.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q3\", \"answer\": \"Yes\", \"evidence\": \"Classifies the fault as health probe configuration; scheduling warnings are listed as observations, not an alternative cause.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q1\", \"answer\": \"Yes\", \"evidence\": \"Attributes the fault solely to frontend and its readiness probe; no uninvolved components are blamed.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q2\", \"answer\": \"Yes\", \"evidence\": \"Includes frontend, the only component identified in ground truth as faulty or affected.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q3\", \"answer\": \"Yes\", \"evidence\": \"Reports zero of one replicas ready and a running but not-ready frontend container, consistent with the ground-truth readiness failure.\", \"confidence\": \"High\"}]",
+    "success": true,
+    "accuracy": 100.0,
+    "composite_score": 1.0,
+    "dimensions": {
+     "D1": {
+      "name": "Fault Localization",
+      "score": 1.0
+     },
+     "D2": {
+      "name": "Fault Characterization",
+      "score": 1.0
+     },
+     "D3": {
+      "name": "Scope Precision",
+      "score": 1.0
+     }
+    },
+    "checklist": [
+     {
+      "id": "D1-Q1",
+      "answer": "Yes",
+      "evidence": "Names deployment `frontend` in namespace `hotel-reservation` as the root cause, matching ground truth.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q2",
+      "answer": "Yes",
+      "evidence": "Locates the fault in frontend's readiness probe, rather than a downstream failure point.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q3",
+      "answer": "Yes",
+      "evidence": "Identifies only the frontend deployment and its container as the fault origin.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q1",
+      "answer": "Yes",
+      "evidence": "Explicitly identifies a misconfigured readiness probe that leaves the frontend container not ready.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q2",
+      "answer": "Yes",
+      "evidence": "Specifies the readiness probe's HTTP target as port 8080 and path `/healthz`, matching the mutated endpoint.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q3",
+      "answer": "Yes",
+      "evidence": "Classifies the fault as health probe configuration; scheduling warnings are listed as observations, not an alternative cause.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q1",
+      "answer": "Yes",
+      "evidence": "Attributes the fault solely to frontend and its readiness probe; no uninvolved components are blamed.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q2",
+      "answer": "Yes",
+      "evidence": "Includes frontend, the only component identified in ground truth as faulty or affected.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q3",
+      "answer": "Yes",
+      "evidence": "Reports zero of one replicas ready and a running but not-ready frontend container, consistent with the ground-truth readiness failure.",
+      "confidence": "High"
+     }
+    ]
+   }
+  },
+  {
+   "arm": 2,
+   "kind": "v1",
+   "model": "openrouter/typesafe/jev-1.13",
+   "position": 0,
+   "seconds": 2.7,
+   "requests": 2,
+   "input_tokens": 26580,
+   "cost_usd": 0.001116,
+   "error": null,
+   "investigation": {
+    "steps": [
+     {
+      "step": 1,
+      "node": "investigate",
+      "component": "deployment/frontend",
+      "verdict": "origin",
+      "origin_p": 1.0,
+      "victim_p": 0.0,
+      "next": "none",
+      "next_p": 0.86,
+      "category": "health_probe_config",
+      "spec_checks": [
+       "container hotel-reserv-frontend readiness probe (httpGet HTTP :8080/healthz) targets port 8080; the container declares ports [5000] and is not ready",
+       "service frontend has no ready endpoints"
+      ],
+      "blocked_input": null,
+      "key_evidence": "container hotel-reserv-frontend readiness probe (httpGet HTTP :8080/healthz) targets port 8080; the container declares ports [5000] and is not ready"
+     }
+    ],
+    "concluded": "deployment/frontend",
+    "fallback": null,
+    "triage_top": [
+     [
+      "other",
+      0.6
+     ],
+     [
+      "deployment/frontend",
+      0.38
+     ],
+     [
+      "deployment/mongodb-geo",
+      0.02
+     ],
+     [
+      "deployment/consul",
+      0.0
+     ],
+     [
+      "deployment/geo",
+      0.0
+     ]
+    ]
+   },
+   "text": "Root cause component: Deployment `frontend` in namespace `hotel-reservation`.\nMechanism: container hotel-reserv-frontend readiness probe (httpGet HTTP :8080/healthz) targets port 8080; the container declares ports [5000] and is not ready.\nFault type: health probe config (a health probe is misconfigured, so healthy containers are reported unhealthy).\nAbnormal state observed on this component:\n- only 0 of 1 desired replicas are ready\n- pod frontend-57cc6d6598-x4lng: container hotel-reserv-frontend is running but not ready\n- warning events: Unhealthy x12, FailedScheduling x2\n- service frontend selects this component but has 0 ready endpoints\n- firing alert KubePodNotReady\n- firing alert DeploymentNotReady\n- warning event Unhealthy on pod/frontend-57cc6d6598-x4lng repeated 4 more time(s) in the last 48s\nNotable spec settings:\n- Available=False (MinimumReplicasUnavailable)\n- container hotel-reserv-frontend: image ghcr.io/sregym/hotel-reservation:sha-d2c036bc3d1138f5a0bdaffd3d87f37522c3461a@sha256:1c685e1c4c304f327952397b3a99c54dadb086607774d71f222b200ec0d2e65e, limits {'cpu': '1'}\nWarning events:\n- Unhealthy x12 on pod/frontend-57cc6d6598-x4lng: Readiness probe failed: Get \"http://10.244.195.250:8080/healthz\": dial tcp 10.244.195.250:8080: connect: connection refused\n- FailedScheduling x2 on pod/frontend-844b789d87-xzfmx: 0/4 nodes are available: 1 node(s) didn't match pod anti-affinity rules, 1 node(s) had untolerated taint {node-role.kubernetes.io/control-plane: }, 2 node(s) didn't find available persistent volumes to bind. preemption: 0/4 nodes are avail\u2026\nFiring alerts on this component: KubePodNotReady, DeploymentNotReady.\nClassification: Jev (typesafe/jev-1.13-20260917) confirmed this origin at investigation step 1 with probability 1.00 (triage probability 0.38).",
+   "grade": {
+    "judgment": "True",
+    "reasoning": "Verdict: True (composite=1.00). D1 Fault Localization: 1.00 | D2 Fault Characterization: 1.00 | D3 Scope Precision: 1.00. Weakest dimension: Fault Localization (1.00). Checklist details: [{\"id\": \"D1-Q1\", \"answer\": \"Yes\", \"evidence\": \"Names Deployment `frontend` in namespace `hotel-reservation` as the root cause component.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q2\", \"answer\": \"Yes\", \"evidence\": \"Identifies the frontend deployment's readiness probe as the mechanism and reports zero ready service endpoints as an associated symptom.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q3\", \"answer\": \"Yes\", \"evidence\": \"Attributes the fault to `frontend`, matching the ground-truth origin; no different component is named as the origin.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q1\", \"answer\": \"Yes\", \"evidence\": \"Explicitly identifies a misconfigured readiness probe that reports running containers as unhealthy.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q2\", \"answer\": \"Yes\", \"evidence\": \"Specifies the readiness probe's HTTP target as port `8080` and path `/healthz`, matching the ground-truth configuration.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q3\", \"answer\": \"Yes\", \"evidence\": \"Classifies the fault as health probe misconfiguration; scheduling warnings are listed as observations, not asserted as the root cause.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q1\", \"answer\": \"Yes\", \"evidence\": \"Blames only the frontend deployment's readiness probe; does not attribute the root cause to other components.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q2\", \"answer\": \"Yes\", \"evidence\": \"Includes the frontend deployment, its running but unready container, and the frontend service with zero ready endpoints.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q3\", \"answer\": \"Yes\", \"evidence\": \"Reports zero ready replicas, a running but unready container, failed readiness checks, and zero ready service endpoints, consistent with ground-truth symptoms.\", \"confidence\": \"High\"}]",
+    "success": true,
+    "accuracy": 100.0,
+    "composite_score": 1.0,
+    "dimensions": {
+     "D1": {
+      "name": "Fault Localization",
+      "score": 1.0
+     },
+     "D2": {
+      "name": "Fault Characterization",
+      "score": 1.0
+     },
+     "D3": {
+      "name": "Scope Precision",
+      "score": 1.0
+     }
+    },
+    "checklist": [
+     {
+      "id": "D1-Q1",
+      "answer": "Yes",
+      "evidence": "Names Deployment `frontend` in namespace `hotel-reservation` as the root cause component.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q2",
+      "answer": "Yes",
+      "evidence": "Identifies the frontend deployment's readiness probe as the mechanism and reports zero ready service endpoints as an associated symptom.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q3",
+      "answer": "Yes",
+      "evidence": "Attributes the fault to `frontend`, matching the ground-truth origin; no different component is named as the origin.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q1",
+      "answer": "Yes",
+      "evidence": "Explicitly identifies a misconfigured readiness probe that reports running containers as unhealthy.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q2",
+      "answer": "Yes",
+      "evidence": "Specifies the readiness probe's HTTP target as port `8080` and path `/healthz`, matching the ground-truth configuration.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q3",
+      "answer": "Yes",
+      "evidence": "Classifies the fault as health probe misconfiguration; scheduling warnings are listed as observations, not asserted as the root cause.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q1",
+      "answer": "Yes",
+      "evidence": "Blames only the frontend deployment's readiness probe; does not attribute the root cause to other components.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q2",
+      "answer": "Yes",
+      "evidence": "Includes the frontend deployment, its running but unready container, and the frontend service with zero ready endpoints.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q3",
+      "answer": "Yes",
+      "evidence": "Reports zero ready replicas, a running but unready container, failed readiness checks, and zero ready service endpoints, consistent with ground-truth symptoms.",
+      "confidence": "High"
+     }
+    ]
+   }
+  },
+  {
+   "arm": 3,
+   "kind": "v1",
+   "model": "openrouter/openai/gpt-6-luna-decisions",
+   "position": 1,
+   "seconds": 2.8,
+   "requests": 2,
+   "input_tokens": 17600,
+   "cost_usd": 0.00176,
+   "error": null,
+   "investigation": {
+    "steps": [
+     {
+      "step": 1,
+      "node": "investigate",
+      "component": "deployment/frontend",
+      "verdict": "origin",
+      "origin_p": 0.83,
+      "victim_p": 0.07,
+      "next": "none",
+      "next_p": 0.53,
+      "category": "health_probe_config",
+      "spec_checks": [
+       "container hotel-reserv-frontend readiness probe (httpGet HTTP :8080/healthz) targets port 8080; the container declares ports [5000] and is not ready",
+       "service frontend has no ready endpoints"
+      ],
+      "blocked_input": null,
+      "key_evidence": "container hotel-reserv-frontend readiness probe (httpGet HTTP :8080/healthz) targets port 8080; the container declares ports [5000] and is not ready"
+     }
+    ],
+    "concluded": "deployment/frontend",
+    "fallback": null,
+    "triage_top": [
+     [
+      "deployment/frontend",
+      0.55
+     ],
+     [
+      "other",
+      0.42
+     ],
+     [
+      "deployment/consul",
+      0.01
+     ],
+     [
+      "deployment/geo",
+      0.01
+     ],
+     [
+      "deployment/jaeger",
+      0.01
+     ]
+    ]
+   },
+   "text": "Root cause component: Deployment `frontend` in namespace `hotel-reservation`.\nMechanism: container hotel-reserv-frontend readiness probe (httpGet HTTP :8080/healthz) targets port 8080; the container declares ports [5000] and is not ready.\nFault type: health probe config (a health probe is misconfigured, so healthy containers are reported unhealthy).\nAbnormal state observed on this component:\n- only 0 of 1 desired replicas are ready\n- pod frontend-57cc6d6598-x4lng: container hotel-reserv-frontend is running but not ready\n- warning events: Unhealthy x12, FailedScheduling x2\n- service frontend selects this component but has 0 ready endpoints\n- firing alert KubePodNotReady\n- firing alert DeploymentNotReady\n- warning event Unhealthy on pod/frontend-57cc6d6598-x4lng repeated 4 more time(s) in the last 48s\nNotable spec settings:\n- Available=False (MinimumReplicasUnavailable)\n- container hotel-reserv-frontend: image ghcr.io/sregym/hotel-reservation:sha-d2c036bc3d1138f5a0bdaffd3d87f37522c3461a@sha256:1c685e1c4c304f327952397b3a99c54dadb086607774d71f222b200ec0d2e65e, limits {'cpu': '1'}\nWarning events:\n- Unhealthy x12 on pod/frontend-57cc6d6598-x4lng: Readiness probe failed: Get \"http://10.244.195.250:8080/healthz\": dial tcp 10.244.195.250:8080: connect: connection refused\n- FailedScheduling x2 on pod/frontend-844b789d87-xzfmx: 0/4 nodes are available: 1 node(s) didn't match pod anti-affinity rules, 1 node(s) had untolerated taint {node-role.kubernetes.io/control-plane: }, 2 node(s) didn't find available persistent volumes to bind. preemption: 0/4 nodes are avail\u2026\nFiring alerts on this component: KubePodNotReady, DeploymentNotReady.\nClassification: Jev (openai/gpt-6-luna-decisions-20261006) confirmed this origin at investigation step 1 with probability 0.83 (triage probability 0.55).",
+   "grade": {
+    "judgment": "True",
+    "reasoning": "Verdict: True (composite=1.00). D1 Fault Localization: 1.00 | D2 Fault Characterization: 1.00 | D3 Scope Precision: 1.00. Weakest dimension: Fault Localization (1.00). Checklist details: [{\"id\": \"D1-Q1\", \"answer\": \"Yes\", \"evidence\": \"Diagnosis explicitly identifies Deployment frontend in namespace hotel-reservation as the root cause component.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q2\", \"answer\": \"Yes\", \"evidence\": \"Diagnosis locates the fault in frontend's readiness probe and reports zero ready service endpoints as an associated symptom.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q3\", \"answer\": \"Yes\", \"evidence\": \"The named fault origin is frontend, matching the ground truth; no different component is identified as the origin.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q1\", \"answer\": \"Yes\", \"evidence\": \"Diagnosis explicitly classifies the fault as a misconfigured readiness probe that reports running containers as unhealthy.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q2\", \"answer\": \"Yes\", \"evidence\": \"Diagnosis specifies the readiness probe's HTTP target as :8080/healthz, matching the ground-truth endpoint and port.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q3\", \"answer\": \"Yes\", \"evidence\": \"The stated causal mechanism is health probe misconfiguration; scheduling failures appear only as observed warning events.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q1\", \"answer\": \"Yes\", \"evidence\": \"Diagnosis attributes the fault to frontend's readiness probe without blaming additional components.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q2\", \"answer\": \"Yes\", \"evidence\": \"Diagnosis includes frontend, its running but unready container, and its service with zero ready endpoints.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q3\", \"answer\": \"Yes\", \"evidence\": \"Diagnosis reports zero ready replicas, a running but unready container, failed readiness checks, and zero ready service endpoints, consistent with ground truth.\", \"confidence\": \"High\"}]",
+    "success": true,
+    "accuracy": 100.0,
+    "composite_score": 1.0,
+    "dimensions": {
+     "D1": {
+      "name": "Fault Localization",
+      "score": 1.0
+     },
+     "D2": {
+      "name": "Fault Characterization",
+      "score": 1.0
+     },
+     "D3": {
+      "name": "Scope Precision",
+      "score": 1.0
+     }
+    },
+    "checklist": [
+     {
+      "id": "D1-Q1",
+      "answer": "Yes",
+      "evidence": "Diagnosis explicitly identifies Deployment frontend in namespace hotel-reservation as the root cause component.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q2",
+      "answer": "Yes",
+      "evidence": "Diagnosis locates the fault in frontend's readiness probe and reports zero ready service endpoints as an associated symptom.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q3",
+      "answer": "Yes",
+      "evidence": "The named fault origin is frontend, matching the ground truth; no different component is identified as the origin.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q1",
+      "answer": "Yes",
+      "evidence": "Diagnosis explicitly classifies the fault as a misconfigured readiness probe that reports running containers as unhealthy.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q2",
+      "answer": "Yes",
+      "evidence": "Diagnosis specifies the readiness probe's HTTP target as :8080/healthz, matching the ground-truth endpoint and port.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q3",
+      "answer": "Yes",
+      "evidence": "The stated causal mechanism is health probe misconfiguration; scheduling failures appear only as observed warning events.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q1",
+      "answer": "Yes",
+      "evidence": "Diagnosis attributes the fault to frontend's readiness probe without blaming additional components.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q2",
+      "answer": "Yes",
+      "evidence": "Diagnosis includes frontend, its running but unready container, and its service with zero ready endpoints.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q3",
+      "answer": "Yes",
+      "evidence": "Diagnosis reports zero ready replicas, a running but unready container, failed readiness checks, and zero ready service endpoints, consistent with ground truth.",
+      "confidence": "High"
+     }
+    ]
+   }
+  }
+ ],
+ "submission": {
+  "status": "200",
+  "message": "Submission received",
+  "stage": "diagnosis"
+ },
+ "judge": {
+  "model": "gpt-6-astra",
+  "backend": "codex",
+  "effort": "high"
+ }
+}

@@ -1,0 +1,544 @@
+{
+ "problem_id": "mutating_webhook_resource_limits_social_network",
+ "source": "lite6_mutating_webhook_resource_limits_social_network",
+ "replay": true,
+ "arms": [
+  {
+   "arm": 0,
+   "kind": "v1",
+   "model": "typesafe/jev-1.13",
+   "position": 0,
+   "seconds": 1.3,
+   "requests": 2,
+   "input_tokens": 31095,
+   "error": null,
+   "component": "deployment/nginx-thrift",
+   "investigation": {
+    "steps": [
+     {
+      "step": 1,
+      "node": "investigate",
+      "component": "deployment/nginx-thrift",
+      "verdict": "origin",
+      "origin_p": 0.99,
+      "victim_p": 0.01,
+      "next": "none",
+      "next_p": 0.98,
+      "category": "admission_or_namespace_policy",
+      "spec_checks": [
+       "service nginx-thrift has no ready endpoints"
+      ],
+      "blocked_input": null,
+      "key_evidence": "pod nginx-thrift-6c5bcfcb8f-5tztl: container nginx-thrift limits.memory 16Mi, template 256Mi; container nginx-thrift requests.memory 16Mi, template 128Mi \u2014 the running pod differs from the pod template of its revision, so it was changed at admission; mutating webhooks whose rules and selectors match these pods: gatekeeper-mutating-webhook-configuration"
+     }
+    ],
+    "concluded": "deployment/nginx-thrift",
+    "fallback": null,
+    "triage_top": [
+     [
+      "deployment/nginx-thrift",
+      0.52
+     ],
+     [
+      "other",
+      0.48
+     ],
+     [
+      "deployment/compose-post-service",
+      0.0
+     ],
+     [
+      "deployment/home-timeline-redis",
+      0.0
+     ],
+     [
+      "deployment/home-timeline-service",
+      0.0
+     ]
+    ]
+   },
+   "text": "Root cause object: MutatingWebhookConfiguration `gatekeeper-mutating-webhook-configuration`, acting on Deployment `nginx-thrift` in namespace `social-network`.\nWhat the object does: rewrites pods of deployment/nginx-thrift at admission (container nginx-thrift limits.memory 16Mi, template 256Mi).\nMechanism: pod nginx-thrift-6c5bcfcb8f-5tztl: container nginx-thrift limits.memory 16Mi, template 256Mi; container nginx-thrift requests.memory 16Mi, template 128Mi \u2014 the running pod differs from the pod template of its revision, so it was changed at admission; mutating webhooks whose rules and selectors match these pods: gatekeeper-mutating-webhook-configuration.\nFault type: admission webhook (MutatingWebhookConfiguration `gatekeeper-mutating-webhook-configuration` rejects or rewrites this workload's pods).\nAbnormal state observed on this component:\n- only 0 of 1 desired replicas are ready\n- pod nginx-thrift-6c5bcfcb8f-5tztl: container nginx-thrift waiting in CrashLoopBackOff\n- pod nginx-thrift-6c5bcfcb8f-5tztl: container nginx-thrift was OOMKilled\n- pod nginx-thrift-6c5bcfcb8f-5tztl: container nginx-thrift restarted 4 times\n- warning events: BackOff x11\n- service nginx-thrift selects this component but has 0 ready endpoints\n- pod nginx-thrift-6c5bcfcb8f-5tztl: container nginx-thrift restarted 1 more time(s) in the last 0s\n- warning event BackOff on pod/nginx-thrift-6c5bcfcb8f-5tztl repeated 4 more time(s) in the last 0s\n- MutatingWebhookConfiguration gatekeeper-mutating-webhook-configuration was created 84s ago, 12s after the workloads it intercepts; 11s before the first active symptom\nNotable spec settings:\n- Available=False (MinimumReplicasUnavailable)\n- container alpine-container: image ghcr.io/sregym/social-network-assets:v1\n- container nginx-thrift: image docker.io/yg397/openresty-thrift:xenial, limits {'memory': '256Mi'}\nWarning events:\n- BackOff x11 on pod/nginx-thrift-6c5bcfcb8f-5tztl: Back-off restarting failed container nginx-thrift in pod nginx-thrift-6c5bcfcb8f-5tztl_social-network(b6067c62-9e08-4af9-a3ce-e9de85259298)\nClassification: Jev (typesafe/jev-1.13-20260917) confirmed this origin at investigation step 1 with probability 0.99 (triage probability 0.52).",
+   "grade": {
+    "judgment": "True",
+    "reasoning": "Verdict: True (composite=0.89). D1 Fault Localization: 1.00 | D2 Fault Characterization: 1.00 | D3 Scope Precision: 0.67. Weakest dimension: Scope Precision (0.67). Checklist details: [{\"id\": \"D1-Q1\", \"answer\": \"Yes\", \"evidence\": \"Explicitly names MutatingWebhookConfiguration gatekeeper-mutating-webhook-configuration as the root cause object.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q2\", \"answer\": \"Yes\", \"evidence\": \"Identifies the webhook configuration as the origin and nginx-thrift pods as workloads it rewrites at admission.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q3\", \"answer\": \"Yes\", \"evidence\": \"Blames the specified webhook configuration, without attributing the fault to the healthy backend or inert companion configurations.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q1\", \"answer\": \"Yes\", \"evidence\": \"Describes admission-time rewriting of pod memory requests and limits to 16Mi.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q2\", \"answer\": \"Yes\", \"evidence\": \"Reports pod limits.memory 16Mi versus template 256Mi, and requests.memory 16Mi versus template 128Mi.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q3\", \"answer\": \"Yes\", \"evidence\": \"Identifies an admission webhook fault and explicitly describes memory rewriting; the generic 'rejects or rewrites' wording does not introduce an unrelated fault type.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q1\", \"answer\": \"Yes\", \"evidence\": \"Attributes the fault only to gatekeeper-mutating-webhook-configuration; describes nginx-thrift readiness and endpoint failures as effects.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q2\", \"answer\": \"No\", \"evidence\": \"Limits the described affected scope to nginx-thrift pods, omitting that the configuration intercepts all pod CREATE operations in social-network.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q3\", \"answer\": \"Yes\", \"evidence\": \"Reports OOMKilled, CrashLoopBackOff, repeated restarts, and zero ready replicas alongside the reduced 16Mi pod memory settings.\", \"confidence\": \"High\"}]",
+    "success": true,
+    "accuracy": 89.0,
+    "composite_score": 0.89,
+    "dimensions": {
+     "D1": {
+      "name": "Fault Localization",
+      "score": 1.0
+     },
+     "D2": {
+      "name": "Fault Characterization",
+      "score": 1.0
+     },
+     "D3": {
+      "name": "Scope Precision",
+      "score": 0.67
+     }
+    },
+    "checklist": [
+     {
+      "id": "D1-Q1",
+      "answer": "Yes",
+      "evidence": "Explicitly names MutatingWebhookConfiguration gatekeeper-mutating-webhook-configuration as the root cause object.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q2",
+      "answer": "Yes",
+      "evidence": "Identifies the webhook configuration as the origin and nginx-thrift pods as workloads it rewrites at admission.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q3",
+      "answer": "Yes",
+      "evidence": "Blames the specified webhook configuration, without attributing the fault to the healthy backend or inert companion configurations.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q1",
+      "answer": "Yes",
+      "evidence": "Describes admission-time rewriting of pod memory requests and limits to 16Mi.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q2",
+      "answer": "Yes",
+      "evidence": "Reports pod limits.memory 16Mi versus template 256Mi, and requests.memory 16Mi versus template 128Mi.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q3",
+      "answer": "Yes",
+      "evidence": "Identifies an admission webhook fault and explicitly describes memory rewriting; the generic 'rejects or rewrites' wording does not introduce an unrelated fault type.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q1",
+      "answer": "Yes",
+      "evidence": "Attributes the fault only to gatekeeper-mutating-webhook-configuration; describes nginx-thrift readiness and endpoint failures as effects.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q2",
+      "answer": "No",
+      "evidence": "Limits the described affected scope to nginx-thrift pods, omitting that the configuration intercepts all pod CREATE operations in social-network.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q3",
+      "answer": "Yes",
+      "evidence": "Reports OOMKilled, CrashLoopBackOff, repeated restarts, and zero ready replicas alongside the reduced 16Mi pod memory settings.",
+      "confidence": "High"
+     }
+    ]
+   }
+  },
+  {
+   "arm": 1,
+   "kind": "v1",
+   "model": "openai/gpt-6-luna-decisions",
+   "position": 1,
+   "seconds": 1.2,
+   "requests": 2,
+   "input_tokens": 21561,
+   "error": null,
+   "component": "deployment/nginx-thrift",
+   "investigation": {
+    "steps": [
+     {
+      "step": 1,
+      "node": "investigate",
+      "component": "deployment/nginx-thrift",
+      "verdict": "origin",
+      "origin_p": 0.94,
+      "victim_p": 0.05,
+      "next": "none",
+      "next_p": 0.83,
+      "category": "admission_or_namespace_policy",
+      "spec_checks": [
+       "service nginx-thrift has no ready endpoints"
+      ],
+      "blocked_input": null,
+      "key_evidence": "pod nginx-thrift-6c5bcfcb8f-5tztl: container nginx-thrift limits.memory 16Mi, template 256Mi; container nginx-thrift requests.memory 16Mi, template 128Mi \u2014 the running pod differs from the pod template of its revision, so it was changed at admission; mutating webhooks whose rules and selectors match these pods: gatekeeper-mutating-webhook-configuration"
+     }
+    ],
+    "concluded": "deployment/nginx-thrift",
+    "fallback": null,
+    "triage_top": [
+     [
+      "other",
+      0.55
+     ],
+     [
+      "deployment/nginx-thrift",
+      0.42
+     ],
+     [
+      "deployment/compose-post-service",
+      0.01
+     ],
+     [
+      "deployment/media-mongodb",
+      0.01
+     ],
+     [
+      "deployment/media-service",
+      0.01
+     ]
+    ]
+   },
+   "text": "Root cause object: MutatingWebhookConfiguration `gatekeeper-mutating-webhook-configuration`, acting on Deployment `nginx-thrift` in namespace `social-network`.\nWhat the object does: rewrites pods of deployment/nginx-thrift at admission (container nginx-thrift limits.memory 16Mi, template 256Mi).\nMechanism: pod nginx-thrift-6c5bcfcb8f-5tztl: container nginx-thrift limits.memory 16Mi, template 256Mi; container nginx-thrift requests.memory 16Mi, template 128Mi \u2014 the running pod differs from the pod template of its revision, so it was changed at admission; mutating webhooks whose rules and selectors match these pods: gatekeeper-mutating-webhook-configuration.\nFault type: admission webhook (MutatingWebhookConfiguration `gatekeeper-mutating-webhook-configuration` rejects or rewrites this workload's pods).\nAbnormal state observed on this component:\n- only 0 of 1 desired replicas are ready\n- pod nginx-thrift-6c5bcfcb8f-5tztl: container nginx-thrift waiting in CrashLoopBackOff\n- pod nginx-thrift-6c5bcfcb8f-5tztl: container nginx-thrift was OOMKilled\n- pod nginx-thrift-6c5bcfcb8f-5tztl: container nginx-thrift restarted 4 times\n- warning events: BackOff x11\n- service nginx-thrift selects this component but has 0 ready endpoints\n- pod nginx-thrift-6c5bcfcb8f-5tztl: container nginx-thrift restarted 1 more time(s) in the last 0s\n- warning event BackOff on pod/nginx-thrift-6c5bcfcb8f-5tztl repeated 4 more time(s) in the last 0s\n- MutatingWebhookConfiguration gatekeeper-mutating-webhook-configuration was created 84s ago, 12s after the workloads it intercepts; 11s before the first active symptom\nNotable spec settings:\n- Available=False (MinimumReplicasUnavailable)\n- container alpine-container: image ghcr.io/sregym/social-network-assets:v1\n- container nginx-thrift: image docker.io/yg397/openresty-thrift:xenial, limits {'memory': '256Mi'}\nWarning events:\n- BackOff x11 on pod/nginx-thrift-6c5bcfcb8f-5tztl: Back-off restarting failed container nginx-thrift in pod nginx-thrift-6c5bcfcb8f-5tztl_social-network(b6067c62-9e08-4af9-a3ce-e9de85259298)\nClassification: Jev (openai/gpt-6-luna-decisions-20261006) confirmed this origin at investigation step 1 with probability 0.94 (triage probability 0.42).",
+   "grade": {
+    "judgment": "True",
+    "reasoning": "Verdict: True (composite=0.89). D1 Fault Localization: 1.00 | D2 Fault Characterization: 1.00 | D3 Scope Precision: 0.67. Weakest dimension: Scope Precision (0.67). Checklist details: [{\"id\": \"D1-Q1\", \"answer\": \"Yes\", \"evidence\": \"Explicitly names MutatingWebhookConfiguration gatekeeper-mutating-webhook-configuration as the root cause object.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q2\", \"answer\": \"Yes\", \"evidence\": \"Identifies the webhook configuration as the origin and nginx-thrift pods as workloads rewritten at admission.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q3\", \"answer\": \"Yes\", \"evidence\": \"Blames the specified webhook configuration; does not blame the functioning backend or inert companion configurations.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q1\", \"answer\": \"Yes\", \"evidence\": \"Describes admission mutation changing pod memory requests and limits to 16Mi.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q2\", \"answer\": \"Yes\", \"evidence\": \"Reports requests.memory 16Mi versus template 128Mi and limits.memory 16Mi versus template 256Mi.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q3\", \"answer\": \"Yes\", \"evidence\": \"Identifies an admission webhook fault and explicitly describes memory rewriting; the generic 'rejects or rewrites' wording does not replace that mechanism.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q1\", \"answer\": \"Yes\", \"evidence\": \"Attributes the fault solely to gatekeeper-mutating-webhook-configuration and describes nginx-thrift as its affected workload.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q2\", \"answer\": \"No\", \"evidence\": \"Describes mutation only for nginx-thrift pods, omitting the ground-truth scope of all pod CREATE operations in social-network.\", \"confidence\": \"Medium\"}, {\"id\": \"D3-Q3\", \"answer\": \"Yes\", \"evidence\": \"Reports OOMKilled containers, CrashLoopBackOff, and zero ready replicas alongside the reduction to 16Mi memory.\", \"confidence\": \"High\"}]",
+    "success": true,
+    "accuracy": 89.0,
+    "composite_score": 0.89,
+    "dimensions": {
+     "D1": {
+      "name": "Fault Localization",
+      "score": 1.0
+     },
+     "D2": {
+      "name": "Fault Characterization",
+      "score": 1.0
+     },
+     "D3": {
+      "name": "Scope Precision",
+      "score": 0.67
+     }
+    },
+    "checklist": [
+     {
+      "id": "D1-Q1",
+      "answer": "Yes",
+      "evidence": "Explicitly names MutatingWebhookConfiguration gatekeeper-mutating-webhook-configuration as the root cause object.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q2",
+      "answer": "Yes",
+      "evidence": "Identifies the webhook configuration as the origin and nginx-thrift pods as workloads rewritten at admission.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q3",
+      "answer": "Yes",
+      "evidence": "Blames the specified webhook configuration; does not blame the functioning backend or inert companion configurations.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q1",
+      "answer": "Yes",
+      "evidence": "Describes admission mutation changing pod memory requests and limits to 16Mi.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q2",
+      "answer": "Yes",
+      "evidence": "Reports requests.memory 16Mi versus template 128Mi and limits.memory 16Mi versus template 256Mi.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q3",
+      "answer": "Yes",
+      "evidence": "Identifies an admission webhook fault and explicitly describes memory rewriting; the generic 'rejects or rewrites' wording does not replace that mechanism.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q1",
+      "answer": "Yes",
+      "evidence": "Attributes the fault solely to gatekeeper-mutating-webhook-configuration and describes nginx-thrift as its affected workload.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q2",
+      "answer": "No",
+      "evidence": "Describes mutation only for nginx-thrift pods, omitting the ground-truth scope of all pod CREATE operations in social-network.",
+      "confidence": "Medium"
+     },
+     {
+      "id": "D3-Q3",
+      "answer": "Yes",
+      "evidence": "Reports OOMKilled containers, CrashLoopBackOff, and zero ready replicas alongside the reduction to 16Mi memory.",
+      "confidence": "High"
+     }
+    ]
+   }
+  },
+  {
+   "arm": 2,
+   "kind": "v2",
+   "model": "typesafe/jev-1.13",
+   "position": 2,
+   "seconds": 1.3,
+   "requests": 2,
+   "input_tokens": 31218,
+   "error": null,
+   "component": "deployment/nginx-thrift",
+   "investigation": {
+    "steps": [
+     {
+      "step": 1,
+      "node": "investigate",
+      "component": "deployment/nginx-thrift",
+      "verdict": "origin",
+      "origin_p": 0.99,
+      "victim_p": 0.01,
+      "next": "none",
+      "next_p": 0.98,
+      "category": "admission_or_namespace_policy",
+      "spec_checks": [
+       "service nginx-thrift has no ready endpoints"
+      ],
+      "blocked_input": null,
+      "key_evidence": "pod nginx-thrift-6c5bcfcb8f-5tztl: container nginx-thrift limits.memory 16Mi, template 256Mi; container nginx-thrift requests.memory 16Mi, template 128Mi \u2014 the running pod differs from the pod template of its revision, so it was changed at admission; mutating webhooks whose rules and selectors match these pods: gatekeeper-mutating-webhook-configuration"
+     }
+    ],
+    "concluded": "deployment/nginx-thrift",
+    "fallback": null,
+    "triage_top": [
+     [
+      "other",
+      0.51
+     ],
+     [
+      "deployment/nginx-thrift",
+      0.49
+     ],
+     [
+      "deployment/compose-post-service",
+      0.0
+     ],
+     [
+      "deployment/home-timeline-redis",
+      0.0
+     ],
+     [
+      "deployment/home-timeline-service",
+      0.0
+     ]
+    ]
+   },
+   "text": "Root cause: MutatingWebhookConfiguration `gatekeeper-mutating-webhook-configuration`, acting on Deployment `nginx-thrift` in namespace `social-network`: pod nginx-thrift-6c5bcfcb8f-5tztl: container nginx-thrift limits.memory 16Mi, template 256Mi; container nginx-thrift requests.memory 16Mi, template 128Mi \u2014 the running pod differs from the pod template of its revision, so it was changed at admission; mutating webhooks whose rules and selectors match these pods: gatekeeper-mutating-webhook-configuration.\nMechanism: rewrites pods of deployment/nginx-thrift at admission (container nginx-thrift limits.memory 16Mi, template 256Mi).\nDetails: container nginx-thrift limits.memory: unset -> 256Mi; container nginx-thrift requests.memory: unset -> 128Mi; service nginx-thrift has no ready endpoints.\nEffect: only 0 of 1 desired replicas are ready; pod nginx-thrift-6c5bcfcb8f-5tztl: container nginx-thrift waiting in CrashLoopBackOff.",
+   "grade": {
+    "judgment": "True",
+    "reasoning": "Verdict: True (composite=0.89). D1 Fault Localization: 1.00 | D2 Fault Characterization: 1.00 | D3 Scope Precision: 0.67. Weakest dimension: Scope Precision (0.67). Checklist details: [{\"id\": \"D1-Q1\", \"answer\": \"Yes\", \"evidence\": \"Explicitly identifies MutatingWebhookConfiguration gatekeeper-mutating-webhook-configuration as the root cause.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q2\", \"answer\": \"Yes\", \"evidence\": \"Identifies the webhook configuration as the origin and nginx-thrift's altered pod resources and readiness failures as consequences.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q3\", \"answer\": \"Yes\", \"evidence\": \"Blames the specified webhook configuration, without blaming its healthy backend or inert companion configurations.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q1\", \"answer\": \"Yes\", \"evidence\": \"Describes admission-time rewriting of pod memory resources by the matching mutating webhook configuration.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q2\", \"answer\": \"Yes\", \"evidence\": \"Reports pod memory requests and limits of 16Mi versus template requests of 128Mi and limits of 256Mi.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q3\", \"answer\": \"Yes\", \"evidence\": \"Attributes the fault to admission mutation of memory resources, consistent with the injected mechanism.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q1\", \"answer\": \"Yes\", \"evidence\": \"Names only gatekeeper-mutating-webhook-configuration as the cause; nginx-thrift is described as affected.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q2\", \"answer\": \"No\", \"evidence\": \"Describes mutation only for deployment/nginx-thrift, omitting the ground-truth scope covering all pod CREATE operations in social-network.\", \"confidence\": \"Medium\"}, {\"id\": \"D3-Q3\", \"answer\": \"Yes\", \"evidence\": \"Reports CrashLoopBackOff, zero ready replicas, and no ready endpoints, consistent with startup failures from the injected 16Mi memory limit.\", \"confidence\": \"High\"}]",
+    "success": true,
+    "accuracy": 89.0,
+    "composite_score": 0.89,
+    "dimensions": {
+     "D1": {
+      "name": "Fault Localization",
+      "score": 1.0
+     },
+     "D2": {
+      "name": "Fault Characterization",
+      "score": 1.0
+     },
+     "D3": {
+      "name": "Scope Precision",
+      "score": 0.67
+     }
+    },
+    "checklist": [
+     {
+      "id": "D1-Q1",
+      "answer": "Yes",
+      "evidence": "Explicitly identifies MutatingWebhookConfiguration gatekeeper-mutating-webhook-configuration as the root cause.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q2",
+      "answer": "Yes",
+      "evidence": "Identifies the webhook configuration as the origin and nginx-thrift's altered pod resources and readiness failures as consequences.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q3",
+      "answer": "Yes",
+      "evidence": "Blames the specified webhook configuration, without blaming its healthy backend or inert companion configurations.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q1",
+      "answer": "Yes",
+      "evidence": "Describes admission-time rewriting of pod memory resources by the matching mutating webhook configuration.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q2",
+      "answer": "Yes",
+      "evidence": "Reports pod memory requests and limits of 16Mi versus template requests of 128Mi and limits of 256Mi.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q3",
+      "answer": "Yes",
+      "evidence": "Attributes the fault to admission mutation of memory resources, consistent with the injected mechanism.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q1",
+      "answer": "Yes",
+      "evidence": "Names only gatekeeper-mutating-webhook-configuration as the cause; nginx-thrift is described as affected.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q2",
+      "answer": "No",
+      "evidence": "Describes mutation only for deployment/nginx-thrift, omitting the ground-truth scope covering all pod CREATE operations in social-network.",
+      "confidence": "Medium"
+     },
+     {
+      "id": "D3-Q3",
+      "answer": "Yes",
+      "evidence": "Reports CrashLoopBackOff, zero ready replicas, and no ready endpoints, consistent with startup failures from the injected 16Mi memory limit.",
+      "confidence": "High"
+     }
+    ]
+   }
+  },
+  {
+   "arm": 3,
+   "kind": "v2",
+   "model": "openai/gpt-6-luna-decisions",
+   "position": 3,
+   "seconds": 1.2,
+   "requests": 2,
+   "input_tokens": 21694,
+   "error": null,
+   "component": "deployment/nginx-thrift",
+   "investigation": {
+    "steps": [
+     {
+      "step": 1,
+      "node": "investigate",
+      "component": "deployment/nginx-thrift",
+      "verdict": "origin",
+      "origin_p": 0.98,
+      "victim_p": 0.02,
+      "next": "none",
+      "next_p": 0.76,
+      "category": "admission_or_namespace_policy",
+      "spec_checks": [
+       "service nginx-thrift has no ready endpoints"
+      ],
+      "blocked_input": null,
+      "key_evidence": "pod nginx-thrift-6c5bcfcb8f-5tztl: container nginx-thrift limits.memory 16Mi, template 256Mi; container nginx-thrift requests.memory 16Mi, template 128Mi \u2014 the running pod differs from the pod template of its revision, so it was changed at admission; mutating webhooks whose rules and selectors match these pods: gatekeeper-mutating-webhook-configuration"
+     }
+    ],
+    "concluded": "deployment/nginx-thrift",
+    "fallback": null,
+    "triage_top": [
+     [
+      "deployment/nginx-thrift",
+      0.63
+     ],
+     [
+      "other",
+      0.34
+     ],
+     [
+      "deployment/compose-post-service",
+      0.01
+     ],
+     [
+      "deployment/media-service",
+      0.01
+     ],
+     [
+      "deployment/post-storage-memcached",
+      0.01
+     ]
+    ]
+   },
+   "text": "Root cause: MutatingWebhookConfiguration `gatekeeper-mutating-webhook-configuration`, acting on Deployment `nginx-thrift` in namespace `social-network`: pod nginx-thrift-6c5bcfcb8f-5tztl: container nginx-thrift limits.memory 16Mi, template 256Mi; container nginx-thrift requests.memory 16Mi, template 128Mi \u2014 the running pod differs from the pod template of its revision, so it was changed at admission; mutating webhooks whose rules and selectors match these pods: gatekeeper-mutating-webhook-configuration.\nMechanism: rewrites pods of deployment/nginx-thrift at admission (container nginx-thrift limits.memory 16Mi, template 256Mi).\nDetails: container nginx-thrift limits.memory: unset -> 256Mi; container nginx-thrift requests.memory: unset -> 128Mi; service nginx-thrift has no ready endpoints.\nEffect: only 0 of 1 desired replicas are ready; pod nginx-thrift-6c5bcfcb8f-5tztl: container nginx-thrift waiting in CrashLoopBackOff.",
+   "grade": {
+    "judgment": "True",
+    "reasoning": "Verdict: True (composite=0.89). D1 Fault Localization: 1.00 | D2 Fault Characterization: 1.00 | D3 Scope Precision: 0.67. Weakest dimension: Scope Precision (0.67). Checklist details: [{\"id\": \"D1-Q1\", \"answer\": \"Yes\", \"evidence\": \"Names MutatingWebhookConfiguration gatekeeper-mutating-webhook-configuration as the root cause, matching the fault specification.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q2\", \"answer\": \"Yes\", \"evidence\": \"Identifies the webhook configuration as the origin and nginx-thrift's altered pod resources and unavailable endpoints as consequences.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q3\", \"answer\": \"Yes\", \"evidence\": \"Blames the specified webhook configuration, without blaming the healthy backend server or inert companion configurations.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q1\", \"answer\": \"Yes\", \"evidence\": \"Describes admission-time rewriting of pod memory resources, matching the webhook's injected memory mutation.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q2\", \"answer\": \"Yes\", \"evidence\": \"Reports running pod memory requests and limits of 16Mi versus template requests of 128Mi and limits of 256Mi.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q3\", \"answer\": \"Yes\", \"evidence\": \"Attributes the fault to webhook admission mutation of memory resources, consistent with the ground-truth fault type.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q1\", \"answer\": \"Yes\", \"evidence\": \"Only gatekeeper-mutating-webhook-configuration is blamed; nginx-thrift is described as an affected workload.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q2\", \"answer\": \"No\", \"evidence\": \"Describes mutation only for deployment/nginx-thrift; it does not identify the ground-truth scope of all pod CREATE operations in social-network.\", \"confidence\": \"Medium\"}, {\"id\": \"D3-Q3\", \"answer\": \"Yes\", \"evidence\": \"Reports CrashLoopBackOff, zero ready replicas, and no ready endpoints, consistent with startup failures from the injected 16Mi memory limit.\", \"confidence\": \"High\"}]",
+    "success": true,
+    "accuracy": 89.0,
+    "composite_score": 0.89,
+    "dimensions": {
+     "D1": {
+      "name": "Fault Localization",
+      "score": 1.0
+     },
+     "D2": {
+      "name": "Fault Characterization",
+      "score": 1.0
+     },
+     "D3": {
+      "name": "Scope Precision",
+      "score": 0.67
+     }
+    },
+    "checklist": [
+     {
+      "id": "D1-Q1",
+      "answer": "Yes",
+      "evidence": "Names MutatingWebhookConfiguration gatekeeper-mutating-webhook-configuration as the root cause, matching the fault specification.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q2",
+      "answer": "Yes",
+      "evidence": "Identifies the webhook configuration as the origin and nginx-thrift's altered pod resources and unavailable endpoints as consequences.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q3",
+      "answer": "Yes",
+      "evidence": "Blames the specified webhook configuration, without blaming the healthy backend server or inert companion configurations.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q1",
+      "answer": "Yes",
+      "evidence": "Describes admission-time rewriting of pod memory resources, matching the webhook's injected memory mutation.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q2",
+      "answer": "Yes",
+      "evidence": "Reports running pod memory requests and limits of 16Mi versus template requests of 128Mi and limits of 256Mi.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q3",
+      "answer": "Yes",
+      "evidence": "Attributes the fault to webhook admission mutation of memory resources, consistent with the ground-truth fault type.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q1",
+      "answer": "Yes",
+      "evidence": "Only gatekeeper-mutating-webhook-configuration is blamed; nginx-thrift is described as an affected workload.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q2",
+      "answer": "No",
+      "evidence": "Describes mutation only for deployment/nginx-thrift; it does not identify the ground-truth scope of all pod CREATE operations in social-network.",
+      "confidence": "Medium"
+     },
+     {
+      "id": "D3-Q3",
+      "answer": "Yes",
+      "evidence": "Reports CrashLoopBackOff, zero ready replicas, and no ready endpoints, consistent with startup failures from the injected 16Mi memory limit.",
+      "confidence": "High"
+     }
+    ]
+   }
+  }
+ ],
+ "judge": {
+  "model": "gpt-6-astra",
+  "backend": "codex",
+  "effort": "high"
+ }
+}

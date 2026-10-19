@@ -1,0 +1,107 @@
+{
+ "problem_id": "jev_diag_anon_a79233b2494e0af885100640e08196a8_20261019_043344",
+ "submit_arm": 0,
+ "order": [
+  0,
+  3,
+  1,
+  2
+ ],
+ "arms": [
+  {
+   "arm": 0,
+   "kind": "v2",
+   "model": "openrouter/typesafe/jev-1.13",
+   "position": 0,
+   "seconds": 5.0,
+   "requests": 4,
+   "input_tokens": 24370,
+   "cost_usd": 0.001024,
+   "error": null,
+   "investigation": {
+    "rounds": [
+     {
+      "candidates": [
+       "dependency:deployment/rate",
+       "amplify:deployment/search->deployment/rate",
+       "partial:deployment/rate",
+       "partial:deployment/search"
+      ],
+      "probabilities": {
+       "dependency:deployment/rate": 0.015,
+       "amplify:deployment/search->deployment/rate": 0.895,
+       "partial:deployment/rate": 0.025,
+       "partial:deployment/search": 0.01,
+       "none_of_these": 0.05500000000000001
+      },
+      "picks": [
+       "amplify:deployment/search->deployment/rate",
+       "amplify:deployment/search->deployment/rate"
+      ],
+      "route": "accept"
+     }
+    ],
+    "explanations": 4,
+    "winner": "amplify:deployment/search->deployment/rate",
+    "pattern": "amplify",
+    "key_fact": "container hotel-reserv-search env RATE_RPC_TIMEOUT_MS=750",
+    "key_fact_probability": 0.695,
+    "fault_type": "data_or_traffic",
+    "fault_object": null,
+    "uncertain": false
+   },
+   "text": "Root cause: the interaction between `search` (caller) and `rate` (callee) in namespace `hotel-reservation`.\nMechanism: container hotel-reserv-search env RATE_RPC_TIMEOUT_MS=750.\nHow it fails: Calls from deployment/search to deployment/rate time out; deployment/search retries them, and the retries add load that keeps deployment/rate saturated, so the failure sustains itself.\nConcrete details: deployment/search RATE_RPC_TIMEOUT_MS=750; deployment/search RATE_RPC_MAX_ATTEMPTS=3; deployment/search RATE_RPC_INITIAL_BACKOFF_MS=50; deployment/search RATE_RPC_BACKOFF_MULTIPLIER=2.0; deployment/search RATE_RPC_JITTER=0.2; deployment/rate RATE_BACKEND_QPS_LIMIT=20; deployment/rate RATE_QUEUE_CAPACITY=256.\nContributing: deployment `search` in namespace `hotel-reservation`, deployment `rate` in namespace `hotel-reservation`.\nObserved impact: deployment `rate` in namespace `hotel-reservation`, deployment `search` in namespace `hotel-reservation`.\nFault type: data or traffic (the component's inputs or traffic pattern overwhelm or break it).\nEvidence:\n- deployment/search RATE_RPC_TIMEOUT_MS=750\n- deployment/search RATE_RPC_MAX_ATTEMPTS=3\n- deployment/search RATE_RPC_INITIAL_BACKOFF_MS=50\n- deployment/search RATE_RPC_BACKOFF_MULTIPLIER=2.0\n- deployment/search RATE_RPC_JITTER=0.2\n- deployment/rate RATE_BACKEND_QPS_LIMIT=20\n- deployment/rate RATE_QUEUE_CAPACITY=256\n- deployment/rate: errors logged by 1 other component(s) (deployment/search) name this component (connectivity or timeout, 65 lines, still occurring), e.g. '2026-10-19T04:35:44Z WRN services/search/server.go:252 > downstream request failed dependency=rate grpc_code=DeadlineExceeded'",
+   "text_before_rerender": "Root cause: the interaction between `search` (caller) and `rate` (callee) in namespace `hotel-reservation`.\nMechanism: Calls from deployment/search to deployment/rate time out; deployment/search retries them, and the retries add load that keeps deployment/rate saturated, so the failure sustains itself.\nConcrete details: deployment/search RATE_RPC_TIMEOUT_MS=750; deployment/search RATE_RPC_MAX_ATTEMPTS=3; deployment/search RATE_RPC_INITIAL_BACKOFF_MS=50; deployment/search RATE_RPC_BACKOFF_MULTIPLIER=2.0; deployment/search RATE_RPC_JITTER=0.2; deployment/rate RATE_BACKEND_QPS_LIMIT=20; deployment/rate RATE_QUEUE_CAPACITY=256.\nContributing: deployment `search` in namespace `hotel-reservation`, deployment `rate` in namespace `hotel-reservation`.\nObserved impact: deployment `rate` in namespace `hotel-reservation`, deployment `search` in namespace `hotel-reservation`.\nKey evidence: container hotel-reserv-search env RATE_RPC_TIMEOUT_MS=750.\nFault type: data or traffic (the component's inputs or traffic pattern overwhelm or break it).\nEvidence:\n- deployment/search RATE_RPC_TIMEOUT_MS=750\n- deployment/search RATE_RPC_MAX_ATTEMPTS=3\n- deployment/search RATE_RPC_INITIAL_BACKOFF_MS=50\n- deployment/search RATE_RPC_BACKOFF_MULTIPLIER=2.0\n- deployment/search RATE_RPC_JITTER=0.2\n- deployment/rate RATE_BACKEND_QPS_LIMIT=20\n- deployment/rate RATE_QUEUE_CAPACITY=256\n- deployment/rate: errors logged by 1 other component(s) (deployment/search) name this component (connectivity or timeout, 65 lines, still occurring), e.g. '2026-10-19T04:35:44Z WRN services/search/server.go:252 > downstream request failed dependency=rate grpc_code=DeadlineExceeded'"
+  },
+  {
+   "arm": 1,
+   "kind": "v2",
+   "model": "openrouter/openai/gpt-6-luna-decisions",
+   "position": 2,
+   "seconds": 3.9,
+   "requests": 4,
+   "input_tokens": 15980,
+   "cost_usd": 0.001598,
+   "error": null,
+   "investigation": {
+    "rounds": [
+     {
+      "candidates": [
+       "dependency:deployment/rate",
+       "amplify:deployment/search->deployment/rate",
+       "partial:deployment/rate",
+       "partial:deployment/search"
+      ],
+      "probabilities": {
+       "dependency:deployment/rate": 0.065,
+       "amplify:deployment/search->deployment/rate": 0.685,
+       "partial:deployment/rate": 0.22,
+       "partial:deployment/search": 0.015,
+       "none_of_these": 0.015
+      },
+      "picks": [
+       "amplify:deployment/search->deployment/rate",
+       "amplify:deployment/search->deployment/rate"
+      ],
+      "route": "accept"
+     }
+    ],
+    "explanations": 4,
+    "winner": "amplify:deployment/search->deployment/rate",
+    "pattern": "amplify",
+    "key_fact": "container hotel-reserv-search env RATE_RPC_TIMEOUT_MS=750",
+    "key_fact_probability": 0.805,
+    "fault_type": "data_or_traffic",
+    "fault_object": null,
+    "uncertain": false
+   },
+   "text": "Root cause: the interaction between `search` (caller) and `rate` (callee) in namespace `hotel-reservation`.\nMechanism: container hotel-reserv-search env RATE_RPC_TIMEOUT_MS=750.\nHow it fails: Calls from deployment/search to deployment/rate time out; deployment/search retries them, and the retries add load that keeps deployment/rate saturated, so the failure sustains itself.\nConcrete details: deployment/search RATE_RPC_TIMEOUT_MS=750; deployment/search RATE_RPC_MAX_ATTEMPTS=3; deployment/search RATE_RPC_INITIAL_BACKOFF_MS=50; deployment/search RATE_RPC_BACKOFF_MULTIPLIER=2.0; deployment/search RATE_RPC_JITTER=0.2; deployment/rate RATE_BACKEND_QPS_LIMIT=20; deployment/rate RATE_QUEUE_CAPACITY=256.\nContributing: deployment `search` in namespace `hotel-reservation`, deployment `rate` in namespace `hotel-reservation`.\nObserved impact: deployment `rate` in namespace `hotel-reservation`, deployment `search` in namespace `hotel-reservation`.\nFault type: data or traffic (the component's inputs or traffic pattern overwhelm or break it).\nEvidence:\n- deployment/search RATE_RPC_TIMEOUT_MS=750\n- deployment/search RATE_RPC_MAX_ATTEMPTS=3\n- deployment/search RATE_RPC_INITIAL_BACKOFF_MS=50\n- deployment/search RATE_RPC_BACKOFF_MULTIPLIER=2.0\n- deployment/search RATE_RPC_JITTER=0.2\n- deployment/rate RATE_BACKEND_QPS_LIMIT=20\n- deployment/rate RATE_QUEUE_CAPACITY=256\n- deployment/rate: errors logged by 1 other component(s) (deployment/search) name this component (connectivity or timeout, 65 lines, still occurring), e.g. '2026-10-19T04:35:44Z WRN services/search/server.go:252 > downstream request failed dependency=rate grpc_code=DeadlineExceeded'",
+   "text_before_rerender": "Root cause: the interaction between `search` (caller) and `rate` (callee) in namespace `hotel-reservation`.\nMechanism: Calls from deployment/search to deployment/rate time out; deployment/search retries them, and the retries add load that keeps deployment/rate saturated, so the failure sustains itself.\nConcrete details: deployment/search RATE_RPC_TIMEOUT_MS=750; deployment/search RATE_RPC_MAX_ATTEMPTS=3; deployment/search RATE_RPC_INITIAL_BACKOFF_MS=50; deployment/search RATE_RPC_BACKOFF_MULTIPLIER=2.0; deployment/search RATE_RPC_JITTER=0.2; deployment/rate RATE_BACKEND_QPS_LIMIT=20; deployment/rate RATE_QUEUE_CAPACITY=256.\nContributing: deployment `search` in namespace `hotel-reservation`, deployment `rate` in namespace `hotel-reservation`.\nObserved impact: deployment `rate` in namespace `hotel-reservation`, deployment `search` in namespace `hotel-reservation`.\nKey evidence: container hotel-reserv-search env RATE_RPC_TIMEOUT_MS=750.\nFault type: data or traffic (the component's inputs or traffic pattern overwhelm or break it).\nEvidence:\n- deployment/search RATE_RPC_TIMEOUT_MS=750\n- deployment/search RATE_RPC_MAX_ATTEMPTS=3\n- deployment/search RATE_RPC_INITIAL_BACKOFF_MS=50\n- deployment/search RATE_RPC_BACKOFF_MULTIPLIER=2.0\n- deployment/search RATE_RPC_JITTER=0.2\n- deployment/rate RATE_BACKEND_QPS_LIMIT=20\n- deployment/rate RATE_QUEUE_CAPACITY=256\n- deployment/rate: errors logged by 1 other component(s) (deployment/search) name this component (connectivity or timeout, 65 lines, still occurring), e.g. '2026-10-19T04:35:44Z WRN services/search/server.go:252 > downstream request failed dependency=rate grpc_code=DeadlineExceeded'"
+  }
+ ],
+ "submission": {
+  "status": "200",
+  "message": "Submission received",
+  "stage": "diagnosis"
+ }
+}

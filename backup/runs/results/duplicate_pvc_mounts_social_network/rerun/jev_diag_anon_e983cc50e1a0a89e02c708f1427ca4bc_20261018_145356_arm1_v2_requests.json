@@ -1,0 +1,210 @@
+[
+ {
+  "label": "decide:1",
+  "state": {
+   "application": {
+    "name": "Social Network",
+    "description": "A social network with unidirectional follow relationships, implemented with loosely-coupled microservices, communicating with each other via Thrift RPCs.",
+    "namespaces": [
+     "social-network"
+    ]
+   },
+   "evidence": {
+    "deployment/jaeger": {
+     "kind": "Deployment",
+     "name": "jaeger",
+     "namespace": "social-network",
+     "healthy": false,
+     "signals": [
+      "only 1 of 2 desired replicas are ready",
+      "pod jaeger-9fd7cdb7c-qjph2: pod phase Pending",
+      "pod jaeger-9fd7cdb7c-qjph2: pod unschedulable: 0/4 nodes are available: 1 node(s) didn't match pod anti-affinity rules, 1 node(s) had untolerated taint {node-role.kubernetes.io/control-plane: }, 2 node(s) h\u2026",
+      "warning events: FailedScheduling x3",
+      "PVC jaeger-pvc is ReadWriteOnce (attachable to one node at a time) but 2 replicas of this Deployment mount it and its required pod anti-affinity places replicas on different nodes; replicas scheduled on another node cannot attach it",
+      "pod jaeger-9fd7cdb7c-qjph2 is still in pod phase Pending after another 50s"
+     ]
+    },
+    "deployment/home-timeline-service": {
+     "kind": "Deployment",
+     "name": "home-timeline-service",
+     "namespace": "social-network",
+     "healthy": false
+    },
+    "deployment/social-graph-service": {
+     "kind": "Deployment",
+     "name": "social-graph-service",
+     "namespace": "social-network",
+     "healthy": false
+    }
+   },
+   "cluster": {
+    "symptom_onset": "2026-10-18T14:55:15+00:00",
+    "recent_changes": [
+     {
+      "object": "configmap/kube-system/coredns",
+      "at": "2026-10-18T14:18:25Z",
+      "modified_after_creation_s": 20204,
+      "fields": [
+       "data.Corefile"
+      ],
+      "seconds_ago": 2259,
+      "seconds_before_symptoms": 2210
+     }
+    ],
+    "findings": [
+     {
+      "kind": "ConfigMap",
+      "name": "coredns",
+      "namespace": "kube-system",
+      "signal": "ConfigMap coredns was modified 2259s ago, 20204s after it was created (fields: data.Corefile); 2210s before the first active symptom"
+     }
+    ]
+   }
+  },
+  "questions": {
+   "best_explanation": {
+    "type": "choice",
+    "criteria": {
+     "o1": "Origin: deployment/social-network/social-graph-service. The fault is in this component; the mechanism is not established. | Observed impact on: deployment/social-network/social-graph-service",
+     "o2": "Origin: deployment/social-network/home-timeline-service. The fault is in this component; the mechanism is not established. | Observed impact on: deployment/social-network/home-timeline-service",
+     "o3": "Origin: deployment/social-network/jaeger. deployment/social-network/jaeger has a wrong setting of its own: PVC jaeger-pvc is ReadWriteOnce (attachable to one node at a time) but 2 replicas of this Deployment mount it and its required pod anti-affinity places replicas on different nodes; replicas scheduled on another node cannot attach it | Details: PVC jaeger-pvc is ReadWriteOnce (attachable to one node at a time) but 2 replicas of this Deployment mount it and its required pod anti-affinity places replicas on different nodes; replicas scheduled on another node cannot attach it | Observed impact on: deployment/social-network/jaeger | Checks: deployment/social-network/jaeger shows symptoms of its own (supports)",
+     "o4": "None of these explanations fits the evidence.",
+     "o5": "Origin: configmap/kube-system/coredns. configmap coredns acts on the application: ConfigMap coredns was modified 2259s ago, 20204s after it was created (fields: data.Corefile); 2210s before the first active symptom. | Details: ConfigMap coredns was modified 2259s ago, 20204s after it was created (fields: data.Corefile); 2210s before the first active symptom"
+    },
+    "instructions": {
+     "question": "Which explanation best accounts for all the observed symptoms in `evidence`?",
+     "how_to_decide": [
+      "Prefer the explanation whose chain is supported by the observed facts and explains the most symptoms; an explanation contradicted by a fact is unlikely.",
+      "A component that only fails because something it calls fails is a victim, not the origin.",
+      "Choose `o4` when none of the explanations fits the evidence."
+     ]
+    }
+   }
+  },
+  "model": "openai/gpt-6-luna-decisions-20261006",
+  "latency_ms": 566,
+  "usage": {
+   "input_tokens": 1003,
+   "output_tokens": 0,
+   "cost": 0.0001003
+  },
+  "answers": {
+   "best_explanation": {
+    "type": "choice",
+    "choice": "o3",
+    "confidence": 0.64,
+    "probabilities": {
+     "o1": 0.03,
+     "o2": 0.02,
+     "o3": 0.71,
+     "o4": 0.18,
+     "o5": 0.06
+    }
+   }
+  }
+ },
+ {
+  "label": "decide:2",
+  "state": {
+   "application": {
+    "name": "Social Network",
+    "description": "A social network with unidirectional follow relationships, implemented with loosely-coupled microservices, communicating with each other via Thrift RPCs.",
+    "namespaces": [
+     "social-network"
+    ]
+   },
+   "evidence": {
+    "deployment/jaeger": {
+     "kind": "Deployment",
+     "name": "jaeger",
+     "namespace": "social-network",
+     "healthy": false,
+     "signals": [
+      "only 1 of 2 desired replicas are ready",
+      "pod jaeger-9fd7cdb7c-qjph2: pod phase Pending",
+      "pod jaeger-9fd7cdb7c-qjph2: pod unschedulable: 0/4 nodes are available: 1 node(s) didn't match pod anti-affinity rules, 1 node(s) had untolerated taint {node-role.kubernetes.io/control-plane: }, 2 node(s) h\u2026",
+      "warning events: FailedScheduling x3",
+      "PVC jaeger-pvc is ReadWriteOnce (attachable to one node at a time) but 2 replicas of this Deployment mount it and its required pod anti-affinity places replicas on different nodes; replicas scheduled on another node cannot attach it",
+      "pod jaeger-9fd7cdb7c-qjph2 is still in pod phase Pending after another 50s"
+     ]
+    },
+    "deployment/home-timeline-service": {
+     "kind": "Deployment",
+     "name": "home-timeline-service",
+     "namespace": "social-network",
+     "healthy": false
+    },
+    "deployment/social-graph-service": {
+     "kind": "Deployment",
+     "name": "social-graph-service",
+     "namespace": "social-network",
+     "healthy": false
+    }
+   },
+   "cluster": {
+    "symptom_onset": "2026-10-18T14:55:15+00:00",
+    "recent_changes": [
+     {
+      "object": "configmap/kube-system/coredns",
+      "at": "2026-10-18T14:18:25Z",
+      "modified_after_creation_s": 20204,
+      "fields": [
+       "data.Corefile"
+      ],
+      "seconds_ago": 2259,
+      "seconds_before_symptoms": 2210
+     }
+    ],
+    "findings": [
+     {
+      "kind": "ConfigMap",
+      "name": "coredns",
+      "namespace": "kube-system",
+      "signal": "ConfigMap coredns was modified 2259s ago, 20204s after it was created (fields: data.Corefile); 2210s before the first active symptom"
+     }
+    ]
+   }
+  },
+  "questions": {
+   "best_explanation": {
+    "type": "choice",
+    "criteria": {
+     "o1": "Origin: deployment/social-network/jaeger. deployment/social-network/jaeger has a wrong setting of its own: PVC jaeger-pvc is ReadWriteOnce (attachable to one node at a time) but 2 replicas of this Deployment mount it and its required pod anti-affinity places replicas on different nodes; replicas scheduled on another node cannot attach it | Details: PVC jaeger-pvc is ReadWriteOnce (attachable to one node at a time) but 2 replicas of this Deployment mount it and its required pod anti-affinity places replicas on different nodes; replicas scheduled on another node cannot attach it | Observed impact on: deployment/social-network/jaeger | Checks: deployment/social-network/jaeger shows symptoms of its own (supports)",
+     "o2": "Origin: deployment/social-network/social-graph-service. The fault is in this component; the mechanism is not established. | Observed impact on: deployment/social-network/social-graph-service",
+     "o3": "Origin: deployment/social-network/home-timeline-service. The fault is in this component; the mechanism is not established. | Observed impact on: deployment/social-network/home-timeline-service",
+     "o4": "Origin: configmap/kube-system/coredns. configmap coredns acts on the application: ConfigMap coredns was modified 2259s ago, 20204s after it was created (fields: data.Corefile); 2210s before the first active symptom. | Details: ConfigMap coredns was modified 2259s ago, 20204s after it was created (fields: data.Corefile); 2210s before the first active symptom",
+     "o5": "None of these explanations fits the evidence."
+    },
+    "instructions": {
+     "question": "Which explanation best accounts for all the observed symptoms in `evidence`?",
+     "how_to_decide": [
+      "Prefer the explanation whose chain is supported by the observed facts and explains the most symptoms; an explanation contradicted by a fact is unlikely.",
+      "A component that only fails because something it calls fails is a victim, not the origin.",
+      "Choose `o5` when none of the explanations fits the evidence."
+     ]
+    }
+   }
+  },
+  "model": "openai/gpt-6-luna-decisions-20261006",
+  "latency_ms": 551,
+  "usage": {
+   "input_tokens": 1003,
+   "output_tokens": 0,
+   "cost": 0.0001003
+  },
+  "answers": {
+   "best_explanation": {
+    "type": "choice",
+    "choice": "o1",
+    "confidence": 0.77,
+    "probabilities": {
+     "o1": 0.82,
+     "o2": 0.05,
+     "o3": 0.03,
+     "o4": 0.01,
+     "o5": 0.09
+    }
+   }
+  }
+ }
+]

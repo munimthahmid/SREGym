@@ -1,0 +1,558 @@
+{
+ "problem_id": "jev_diag_anon_b85503b60c32dc45eb1e66e69fc4b7f2_20261019_031141",
+ "submit_arm": 0,
+ "order": [
+  2,
+  1,
+  3,
+  0
+ ],
+ "arms": [
+  {
+   "arm": 0,
+   "kind": "v2",
+   "model": "openrouter/typesafe/jev-1.13",
+   "position": 3,
+   "seconds": 9.5,
+   "requests": 4,
+   "input_tokens": 51124,
+   "cost_usd": 0.002147,
+   "error": null,
+   "investigation": {
+    "rounds": [
+     {
+      "candidates": [
+       "dependency:deployment/valkey-cart",
+       "hidden-state:deployment/cart",
+       "amplify:deployment/frontend->deployment/cart",
+       "change:daemonset/otel-collector-agent:template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-19T09:11:22+06:00",
+       "change:daemonset/astronomy-shop/otel-collector-agent",
+       "arrival:job/valkey-memory-flood"
+      ],
+      "probabilities": {
+       "dependency:deployment/valkey-cart": 0.9,
+       "hidden-state:deployment/cart": 0.0,
+       "amplify:deployment/frontend->deployment/cart": 0.0,
+       "change:daemonset/otel-collector-agent:template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-19T09:11:22+06:00": 0.0,
+       "change:daemonset/astronomy-shop/otel-collector-agent": 0.0,
+       "arrival:job/valkey-memory-flood": 0.1,
+       "none_of_these": 0.0
+      },
+      "picks": [
+       "dependency:deployment/valkey-cart",
+       "dependency:deployment/valkey-cart"
+      ],
+      "route": "accept"
+     }
+    ],
+    "explanations": 13,
+    "winner": "dependency:deployment/valkey-cart",
+    "pattern": "dependency",
+    "key_fact": "container valkey-cart image valkey/valkey:9.0.1-alpine3.23 resources {'limits': {'memory': '64Mi'}}",
+    "key_fact_probability": 0.82,
+    "fault_type": "resource_limits",
+    "fault_object": null,
+    "uncertain": false
+   },
+   "text": "Root cause: deployment `valkey-cart` in namespace `astronomy-shop`.\nMechanism: container valkey-cart image valkey/valkey:9.0.1-alpine3.23 resources {'limits': {'memory': '64Mi'}}.\nConcrete details: only 0 of 1 desired replicas are ready; pod valkey-cart-859985f49d-qjd86: container valkey-cart terminated OOMKilled exit=137; pod valkey-cart-859985f49d-qjd86: container valkey-cart was OOMKilled.\nObserved impact: deployment `valkey-cart` in namespace `astronomy-shop`.\nFault type: resource limits (CPU or memory requests/limits do not fit the workload).\nEvidence:\n- only 0 of 1 desired replicas are ready\n- pod valkey-cart-859985f49d-qjd86: container valkey-cart terminated OOMKilled exit=137\n- pod valkey-cart-859985f49d-qjd86: container valkey-cart was OOMKilled\n- deployment/cart: errors logged by 1 other component(s) (deployment/frontend) name this component (connectivity or timeout, 4 lines, still occurring), e.g. 'Error: 9 FAILED_PRECONDITION: Can't access cart storage. System.ApplicationException: Wasn't able to connect to redis'\n- deployment/valkey-cart: only 0 of 1 desired replicas are ready\n- deployment `cart` in namespace `astronomy-shop` fails as a result (observed symptoms)",
+   "grade": {
+    "judgment": "False",
+    "reasoning": "Verdict: False (composite=0.45). D1 Fault Localization: 0.67 | D2 Fault Characterization: 0.00 | D3 Scope Precision: 0.67. Weakest dimension: Fault Characterization (0.00). Checklist details: [{\"id\": \"D1-Q1\", \"answer\": \"No\", \"evidence\": \"Diagnosis names deployment/valkey-cart in astronomy-shop; the structured fault specification identifies service/valkey-cart in that namespace.\", \"confidence\": \"Medium\"}, {\"id\": \"D1-Q2\", \"answer\": \"Yes\", \"evidence\": \"Diagnosis identifies valkey-cart as the root cause and explicitly describes cart as failing as a result.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q3\", \"answer\": \"Yes\", \"evidence\": \"Diagnosis blames valkey-cart, the targeted component, rather than a different healthy component.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q1\", \"answer\": \"No\", \"evidence\": \"Diagnosis attributes failure to resource limits; ground truth identifies a workload flooding valkey-cart with very large payloads.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q2\", \"answer\": \"No\", \"evidence\": \"The cited 64Mi limit and image version do not identify the injected large-payload flood.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q3\", \"answer\": \"No\", \"evidence\": \"Diagnosis labels the fault as unsuitable resource limits, substituting a configuration fault for the stated workload-driven memory exhaustion.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q1\", \"answer\": \"Yes\", \"evidence\": \"Only valkey-cart is blamed; cart and frontend are presented as sources of downstream symptoms.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q2\", \"answer\": \"No\", \"evidence\": \"Diagnosis includes valkey-cart but omits the workload contributing to the fault by flooding it with large payloads.\", \"confidence\": \"Medium\"}, {\"id\": \"D3-Q3\", \"answer\": \"Yes\", \"evidence\": \"OOMKilled termination, zero ready replicas, and cart storage connection failures match memory exhaustion disrupting request processing.\", \"confidence\": \"High\"}]",
+    "success": false,
+    "accuracy": 45.0,
+    "composite_score": 0.45,
+    "dimensions": {
+     "D1": {
+      "name": "Fault Localization",
+      "score": 0.67
+     },
+     "D2": {
+      "name": "Fault Characterization",
+      "score": 0.0
+     },
+     "D3": {
+      "name": "Scope Precision",
+      "score": 0.67
+     }
+    },
+    "checklist": [
+     {
+      "id": "D1-Q1",
+      "answer": "No",
+      "evidence": "Diagnosis names deployment/valkey-cart in astronomy-shop; the structured fault specification identifies service/valkey-cart in that namespace.",
+      "confidence": "Medium"
+     },
+     {
+      "id": "D1-Q2",
+      "answer": "Yes",
+      "evidence": "Diagnosis identifies valkey-cart as the root cause and explicitly describes cart as failing as a result.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q3",
+      "answer": "Yes",
+      "evidence": "Diagnosis blames valkey-cart, the targeted component, rather than a different healthy component.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q1",
+      "answer": "No",
+      "evidence": "Diagnosis attributes failure to resource limits; ground truth identifies a workload flooding valkey-cart with very large payloads.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q2",
+      "answer": "No",
+      "evidence": "The cited 64Mi limit and image version do not identify the injected large-payload flood.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q3",
+      "answer": "No",
+      "evidence": "Diagnosis labels the fault as unsuitable resource limits, substituting a configuration fault for the stated workload-driven memory exhaustion.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q1",
+      "answer": "Yes",
+      "evidence": "Only valkey-cart is blamed; cart and frontend are presented as sources of downstream symptoms.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q2",
+      "answer": "No",
+      "evidence": "Diagnosis includes valkey-cart but omits the workload contributing to the fault by flooding it with large payloads.",
+      "confidence": "Medium"
+     },
+     {
+      "id": "D3-Q3",
+      "answer": "Yes",
+      "evidence": "OOMKilled termination, zero ready replicas, and cart storage connection failures match memory exhaustion disrupting request processing.",
+      "confidence": "High"
+     }
+    ]
+   }
+  },
+  {
+   "arm": 1,
+   "kind": "v2",
+   "model": "openrouter/openai/gpt-6-luna-decisions",
+   "position": 1,
+   "seconds": 10.3,
+   "requests": 6,
+   "input_tokens": 58318,
+   "cost_usd": 0.005832,
+   "error": null,
+   "investigation": {
+    "rounds": [
+     {
+      "candidates": [
+       "dependency:deployment/valkey-cart",
+       "hidden-state:deployment/cart",
+       "amplify:deployment/frontend->deployment/cart",
+       "change:daemonset/otel-collector-agent:template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-19T09:11:22+06:00",
+       "change:daemonset/astronomy-shop/otel-collector-agent",
+       "arrival:job/valkey-memory-flood"
+      ],
+      "probabilities": {
+       "dependency:deployment/valkey-cart": 0.445,
+       "hidden-state:deployment/cart": 0.005,
+       "amplify:deployment/frontend->deployment/cart": 0.01,
+       "change:daemonset/otel-collector-agent:template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-19T09:11:22+06:00": 0.015,
+       "change:daemonset/astronomy-shop/otel-collector-agent": 0.0,
+       "arrival:job/valkey-memory-flood": 0.505,
+       "none_of_these": 0.02
+      },
+      "picks": [
+       "arrival:job/valkey-memory-flood",
+       "arrival:job/valkey-memory-flood"
+      ],
+      "route": "check"
+     },
+     {
+      "candidates": [
+       "dependency:deployment/valkey-cart",
+       "hidden-state:deployment/cart",
+       "amplify:deployment/frontend->deployment/cart",
+       "change:daemonset/otel-collector-agent:template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-19T09:11:22+06:00",
+       "change:daemonset/astronomy-shop/otel-collector-agent",
+       "arrival:job/valkey-memory-flood"
+      ],
+      "probabilities": {
+       "dependency:deployment/valkey-cart": 0.33499999999999996,
+       "hidden-state:deployment/cart": 0.0,
+       "amplify:deployment/frontend->deployment/cart": 0.005,
+       "change:daemonset/otel-collector-agent:template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-19T09:11:22+06:00": 0.025,
+       "change:daemonset/astronomy-shop/otel-collector-agent": 0.005,
+       "arrival:job/valkey-memory-flood": 0.62,
+       "none_of_these": 0.01
+      },
+      "picks": [
+       "arrival:job/valkey-memory-flood",
+       "arrival:job/valkey-memory-flood"
+      ],
+      "route": "accept"
+     }
+    ],
+    "explanations": 13,
+    "winner": "arrival:job/valkey-memory-flood",
+    "pattern": "arrival",
+    "key_fact": "container flooder command: python3 -c import base64; exec(base64.b64decode('aW1wb3J0IHJlZGlzCmltcG9ydCB0aHJlYWRpbmcKaW1wb3J0IHRpbWUKCmRlZiBmbG9vZF9yZWRpcygpOgogICAgY2xpZW50ID0gcmVkaXMuUmVkaXMoaG9zdD0ndmFsa2V5LWNhcnQnLCBwb3J0PTYzNzkpCiAgICB3aGlsZSBUcnVlOgogICAgICAgIHRyeToKICAgICAgICAgICAgcGF5bG9hZCA9ICd4JyAqIDEwMDAwMDAKICAgICAgICAgICAgY2xpZW50LnNldChmImtleV97dGltZS50aW1lKCl9IiwgcGF5bG9hZCkKICAgICAgICBleGNlcHQgRXhjZXB0aW9uIGFzIGU6CiAgICAgICAgICAgIHByaW50KGYiRXJyb3I6IHtlfSIpCiAgICAgICAgICAgIHRpbWUuc2xlZXAoMSkKCnRocmVhZHMgPSB",
+    "key_fact_probability": 0.995,
+    "fault_type": "job_lifecycle",
+    "fault_object": null,
+    "uncertain": false
+   },
+   "text": "Root cause: job `valkey-memory-flood` in namespace `astronomy-shop`.\nMechanism: container flooder command: python3 -c import base64; exec(base64.b64decode('aW1wb3J0IHJlZGlzCmltcG9ydCB0aHJlYWRpbmcKaW1wb3J0IHRpbWUKCmRlZiBmbG9vZF9yZWRpcygpOgogICAgY2xpZW50ID0gcmVkaXMuUmVkaXMoaG9zdD0ndmFsa2V5LWNhcnQnLCBwb3J0PTYzNzkpCiAgICB3aGlsZSBUcnVlOgogICAgICAgIHRyeToKICAgICAgICAgICAgcGF5bG9hZCA9ICd4JyAqIDEwMDAwMDAKICAgICAgICAgICAgY2xpZW50LnNldChmImtleV97dGltZS50aW1lKCl9IiwgcGF5bG9hZCkKICAgICAgICBleGNlcHQgRXhjZXB0aW9uIGFzIGU6CiAgICAgICAgICAgIHByaW50KGYiRXJyb3I6IHtlfSIpCiAgICAgICAgICAgIHRpbWUuc2xlZXAoMSkKCnRocmVhZHMgPSB.\nConcrete details: job has 1 active pod(s) and has not completed.\nObserved impact: job `valkey-memory-flood` in namespace `astronomy-shop`.\nFault type: job lifecycle (the job pod cannot complete or the job runs wrongly).\nEvidence:\n- job has 1 active pod(s) and has not completed\n- job/valkey-memory-flood: job has 1 active pod(s) and has not completed",
+   "grade": {
+    "judgment": "False",
+    "reasoning": "Verdict: False (composite=0.45). D1 Fault Localization: 0.00 | D2 Fault Characterization: 0.67 | D3 Scope Precision: 0.67. Weakest dimension: Fault Localization (0.00). Checklist details: [{\"id\": \"D1-Q1\", \"answer\": \"No\", \"evidence\": \"Diagnosis names job/valkey-memory-flood as the root cause; the authoritative target is service/valkey-cart in astronomy-shop.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q2\", \"answer\": \"No\", \"evidence\": \"Diagnosis assigns fault origin to the flood job rather than the fault specification\\u2019s designated origin, service/valkey-cart.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q3\", \"answer\": \"No\", \"evidence\": \"The blamed resource is job/valkey-memory-flood, which differs from the specified target service/valkey-cart.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q1\", \"answer\": \"Yes\", \"evidence\": \"The supplied encoded command contains a loop writing large payloads to valkey-cart, matching the flooding mechanism.\", \"confidence\": \"Medium\"}, {\"id\": \"D2-Q2\", \"answer\": \"Yes\", \"evidence\": \"The encoded command specifies Redis host valkey-cart, port 6379, and repeated SET operations with million-character payloads.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q3\", \"answer\": \"No\", \"evidence\": \"Diagnosis explicitly classifies the fault as \\u201cjob lifecycle,\\u201d whereas ground truth describes memory exhaustion and cache OOM behavior.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q1\", \"answer\": \"Yes\", \"evidence\": \"The blamed flood workload corresponds to the workload contributing to the ground-truth fault; no unrelated components are blamed.\", \"confidence\": \"Medium\"}, {\"id\": \"D3-Q2\", \"answer\": \"Yes\", \"evidence\": \"Diagnosis includes the flooding workload and, within its encoded command, the affected valkey-cart target.\", \"confidence\": \"Medium\"}, {\"id\": \"D3-Q3\", \"answer\": \"No\", \"evidence\": \"Reported impact is an active, incomplete job; diagnosis does not describe cache memory exhaustion, OOM behavior, or disrupted request processing.\", \"confidence\": \"High\"}]",
+    "success": false,
+    "accuracy": 45.0,
+    "composite_score": 0.45,
+    "dimensions": {
+     "D1": {
+      "name": "Fault Localization",
+      "score": 0.0
+     },
+     "D2": {
+      "name": "Fault Characterization",
+      "score": 0.67
+     },
+     "D3": {
+      "name": "Scope Precision",
+      "score": 0.67
+     }
+    },
+    "checklist": [
+     {
+      "id": "D1-Q1",
+      "answer": "No",
+      "evidence": "Diagnosis names job/valkey-memory-flood as the root cause; the authoritative target is service/valkey-cart in astronomy-shop.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q2",
+      "answer": "No",
+      "evidence": "Diagnosis assigns fault origin to the flood job rather than the fault specification\u2019s designated origin, service/valkey-cart.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q3",
+      "answer": "No",
+      "evidence": "The blamed resource is job/valkey-memory-flood, which differs from the specified target service/valkey-cart.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q1",
+      "answer": "Yes",
+      "evidence": "The supplied encoded command contains a loop writing large payloads to valkey-cart, matching the flooding mechanism.",
+      "confidence": "Medium"
+     },
+     {
+      "id": "D2-Q2",
+      "answer": "Yes",
+      "evidence": "The encoded command specifies Redis host valkey-cart, port 6379, and repeated SET operations with million-character payloads.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q3",
+      "answer": "No",
+      "evidence": "Diagnosis explicitly classifies the fault as \u201cjob lifecycle,\u201d whereas ground truth describes memory exhaustion and cache OOM behavior.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q1",
+      "answer": "Yes",
+      "evidence": "The blamed flood workload corresponds to the workload contributing to the ground-truth fault; no unrelated components are blamed.",
+      "confidence": "Medium"
+     },
+     {
+      "id": "D3-Q2",
+      "answer": "Yes",
+      "evidence": "Diagnosis includes the flooding workload and, within its encoded command, the affected valkey-cart target.",
+      "confidence": "Medium"
+     },
+     {
+      "id": "D3-Q3",
+      "answer": "No",
+      "evidence": "Reported impact is an active, incomplete job; diagnosis does not describe cache memory exhaustion, OOM behavior, or disrupted request processing.",
+      "confidence": "High"
+     }
+    ]
+   }
+  },
+  {
+   "arm": 2,
+   "kind": "v1",
+   "model": "openrouter/typesafe/jev-1.13",
+   "position": 0,
+   "seconds": 4.0,
+   "requests": 2,
+   "input_tokens": 32882,
+   "cost_usd": 0.001381,
+   "error": null,
+   "investigation": {
+    "steps": [
+     {
+      "step": 1,
+      "node": "investigate",
+      "component": "job/valkey-memory-flood",
+      "verdict": "origin",
+      "origin_p": 0.86,
+      "victim_p": 0.01,
+      "next": "deployment/valkey-cart",
+      "next_p": 0.53,
+      "category": "job_lifecycle",
+      "spec_checks": [],
+      "blocked_input": null,
+      "key_evidence": "container flooder command: python3 -c import base64; exec(base64.b64decode('aW1wb3J0IHJlZGlzCmltcG9ydCB0aHJlYWRpbmcKaW1wb3J0IHRpbWUKCmRlZiBmbG9vZF9yZWRpcygpOgogICAgY2xpZW50ID0gcmVkaXMuUmVkaXMoaG9zdD0ndmFsa2V5LWNhcnQnLCBwb3J0PTYzNzkpCiAgICB3aGlsZSBUcnVlOgogICAgICAgIHRyeToKICAgICAgICAgICAgcGF5bG9hZCA9ICd4JyAqIDEwMDAwMDAKICAgICAgICAgICAgY2xpZW50LnNldChmImtleV97dGltZS50aW1lKCl9IiwgcGF5bG9hZCkKICAgICAgICBleGNlcHQgRXhjZXB0aW9uIGFzIGU6CiAgICAgICAgICAgIHByaW50KGYiRXJyb3I6IHtlfSIpCiAgICAgICAgICAgIHRpbWUuc2xlZXAoMSkKCnRocmVhZHMgPSB"
+     }
+    ],
+    "concluded": "job/valkey-memory-flood",
+    "fallback": null,
+    "triage_top": [
+     [
+      "job/valkey-memory-flood",
+      0.88
+     ],
+     [
+      "deployment/valkey-cart",
+      0.1
+     ],
+     [
+      "daemonset/otel-collector-agent",
+      0.02
+     ],
+     [
+      "deployment/accounting",
+      0.0
+     ],
+     [
+      "deployment/ad",
+      0.0
+     ]
+    ]
+   },
+   "text": "Root cause component: Job `valkey-memory-flood` in namespace `astronomy-shop`.\nMechanism: container flooder command: python3 -c import base64; exec(base64.b64decode('aW1wb3J0IHJlZGlzCmltcG9ydCB0aHJlYWRpbmcKaW1wb3J0IHRpbWUKCmRlZiBmbG9vZF9yZWRpcygpOgogICAgY2xpZW50ID0gcmVkaXMuUmVkaXMoaG9zdD0ndmFsa2V5LWNhcnQnLCBwb3J0PTYzNzkpCiAgICB3aGlsZSBUcnVlOgogICAgICAgIHRyeToKICAgICAgICAgICAgcGF5bG9hZCA9ICd4JyAqIDEwMDAwMDAKICAgICAgICAgICAgY2xpZW50LnNldChmImtleV97dGltZS50aW1lKCl9IiwgcGF5bG9hZCkKICAgICAgICBleGNlcHQgRXhjZXB0aW9uIGFzIGU6CiAgICAgICAgICAgIHByaW50KGYiRXJyb3I6IHtlfSIpCiAgICAgICAgICAgIHRpbWUuc2xlZXAoMSkKCnRocmVhZHMgPSB.\nFault type: job lifecycle (the job pod cannot complete or the job runs wrongly).\nAbnormal state observed on this component:\n- job has 1 active pod(s) and has not completed\n- container flooder: image ghcr.io/sregym/redis-client:8.1.0-py3.10\nClassification: Jev (typesafe/jev-1.13-20260917) confirmed this origin at investigation step 1 with probability 0.86 (triage probability 0.88).",
+   "grade": {
+    "judgment": "False",
+    "reasoning": "Verdict: False (composite=0.45). D1 Fault Localization: 0.00 | D2 Fault Characterization: 0.67 | D3 Scope Precision: 0.67. Weakest dimension: Fault Localization (0.00). Checklist details: [{\"id\": \"D1-Q1\", \"answer\": \"No\", \"evidence\": \"Names Job valkey-memory-flood as the root cause, whereas the authoritative target is service/valkey-cart.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q2\", \"answer\": \"No\", \"evidence\": \"Assigns fault origin to the flooder Job rather than valkey-cart, the origin specified by the fault specification.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q3\", \"answer\": \"No\", \"evidence\": \"Blames a different resource: Job valkey-memory-flood instead of service/valkey-cart.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q1\", \"answer\": \"Yes\", \"evidence\": \"The embedded encoded command repeatedly writes large payloads to valkey-cart, matching the flooding mechanism.\", \"confidence\": \"Medium\"}, {\"id\": \"D2-Q2\", \"answer\": \"Yes\", \"evidence\": \"The encoded script specifies valkey-cart port 6379 and repeated SET operations with 1,000,000-character payloads.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q3\", \"answer\": \"No\", \"evidence\": \"Explicitly classifies the fault as job lifecycle, conflicting with the ground-truth memory exhaustion and OOM mechanism.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q1\", \"answer\": \"Yes\", \"evidence\": \"Blames the flooding workload, which ground truth identifies as contributing to the fault; no unrelated components are blamed.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q2\", \"answer\": \"Yes\", \"evidence\": \"Identifies the flooding workload and references the affected valkey-cart service within the encoded command.\", \"confidence\": \"Medium\"}, {\"id\": \"D3-Q3\", \"answer\": \"No\", \"evidence\": \"Reports an active, incomplete Job but does not describe cache memory exhaustion, OOM behavior, or disrupted request processing.\", \"confidence\": \"High\"}]",
+    "success": false,
+    "accuracy": 45.0,
+    "composite_score": 0.45,
+    "dimensions": {
+     "D1": {
+      "name": "Fault Localization",
+      "score": 0.0
+     },
+     "D2": {
+      "name": "Fault Characterization",
+      "score": 0.67
+     },
+     "D3": {
+      "name": "Scope Precision",
+      "score": 0.67
+     }
+    },
+    "checklist": [
+     {
+      "id": "D1-Q1",
+      "answer": "No",
+      "evidence": "Names Job valkey-memory-flood as the root cause, whereas the authoritative target is service/valkey-cart.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q2",
+      "answer": "No",
+      "evidence": "Assigns fault origin to the flooder Job rather than valkey-cart, the origin specified by the fault specification.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q3",
+      "answer": "No",
+      "evidence": "Blames a different resource: Job valkey-memory-flood instead of service/valkey-cart.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q1",
+      "answer": "Yes",
+      "evidence": "The embedded encoded command repeatedly writes large payloads to valkey-cart, matching the flooding mechanism.",
+      "confidence": "Medium"
+     },
+     {
+      "id": "D2-Q2",
+      "answer": "Yes",
+      "evidence": "The encoded script specifies valkey-cart port 6379 and repeated SET operations with 1,000,000-character payloads.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q3",
+      "answer": "No",
+      "evidence": "Explicitly classifies the fault as job lifecycle, conflicting with the ground-truth memory exhaustion and OOM mechanism.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q1",
+      "answer": "Yes",
+      "evidence": "Blames the flooding workload, which ground truth identifies as contributing to the fault; no unrelated components are blamed.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q2",
+      "answer": "Yes",
+      "evidence": "Identifies the flooding workload and references the affected valkey-cart service within the encoded command.",
+      "confidence": "Medium"
+     },
+     {
+      "id": "D3-Q3",
+      "answer": "No",
+      "evidence": "Reports an active, incomplete Job but does not describe cache memory exhaustion, OOM behavior, or disrupted request processing.",
+      "confidence": "High"
+     }
+    ]
+   }
+  },
+  {
+   "arm": 3,
+   "kind": "v1",
+   "model": "openrouter/openai/gpt-6-luna-decisions",
+   "position": 2,
+   "seconds": 2.4,
+   "requests": 2,
+   "input_tokens": 22355,
+   "cost_usd": 0.002236,
+   "error": null,
+   "investigation": {
+    "steps": [
+     {
+      "step": 1,
+      "node": "investigate",
+      "component": "job/valkey-memory-flood",
+      "verdict": "origin",
+      "origin_p": 0.96,
+      "victim_p": 0.02,
+      "next": "deployment/valkey-cart",
+      "next_p": 0.6,
+      "category": "config_value",
+      "spec_checks": [],
+      "blocked_input": null,
+      "key_evidence": "container flooder command: python3 -c import base64; exec(base64.b64decode('aW1wb3J0IHJlZGlzCmltcG9ydCB0aHJlYWRpbmcKaW1wb3J0IHRpbWUKCmRlZiBmbG9vZF9yZWRpcygpOgogICAgY2xpZW50ID0gcmVkaXMuUmVkaXMoaG9zdD0ndmFsa2V5LWNhcnQnLCBwb3J0PTYzNzkpCiAgICB3aGlsZSBUcnVlOgogICAgICAgIHRyeToKICAgICAgICAgICAgcGF5bG9hZCA9ICd4JyAqIDEwMDAwMDAKICAgICAgICAgICAgY2xpZW50LnNldChmImtleV97dGltZS50aW1lKCl9IiwgcGF5bG9hZCkKICAgICAgICBleGNlcHQgRXhjZXB0aW9uIGFzIGU6CiAgICAgICAgICAgIHByaW50KGYiRXJyb3I6IHtlfSIpCiAgICAgICAgICAgIHRpbWUuc2xlZXAoMSkKCnRocmVhZHMgPSB"
+     }
+    ],
+    "concluded": "job/valkey-memory-flood",
+    "fallback": null,
+    "triage_top": [
+     [
+      "job/valkey-memory-flood",
+      0.89
+     ],
+     [
+      "deployment/valkey-cart",
+      0.08
+     ],
+     [
+      "deployment/accounting",
+      0.01
+     ],
+     [
+      "deployment/cart",
+      0.01
+     ],
+     [
+      "daemonset/otel-collector-agent",
+      0.01
+     ]
+    ]
+   },
+   "text": "Root cause component: Job `valkey-memory-flood` in namespace `astronomy-shop`.\nMechanism: container flooder command: python3 -c import base64; exec(base64.b64decode('aW1wb3J0IHJlZGlzCmltcG9ydCB0aHJlYWRpbmcKaW1wb3J0IHRpbWUKCmRlZiBmbG9vZF9yZWRpcygpOgogICAgY2xpZW50ID0gcmVkaXMuUmVkaXMoaG9zdD0ndmFsa2V5LWNhcnQnLCBwb3J0PTYzNzkpCiAgICB3aGlsZSBUcnVlOgogICAgICAgIHRyeToKICAgICAgICAgICAgcGF5bG9hZCA9ICd4JyAqIDEwMDAwMDAKICAgICAgICAgICAgY2xpZW50LnNldChmImtleV97dGltZS50aW1lKCl9IiwgcGF5bG9hZCkKICAgICAgICBleGNlcHQgRXhjZXB0aW9uIGFzIGU6CiAgICAgICAgICAgIHByaW50KGYiRXJyb3I6IHtlfSIpCiAgICAgICAgICAgIHRpbWUuc2xlZXAoMSkKCnRocmVhZHMgPSB.\nFault type: config value (a wrong, missing, or shadowed value in this component's own configuration).\nAbnormal state observed on this component:\n- job has 1 active pod(s) and has not completed\n- container flooder: image ghcr.io/sregym/redis-client:8.1.0-py3.10\nClassification: Jev (openai/gpt-6-luna-decisions-20261006) confirmed this origin at investigation step 1 with probability 0.96 (triage probability 0.89).",
+   "grade": {
+    "judgment": "False",
+    "reasoning": "Verdict: False (composite=0.45). D1 Fault Localization: 0.00 | D2 Fault Characterization: 0.67 | D3 Scope Precision: 0.67. Weakest dimension: Fault Localization (0.00). Checklist details: [{\"id\": \"D1-Q1\", \"answer\": \"No\", \"evidence\": \"The diagnosis names Job valkey-memory-flood as the origin; the authoritative fault specification names service/valkey-cart.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q2\", \"answer\": \"No\", \"evidence\": \"The diagnosis assigns fault origin to the flooding Job instead of valkey-cart, the origin designated by the fault specification.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q3\", \"answer\": \"No\", \"evidence\": \"The blamed Job differs from the fault specification's target component, service/valkey-cart.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q1\", \"answer\": \"Yes\", \"evidence\": \"The embedded command encodes a loop sending large payloads through Redis SET operations to valkey-cart, matching the flooding mechanism.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q2\", \"answer\": \"Yes\", \"evidence\": \"The encoded command specifies valkey-cart, port 6379, and repeated writes of 1,000,000-character payloads.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q3\", \"answer\": \"No\", \"evidence\": \"The diagnosis labels the fault a wrong, missing, or shadowed configuration value; ground truth describes memory exhaustion caused by payload flooding.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q1\", \"answer\": \"Yes\", \"evidence\": \"The blamed flooder workload corresponds to the contributing workload described in ground truth; no unrelated contributors are blamed.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q2\", \"answer\": \"Yes\", \"evidence\": \"The diagnosis identifies the flooding workload, and its encoded command includes valkey-cart as the destination.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q3\", \"answer\": \"No\", \"evidence\": \"Reported symptoms are an active, incomplete Job; the diagnosis does not describe memory exhaustion, OOM behavior, or disrupted request processing.\", \"confidence\": \"High\"}]",
+    "success": false,
+    "accuracy": 45.0,
+    "composite_score": 0.45,
+    "dimensions": {
+     "D1": {
+      "name": "Fault Localization",
+      "score": 0.0
+     },
+     "D2": {
+      "name": "Fault Characterization",
+      "score": 0.67
+     },
+     "D3": {
+      "name": "Scope Precision",
+      "score": 0.67
+     }
+    },
+    "checklist": [
+     {
+      "id": "D1-Q1",
+      "answer": "No",
+      "evidence": "The diagnosis names Job valkey-memory-flood as the origin; the authoritative fault specification names service/valkey-cart.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q2",
+      "answer": "No",
+      "evidence": "The diagnosis assigns fault origin to the flooding Job instead of valkey-cart, the origin designated by the fault specification.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q3",
+      "answer": "No",
+      "evidence": "The blamed Job differs from the fault specification's target component, service/valkey-cart.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q1",
+      "answer": "Yes",
+      "evidence": "The embedded command encodes a loop sending large payloads through Redis SET operations to valkey-cart, matching the flooding mechanism.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q2",
+      "answer": "Yes",
+      "evidence": "The encoded command specifies valkey-cart, port 6379, and repeated writes of 1,000,000-character payloads.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q3",
+      "answer": "No",
+      "evidence": "The diagnosis labels the fault a wrong, missing, or shadowed configuration value; ground truth describes memory exhaustion caused by payload flooding.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q1",
+      "answer": "Yes",
+      "evidence": "The blamed flooder workload corresponds to the contributing workload described in ground truth; no unrelated contributors are blamed.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q2",
+      "answer": "Yes",
+      "evidence": "The diagnosis identifies the flooding workload, and its encoded command includes valkey-cart as the destination.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q3",
+      "answer": "No",
+      "evidence": "Reported symptoms are an active, incomplete Job; the diagnosis does not describe memory exhaustion, OOM behavior, or disrupted request processing.",
+      "confidence": "High"
+     }
+    ]
+   }
+  }
+ ],
+ "submission": {
+  "status": "200",
+  "message": "Submission received",
+  "stage": "diagnosis"
+ },
+ "judge": {
+  "model": "gpt-6-astra",
+  "backend": "codex",
+  "effort": "high"
+ }
+}

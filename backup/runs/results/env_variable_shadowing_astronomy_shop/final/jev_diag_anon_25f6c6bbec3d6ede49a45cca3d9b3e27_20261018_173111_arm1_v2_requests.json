@@ -1,0 +1,1438 @@
+[
+ {
+  "label": "decide:1",
+  "state": {
+   "application": {
+    "name": "OpenTelemetry Demo Astronomy Shop",
+    "description": "An online shopping platform built with a microservices architecture, showcasing OpenTelemetry instrumentation for distributed tracing across services.",
+    "namespaces": [
+     "astronomy-shop"
+    ]
+   },
+   "evidence": {
+    "deployment/frontend-proxy": {
+     "kind": "Deployment",
+     "name": "frontend-proxy",
+     "namespace": "astronomy-shop",
+     "healthy": false,
+     "signals": [
+      "container frontend-proxy defines env var FRONTEND_HOST 2 times: 'frontend', then 'localhost'; the last value ('localhost') is the one the container sees",
+      "only 0 of 1 desired replicas are ready",
+      "pod frontend-proxy-7b7cd5fb4-xgbmr: container frontend-proxy waiting in CrashLoopBackOff",
+      "pod frontend-proxy-7b7cd5fb4-xgbmr: container frontend-proxy was OOMKilled",
+      "pod frontend-proxy-7b7cd5fb4-xgbmr: container frontend-proxy restarted 4 times",
+      "warning events: BackOff x9",
+      "service frontend-proxy selects this component but has 0 ready endpoints",
+      "firing alert KubePodNotReady"
+     ],
+     "template_changes": {
+      "revision": 2,
+      "changed_at": "2026-10-18T17:31:10Z",
+      "changes": [
+       "pod label pod-template-hash: 579d54f6f5 -> 7b7cd5fb4",
+       "container frontend-proxy env FRONTEND_HOST: frontend -> localhost",
+       "container frontend-proxy env FRONTEND_HOST is now defined 2 times: frontend, localhost"
+      ]
+     }
+    },
+    "daemonset/otel-collector-agent": {
+     "kind": "DaemonSet",
+     "name": "otel-collector-agent",
+     "namespace": "astronomy-shop",
+     "healthy": false,
+     "signals": [
+      "spec modified 140s ago, 18s after this object was created (fields: template.annotations.kubectl.kubernetes.io/restartedAt); pod template changes: template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-18T23:30:57+06:00; 18s before the first active symptom"
+     ],
+     "template_changes": {
+      "revision": 2,
+      "changed_at": "2026-10-18T17:30:57Z",
+      "changes": [
+       "template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-18T23:30:57+06:00"
+      ]
+     }
+    }
+   },
+   "cluster": {
+    "symptom_onset": "2026-10-18T17:31:15+00:00",
+    "recent_changes": [
+     {
+      "object": "deployment/frontend-proxy",
+      "at": "2026-10-18T17:31:10Z",
+      "modified_after_creation_s": 31,
+      "fields": [
+       "containers[frontend-proxy].env[FRONTEND_HOST]"
+      ],
+      "seconds_ago": 127,
+      "seconds_before_symptoms": 5
+     },
+     {
+      "object": "daemonset/otel-collector-agent",
+      "at": "2026-10-18T17:30:57Z",
+      "modified_after_creation_s": 18,
+      "fields": [
+       "template.annotations.kubectl.kubernetes.io/restartedAt"
+      ],
+      "seconds_ago": 140,
+      "seconds_before_symptoms": 18,
+      "role": "observability"
+     },
+     {
+      "object": "configmap/kube-system/coredns",
+      "at": "2026-10-18T16:57:47Z",
+      "modified_after_creation_s": 29766,
+      "fields": [
+       "data.Corefile"
+      ],
+      "seconds_ago": 2130,
+      "seconds_before_symptoms": 2008
+     }
+    ],
+    "findings": [
+     {
+      "kind": "ConfigMap",
+      "name": "coredns",
+      "namespace": "kube-system",
+      "signal": "ConfigMap coredns was modified 2130s ago, 29766s after it was created (fields: data.Corefile); 2008s before the first active symptom"
+     }
+    ]
+   }
+  },
+  "questions": {
+   "best_explanation": {
+    "type": "choice",
+    "criteria": {
+     "o1": "Origin: deployment/astronomy-shop/frontend-proxy. deployment frontend-proxy was changed recently and breaks deployment/frontend-proxy, which it acts on. | Details: deployment frontend-proxy fields written: containers[frontend-proxy].env[FRONTEND_HOST] | Observed impact on: deployment/astronomy-shop/frontend-proxy | Checks: deployment/astronomy-shop/frontend-proxy was made before the symptoms began (supports); deployment/frontend-proxy shows symptoms of its own (supports)",
+     "o2": "Origin: deployment/astronomy-shop/frontend-proxy. The pod template changes in revision 2 of deployment/frontend-proxy, which only cause the fault together, break deployment/frontend-proxy. | Details: container frontend-proxy env FRONTEND_HOST: frontend -> localhost; container frontend-proxy env FRONTEND_HOST is now defined 2 times: frontend, localhost | Observed impact on: deployment/astronomy-shop/frontend-proxy | Checks: revision 2 of deployment/frontend-proxy was made before the symptoms began (supports); deployment/frontend-proxy shows symptoms of its own (supports)",
+     "o3": "Origin: deployment/astronomy-shop/frontend-proxy. The pod template change 'container frontend-proxy env FRONTEND_HOST is now defined 2 times: frontend, localhost' in revision 2 of deployment/frontend-proxy breaks deployment/frontend-proxy. | Details: container frontend-proxy env FRONTEND_HOST is now defined 2 times: frontend, localhost | Observed impact on: deployment/astronomy-shop/frontend-proxy | Checks: revision 2 of deployment/frontend-proxy was made before the symptoms began (supports); deployment/frontend-proxy shows symptoms of its own (supports)",
+     "o4": "Origin: deployment/astronomy-shop/frontend-proxy. The pod template change 'container frontend-proxy env FRONTEND_HOST: frontend -> localhost' in revision 2 of deployment/frontend-proxy breaks deployment/frontend-proxy. | Details: container frontend-proxy env FRONTEND_HOST: frontend -> localhost | Observed impact on: deployment/astronomy-shop/frontend-proxy | Checks: revision 2 of deployment/frontend-proxy was made before the symptoms began (supports); deployment/frontend-proxy shows symptoms of its own (supports)",
+     "o5": "Origin: daemonset/astronomy-shop/otel-collector-agent. daemonset otel-collector-agent was changed recently and breaks daemonset/otel-collector-agent, which it acts on. | Details: daemonset otel-collector-agent fields written: template.annotations.kubectl.kubernetes.io/restartedAt | Observed impact on: daemonset/astronomy-shop/otel-collector-agent | Checks: daemonset/astronomy-shop/otel-collector-agent was made before the symptoms began (supports); daemonset/otel-collector-agent shows symptoms of its own (supports)",
+     "o6": "Origin: daemonset/astronomy-shop/otel-collector-agent. The pod template change 'template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-18T23:30:57+06:00' in revision 2 of daemonset/otel-collector-agent breaks daemonset/otel-collector-agent. | Details: template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-18T23:30:57+06:00 | Observed impact on: daemonset/astronomy-shop/otel-collector-agent | Checks: revision 2 of daemonset/otel-collector-agent was made before the symptoms began (supports); daemonset/otel-collector-agent shows symptoms of its own (supports)",
+     "o7": "None of these explanations fits the evidence."
+    },
+    "instructions": {
+     "question": "Which explanation best accounts for all the observed symptoms in `evidence`?",
+     "how_to_decide": [
+      "Prefer the explanation whose chain is supported by the observed facts and explains the most symptoms; an explanation contradicted by a fact is unlikely.",
+      "A component that only fails because something it calls fails is a victim, not the origin.",
+      "Choose `o7` when none of the explanations fits the evidence."
+     ]
+    }
+   }
+  },
+  "model": "openai/gpt-6-luna-decisions-20261006",
+  "latency_ms": 517,
+  "usage": {
+   "input_tokens": 1685,
+   "output_tokens": 0,
+   "cost": 0.0001685
+  },
+  "answers": {
+   "best_explanation": {
+    "type": "choice",
+    "choice": "o2",
+    "confidence": 0.31,
+    "probabilities": {
+     "o1": 0.01,
+     "o2": 0.41,
+     "o3": 0.26,
+     "o4": 0.23,
+     "o5": 0.09,
+     "o6": 0.0,
+     "o7": 0.0
+    }
+   }
+  }
+ },
+ {
+  "label": "decide:2",
+  "state": {
+   "application": {
+    "name": "OpenTelemetry Demo Astronomy Shop",
+    "description": "An online shopping platform built with a microservices architecture, showcasing OpenTelemetry instrumentation for distributed tracing across services.",
+    "namespaces": [
+     "astronomy-shop"
+    ]
+   },
+   "evidence": {
+    "deployment/frontend-proxy": {
+     "kind": "Deployment",
+     "name": "frontend-proxy",
+     "namespace": "astronomy-shop",
+     "healthy": false,
+     "signals": [
+      "container frontend-proxy defines env var FRONTEND_HOST 2 times: 'frontend', then 'localhost'; the last value ('localhost') is the one the container sees",
+      "only 0 of 1 desired replicas are ready",
+      "pod frontend-proxy-7b7cd5fb4-xgbmr: container frontend-proxy waiting in CrashLoopBackOff",
+      "pod frontend-proxy-7b7cd5fb4-xgbmr: container frontend-proxy was OOMKilled",
+      "pod frontend-proxy-7b7cd5fb4-xgbmr: container frontend-proxy restarted 4 times",
+      "warning events: BackOff x9",
+      "service frontend-proxy selects this component but has 0 ready endpoints",
+      "firing alert KubePodNotReady"
+     ],
+     "template_changes": {
+      "revision": 2,
+      "changed_at": "2026-10-18T17:31:10Z",
+      "changes": [
+       "pod label pod-template-hash: 579d54f6f5 -> 7b7cd5fb4",
+       "container frontend-proxy env FRONTEND_HOST: frontend -> localhost",
+       "container frontend-proxy env FRONTEND_HOST is now defined 2 times: frontend, localhost"
+      ]
+     }
+    },
+    "daemonset/otel-collector-agent": {
+     "kind": "DaemonSet",
+     "name": "otel-collector-agent",
+     "namespace": "astronomy-shop",
+     "healthy": false,
+     "signals": [
+      "spec modified 140s ago, 18s after this object was created (fields: template.annotations.kubectl.kubernetes.io/restartedAt); pod template changes: template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-18T23:30:57+06:00; 18s before the first active symptom"
+     ],
+     "template_changes": {
+      "revision": 2,
+      "changed_at": "2026-10-18T17:30:57Z",
+      "changes": [
+       "template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-18T23:30:57+06:00"
+      ]
+     }
+    }
+   },
+   "cluster": {
+    "symptom_onset": "2026-10-18T17:31:15+00:00",
+    "recent_changes": [
+     {
+      "object": "deployment/frontend-proxy",
+      "at": "2026-10-18T17:31:10Z",
+      "modified_after_creation_s": 31,
+      "fields": [
+       "containers[frontend-proxy].env[FRONTEND_HOST]"
+      ],
+      "seconds_ago": 127,
+      "seconds_before_symptoms": 5
+     },
+     {
+      "object": "daemonset/otel-collector-agent",
+      "at": "2026-10-18T17:30:57Z",
+      "modified_after_creation_s": 18,
+      "fields": [
+       "template.annotations.kubectl.kubernetes.io/restartedAt"
+      ],
+      "seconds_ago": 140,
+      "seconds_before_symptoms": 18,
+      "role": "observability"
+     },
+     {
+      "object": "configmap/kube-system/coredns",
+      "at": "2026-10-18T16:57:47Z",
+      "modified_after_creation_s": 29766,
+      "fields": [
+       "data.Corefile"
+      ],
+      "seconds_ago": 2130,
+      "seconds_before_symptoms": 2008
+     }
+    ],
+    "findings": [
+     {
+      "kind": "ConfigMap",
+      "name": "coredns",
+      "namespace": "kube-system",
+      "signal": "ConfigMap coredns was modified 2130s ago, 29766s after it was created (fields: data.Corefile); 2008s before the first active symptom"
+     }
+    ]
+   }
+  },
+  "questions": {
+   "best_explanation": {
+    "type": "choice",
+    "criteria": {
+     "o1": "Origin: deployment/astronomy-shop/frontend-proxy. The pod template change 'container frontend-proxy env FRONTEND_HOST is now defined 2 times: frontend, localhost' in revision 2 of deployment/frontend-proxy breaks deployment/frontend-proxy. | Details: container frontend-proxy env FRONTEND_HOST is now defined 2 times: frontend, localhost | Observed impact on: deployment/astronomy-shop/frontend-proxy | Checks: revision 2 of deployment/frontend-proxy was made before the symptoms began (supports); deployment/frontend-proxy shows symptoms of its own (supports)",
+     "o2": "Origin: deployment/astronomy-shop/frontend-proxy. The pod template change 'container frontend-proxy env FRONTEND_HOST: frontend -> localhost' in revision 2 of deployment/frontend-proxy breaks deployment/frontend-proxy. | Details: container frontend-proxy env FRONTEND_HOST: frontend -> localhost | Observed impact on: deployment/astronomy-shop/frontend-proxy | Checks: revision 2 of deployment/frontend-proxy was made before the symptoms began (supports); deployment/frontend-proxy shows symptoms of its own (supports)",
+     "o3": "Origin: deployment/astronomy-shop/frontend-proxy. deployment frontend-proxy was changed recently and breaks deployment/frontend-proxy, which it acts on. | Details: deployment frontend-proxy fields written: containers[frontend-proxy].env[FRONTEND_HOST] | Observed impact on: deployment/astronomy-shop/frontend-proxy | Checks: deployment/astronomy-shop/frontend-proxy was made before the symptoms began (supports); deployment/frontend-proxy shows symptoms of its own (supports)",
+     "o4": "Origin: daemonset/astronomy-shop/otel-collector-agent. daemonset otel-collector-agent was changed recently and breaks daemonset/otel-collector-agent, which it acts on. | Details: daemonset otel-collector-agent fields written: template.annotations.kubectl.kubernetes.io/restartedAt | Observed impact on: daemonset/astronomy-shop/otel-collector-agent | Checks: daemonset/astronomy-shop/otel-collector-agent was made before the symptoms began (supports); daemonset/otel-collector-agent shows symptoms of its own (supports)",
+     "o5": "None of these explanations fits the evidence.",
+     "o6": "Origin: deployment/astronomy-shop/frontend-proxy. The pod template changes in revision 2 of deployment/frontend-proxy, which only cause the fault together, break deployment/frontend-proxy. | Details: container frontend-proxy env FRONTEND_HOST: frontend -> localhost; container frontend-proxy env FRONTEND_HOST is now defined 2 times: frontend, localhost | Observed impact on: deployment/astronomy-shop/frontend-proxy | Checks: revision 2 of deployment/frontend-proxy was made before the symptoms began (supports); deployment/frontend-proxy shows symptoms of its own (supports)",
+     "o7": "Origin: daemonset/astronomy-shop/otel-collector-agent. The pod template change 'template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-18T23:30:57+06:00' in revision 2 of daemonset/otel-collector-agent breaks daemonset/otel-collector-agent. | Details: template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-18T23:30:57+06:00 | Observed impact on: daemonset/astronomy-shop/otel-collector-agent | Checks: revision 2 of daemonset/otel-collector-agent was made before the symptoms began (supports); daemonset/otel-collector-agent shows symptoms of its own (supports)"
+    },
+    "instructions": {
+     "question": "Which explanation best accounts for all the observed symptoms in `evidence`?",
+     "how_to_decide": [
+      "Prefer the explanation whose chain is supported by the observed facts and explains the most symptoms; an explanation contradicted by a fact is unlikely.",
+      "A component that only fails because something it calls fails is a victim, not the origin.",
+      "Choose `o5` when none of the explanations fits the evidence."
+     ]
+    }
+   }
+  },
+  "model": "openai/gpt-6-luna-decisions-20261006",
+  "latency_ms": 591,
+  "usage": {
+   "input_tokens": 1685,
+   "output_tokens": 0,
+   "cost": 0.0001685
+  },
+  "answers": {
+   "best_explanation": {
+    "type": "choice",
+    "choice": "o6",
+    "confidence": 0.63,
+    "probabilities": {
+     "o1": 0.04,
+     "o2": 0.16,
+     "o3": 0.03,
+     "o4": 0.01,
+     "o5": 0.01,
+     "o6": 0.68,
+     "o7": 0.07
+    }
+   }
+  }
+ },
+ {
+  "label": "decide:1",
+  "state": {
+   "application": {
+    "name": "OpenTelemetry Demo Astronomy Shop",
+    "description": "An online shopping platform built with a microservices architecture, showcasing OpenTelemetry instrumentation for distributed tracing across services.",
+    "namespaces": [
+     "astronomy-shop"
+    ]
+   },
+   "evidence": {
+    "deployment/frontend-proxy": {
+     "kind": "Deployment",
+     "name": "frontend-proxy",
+     "namespace": "astronomy-shop",
+     "healthy": false,
+     "signals": [
+      "container frontend-proxy defines env var FRONTEND_HOST 2 times: 'frontend', then 'localhost'; the last value ('localhost') is the one the container sees",
+      "only 0 of 1 desired replicas are ready",
+      "pod frontend-proxy-7b7cd5fb4-xgbmr: container frontend-proxy waiting in CrashLoopBackOff",
+      "pod frontend-proxy-7b7cd5fb4-xgbmr: container frontend-proxy was OOMKilled",
+      "pod frontend-proxy-7b7cd5fb4-xgbmr: container frontend-proxy restarted 4 times",
+      "warning events: BackOff x9",
+      "service frontend-proxy selects this component but has 0 ready endpoints",
+      "firing alert KubePodNotReady"
+     ],
+     "template_changes": {
+      "revision": 2,
+      "changed_at": "2026-10-18T17:31:10Z",
+      "changes": [
+       "pod label pod-template-hash: 579d54f6f5 -> 7b7cd5fb4",
+       "container frontend-proxy env FRONTEND_HOST: frontend -> localhost",
+       "container frontend-proxy env FRONTEND_HOST is now defined 2 times: frontend, localhost"
+      ]
+     },
+     "detail": {
+      "component": "deployment/frontend-proxy",
+      "namespace": "astronomy-shop",
+      "workload": {
+       "created": "2026-10-18T17:30:39Z",
+       "last_spec_write": "2026-10-18T17:31:10Z",
+       "spec_writers": [
+        {
+         "manager": "helm",
+         "op": "Apply",
+         "time": "2026-10-18T17:30:39Z"
+        },
+        {
+         "manager": "OpenAPI-Generator",
+         "op": "Update",
+         "time": "2026-10-18T17:31:10Z"
+        }
+       ],
+       "replicas": 1,
+       "strategy": {
+        "rollingUpdate": {
+         "maxSurge": "25%",
+         "maxUnavailable": "25%"
+        },
+        "type": "RollingUpdate"
+       },
+       "service_account": "astronomy-shop",
+       "dns_policy": "ClusterFirst",
+       "restart_policy": "Always",
+       "containers": [
+        {
+         "name": "frontend-proxy",
+         "image": "ghcr.io/open-telemetry/demo:2.2.0-frontend-proxy",
+         "command": [
+          "/bin/sh",
+          "-c",
+          "envsubst < envoy.tmpl.yaml | sed '/type: STRICT_DNS/a\\      dns_lookup_family: V4_PREFERRED' > envoy.yaml && exec envoy -c envoy.yaml\n"
+         ],
+         "env": [
+          {
+           "name": "OTEL_SERVICE_NAME",
+           "from": "field:metadata.labels['app.kubernetes.io/component']"
+          },
+          {
+           "name": "OTEL_COLLECTOR_NAME",
+           "value": "otel-collector"
+          },
+          {
+           "name": "OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE",
+           "value": "cumulative"
+          },
+          {
+           "name": "ENVOY_PORT",
+           "value": "8080"
+          },
+          {
+           "name": "ENVOY_ADDR",
+           "value": "0.0.0.0"
+          },
+          {
+           "name": "ENVOY_ADMIN_PORT",
+           "value": "10000"
+          },
+          {
+           "name": "FLAGD_HOST",
+           "value": "flagd"
+          },
+          {
+           "name": "FLAGD_PORT",
+           "value": "8013"
+          },
+          {
+           "name": "FLAGD_UI_HOST",
+           "value": "flagd"
+          },
+          {
+           "name": "FLAGD_UI_PORT",
+           "value": "4000"
+          },
+          {
+           "name": "FRONTEND_HOST",
+           "value": "frontend"
+          },
+          {
+           "name": "FRONTEND_PORT",
+           "value": "8080"
+          },
+          {
+           "name": "GRAFANA_HOST",
+           "value": "grafana"
+          },
+          {
+           "name": "GRAFANA_PORT",
+           "value": "80"
+          },
+          {
+           "name": "IMAGE_PROVIDER_HOST",
+           "value": "image-provider"
+          },
+          {
+           "name": "IMAGE_PROVIDER_PORT",
+           "value": "8081"
+          },
+          {
+           "name": "JAEGER_HOST",
+           "value": "jaeger"
+          },
+          {
+           "name": "JAEGER_UI_PORT",
+           "value": "16686"
+          },
+          {
+           "name": "LOCUST_WEB_HOST",
+           "value": "load-generator"
+          },
+          {
+           "name": "LOCUST_WEB_PORT",
+           "value": "8089"
+          },
+          {
+           "name": "OTEL_COLLECTOR_HOST",
+           "value": "$(OTEL_COLLECTOR_NAME)"
+          },
+          {
+           "name": "OTEL_COLLECTOR_PORT_GRPC",
+           "value": "4317"
+          },
+          {
+           "name": "OTEL_COLLECTOR_PORT_HTTP",
+           "value": "4318"
+          },
+          {
+           "name": "FRONTEND_HOST",
+           "value": "localhost"
+          }
+         ],
+         "ports": [
+          {
+           "port": 8080,
+           "name": "service"
+          }
+         ],
+         "resources": {
+          "limits": {
+           "memory": "65Mi"
+          }
+         }
+        }
+       ],
+       "template_labels": {
+        "app.kubernetes.io/component": "frontend-proxy",
+        "app.kubernetes.io/name": "frontend-proxy",
+        "app.kubernetes.io/version": "2.2.0",
+        "opentelemetry.io/name": "frontend-proxy"
+       }
+      },
+      "pods": [
+       {
+        "name": "frontend-proxy-7b7cd5fb4-xgbmr",
+        "node": "kind-worker2",
+        "phase": "Running",
+        "started": "2026-10-18T17:31:10Z",
+        "conditions": [
+         "PodReadyToStartContainers=True",
+         "Initialized=True",
+         "Ready=False (ContainersNotReady: containers with unready status: [frontend-proxy])",
+         "ContainersReady=False (ContainersNotReady: containers with unready status: [frontend-proxy])",
+         "PodScheduled=True"
+        ],
+        "containers": [
+         {
+          "name": "frontend-proxy",
+          "ready": false,
+          "restarts": 4,
+          "state": {
+           "waiting": {
+            "message": "back-off 1m20s restarting failed container=frontend-proxy pod=frontend-proxy-7b7cd5fb4-xgbmr_astronomy-shop(5e31f8f0-6bec-4392-a2b9-c901a17a0506)",
+            "reason": "CrashLoopBackOff"
+           }
+          },
+          "last_state": {
+           "terminated": {
+            "containerID": "containerd://55d60b7e8b62de9353fa256a00f000d762aa34ac1a995dc7576822220787d6c4",
+            "exitCode": 137,
+            "finishedAt": "2026-10-18T17:32:54Z",
+            "reason": "OOMKilled",
+            "startedAt": "2026-10-18T17:32:52Z"
+           }
+          }
+         }
+        ]
+       }
+      ],
+      "events": [
+       {
+        "type": "Warning",
+        "reason": "BackOff",
+        "count": 10,
+        "object": "pod/frontend-proxy-7b7cd5fb4-xgbmr",
+        "last": "2026-10-18T17:33:24Z",
+        "message": "Back-off restarting failed container frontend-proxy in pod frontend-proxy-7b7cd5fb4-xgbmr_astronomy-shop(5e31f8f0-6bec-4392-a2b9-c901a17a0506)"
+       },
+       {
+        "type": "Normal",
+        "reason": "Pulled",
+        "count": 5,
+        "object": "pod/frontend-proxy-7b7cd5fb4-xgbmr",
+        "last": "2026-10-18T17:32:52Z",
+        "message": "Container image \"ghcr.io/open-telemetry/demo:2.2.0-frontend-proxy\" already present on machine"
+       },
+       {
+        "type": "Normal",
+        "reason": "Created",
+        "count": 5,
+        "object": "pod/frontend-proxy-7b7cd5fb4-xgbmr",
+        "last": "2026-10-18T17:32:52Z",
+        "message": "Created container: frontend-proxy"
+       },
+       {
+        "type": "Normal",
+        "reason": "Started",
+        "count": 5,
+        "object": "pod/frontend-proxy-7b7cd5fb4-xgbmr",
+        "last": "2026-10-18T17:32:52Z",
+        "message": "Started container frontend-proxy"
+       },
+       {
+        "type": "Normal",
+        "reason": "SuccessfulCreate",
+        "count": 1,
+        "object": "replicaset/frontend-proxy-7b7cd5fb4",
+        "last": "2026-10-18T17:31:10Z",
+        "message": "Created pod: frontend-proxy-7b7cd5fb4-xgbmr"
+       },
+       {
+        "type": "Normal",
+        "reason": "Scheduled",
+        "count": 1,
+        "object": "pod/frontend-proxy-7b7cd5fb4-xgbmr",
+        "last": "2026-10-18T17:31:10.064374Z",
+        "message": "Successfully assigned astronomy-shop/frontend-proxy-7b7cd5fb4-xgbmr to kind-worker2"
+       }
+      ],
+      "logs": {
+       "total_lines": 121,
+       "error_lines": 1,
+       "error_lines_still_occurring": 1,
+       "error_lines_stopped": 0,
+       "telemetry_export_error_lines": 1,
+       "error_samples": [
+        {
+         "count": 1,
+         "line": "frontend-proxy: [2026-10-18 17:32:52.577][1][warning][main] [source/server/server.cc:970] There is no configured limit to the number of allowed active downstream connections. Configure a limit in `envoy.resource_monitors.global_downstream_\u2026",
+         "first_seen_seconds_ago": 37,
+         "last_seen_seconds_ago": 37,
+         "state": "ongoing"
+        }
+       ],
+       "telemetry_error_samples": [
+        {
+         "count": 1,
+         "line": "frontend-proxy: [2026-10-18 17:32:52.576][1][warning][tracing] [source/extensions/tracers/opentelemetry/resource_detectors/environment/environment_resource_detector.cc:37] Failed to detect resource attributes from the environment: Environm\u2026",
+         "first_seen_seconds_ago": 37,
+         "last_seen_seconds_ago": 37,
+         "state": "ongoing"
+        }
+       ],
+       "tail": [
+        "2026-10-18T17:32:52.572843929Z [2026-10-18 17:32:52.572][1][info][config] [source/server/configuration_impl.cc:124] loading 0 static secret(s)",
+        "2026-10-18T17:32:52.572846931Z [2026-10-18 17:32:52.572][1][info][config] [source/server/configuration_impl.cc:130] loading 9 cluster(s)",
+        "2026-10-18T17:32:52.575978301Z [2026-10-18 17:32:52.575][1][info][config] [source/server/configuration_impl.cc:140] loading 1 listener(s)",
+        "2026-10-18T17:32:52.576757570Z [2026-10-18 17:32:52.576][1][info][tracing] [source/common/tracing/tracer_manager_impl.cc:42] instantiating a new tracer: envoy.tracers.opentelemetry",
+        "2026-10-18T17:32:52.576809535Z [2026-10-18 17:32:52.576][1][warning][tracing] [source/extensions/tracers/opentelemetry/resource_detectors/environment/environment_resource_detector.cc:37] Failed to de\u2026",
+        "2026-10-18T17:32:52.577379826Z [2026-10-18 17:32:52.577][1][info][config] [source/server/configuration_impl.cc:156] loading stats configuration",
+        "2026-10-18T17:32:52.577587871Z [2026-10-18 17:32:52.577][1][warning][main] [source/server/server.cc:970] There is no configured limit to the number of allowed active downstream connections. Configure\u2026",
+        "2026-10-18T17:32:52.577590572Z [2026-10-18 17:32:52.577][1][info][main] [source/server/server.cc:1012] starting main dispatch loop",
+        "2026-10-18T17:32:52.580370137Z [2026-10-18 17:32:52.580][1][info][runtime] [source/common/runtime/runtime_impl.cc:555] RTDS has finished initialization",
+        "2026-10-18T17:32:52.580379962Z [2026-10-18 17:32:52.580][1][info][upstream] [source/common/upstream/cluster_manager_impl.cc:264] cm init: all clusters initialized",
+        "2026-10-18T17:32:52.580381371Z [2026-10-18 17:32:52.580][1][info][main] [source/server/server.cc:992] all clusters initialized. initializing init manager",
+        "2026-10-18T17:32:52.580382576Z [2026-10-18 17:32:52.580][1][info][config] [source/common/listener_manager/listener_manager_impl.cc:948] all dependencies initialized. starting workers"
+       ],
+       "previous_container_logs": {
+        "frontend-proxy-7b7cd5fb4-xgbmr/frontend-proxy": [
+         "[2026-10-18 17:32:52.572][1][info][config] [source/server/configuration_impl.cc:124] loading 0 static secret(s)",
+         "[2026-10-18 17:32:52.572][1][info][config] [source/server/configuration_impl.cc:130] loading 9 cluster(s)",
+         "[2026-10-18 17:32:52.575][1][info][config] [source/server/configuration_impl.cc:140] loading 1 listener(s)",
+         "[2026-10-18 17:32:52.576][1][info][tracing] [source/common/tracing/tracer_manager_impl.cc:42] instantiating a new tracer: envoy.tracers.opentelemetry",
+         "[2026-10-18 17:32:52.576][1][warning][tracing] [source/extensions/tracers/opentelemetry/resource_detectors/environment/environment_resource_detector.cc:37] Failed to detect resource attributes from t\u2026",
+         "[2026-10-18 17:32:52.577][1][info][config] [source/server/configuration_impl.cc:156] loading stats configuration",
+         "[2026-10-18 17:32:52.577][1][warning][main] [source/server/server.cc:970] There is no configured limit to the number of allowed active downstream connections. Configure a limit in `envoy.resource_mon\u2026",
+         "[2026-10-18 17:32:52.577][1][info][main] [source/server/server.cc:1012] starting main dispatch loop",
+         "[2026-10-18 17:32:52.580][1][info][runtime] [source/common/runtime/runtime_impl.cc:555] RTDS has finished initialization",
+         "[2026-10-18 17:32:52.580][1][info][upstream] [source/common/upstream/cluster_manager_impl.cc:264] cm init: all clusters initialized",
+         "[2026-10-18 17:32:52.580][1][info][main] [source/server/server.cc:992] all clusters initialized. initializing init manager",
+         "[2026-10-18 17:32:52.580][1][info][config] [source/common/listener_manager/listener_manager_impl.cc:948] all dependencies initialized. starting workers"
+        ]
+       }
+      },
+      "template_changes": {
+       "revision": 2,
+       "changed_at": "2026-10-18T17:31:10Z",
+       "changes": [
+        "pod label pod-template-hash: 579d54f6f5 -> 7b7cd5fb4",
+        "container frontend-proxy env FRONTEND_HOST: frontend -> localhost",
+        "container frontend-proxy env FRONTEND_HOST is now defined 2 times: frontend, localhost"
+       ]
+      },
+      "calls_services": [
+       "astronomy-shop/flagd",
+       "astronomy-shop/frontend",
+       "astronomy-shop/image-provider",
+       "astronomy-shop/otel-collector"
+      ],
+      "service_checks": [
+       "service frontend-proxy has no ready endpoints"
+      ],
+      "rbac": {
+       "service_account": "astronomy-shop/astronomy-shop",
+       "can_i": [
+        "selfsubjectreviews.authentication.k8s.io [] [] [create]",
+        "selfsubjectaccessreviews.authorization.k8s.io [] [] [create]",
+        "selfsubjectrulesreviews.authorization.k8s.io [] [] [create]",
+        "[/.well-known/openid-configuration/] [] [get]",
+        "[/.well-known/openid-configuration] [] [get]",
+        "[/api/*] [] [get]",
+        "[/api] [] [get]",
+        "[/apis/*] [] [get]",
+        "[/apis] [] [get]",
+        "[/healthz] [] [get]",
+        "[/healthz] [] [get]",
+        "[/livez] [] [get]",
+        "[/livez] [] [get]"
+       ]
+      },
+      "input_candidates": [
+       {
+        "container": "frontend-proxy",
+        "env": "OTEL_COLLECTOR_NAME",
+        "value": "otel-collector"
+       },
+       {
+        "container": "frontend-proxy",
+        "env": "OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE",
+        "value": "cumulative"
+       },
+       {
+        "container": "frontend-proxy",
+        "env": "FLAGD_HOST",
+        "value": "flagd"
+       },
+       {
+        "container": "frontend-proxy",
+        "env": "FLAGD_UI_HOST",
+        "value": "flagd"
+       },
+       {
+        "container": "frontend-proxy",
+        "env": "FRONTEND_HOST",
+        "value": "frontend"
+       },
+       {
+        "container": "frontend-proxy",
+        "env": "GRAFANA_HOST",
+        "value": "grafana"
+       },
+       {
+        "container": "frontend-proxy",
+        "env": "IMAGE_PROVIDER_HOST",
+        "value": "image-provider"
+       },
+       {
+        "container": "frontend-proxy",
+        "env": "JAEGER_HOST",
+        "value": "jaeger"
+       },
+       {
+        "container": "frontend-proxy",
+        "env": "LOCUST_WEB_HOST",
+        "value": "load-generator"
+       },
+       {
+        "container": "frontend-proxy",
+        "env": "FRONTEND_HOST",
+        "value": "localhost"
+       }
+      ],
+      "calls": {
+       "daemonset/otel-collector-agent": {
+        "kind": "DaemonSet",
+        "pods_ready": "3/3",
+        "restarts": 0,
+        "own_evidence_kinds": [
+         "change"
+        ],
+        "own_signals": [
+         "spec modified 140s ago, 18s after this object was created (fields: template.annotations.kubectl.kubernetes.io/restartedAt); pod template changes: template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-18T23:30:57+06:00; 18s before the first active symptom"
+        ],
+        "own_error_log_lines": 8,
+        "last_spec_change": "2026-10-18T17:30:57Z",
+        "looks_healthy_on_its_own": false
+       },
+       "deployment/flagd": {
+        "kind": "Deployment",
+        "pods_ready": "1/1",
+        "restarts": 0,
+        "looks_healthy_on_its_own": true
+       },
+       "deployment/frontend": {
+        "kind": "Deployment",
+        "pods_ready": "1/1",
+        "restarts": 0,
+        "own_evidence_kinds": [
+         "configuration"
+        ],
+        "own_signals": [
+         "firing alert KubePodNotReady"
+        ],
+        "looks_healthy_on_its_own": false
+       },
+       "deployment/image-provider": {
+        "kind": "Deployment",
+        "pods_ready": "1/1",
+        "restarts": 0,
+        "looks_healthy_on_its_own": true
+       }
+      },
+      "failing_targets": [
+       "deployment/frontend"
+      ]
+     }
+    },
+    "daemonset/otel-collector-agent": {
+     "kind": "DaemonSet",
+     "name": "otel-collector-agent",
+     "namespace": "astronomy-shop",
+     "healthy": false,
+     "signals": [
+      "spec modified 140s ago, 18s after this object was created (fields: template.annotations.kubectl.kubernetes.io/restartedAt); pod template changes: template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-18T23:30:57+06:00; 18s before the first active symptom"
+     ],
+     "template_changes": {
+      "revision": 2,
+      "changed_at": "2026-10-18T17:30:57Z",
+      "changes": [
+       "template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-18T23:30:57+06:00"
+      ]
+     }
+    }
+   },
+   "cluster": {
+    "symptom_onset": "2026-10-18T17:31:15+00:00",
+    "recent_changes": [
+     {
+      "object": "deployment/frontend-proxy",
+      "at": "2026-10-18T17:31:10Z",
+      "modified_after_creation_s": 31,
+      "fields": [
+       "containers[frontend-proxy].env[FRONTEND_HOST]"
+      ],
+      "seconds_ago": 127,
+      "seconds_before_symptoms": 5
+     },
+     {
+      "object": "daemonset/otel-collector-agent",
+      "at": "2026-10-18T17:30:57Z",
+      "modified_after_creation_s": 18,
+      "fields": [
+       "template.annotations.kubectl.kubernetes.io/restartedAt"
+      ],
+      "seconds_ago": 140,
+      "seconds_before_symptoms": 18,
+      "role": "observability"
+     },
+     {
+      "object": "configmap/kube-system/coredns",
+      "at": "2026-10-18T16:57:47Z",
+      "modified_after_creation_s": 29766,
+      "fields": [
+       "data.Corefile"
+      ],
+      "seconds_ago": 2130,
+      "seconds_before_symptoms": 2008
+     }
+    ],
+    "findings": [
+     {
+      "kind": "ConfigMap",
+      "name": "coredns",
+      "namespace": "kube-system",
+      "signal": "ConfigMap coredns was modified 2130s ago, 29766s after it was created (fields: data.Corefile); 2008s before the first active symptom"
+     }
+    ]
+   }
+  },
+  "questions": {
+   "best_explanation": {
+    "type": "choice",
+    "criteria": {
+     "o1": "None of these explanations fits the evidence.",
+     "o2": "Origin: daemonset/astronomy-shop/otel-collector-agent. The pod template change 'template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-18T23:30:57+06:00' in revision 2 of daemonset/otel-collector-agent breaks daemonset/otel-collector-agent. | Details: template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-18T23:30:57+06:00 | Observed impact on: daemonset/astronomy-shop/otel-collector-agent | Checks: revision 2 of daemonset/otel-collector-agent was made before the symptoms began (supports); daemonset/otel-collector-agent shows symptoms of its own (supports)",
+     "o3": "Origin: deployment/astronomy-shop/frontend-proxy. The pod template change 'container frontend-proxy env FRONTEND_HOST: frontend -> localhost' in revision 2 of deployment/frontend-proxy breaks deployment/frontend-proxy. | Details: container frontend-proxy env FRONTEND_HOST: frontend -> localhost | Observed impact on: deployment/astronomy-shop/frontend-proxy | Checks: revision 2 of deployment/frontend-proxy was made before the symptoms began (supports); deployment/frontend-proxy shows symptoms of its own (supports)",
+     "o4": "Origin: daemonset/astronomy-shop/otel-collector-agent. daemonset otel-collector-agent was changed recently and breaks daemonset/otel-collector-agent, which it acts on. | Details: daemonset otel-collector-agent fields written: template.annotations.kubectl.kubernetes.io/restartedAt | Observed impact on: daemonset/astronomy-shop/otel-collector-agent | Checks: daemonset/astronomy-shop/otel-collector-agent was made before the symptoms began (supports); daemonset/otel-collector-agent shows symptoms of its own (supports)",
+     "o5": "Origin: deployment/astronomy-shop/frontend-proxy. The pod template changes in revision 2 of deployment/frontend-proxy, which only cause the fault together, break deployment/frontend-proxy. | Details: container frontend-proxy env FRONTEND_HOST: frontend -> localhost; container frontend-proxy env FRONTEND_HOST is now defined 2 times: frontend, localhost | Observed impact on: deployment/astronomy-shop/frontend-proxy | Checks: revision 2 of deployment/frontend-proxy was made before the symptoms began (supports); deployment/frontend-proxy shows symptoms of its own (supports)",
+     "o6": "Origin: deployment/astronomy-shop/frontend-proxy. The pod template change 'container frontend-proxy env FRONTEND_HOST is now defined 2 times: frontend, localhost' in revision 2 of deployment/frontend-proxy breaks deployment/frontend-proxy. | Details: container frontend-proxy env FRONTEND_HOST is now defined 2 times: frontend, localhost | Observed impact on: deployment/astronomy-shop/frontend-proxy | Checks: revision 2 of deployment/frontend-proxy was made before the symptoms began (supports); deployment/frontend-proxy shows symptoms of its own (supports)",
+     "o7": "Origin: deployment/astronomy-shop/frontend-proxy. deployment frontend-proxy was changed recently and breaks deployment/frontend-proxy, which it acts on. | Details: deployment frontend-proxy fields written: containers[frontend-proxy].env[FRONTEND_HOST] | Observed impact on: deployment/astronomy-shop/frontend-proxy | Checks: deployment/astronomy-shop/frontend-proxy was made before the symptoms began (supports); deployment/frontend-proxy shows symptoms of its own (supports)"
+    },
+    "instructions": {
+     "question": "Which explanation best accounts for all the observed symptoms in `evidence`?",
+     "how_to_decide": [
+      "Prefer the explanation whose chain is supported by the observed facts and explains the most symptoms; an explanation contradicted by a fact is unlikely.",
+      "A component that only fails because something it calls fails is a victim, not the origin.",
+      "Choose `o1` when none of the explanations fits the evidence."
+     ]
+    }
+   }
+  },
+  "model": "openai/gpt-6-luna-decisions-20261006",
+  "latency_ms": 614,
+  "usage": {
+   "input_tokens": 5273,
+   "output_tokens": 0,
+   "cost": 0.0005273
+  },
+  "answers": {
+   "best_explanation": {
+    "type": "choice",
+    "choice": "o3",
+    "confidence": 0.44,
+    "probabilities": {
+     "o1": 0.0,
+     "o2": 0.01,
+     "o3": 0.52,
+     "o4": 0.01,
+     "o5": 0.27,
+     "o6": 0.16,
+     "o7": 0.03
+    }
+   }
+  }
+ },
+ {
+  "label": "decide:2",
+  "state": {
+   "application": {
+    "name": "OpenTelemetry Demo Astronomy Shop",
+    "description": "An online shopping platform built with a microservices architecture, showcasing OpenTelemetry instrumentation for distributed tracing across services.",
+    "namespaces": [
+     "astronomy-shop"
+    ]
+   },
+   "evidence": {
+    "deployment/frontend-proxy": {
+     "kind": "Deployment",
+     "name": "frontend-proxy",
+     "namespace": "astronomy-shop",
+     "healthy": false,
+     "signals": [
+      "container frontend-proxy defines env var FRONTEND_HOST 2 times: 'frontend', then 'localhost'; the last value ('localhost') is the one the container sees",
+      "only 0 of 1 desired replicas are ready",
+      "pod frontend-proxy-7b7cd5fb4-xgbmr: container frontend-proxy waiting in CrashLoopBackOff",
+      "pod frontend-proxy-7b7cd5fb4-xgbmr: container frontend-proxy was OOMKilled",
+      "pod frontend-proxy-7b7cd5fb4-xgbmr: container frontend-proxy restarted 4 times",
+      "warning events: BackOff x9",
+      "service frontend-proxy selects this component but has 0 ready endpoints",
+      "firing alert KubePodNotReady"
+     ],
+     "template_changes": {
+      "revision": 2,
+      "changed_at": "2026-10-18T17:31:10Z",
+      "changes": [
+       "pod label pod-template-hash: 579d54f6f5 -> 7b7cd5fb4",
+       "container frontend-proxy env FRONTEND_HOST: frontend -> localhost",
+       "container frontend-proxy env FRONTEND_HOST is now defined 2 times: frontend, localhost"
+      ]
+     },
+     "detail": {
+      "component": "deployment/frontend-proxy",
+      "namespace": "astronomy-shop",
+      "workload": {
+       "created": "2026-10-18T17:30:39Z",
+       "last_spec_write": "2026-10-18T17:31:10Z",
+       "spec_writers": [
+        {
+         "manager": "helm",
+         "op": "Apply",
+         "time": "2026-10-18T17:30:39Z"
+        },
+        {
+         "manager": "OpenAPI-Generator",
+         "op": "Update",
+         "time": "2026-10-18T17:31:10Z"
+        }
+       ],
+       "replicas": 1,
+       "strategy": {
+        "rollingUpdate": {
+         "maxSurge": "25%",
+         "maxUnavailable": "25%"
+        },
+        "type": "RollingUpdate"
+       },
+       "service_account": "astronomy-shop",
+       "dns_policy": "ClusterFirst",
+       "restart_policy": "Always",
+       "containers": [
+        {
+         "name": "frontend-proxy",
+         "image": "ghcr.io/open-telemetry/demo:2.2.0-frontend-proxy",
+         "command": [
+          "/bin/sh",
+          "-c",
+          "envsubst < envoy.tmpl.yaml | sed '/type: STRICT_DNS/a\\      dns_lookup_family: V4_PREFERRED' > envoy.yaml && exec envoy -c envoy.yaml\n"
+         ],
+         "env": [
+          {
+           "name": "OTEL_SERVICE_NAME",
+           "from": "field:metadata.labels['app.kubernetes.io/component']"
+          },
+          {
+           "name": "OTEL_COLLECTOR_NAME",
+           "value": "otel-collector"
+          },
+          {
+           "name": "OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE",
+           "value": "cumulative"
+          },
+          {
+           "name": "ENVOY_PORT",
+           "value": "8080"
+          },
+          {
+           "name": "ENVOY_ADDR",
+           "value": "0.0.0.0"
+          },
+          {
+           "name": "ENVOY_ADMIN_PORT",
+           "value": "10000"
+          },
+          {
+           "name": "FLAGD_HOST",
+           "value": "flagd"
+          },
+          {
+           "name": "FLAGD_PORT",
+           "value": "8013"
+          },
+          {
+           "name": "FLAGD_UI_HOST",
+           "value": "flagd"
+          },
+          {
+           "name": "FLAGD_UI_PORT",
+           "value": "4000"
+          },
+          {
+           "name": "FRONTEND_HOST",
+           "value": "frontend"
+          },
+          {
+           "name": "FRONTEND_PORT",
+           "value": "8080"
+          },
+          {
+           "name": "GRAFANA_HOST",
+           "value": "grafana"
+          },
+          {
+           "name": "GRAFANA_PORT",
+           "value": "80"
+          },
+          {
+           "name": "IMAGE_PROVIDER_HOST",
+           "value": "image-provider"
+          },
+          {
+           "name": "IMAGE_PROVIDER_PORT",
+           "value": "8081"
+          },
+          {
+           "name": "JAEGER_HOST",
+           "value": "jaeger"
+          },
+          {
+           "name": "JAEGER_UI_PORT",
+           "value": "16686"
+          },
+          {
+           "name": "LOCUST_WEB_HOST",
+           "value": "load-generator"
+          },
+          {
+           "name": "LOCUST_WEB_PORT",
+           "value": "8089"
+          },
+          {
+           "name": "OTEL_COLLECTOR_HOST",
+           "value": "$(OTEL_COLLECTOR_NAME)"
+          },
+          {
+           "name": "OTEL_COLLECTOR_PORT_GRPC",
+           "value": "4317"
+          },
+          {
+           "name": "OTEL_COLLECTOR_PORT_HTTP",
+           "value": "4318"
+          },
+          {
+           "name": "FRONTEND_HOST",
+           "value": "localhost"
+          }
+         ],
+         "ports": [
+          {
+           "port": 8080,
+           "name": "service"
+          }
+         ],
+         "resources": {
+          "limits": {
+           "memory": "65Mi"
+          }
+         }
+        }
+       ],
+       "template_labels": {
+        "app.kubernetes.io/component": "frontend-proxy",
+        "app.kubernetes.io/name": "frontend-proxy",
+        "app.kubernetes.io/version": "2.2.0",
+        "opentelemetry.io/name": "frontend-proxy"
+       }
+      },
+      "pods": [
+       {
+        "name": "frontend-proxy-7b7cd5fb4-xgbmr",
+        "node": "kind-worker2",
+        "phase": "Running",
+        "started": "2026-10-18T17:31:10Z",
+        "conditions": [
+         "PodReadyToStartContainers=True",
+         "Initialized=True",
+         "Ready=False (ContainersNotReady: containers with unready status: [frontend-proxy])",
+         "ContainersReady=False (ContainersNotReady: containers with unready status: [frontend-proxy])",
+         "PodScheduled=True"
+        ],
+        "containers": [
+         {
+          "name": "frontend-proxy",
+          "ready": false,
+          "restarts": 4,
+          "state": {
+           "waiting": {
+            "message": "back-off 1m20s restarting failed container=frontend-proxy pod=frontend-proxy-7b7cd5fb4-xgbmr_astronomy-shop(5e31f8f0-6bec-4392-a2b9-c901a17a0506)",
+            "reason": "CrashLoopBackOff"
+           }
+          },
+          "last_state": {
+           "terminated": {
+            "containerID": "containerd://55d60b7e8b62de9353fa256a00f000d762aa34ac1a995dc7576822220787d6c4",
+            "exitCode": 137,
+            "finishedAt": "2026-10-18T17:32:54Z",
+            "reason": "OOMKilled",
+            "startedAt": "2026-10-18T17:32:52Z"
+           }
+          }
+         }
+        ]
+       }
+      ],
+      "events": [
+       {
+        "type": "Warning",
+        "reason": "BackOff",
+        "count": 10,
+        "object": "pod/frontend-proxy-7b7cd5fb4-xgbmr",
+        "last": "2026-10-18T17:33:24Z",
+        "message": "Back-off restarting failed container frontend-proxy in pod frontend-proxy-7b7cd5fb4-xgbmr_astronomy-shop(5e31f8f0-6bec-4392-a2b9-c901a17a0506)"
+       },
+       {
+        "type": "Normal",
+        "reason": "Pulled",
+        "count": 5,
+        "object": "pod/frontend-proxy-7b7cd5fb4-xgbmr",
+        "last": "2026-10-18T17:32:52Z",
+        "message": "Container image \"ghcr.io/open-telemetry/demo:2.2.0-frontend-proxy\" already present on machine"
+       },
+       {
+        "type": "Normal",
+        "reason": "Created",
+        "count": 5,
+        "object": "pod/frontend-proxy-7b7cd5fb4-xgbmr",
+        "last": "2026-10-18T17:32:52Z",
+        "message": "Created container: frontend-proxy"
+       },
+       {
+        "type": "Normal",
+        "reason": "Started",
+        "count": 5,
+        "object": "pod/frontend-proxy-7b7cd5fb4-xgbmr",
+        "last": "2026-10-18T17:32:52Z",
+        "message": "Started container frontend-proxy"
+       },
+       {
+        "type": "Normal",
+        "reason": "SuccessfulCreate",
+        "count": 1,
+        "object": "replicaset/frontend-proxy-7b7cd5fb4",
+        "last": "2026-10-18T17:31:10Z",
+        "message": "Created pod: frontend-proxy-7b7cd5fb4-xgbmr"
+       },
+       {
+        "type": "Normal",
+        "reason": "Scheduled",
+        "count": 1,
+        "object": "pod/frontend-proxy-7b7cd5fb4-xgbmr",
+        "last": "2026-10-18T17:31:10.064374Z",
+        "message": "Successfully assigned astronomy-shop/frontend-proxy-7b7cd5fb4-xgbmr to kind-worker2"
+       }
+      ],
+      "logs": {
+       "total_lines": 121,
+       "error_lines": 1,
+       "error_lines_still_occurring": 1,
+       "error_lines_stopped": 0,
+       "telemetry_export_error_lines": 1,
+       "error_samples": [
+        {
+         "count": 1,
+         "line": "frontend-proxy: [2026-10-18 17:32:52.577][1][warning][main] [source/server/server.cc:970] There is no configured limit to the number of allowed active downstream connections. Configure a limit in `envoy.resource_monitors.global_downstream_\u2026",
+         "first_seen_seconds_ago": 37,
+         "last_seen_seconds_ago": 37,
+         "state": "ongoing"
+        }
+       ],
+       "telemetry_error_samples": [
+        {
+         "count": 1,
+         "line": "frontend-proxy: [2026-10-18 17:32:52.576][1][warning][tracing] [source/extensions/tracers/opentelemetry/resource_detectors/environment/environment_resource_detector.cc:37] Failed to detect resource attributes from the environment: Environm\u2026",
+         "first_seen_seconds_ago": 37,
+         "last_seen_seconds_ago": 37,
+         "state": "ongoing"
+        }
+       ],
+       "tail": [
+        "2026-10-18T17:32:52.572843929Z [2026-10-18 17:32:52.572][1][info][config] [source/server/configuration_impl.cc:124] loading 0 static secret(s)",
+        "2026-10-18T17:32:52.572846931Z [2026-10-18 17:32:52.572][1][info][config] [source/server/configuration_impl.cc:130] loading 9 cluster(s)",
+        "2026-10-18T17:32:52.575978301Z [2026-10-18 17:32:52.575][1][info][config] [source/server/configuration_impl.cc:140] loading 1 listener(s)",
+        "2026-10-18T17:32:52.576757570Z [2026-10-18 17:32:52.576][1][info][tracing] [source/common/tracing/tracer_manager_impl.cc:42] instantiating a new tracer: envoy.tracers.opentelemetry",
+        "2026-10-18T17:32:52.576809535Z [2026-10-18 17:32:52.576][1][warning][tracing] [source/extensions/tracers/opentelemetry/resource_detectors/environment/environment_resource_detector.cc:37] Failed to de\u2026",
+        "2026-10-18T17:32:52.577379826Z [2026-10-18 17:32:52.577][1][info][config] [source/server/configuration_impl.cc:156] loading stats configuration",
+        "2026-10-18T17:32:52.577587871Z [2026-10-18 17:32:52.577][1][warning][main] [source/server/server.cc:970] There is no configured limit to the number of allowed active downstream connections. Configure\u2026",
+        "2026-10-18T17:32:52.577590572Z [2026-10-18 17:32:52.577][1][info][main] [source/server/server.cc:1012] starting main dispatch loop",
+        "2026-10-18T17:32:52.580370137Z [2026-10-18 17:32:52.580][1][info][runtime] [source/common/runtime/runtime_impl.cc:555] RTDS has finished initialization",
+        "2026-10-18T17:32:52.580379962Z [2026-10-18 17:32:52.580][1][info][upstream] [source/common/upstream/cluster_manager_impl.cc:264] cm init: all clusters initialized",
+        "2026-10-18T17:32:52.580381371Z [2026-10-18 17:32:52.580][1][info][main] [source/server/server.cc:992] all clusters initialized. initializing init manager",
+        "2026-10-18T17:32:52.580382576Z [2026-10-18 17:32:52.580][1][info][config] [source/common/listener_manager/listener_manager_impl.cc:948] all dependencies initialized. starting workers"
+       ],
+       "previous_container_logs": {
+        "frontend-proxy-7b7cd5fb4-xgbmr/frontend-proxy": [
+         "[2026-10-18 17:32:52.572][1][info][config] [source/server/configuration_impl.cc:124] loading 0 static secret(s)",
+         "[2026-10-18 17:32:52.572][1][info][config] [source/server/configuration_impl.cc:130] loading 9 cluster(s)",
+         "[2026-10-18 17:32:52.575][1][info][config] [source/server/configuration_impl.cc:140] loading 1 listener(s)",
+         "[2026-10-18 17:32:52.576][1][info][tracing] [source/common/tracing/tracer_manager_impl.cc:42] instantiating a new tracer: envoy.tracers.opentelemetry",
+         "[2026-10-18 17:32:52.576][1][warning][tracing] [source/extensions/tracers/opentelemetry/resource_detectors/environment/environment_resource_detector.cc:37] Failed to detect resource attributes from t\u2026",
+         "[2026-10-18 17:32:52.577][1][info][config] [source/server/configuration_impl.cc:156] loading stats configuration",
+         "[2026-10-18 17:32:52.577][1][warning][main] [source/server/server.cc:970] There is no configured limit to the number of allowed active downstream connections. Configure a limit in `envoy.resource_mon\u2026",
+         "[2026-10-18 17:32:52.577][1][info][main] [source/server/server.cc:1012] starting main dispatch loop",
+         "[2026-10-18 17:32:52.580][1][info][runtime] [source/common/runtime/runtime_impl.cc:555] RTDS has finished initialization",
+         "[2026-10-18 17:32:52.580][1][info][upstream] [source/common/upstream/cluster_manager_impl.cc:264] cm init: all clusters initialized",
+         "[2026-10-18 17:32:52.580][1][info][main] [source/server/server.cc:992] all clusters initialized. initializing init manager",
+         "[2026-10-18 17:32:52.580][1][info][config] [source/common/listener_manager/listener_manager_impl.cc:948] all dependencies initialized. starting workers"
+        ]
+       }
+      },
+      "template_changes": {
+       "revision": 2,
+       "changed_at": "2026-10-18T17:31:10Z",
+       "changes": [
+        "pod label pod-template-hash: 579d54f6f5 -> 7b7cd5fb4",
+        "container frontend-proxy env FRONTEND_HOST: frontend -> localhost",
+        "container frontend-proxy env FRONTEND_HOST is now defined 2 times: frontend, localhost"
+       ]
+      },
+      "calls_services": [
+       "astronomy-shop/flagd",
+       "astronomy-shop/frontend",
+       "astronomy-shop/image-provider",
+       "astronomy-shop/otel-collector"
+      ],
+      "service_checks": [
+       "service frontend-proxy has no ready endpoints"
+      ],
+      "rbac": {
+       "service_account": "astronomy-shop/astronomy-shop",
+       "can_i": [
+        "selfsubjectreviews.authentication.k8s.io [] [] [create]",
+        "selfsubjectaccessreviews.authorization.k8s.io [] [] [create]",
+        "selfsubjectrulesreviews.authorization.k8s.io [] [] [create]",
+        "[/.well-known/openid-configuration/] [] [get]",
+        "[/.well-known/openid-configuration] [] [get]",
+        "[/api/*] [] [get]",
+        "[/api] [] [get]",
+        "[/apis/*] [] [get]",
+        "[/apis] [] [get]",
+        "[/healthz] [] [get]",
+        "[/healthz] [] [get]",
+        "[/livez] [] [get]",
+        "[/livez] [] [get]"
+       ]
+      },
+      "input_candidates": [
+       {
+        "container": "frontend-proxy",
+        "env": "OTEL_COLLECTOR_NAME",
+        "value": "otel-collector"
+       },
+       {
+        "container": "frontend-proxy",
+        "env": "OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE",
+        "value": "cumulative"
+       },
+       {
+        "container": "frontend-proxy",
+        "env": "FLAGD_HOST",
+        "value": "flagd"
+       },
+       {
+        "container": "frontend-proxy",
+        "env": "FLAGD_UI_HOST",
+        "value": "flagd"
+       },
+       {
+        "container": "frontend-proxy",
+        "env": "FRONTEND_HOST",
+        "value": "frontend"
+       },
+       {
+        "container": "frontend-proxy",
+        "env": "GRAFANA_HOST",
+        "value": "grafana"
+       },
+       {
+        "container": "frontend-proxy",
+        "env": "IMAGE_PROVIDER_HOST",
+        "value": "image-provider"
+       },
+       {
+        "container": "frontend-proxy",
+        "env": "JAEGER_HOST",
+        "value": "jaeger"
+       },
+       {
+        "container": "frontend-proxy",
+        "env": "LOCUST_WEB_HOST",
+        "value": "load-generator"
+       },
+       {
+        "container": "frontend-proxy",
+        "env": "FRONTEND_HOST",
+        "value": "localhost"
+       }
+      ],
+      "calls": {
+       "daemonset/otel-collector-agent": {
+        "kind": "DaemonSet",
+        "pods_ready": "3/3",
+        "restarts": 0,
+        "own_evidence_kinds": [
+         "change"
+        ],
+        "own_signals": [
+         "spec modified 140s ago, 18s after this object was created (fields: template.annotations.kubectl.kubernetes.io/restartedAt); pod template changes: template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-18T23:30:57+06:00; 18s before the first active symptom"
+        ],
+        "own_error_log_lines": 8,
+        "last_spec_change": "2026-10-18T17:30:57Z",
+        "looks_healthy_on_its_own": false
+       },
+       "deployment/flagd": {
+        "kind": "Deployment",
+        "pods_ready": "1/1",
+        "restarts": 0,
+        "looks_healthy_on_its_own": true
+       },
+       "deployment/frontend": {
+        "kind": "Deployment",
+        "pods_ready": "1/1",
+        "restarts": 0,
+        "own_evidence_kinds": [
+         "configuration"
+        ],
+        "own_signals": [
+         "firing alert KubePodNotReady"
+        ],
+        "looks_healthy_on_its_own": false
+       },
+       "deployment/image-provider": {
+        "kind": "Deployment",
+        "pods_ready": "1/1",
+        "restarts": 0,
+        "looks_healthy_on_its_own": true
+       }
+      },
+      "failing_targets": [
+       "deployment/frontend"
+      ]
+     }
+    },
+    "daemonset/otel-collector-agent": {
+     "kind": "DaemonSet",
+     "name": "otel-collector-agent",
+     "namespace": "astronomy-shop",
+     "healthy": false,
+     "signals": [
+      "spec modified 140s ago, 18s after this object was created (fields: template.annotations.kubectl.kubernetes.io/restartedAt); pod template changes: template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-18T23:30:57+06:00; 18s before the first active symptom"
+     ],
+     "template_changes": {
+      "revision": 2,
+      "changed_at": "2026-10-18T17:30:57Z",
+      "changes": [
+       "template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-18T23:30:57+06:00"
+      ]
+     }
+    }
+   },
+   "cluster": {
+    "symptom_onset": "2026-10-18T17:31:15+00:00",
+    "recent_changes": [
+     {
+      "object": "deployment/frontend-proxy",
+      "at": "2026-10-18T17:31:10Z",
+      "modified_after_creation_s": 31,
+      "fields": [
+       "containers[frontend-proxy].env[FRONTEND_HOST]"
+      ],
+      "seconds_ago": 127,
+      "seconds_before_symptoms": 5
+     },
+     {
+      "object": "daemonset/otel-collector-agent",
+      "at": "2026-10-18T17:30:57Z",
+      "modified_after_creation_s": 18,
+      "fields": [
+       "template.annotations.kubectl.kubernetes.io/restartedAt"
+      ],
+      "seconds_ago": 140,
+      "seconds_before_symptoms": 18,
+      "role": "observability"
+     },
+     {
+      "object": "configmap/kube-system/coredns",
+      "at": "2026-10-18T16:57:47Z",
+      "modified_after_creation_s": 29766,
+      "fields": [
+       "data.Corefile"
+      ],
+      "seconds_ago": 2130,
+      "seconds_before_symptoms": 2008
+     }
+    ],
+    "findings": [
+     {
+      "kind": "ConfigMap",
+      "name": "coredns",
+      "namespace": "kube-system",
+      "signal": "ConfigMap coredns was modified 2130s ago, 29766s after it was created (fields: data.Corefile); 2008s before the first active symptom"
+     }
+    ]
+   }
+  },
+  "questions": {
+   "best_explanation": {
+    "type": "choice",
+    "criteria": {
+     "o1": "Origin: deployment/astronomy-shop/frontend-proxy. The pod template changes in revision 2 of deployment/frontend-proxy, which only cause the fault together, break deployment/frontend-proxy. | Details: container frontend-proxy env FRONTEND_HOST: frontend -> localhost; container frontend-proxy env FRONTEND_HOST is now defined 2 times: frontend, localhost | Observed impact on: deployment/astronomy-shop/frontend-proxy | Checks: revision 2 of deployment/frontend-proxy was made before the symptoms began (supports); deployment/frontend-proxy shows symptoms of its own (supports)",
+     "o2": "Origin: deployment/astronomy-shop/frontend-proxy. The pod template change 'container frontend-proxy env FRONTEND_HOST: frontend -> localhost' in revision 2 of deployment/frontend-proxy breaks deployment/frontend-proxy. | Details: container frontend-proxy env FRONTEND_HOST: frontend -> localhost | Observed impact on: deployment/astronomy-shop/frontend-proxy | Checks: revision 2 of deployment/frontend-proxy was made before the symptoms began (supports); deployment/frontend-proxy shows symptoms of its own (supports)",
+     "o3": "Origin: daemonset/astronomy-shop/otel-collector-agent. The pod template change 'template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-18T23:30:57+06:00' in revision 2 of daemonset/otel-collector-agent breaks daemonset/otel-collector-agent. | Details: template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-18T23:30:57+06:00 | Observed impact on: daemonset/astronomy-shop/otel-collector-agent | Checks: revision 2 of daemonset/otel-collector-agent was made before the symptoms began (supports); daemonset/otel-collector-agent shows symptoms of its own (supports)",
+     "o4": "Origin: deployment/astronomy-shop/frontend-proxy. The pod template change 'container frontend-proxy env FRONTEND_HOST is now defined 2 times: frontend, localhost' in revision 2 of deployment/frontend-proxy breaks deployment/frontend-proxy. | Details: container frontend-proxy env FRONTEND_HOST is now defined 2 times: frontend, localhost | Observed impact on: deployment/astronomy-shop/frontend-proxy | Checks: revision 2 of deployment/frontend-proxy was made before the symptoms began (supports); deployment/frontend-proxy shows symptoms of its own (supports)",
+     "o5": "None of these explanations fits the evidence.",
+     "o6": "Origin: daemonset/astronomy-shop/otel-collector-agent. daemonset otel-collector-agent was changed recently and breaks daemonset/otel-collector-agent, which it acts on. | Details: daemonset otel-collector-agent fields written: template.annotations.kubectl.kubernetes.io/restartedAt | Observed impact on: daemonset/astronomy-shop/otel-collector-agent | Checks: daemonset/astronomy-shop/otel-collector-agent was made before the symptoms began (supports); daemonset/otel-collector-agent shows symptoms of its own (supports)",
+     "o7": "Origin: deployment/astronomy-shop/frontend-proxy. deployment frontend-proxy was changed recently and breaks deployment/frontend-proxy, which it acts on. | Details: deployment frontend-proxy fields written: containers[frontend-proxy].env[FRONTEND_HOST] | Observed impact on: deployment/astronomy-shop/frontend-proxy | Checks: deployment/astronomy-shop/frontend-proxy was made before the symptoms began (supports); deployment/frontend-proxy shows symptoms of its own (supports)"
+    },
+    "instructions": {
+     "question": "Which explanation best accounts for all the observed symptoms in `evidence`?",
+     "how_to_decide": [
+      "Prefer the explanation whose chain is supported by the observed facts and explains the most symptoms; an explanation contradicted by a fact is unlikely.",
+      "A component that only fails because something it calls fails is a victim, not the origin.",
+      "Choose `o5` when none of the explanations fits the evidence."
+     ]
+    }
+   }
+  },
+  "model": "openai/gpt-6-luna-decisions-20261006",
+  "latency_ms": 568,
+  "usage": {
+   "input_tokens": 5273,
+   "output_tokens": 0,
+   "cost": 0.0005273
+  },
+  "answers": {
+   "best_explanation": {
+    "type": "choice",
+    "choice": "o1",
+    "confidence": 0.69,
+    "probabilities": {
+     "o1": 0.73,
+     "o2": 0.16,
+     "o3": 0.01,
+     "o4": 0.09,
+     "o5": 0.01,
+     "o6": 0.0,
+     "o7": 0.0
+    }
+   }
+  }
+ }
+]

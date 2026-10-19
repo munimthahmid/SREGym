@@ -1,0 +1,229 @@
+{
+ "problem_id": "service_dns_resolution_failure_astronomy_shop",
+ "source": "held4_service_dns_resolution_failure_astronomy_shop",
+ "replay": true,
+ "arms": [
+  {
+   "arm": 0,
+   "kind": "v1",
+   "model": "typesafe/jev-1.13",
+   "position": 0,
+   "seconds": 7.2,
+   "requests": 2,
+   "input_tokens": 36820,
+   "error": null,
+   "model_failed": false,
+   "component": "deployment/frontend",
+   "investigation": {
+    "steps": [
+     {
+      "step": 1,
+      "node": "investigate",
+      "component": "deployment/frontend",
+      "verdict": "origin",
+      "origin_p": 0.73,
+      "victim_p": 0.05,
+      "next": "deployment/product-reviews",
+      "next_p": 0.68,
+      "category": "dns_resolution",
+      "spec_checks": [],
+      "blocked_input": null,
+      "key_evidence": "CoreDNS rule in kube-system/coredns overrides name resolution for this component's Service frontend: template ANY ANY frontend.astronomy-shop.svc.cluster.local { \u23ce match \"^frontend.astronomy-shop.svc.cluster.local\\.$\" \u23ce rcode NXDOMAIN \u23ce fallthrough \u23ce }"
+     }
+    ],
+    "concluded": "deployment/frontend",
+    "fallback": null,
+    "triage_top": [
+     [
+      "other",
+      0.7
+     ],
+     [
+      "deployment/frontend",
+      0.29
+     ],
+     [
+      "deployment/product-reviews",
+      0.01
+     ],
+     [
+      "deployment/accounting",
+      0.0
+     ],
+     [
+      "deployment/ad",
+      0.0
+     ]
+    ]
+   },
+   "text": "Root cause component: Deployment `frontend` in namespace `astronomy-shop`.\nMechanism: CoreDNS rule in kube-system/coredns overrides name resolution for this component's Service frontend: template ANY ANY frontend.astronomy-shop.svc.cluster.local { \u23ce match \"^frontend.astronomy-shop.svc.cluster.local\\.$\" \u23ce rcode NXDOMAIN \u23ce fallthrough \u23ce }.\nFault object: ConfigMap `coredns`: rule overrides name resolution for Service astronomy-shop/frontend (deployment/frontend): template ANY ANY frontend.astronomy-shop.svc.cluster.local { \u23ce match \"^frontend.astronomy-shop.svc.cluster.local\\.$\" \u23ce rcode NXDOMAIN \u23ce fallthrough \u23ce }; ConfigMap coredns was modified 83s ago, 66091s after it was created (fields: data.Corefile).\nFault type: dns resolution (name resolution fails or returns wrong answers).\nAbnormal state observed on this component:\n- ConfigMap coredns was modified 83s ago, 66091s after it was created (fields: data.Corefile)\n- container frontend: image ghcr.io/open-telemetry/demo:2.2.0-frontend, limits {'memory': '250Mi'}\nClassification: Jev (typesafe/jev-1.13-20260917) confirmed this origin at investigation step 1 with probability 0.73 (triage probability 0.29)."
+  },
+  {
+   "arm": 1,
+   "kind": "v1",
+   "model": "openai/gpt-6-luna-decisions",
+   "position": 1,
+   "seconds": 1.6,
+   "requests": 2,
+   "input_tokens": 24637,
+   "error": null,
+   "model_failed": false,
+   "component": "deployment/frontend",
+   "investigation": {
+    "steps": [
+     {
+      "step": 1,
+      "node": "investigate",
+      "component": "deployment/frontend",
+      "verdict": "origin",
+      "origin_p": 0.92,
+      "victim_p": 0.03,
+      "next": "none",
+      "next_p": 0.45,
+      "category": "dns_resolution",
+      "spec_checks": [],
+      "blocked_input": null,
+      "key_evidence": "CoreDNS rule in kube-system/coredns overrides name resolution for this component's Service frontend: template ANY ANY frontend.astronomy-shop.svc.cluster.local { \u23ce match \"^frontend.astronomy-shop.svc.cluster.local\\.$\" \u23ce rcode NXDOMAIN \u23ce fallthrough \u23ce }"
+     }
+    ],
+    "concluded": "deployment/frontend",
+    "fallback": null,
+    "triage_top": [
+     [
+      "deployment/frontend",
+      0.99
+     ],
+     [
+      "other",
+      0.01
+     ],
+     [
+      "deployment/accounting",
+      0.0
+     ],
+     [
+      "deployment/ad",
+      0.0
+     ],
+     [
+      "deployment/cart",
+      0.0
+     ]
+    ]
+   },
+   "text": "Root cause component: Deployment `frontend` in namespace `astronomy-shop`.\nMechanism: CoreDNS rule in kube-system/coredns overrides name resolution for this component's Service frontend: template ANY ANY frontend.astronomy-shop.svc.cluster.local { \u23ce match \"^frontend.astronomy-shop.svc.cluster.local\\.$\" \u23ce rcode NXDOMAIN \u23ce fallthrough \u23ce }.\nFault object: ConfigMap `coredns`: rule overrides name resolution for Service astronomy-shop/frontend (deployment/frontend): template ANY ANY frontend.astronomy-shop.svc.cluster.local { \u23ce match \"^frontend.astronomy-shop.svc.cluster.local\\.$\" \u23ce rcode NXDOMAIN \u23ce fallthrough \u23ce }; ConfigMap coredns was modified 83s ago, 66091s after it was created (fields: data.Corefile).\nFault type: dns resolution (name resolution fails or returns wrong answers).\nAbnormal state observed on this component:\n- ConfigMap coredns was modified 83s ago, 66091s after it was created (fields: data.Corefile)\n- container frontend: image ghcr.io/open-telemetry/demo:2.2.0-frontend, limits {'memory': '250Mi'}\nClassification: Jev (openai/gpt-6-luna-decisions-20261006) confirmed this origin at investigation step 1 with probability 0.92 (triage probability 0.99)."
+  },
+  {
+   "arm": 2,
+   "kind": "v2",
+   "model": "typesafe/jev-1.13",
+   "position": 2,
+   "seconds": 2.2,
+   "requests": 3,
+   "input_tokens": 63776,
+   "error": null,
+   "model_failed": false,
+   "component": "deployment/frontend",
+   "investigation": {
+    "steps": [
+     {
+      "step": 1,
+      "node": "investigate",
+      "component": "deployment/frontend",
+      "verdict": "origin",
+      "origin_p": 0.74,
+      "victim_p": 0.04,
+      "next": "deployment/product-reviews",
+      "next_p": 0.76,
+      "category": "dns_resolution",
+      "spec_checks": [],
+      "blocked_input": null,
+      "key_evidence": "CoreDNS rule in kube-system/coredns overrides name resolution for this component's Service frontend: template ANY ANY frontend.astronomy-shop.svc.cluster.local { \u23ce match \"^frontend.astronomy-shop.svc.cluster.local\\.$\" \u23ce rcode NXDOMAIN \u23ce fallthrough \u23ce }"
+     }
+    ],
+    "concluded": "deployment/frontend",
+    "fallback": null,
+    "triage_top": [
+     [
+      "other",
+      0.67
+     ],
+     [
+      "deployment/frontend",
+      0.33
+     ],
+     [
+      "deployment/accounting",
+      0.0
+     ],
+     [
+      "deployment/ad",
+      0.0
+     ],
+     [
+      "deployment/cart",
+      0.0
+     ]
+    ],
+    "second": null
+   },
+   "text": "Root cause: ConfigMap `coredns` in namespace `kube-system`, acting on Deployment `frontend` in namespace `astronomy-shop`: CoreDNS rule in kube-system/coredns overrides name resolution for this component's Service frontend: template ANY ANY frontend.astronomy-shop.svc.cluster.local { \u23ce match \"^frontend.astronomy-shop.svc.cluster.local\\.$\" \u23ce rcode NXDOMAIN \u23ce fallthrough \u23ce }.\nMechanism: rule overrides name resolution for Service astronomy-shop/frontend (deployment/frontend): template ANY ANY frontend.astronomy-shop.svc.cluster.local { \u23ce match \"^frontend.astronomy-shop.svc.cluster.local\\.$\" \u23ce rcode NXDOMAIN \u23ce fallthrough \u23ce }; ConfigMap coredns was modified 83s ago, 66091s after it was created (fields: data.Corefile)."
+  },
+  {
+   "arm": 3,
+   "kind": "v2",
+   "model": "openai/gpt-6-luna-decisions",
+   "position": 3,
+   "seconds": 2.3,
+   "requests": 2,
+   "input_tokens": 25099,
+   "error": null,
+   "model_failed": false,
+   "component": "deployment/frontend",
+   "investigation": {
+    "steps": [
+     {
+      "step": 1,
+      "node": "investigate",
+      "component": "deployment/frontend",
+      "verdict": "origin",
+      "origin_p": 0.93,
+      "victim_p": 0.03,
+      "next": "none",
+      "next_p": 0.38,
+      "category": "dns_resolution",
+      "spec_checks": [],
+      "blocked_input": null,
+      "key_evidence": "CoreDNS rule in kube-system/coredns overrides name resolution for this component's Service frontend: template ANY ANY frontend.astronomy-shop.svc.cluster.local { \u23ce match \"^frontend.astronomy-shop.svc.cluster.local\\.$\" \u23ce rcode NXDOMAIN \u23ce fallthrough \u23ce }"
+     }
+    ],
+    "concluded": "deployment/frontend",
+    "fallback": null,
+    "triage_top": [
+     [
+      "deployment/frontend",
+      0.91
+     ],
+     [
+      "deployment/accounting",
+      0.01
+     ],
+     [
+      "deployment/frontend-proxy",
+      0.01
+     ],
+     [
+      "deployment/product-catalog",
+      0.01
+     ],
+     [
+      "deployment/product-reviews",
+      0.01
+     ]
+    ],
+    "second": null
+   },
+   "text": "Root cause: ConfigMap `coredns` in namespace `kube-system`, acting on Deployment `frontend` in namespace `astronomy-shop`: CoreDNS rule in kube-system/coredns overrides name resolution for this component's Service frontend: template ANY ANY frontend.astronomy-shop.svc.cluster.local { \u23ce match \"^frontend.astronomy-shop.svc.cluster.local\\.$\" \u23ce rcode NXDOMAIN \u23ce fallthrough \u23ce }.\nMechanism: rule overrides name resolution for Service astronomy-shop/frontend (deployment/frontend): template ANY ANY frontend.astronomy-shop.svc.cluster.local { \u23ce match \"^frontend.astronomy-shop.svc.cluster.local\\.$\" \u23ce rcode NXDOMAIN \u23ce fallthrough \u23ce }; ConfigMap coredns was modified 83s ago, 66091s after it was created (fields: data.Corefile)."
+  }
+ ]
+}

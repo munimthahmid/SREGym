@@ -1,0 +1,119 @@
+{
+ "problem_id": "duplicate_pvc_mounts_hotel_reservation",
+ "source": "held5_duplicate_pvc_mounts_hotel_reservation",
+ "replay": true,
+ "arms": [
+  {
+   "arm": 0,
+   "kind": "v2",
+   "model": "typesafe/jev-1.13",
+   "position": 0,
+   "seconds": 3.1,
+   "requests": 2,
+   "input_tokens": 26160,
+   "error": null,
+   "model_failed": false,
+   "component": "deployment/frontend",
+   "investigation": {
+    "steps": [
+     {
+      "step": 1,
+      "node": "investigate",
+      "component": "deployment/frontend",
+      "verdict": "origin",
+      "origin_p": 1.0,
+      "victim_p": 0.0,
+      "next": "none",
+      "next_p": 1.0,
+      "category": "scheduling_constraint",
+      "spec_checks": [],
+      "blocked_input": null,
+      "key_evidence": "PVC frontend-pvc is ReadWriteOnce (attachable to one node at a time) but 2 replicas of this Deployment mount it and its required pod anti-affinity places replicas on different nodes; replicas scheduled on another node cannot attach it"
+     }
+    ],
+    "concluded": "deployment/frontend",
+    "fallback": null,
+    "triage_top": [
+     [
+      "deployment/frontend",
+      0.97
+     ],
+     [
+      "other",
+      0.03
+     ],
+     [
+      "deployment/consul",
+      0.0
+     ],
+     [
+      "deployment/geo",
+      0.0
+     ],
+     [
+      "deployment/jaeger",
+      0.0
+     ]
+    ],
+    "second": null
+   },
+   "text": "Root cause: Service `frontend` (Deployment `frontend`) in namespace `hotel-reservation`: PVC frontend-pvc is ReadWriteOnce (attachable to one node at a time) but 2 replicas of this Deployment mount it and its required pod anti-affinity places replicas on different nodes; replicas scheduled on another node cannot attach it.\nMechanism: warning events: FailedScheduling x3.\nEffect: only 1 of 2 desired replicas are ready; pod frontend-844b789d87-xzfmx: pod phase Pending.\nObserved: pod frontend-844b789d87-xzfmx: pod unschedulable: 0/4 nodes are available: 1 node(s) didn't match pod anti-affinity rules, 1 node(s) had untolerated taint {node-role.kubernetes.io/control-plane: }, 2 node(s) h\u2026; pod frontend-844b789d87-xzfmx is still in pod phase Pending after another 0s."
+  },
+  {
+   "arm": 1,
+   "kind": "v2",
+   "model": "openai/gpt-6-luna-decisions",
+   "position": 1,
+   "seconds": 2.0,
+   "requests": 2,
+   "input_tokens": 17424,
+   "error": null,
+   "model_failed": false,
+   "component": "deployment/frontend",
+   "investigation": {
+    "steps": [
+     {
+      "step": 1,
+      "node": "investigate",
+      "component": "deployment/frontend",
+      "verdict": "origin",
+      "origin_p": 0.93,
+      "victim_p": 0.03,
+      "next": "none",
+      "next_p": 0.77,
+      "category": "scheduling_constraint",
+      "spec_checks": [],
+      "blocked_input": null,
+      "key_evidence": "PVC frontend-pvc is ReadWriteOnce (attachable to one node at a time) but 2 replicas of this Deployment mount it and its required pod anti-affinity places replicas on different nodes; replicas scheduled on another node cannot attach it"
+     }
+    ],
+    "concluded": "deployment/frontend",
+    "fallback": null,
+    "triage_top": [
+     [
+      "deployment/frontend",
+      0.99
+     ],
+     [
+      "other",
+      0.01
+     ],
+     [
+      "deployment/consul",
+      0.0
+     ],
+     [
+      "deployment/geo",
+      0.0
+     ],
+     [
+      "deployment/jaeger",
+      0.0
+     ]
+    ],
+    "second": null
+   },
+   "text": "Root cause: Service `frontend` (Deployment `frontend`) in namespace `hotel-reservation`: PVC frontend-pvc is ReadWriteOnce (attachable to one node at a time) but 2 replicas of this Deployment mount it and its required pod anti-affinity places replicas on different nodes; replicas scheduled on another node cannot attach it.\nMechanism: warning events: FailedScheduling x3.\nEffect: only 1 of 2 desired replicas are ready; pod frontend-844b789d87-xzfmx: pod phase Pending.\nObserved: pod frontend-844b789d87-xzfmx: pod unschedulable: 0/4 nodes are available: 1 node(s) didn't match pod anti-affinity rules, 1 node(s) had untolerated taint {node-role.kubernetes.io/control-plane: }, 2 node(s) h\u2026; pod frontend-844b789d87-xzfmx is still in pod phase Pending after another 0s."
+  }
+ ]
+}

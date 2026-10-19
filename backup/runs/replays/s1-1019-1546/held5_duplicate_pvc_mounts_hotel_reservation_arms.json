@@ -1,0 +1,223 @@
+{
+ "problem_id": "duplicate_pvc_mounts_hotel_reservation",
+ "source": "held5_duplicate_pvc_mounts_hotel_reservation",
+ "replay": true,
+ "arms": [
+  {
+   "arm": 0,
+   "kind": "v1",
+   "model": "typesafe/jev-1.13",
+   "position": 0,
+   "seconds": 1.2,
+   "requests": 2,
+   "input_tokens": 26664,
+   "error": null,
+   "component": "deployment/frontend",
+   "investigation": {
+    "steps": [
+     {
+      "step": 1,
+      "node": "investigate",
+      "component": "deployment/frontend",
+      "verdict": "origin",
+      "origin_p": 1.0,
+      "victim_p": 0.0,
+      "next": "none",
+      "next_p": 0.87,
+      "category": "scheduling_constraint",
+      "spec_checks": [],
+      "blocked_input": null,
+      "key_evidence": "PVC frontend-pvc is ReadWriteOnce (attachable to one node at a time) but 2 replicas of this Deployment mount it and its required pod anti-affinity places replicas on different nodes; replicas scheduled on another node cannot attach it"
+     }
+    ],
+    "concluded": "deployment/frontend",
+    "fallback": null,
+    "triage_top": [
+     [
+      "deployment/frontend",
+      0.71
+     ],
+     [
+      "other",
+      0.28
+     ],
+     [
+      "deployment/mongodb-geo",
+      0.01
+     ],
+     [
+      "deployment/consul",
+      0.0
+     ],
+     [
+      "deployment/geo",
+      0.0
+     ]
+    ]
+   },
+   "text": "Root cause component: Deployment `frontend` in namespace `hotel-reservation`.\nMechanism: PVC frontend-pvc is ReadWriteOnce (attachable to one node at a time) but 2 replicas of this Deployment mount it and its required pod anti-affinity places replicas on different nodes; replicas scheduled on another node cannot attach it.\nFault type: scheduling constraint (no node satisfies the pod's placement constraints).\nAbnormal state observed on this component:\n- only 1 of 2 desired replicas are ready\n- pod frontend-844b789d87-xzfmx: pod phase Pending\n- pod frontend-844b789d87-xzfmx: pod unschedulable: 0/4 nodes are available: 1 node(s) didn't match pod anti-affinity rules, 1 node(s) had untolerated taint {node-role.kubernetes.io/control-plane: }, 2 node(s) h\u2026\n- warning events: FailedScheduling x3\n- pod frontend-844b789d87-xzfmx is still in pod phase Pending after another 0s\nNotable spec settings:\n- Available=False (MinimumReplicasUnavailable)\n- container hotel-reserv-frontend: image ghcr.io/sregym/hotel-reservation:sha-d2c036bc3d1138f5a0bdaffd3d87f37522c3461a@sha256:1c685e1c4c304f327952397b3a99c54dadb086607774d71f222b200ec0d2e65e, limits {'cpu': '1'}\nWarning events:\n- FailedScheduling x2 on pod/frontend-844b789d87-xzfmx: 0/4 nodes are available: 1 node(s) didn't match pod anti-affinity rules, 1 node(s) had untolerated taint {node-role.kubernetes.io/control-plane: }, 2 node(s) didn't find available persistent volumes to bind. preemption: 0/4 nodes are avail\u2026\n- FailedScheduling x1 on pod/frontend-844b789d87-xzfmx: 0/4 nodes are available: 1 node(s) didn't match pod anti-affinity rules, 1 node(s) had untolerated taint {node-role.kubernetes.io/control-plane: }, 2 node(s) didn't find available persistent volumes to bind. preemption: 0/4 nodes are avail\u2026\nClassification: Jev (typesafe/jev-1.13-20260917) confirmed this origin at investigation step 1 with probability 1.00 (triage probability 0.71)."
+  },
+  {
+   "arm": 1,
+   "kind": "v1",
+   "model": "openai/gpt-6-luna-decisions",
+   "position": 1,
+   "seconds": 1.6,
+   "requests": 2,
+   "input_tokens": 17781,
+   "error": null,
+   "component": "deployment/frontend",
+   "investigation": {
+    "steps": [
+     {
+      "step": 1,
+      "node": "investigate",
+      "component": "deployment/frontend",
+      "verdict": "origin",
+      "origin_p": 0.94,
+      "victim_p": 0.04,
+      "next": "none",
+      "next_p": 0.88,
+      "category": "scheduling_constraint",
+      "spec_checks": [],
+      "blocked_input": null,
+      "key_evidence": "PVC frontend-pvc is ReadWriteOnce (attachable to one node at a time) but 2 replicas of this Deployment mount it and its required pod anti-affinity places replicas on different nodes; replicas scheduled on another node cannot attach it"
+     }
+    ],
+    "concluded": "deployment/frontend",
+    "fallback": null,
+    "triage_top": [
+     [
+      "deployment/frontend",
+      0.96
+     ],
+     [
+      "other",
+      0.02
+     ],
+     [
+      "deployment/consul",
+      0.01
+     ],
+     [
+      "deployment/geo",
+      0.01
+     ],
+     [
+      "deployment/jaeger",
+      0.0
+     ]
+    ]
+   },
+   "text": "Root cause component: Deployment `frontend` in namespace `hotel-reservation`.\nMechanism: PVC frontend-pvc is ReadWriteOnce (attachable to one node at a time) but 2 replicas of this Deployment mount it and its required pod anti-affinity places replicas on different nodes; replicas scheduled on another node cannot attach it.\nFault type: scheduling constraint (no node satisfies the pod's placement constraints).\nAbnormal state observed on this component:\n- only 1 of 2 desired replicas are ready\n- pod frontend-844b789d87-xzfmx: pod phase Pending\n- pod frontend-844b789d87-xzfmx: pod unschedulable: 0/4 nodes are available: 1 node(s) didn't match pod anti-affinity rules, 1 node(s) had untolerated taint {node-role.kubernetes.io/control-plane: }, 2 node(s) h\u2026\n- warning events: FailedScheduling x3\n- pod frontend-844b789d87-xzfmx is still in pod phase Pending after another 0s\nNotable spec settings:\n- Available=False (MinimumReplicasUnavailable)\n- container hotel-reserv-frontend: image ghcr.io/sregym/hotel-reservation:sha-d2c036bc3d1138f5a0bdaffd3d87f37522c3461a@sha256:1c685e1c4c304f327952397b3a99c54dadb086607774d71f222b200ec0d2e65e, limits {'cpu': '1'}\nWarning events:\n- FailedScheduling x2 on pod/frontend-844b789d87-xzfmx: 0/4 nodes are available: 1 node(s) didn't match pod anti-affinity rules, 1 node(s) had untolerated taint {node-role.kubernetes.io/control-plane: }, 2 node(s) didn't find available persistent volumes to bind. preemption: 0/4 nodes are avail\u2026\n- FailedScheduling x1 on pod/frontend-844b789d87-xzfmx: 0/4 nodes are available: 1 node(s) didn't match pod anti-affinity rules, 1 node(s) had untolerated taint {node-role.kubernetes.io/control-plane: }, 2 node(s) didn't find available persistent volumes to bind. preemption: 0/4 nodes are avail\u2026\nClassification: Jev (openai/gpt-6-luna-decisions-20261006) confirmed this origin at investigation step 1 with probability 0.94 (triage probability 0.96)."
+  },
+  {
+   "arm": 2,
+   "kind": "v2",
+   "model": "typesafe/jev-1.13",
+   "position": 2,
+   "seconds": 1.1,
+   "requests": 2,
+   "input_tokens": 26761,
+   "error": null,
+   "component": "deployment/frontend",
+   "investigation": {
+    "steps": [
+     {
+      "step": 1,
+      "node": "investigate",
+      "component": "deployment/frontend",
+      "verdict": "origin",
+      "origin_p": 1.0,
+      "victim_p": 0.0,
+      "next": "none",
+      "next_p": 0.76,
+      "category": "scheduling_constraint",
+      "spec_checks": [],
+      "blocked_input": null,
+      "key_evidence": "PVC frontend-pvc is ReadWriteOnce (attachable to one node at a time) but 2 replicas of this Deployment mount it and its required pod anti-affinity places replicas on different nodes; replicas scheduled on another node cannot attach it"
+     }
+    ],
+    "concluded": "deployment/frontend",
+    "fallback": null,
+    "triage_top": [
+     [
+      "deployment/frontend",
+      0.56
+     ],
+     [
+      "deployment/mongodb-rate",
+      0.34
+     ],
+     [
+      "deployment/mongodb-geo",
+      0.07
+     ],
+     [
+      "other",
+      0.02
+     ],
+     [
+      "deployment/consul",
+      0.0
+     ]
+    ]
+   },
+   "text": "Root cause: Service `frontend` (Deployment `frontend`) in namespace `hotel-reservation`: PVC frontend-pvc is ReadWriteOnce (attachable to one node at a time) but 2 replicas of this Deployment mount it and its required pod anti-affinity places replicas on different nodes; replicas scheduled on another node cannot attach it.\nMechanism: PVC frontend-pvc is ReadWriteOnce (attachable to one node at a time) but 2 replicas of this Deployment mount it and its required pod anti-affinity places replicas on different nodes; replicas scheduled on another node cannot attach it.\nEffect: only 1 of 2 desired replicas are ready; pod frontend-844b789d87-xzfmx: pod phase Pending."
+  },
+  {
+   "arm": 3,
+   "kind": "v2",
+   "model": "openai/gpt-6-luna-decisions",
+   "position": 3,
+   "seconds": 1.1,
+   "requests": 2,
+   "input_tokens": 17884,
+   "error": null,
+   "component": "deployment/frontend",
+   "investigation": {
+    "steps": [
+     {
+      "step": 1,
+      "node": "investigate",
+      "component": "deployment/frontend",
+      "verdict": "origin",
+      "origin_p": 0.79,
+      "victim_p": 0.05,
+      "next": "none",
+      "next_p": 0.6,
+      "category": "scheduling_constraint",
+      "spec_checks": [],
+      "blocked_input": null,
+      "key_evidence": "PVC frontend-pvc is ReadWriteOnce (attachable to one node at a time) but 2 replicas of this Deployment mount it and its required pod anti-affinity places replicas on different nodes; replicas scheduled on another node cannot attach it"
+     }
+    ],
+    "concluded": "deployment/frontend",
+    "fallback": null,
+    "triage_top": [
+     [
+      "deployment/frontend",
+      0.46
+     ],
+     [
+      "deployment/mongodb-geo",
+      0.39
+     ],
+     [
+      "deployment/mongodb-rate",
+      0.07
+     ],
+     [
+      "deployment/geo",
+      0.01
+     ],
+     [
+      "deployment/mongodb-profile",
+      0.01
+     ]
+    ]
+   },
+   "text": "Root cause: Service `frontend` (Deployment `frontend`) in namespace `hotel-reservation`: PVC frontend-pvc is ReadWriteOnce (attachable to one node at a time) but 2 replicas of this Deployment mount it and its required pod anti-affinity places replicas on different nodes; replicas scheduled on another node cannot attach it.\nMechanism: PVC frontend-pvc is ReadWriteOnce (attachable to one node at a time) but 2 replicas of this Deployment mount it and its required pod anti-affinity places replicas on different nodes; replicas scheduled on another node cannot attach it.\nEffect: only 1 of 2 desired replicas are ready; pod frontend-844b789d87-xzfmx: pod phase Pending."
+  }
+ ]
+}

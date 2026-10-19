@@ -1,0 +1,123 @@
+{
+ "problem_id": "liveness_probe_too_aggressive_social_network",
+ "source": "held5_liveness_probe_too_aggressive_social_network",
+ "replay": true,
+ "arms": [
+  {
+   "arm": 0,
+   "kind": "v2",
+   "model": "typesafe/jev-1.13",
+   "position": 0,
+   "seconds": 3.9,
+   "requests": 3,
+   "input_tokens": 44314,
+   "error": null,
+   "model_failed": false,
+   "component": "deployment/aux-service",
+   "investigation": {
+    "steps": [
+     {
+      "step": 1,
+      "node": "investigate",
+      "component": "deployment/aux-service",
+      "verdict": "origin",
+      "origin_p": 0.98,
+      "victim_p": 0.0,
+      "next": "none",
+      "next_p": 0.78,
+      "category": "code_bug",
+      "spec_checks": [
+       "service aux-service has no ready endpoints"
+      ],
+      "blocked_input": null,
+      "key_evidence": "ConfigMap aux-service-script key service.py: import http.server \u23ce import random \u23ce import socketserver \u23ce import time \u23ce \u23ce INIT_SECONDS = 15 \u23ce _START = time.time() \u23ce \u23ce \u23ce def _initialized() -> bool: \u23ce return time.time() - _START >= INIT_SECONDS \u23ce \u23ce \u23ce class MainHandler(http.server.SimpleHTTPRequestHandler): \u23ce def _write(self, status: int, body: str): \u23ce self.send_response(status) \u23ce self.end_headers() \u23ce self.wfile.write(body.encode()) \u23ce \u23ce def do_G\u2026"
+     }
+    ],
+    "concluded": "deployment/aux-service",
+    "fallback": null,
+    "triage_top": [
+     [
+      "deployment/aux-service",
+      0.815
+     ],
+     [
+      "deployment/social-graph-service",
+      0.14
+     ],
+     [
+      "deployment/jaeger",
+      0.03
+     ],
+     [
+      "other",
+      0.015
+     ],
+     [
+      "deployment/compose-post-service",
+      0.0
+     ]
+    ],
+    "second": null
+   },
+   "text": "Root cause: Service `aux-service` (Deployment `aux-service`) in namespace `social-network`: ConfigMap aux-service-script key service.py: import http.server \u23ce import random \u23ce import socketserver \u23ce import time \u23ce \u23ce INIT_SECONDS = 15 \u23ce _START = time.time() \u23ce \u23ce \u23ce def _initialized() -> bool: \u23ce return time.time() - _START >= INIT_SECONDS \u23ce \u23ce \u23ce class MainHandler(http.server.SimpleHTTPRequestHandler): \u23ce def _write(self, status: int, body: str): \u23ce self.send_response(status) \u23ce self.end_headers() \u23ce self.wfile.write(body.encode()) \u23ce \u23ce def do_G\u2026.\nMechanism: warning events: BackOff x14, Unhealthy x3.\nDetails: service aux-service has no ready endpoints.\nEffect: only 0 of 1 desired replicas are ready; pod aux-service-9df4c6c8c-f22ql: container aux-service-container waiting in CrashLoopBackOff.\nObserved: pod aux-service-9df4c6c8c-f22ql: container aux-service-container restarted 5 times; service aux-service selects this component but has 0 ready endpoints; pod aux-service-9df4c6c8c-f22ql: container aux-service-container restarted 1 more time(s) in the last 0s; warning event Unhealthy on pod/aux-service-9df4c6c8c-f22ql repeated 1 more time(s) in the last 0s; warning event BackOff on pod/aux-service-9df4c6c8c-f22ql repeated 4 more time(s) in the last 0s."
+  },
+  {
+   "arm": 1,
+   "kind": "v2",
+   "model": "openai/gpt-6-luna-decisions",
+   "position": 1,
+   "seconds": 2.8,
+   "requests": 3,
+   "input_tokens": 30012,
+   "error": null,
+   "model_failed": false,
+   "component": "deployment/aux-service",
+   "investigation": {
+    "steps": [
+     {
+      "step": 1,
+      "node": "investigate",
+      "component": "deployment/aux-service",
+      "verdict": "origin",
+      "origin_p": 0.93,
+      "victim_p": 0.02,
+      "next": "deployment/social-graph-service",
+      "next_p": 0.64,
+      "category": "health_probe_config",
+      "spec_checks": [
+       "service aux-service has no ready endpoints"
+      ],
+      "blocked_input": null,
+      "key_evidence": "container aux-service-container liveness probe: httpGet HTTP :8080/health (initialDelaySeconds=0 (default), periodSeconds=1, timeoutSeconds=1, failureThreshold=1)"
+     }
+    ],
+    "concluded": "deployment/aux-service",
+    "fallback": null,
+    "triage_top": [
+     [
+      "deployment/aux-service",
+      0.84
+     ],
+     [
+      "deployment/social-graph-service",
+      0.135
+     ],
+     [
+      "other",
+      0.01
+     ],
+     [
+      "deployment/compose-post-service",
+      0.005
+     ],
+     [
+      "deployment/social-graph-mongodb",
+      0.005
+     ]
+    ],
+    "second": null
+   },
+   "text": "Root cause: Service `aux-service` (Deployment `aux-service`) in namespace `social-network`: container aux-service-container liveness probe: httpGet HTTP :8080/health (initialDelaySeconds=0 (default), periodSeconds=1, timeoutSeconds=1, failureThreshold=1).\nMechanism: warning events: BackOff x14, Unhealthy x3.\nDetails: service aux-service has no ready endpoints.\nEffect: only 0 of 1 desired replicas are ready; pod aux-service-9df4c6c8c-f22ql: container aux-service-container waiting in CrashLoopBackOff.\nObserved: pod aux-service-9df4c6c8c-f22ql: container aux-service-container restarted 5 times; service aux-service selects this component but has 0 ready endpoints; pod aux-service-9df4c6c8c-f22ql: container aux-service-container restarted 1 more time(s) in the last 0s; warning event Unhealthy on pod/aux-service-9df4c6c8c-f22ql repeated 1 more time(s) in the last 0s; warning event BackOff on pod/aux-service-9df4c6c8c-f22ql repeated 4 more time(s) in the last 0s."
+  }
+ ]
+}

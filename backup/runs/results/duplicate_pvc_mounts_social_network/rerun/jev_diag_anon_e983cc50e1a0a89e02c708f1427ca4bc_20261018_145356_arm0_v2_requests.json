@@ -1,0 +1,1214 @@
+[
+ {
+  "label": "decide:1",
+  "state": {
+   "application": {
+    "name": "Social Network",
+    "description": "A social network with unidirectional follow relationships, implemented with loosely-coupled microservices, communicating with each other via Thrift RPCs.",
+    "namespaces": [
+     "social-network"
+    ]
+   },
+   "evidence": {
+    "deployment/jaeger": {
+     "kind": "Deployment",
+     "name": "jaeger",
+     "namespace": "social-network",
+     "healthy": false,
+     "signals": [
+      "only 1 of 2 desired replicas are ready",
+      "pod jaeger-9fd7cdb7c-qjph2: pod phase Pending",
+      "pod jaeger-9fd7cdb7c-qjph2: pod unschedulable: 0/4 nodes are available: 1 node(s) didn't match pod anti-affinity rules, 1 node(s) had untolerated taint {node-role.kubernetes.io/control-plane: }, 2 node(s) h\u2026",
+      "warning events: FailedScheduling x3",
+      "PVC jaeger-pvc is ReadWriteOnce (attachable to one node at a time) but 2 replicas of this Deployment mount it and its required pod anti-affinity places replicas on different nodes; replicas scheduled on another node cannot attach it",
+      "pod jaeger-9fd7cdb7c-qjph2 is still in pod phase Pending after another 50s"
+     ]
+    },
+    "deployment/home-timeline-service": {
+     "kind": "Deployment",
+     "name": "home-timeline-service",
+     "namespace": "social-network",
+     "healthy": false
+    },
+    "deployment/social-graph-service": {
+     "kind": "Deployment",
+     "name": "social-graph-service",
+     "namespace": "social-network",
+     "healthy": false
+    }
+   },
+   "cluster": {
+    "symptom_onset": "2026-10-18T14:55:15+00:00",
+    "recent_changes": [
+     {
+      "object": "configmap/kube-system/coredns",
+      "at": "2026-10-18T14:18:25Z",
+      "modified_after_creation_s": 20204,
+      "fields": [
+       "data.Corefile"
+      ],
+      "seconds_ago": 2259,
+      "seconds_before_symptoms": 2210
+     }
+    ],
+    "findings": [
+     {
+      "kind": "ConfigMap",
+      "name": "coredns",
+      "namespace": "kube-system",
+      "signal": "ConfigMap coredns was modified 2259s ago, 20204s after it was created (fields: data.Corefile); 2210s before the first active symptom"
+     }
+    ]
+   }
+  },
+  "questions": {
+   "best_explanation": {
+    "type": "choice",
+    "criteria": {
+     "o1": "Origin: deployment/social-network/social-graph-service. The fault is in this component; the mechanism is not established. | Observed impact on: deployment/social-network/social-graph-service",
+     "o2": "Origin: deployment/social-network/home-timeline-service. The fault is in this component; the mechanism is not established. | Observed impact on: deployment/social-network/home-timeline-service",
+     "o3": "Origin: deployment/social-network/jaeger. deployment/social-network/jaeger has a wrong setting of its own: PVC jaeger-pvc is ReadWriteOnce (attachable to one node at a time) but 2 replicas of this Deployment mount it and its required pod anti-affinity places replicas on different nodes; replicas scheduled on another node cannot attach it | Details: PVC jaeger-pvc is ReadWriteOnce (attachable to one node at a time) but 2 replicas of this Deployment mount it and its required pod anti-affinity places replicas on different nodes; replicas scheduled on another node cannot attach it | Observed impact on: deployment/social-network/jaeger | Checks: deployment/social-network/jaeger shows symptoms of its own (supports)",
+     "o4": "None of these explanations fits the evidence.",
+     "o5": "Origin: configmap/kube-system/coredns. configmap coredns acts on the application: ConfigMap coredns was modified 2259s ago, 20204s after it was created (fields: data.Corefile); 2210s before the first active symptom. | Details: ConfigMap coredns was modified 2259s ago, 20204s after it was created (fields: data.Corefile); 2210s before the first active symptom"
+    },
+    "instructions": {
+     "question": "Which explanation best accounts for all the observed symptoms in `evidence`?",
+     "how_to_decide": [
+      "Prefer the explanation whose chain is supported by the observed facts and explains the most symptoms; an explanation contradicted by a fact is unlikely.",
+      "A component that only fails because something it calls fails is a victim, not the origin.",
+      "Choose `o4` when none of the explanations fits the evidence."
+     ]
+    }
+   }
+  },
+  "model": "typesafe/jev-1.13-20260917",
+  "latency_ms": 521,
+  "usage": {
+   "input_tokens": 1458,
+   "output_tokens": 61,
+   "cost": 6.1236e-05
+  },
+  "answers": {
+   "best_explanation": {
+    "type": "choice",
+    "choice": "o5",
+    "confidence": 0.47,
+    "probabilities": {
+     "o1": 0.0,
+     "o2": 0.0,
+     "o3": 0.34,
+     "o4": 0.08,
+     "o5": 0.58
+    }
+   }
+  }
+ },
+ {
+  "label": "decide:2",
+  "state": {
+   "application": {
+    "name": "Social Network",
+    "description": "A social network with unidirectional follow relationships, implemented with loosely-coupled microservices, communicating with each other via Thrift RPCs.",
+    "namespaces": [
+     "social-network"
+    ]
+   },
+   "evidence": {
+    "deployment/jaeger": {
+     "kind": "Deployment",
+     "name": "jaeger",
+     "namespace": "social-network",
+     "healthy": false,
+     "signals": [
+      "only 1 of 2 desired replicas are ready",
+      "pod jaeger-9fd7cdb7c-qjph2: pod phase Pending",
+      "pod jaeger-9fd7cdb7c-qjph2: pod unschedulable: 0/4 nodes are available: 1 node(s) didn't match pod anti-affinity rules, 1 node(s) had untolerated taint {node-role.kubernetes.io/control-plane: }, 2 node(s) h\u2026",
+      "warning events: FailedScheduling x3",
+      "PVC jaeger-pvc is ReadWriteOnce (attachable to one node at a time) but 2 replicas of this Deployment mount it and its required pod anti-affinity places replicas on different nodes; replicas scheduled on another node cannot attach it",
+      "pod jaeger-9fd7cdb7c-qjph2 is still in pod phase Pending after another 50s"
+     ]
+    },
+    "deployment/home-timeline-service": {
+     "kind": "Deployment",
+     "name": "home-timeline-service",
+     "namespace": "social-network",
+     "healthy": false
+    },
+    "deployment/social-graph-service": {
+     "kind": "Deployment",
+     "name": "social-graph-service",
+     "namespace": "social-network",
+     "healthy": false
+    }
+   },
+   "cluster": {
+    "symptom_onset": "2026-10-18T14:55:15+00:00",
+    "recent_changes": [
+     {
+      "object": "configmap/kube-system/coredns",
+      "at": "2026-10-18T14:18:25Z",
+      "modified_after_creation_s": 20204,
+      "fields": [
+       "data.Corefile"
+      ],
+      "seconds_ago": 2259,
+      "seconds_before_symptoms": 2210
+     }
+    ],
+    "findings": [
+     {
+      "kind": "ConfigMap",
+      "name": "coredns",
+      "namespace": "kube-system",
+      "signal": "ConfigMap coredns was modified 2259s ago, 20204s after it was created (fields: data.Corefile); 2210s before the first active symptom"
+     }
+    ]
+   }
+  },
+  "questions": {
+   "best_explanation": {
+    "type": "choice",
+    "criteria": {
+     "o1": "Origin: deployment/social-network/jaeger. deployment/social-network/jaeger has a wrong setting of its own: PVC jaeger-pvc is ReadWriteOnce (attachable to one node at a time) but 2 replicas of this Deployment mount it and its required pod anti-affinity places replicas on different nodes; replicas scheduled on another node cannot attach it | Details: PVC jaeger-pvc is ReadWriteOnce (attachable to one node at a time) but 2 replicas of this Deployment mount it and its required pod anti-affinity places replicas on different nodes; replicas scheduled on another node cannot attach it | Observed impact on: deployment/social-network/jaeger | Checks: deployment/social-network/jaeger shows symptoms of its own (supports)",
+     "o2": "Origin: deployment/social-network/social-graph-service. The fault is in this component; the mechanism is not established. | Observed impact on: deployment/social-network/social-graph-service",
+     "o3": "Origin: deployment/social-network/home-timeline-service. The fault is in this component; the mechanism is not established. | Observed impact on: deployment/social-network/home-timeline-service",
+     "o4": "Origin: configmap/kube-system/coredns. configmap coredns acts on the application: ConfigMap coredns was modified 2259s ago, 20204s after it was created (fields: data.Corefile); 2210s before the first active symptom. | Details: ConfigMap coredns was modified 2259s ago, 20204s after it was created (fields: data.Corefile); 2210s before the first active symptom",
+     "o5": "None of these explanations fits the evidence."
+    },
+    "instructions": {
+     "question": "Which explanation best accounts for all the observed symptoms in `evidence`?",
+     "how_to_decide": [
+      "Prefer the explanation whose chain is supported by the observed facts and explains the most symptoms; an explanation contradicted by a fact is unlikely.",
+      "A component that only fails because something it calls fails is a victim, not the origin.",
+      "Choose `o5` when none of the explanations fits the evidence."
+     ]
+    }
+   }
+  },
+  "model": "typesafe/jev-1.13-20260917",
+  "latency_ms": 578,
+  "usage": {
+   "input_tokens": 1458,
+   "output_tokens": 61,
+   "cost": 6.1236e-05
+  },
+  "answers": {
+   "best_explanation": {
+    "type": "choice",
+    "choice": "o4",
+    "confidence": 0.39,
+    "probabilities": {
+     "o1": 0.4,
+     "o2": 0.0,
+     "o3": 0.0,
+     "o4": 0.51,
+     "o5": 0.09
+    }
+   }
+  }
+ },
+ {
+  "label": "decide:1",
+  "state": {
+   "application": {
+    "name": "Social Network",
+    "description": "A social network with unidirectional follow relationships, implemented with loosely-coupled microservices, communicating with each other via Thrift RPCs.",
+    "namespaces": [
+     "social-network"
+    ]
+   },
+   "evidence": {
+    "deployment/jaeger": {
+     "kind": "Deployment",
+     "name": "jaeger",
+     "namespace": "social-network",
+     "healthy": false,
+     "signals": [
+      "only 1 of 2 desired replicas are ready",
+      "pod jaeger-9fd7cdb7c-qjph2: pod phase Pending",
+      "pod jaeger-9fd7cdb7c-qjph2: pod unschedulable: 0/4 nodes are available: 1 node(s) didn't match pod anti-affinity rules, 1 node(s) had untolerated taint {node-role.kubernetes.io/control-plane: }, 2 node(s) h\u2026",
+      "warning events: FailedScheduling x3",
+      "PVC jaeger-pvc is ReadWriteOnce (attachable to one node at a time) but 2 replicas of this Deployment mount it and its required pod anti-affinity places replicas on different nodes; replicas scheduled on another node cannot attach it",
+      "pod jaeger-9fd7cdb7c-qjph2 is still in pod phase Pending after another 50s"
+     ],
+     "detail": {
+      "component": "deployment/jaeger",
+      "namespace": "social-network",
+      "workload": {
+       "created": "2026-10-18T14:53:49Z",
+       "last_spec_write": "2026-10-18T14:53:49Z",
+       "spec_writers": [
+        {
+         "manager": "kubectl-client-side-apply",
+         "op": "Update",
+         "time": "2026-10-18T14:53:49Z"
+        }
+       ],
+       "replicas": 2,
+       "strategy": {
+        "rollingUpdate": {
+         "maxSurge": "25%",
+         "maxUnavailable": "25%"
+        },
+        "type": "RollingUpdate"
+       },
+       "dns_policy": "ClusterFirst",
+       "affinity": "{\"podAntiAffinity\": {\"requiredDuringSchedulingIgnoredDuringExecution\": [{\"labelSelector\": {\"matchExpressions\": [{\"key\": \"service\", \"operator\": \"In\", \"values\": [\"jaeger\"]}]}, \"topologyKey\": \"kubernetes.io/hostname\"}]}}",
+       "restart_policy": "Always",
+       "containers": [
+        {
+         "name": "jaeger",
+         "image": "docker.io/jaegertracing/all-in-one:1.57",
+         "env": [
+          {
+           "name": "COLLECTOR_ZIPKIN_HTTP_PORT",
+           "value": "9411"
+          }
+         ],
+         "ports": [
+          {
+           "port": 5775
+          },
+          {
+           "port": 6831
+          },
+          {
+           "port": 6832
+          },
+          {
+           "port": 5778
+          },
+          {
+           "port": 16686
+          },
+          {
+           "port": 14268
+          },
+          {
+           "port": 9411
+          }
+         ],
+         "volume_mounts": [
+          {
+           "name": "jaeger-config",
+           "path": "/social-network-microservices/config/jaeger-config.yml",
+           "sub_path": "jaeger-config.yml"
+          },
+          {
+           "name": "jaeger-config",
+           "path": "/social-network-microservices/config/service-config.json",
+           "sub_path": "service-config.json"
+          },
+          {
+           "name": "jaeger-volume",
+           "path": "/jaeger-data"
+          }
+         ]
+        }
+       ],
+       "volumes": [
+        {
+         "name": "jaeger-config",
+         "configMap": {
+          "defaultMode": 420,
+          "name": "jaeger"
+         }
+        },
+        {
+         "name": "jaeger-volume",
+         "persistentVolumeClaim": {
+          "claimName": "jaeger-pvc"
+         }
+        }
+       ],
+       "template_labels": {
+        "app": "jaeger",
+        "service": "jaeger"
+       }
+      },
+      "pods": [
+       {
+        "name": "jaeger-9fd7cdb7c-qjph2",
+        "phase": "Pending",
+        "conditions": [
+         "PodScheduled=False (Unschedulable: 0/4 nodes are available: 1 node(s) didn't match pod anti-affinity rules, 1 node(s) had untolerated taint {node-role.kub\u2026)"
+        ]
+       },
+       {
+        "name": "jaeger-9fd7cdb7c-w6k46",
+        "node": "kind-worker",
+        "phase": "Running",
+        "started": "2026-10-18T14:53:53Z",
+        "ready_since": "2026-10-18T14:53:55Z",
+        "conditions": [
+         "PodReadyToStartContainers=True",
+         "Initialized=True",
+         "Ready=True",
+         "ContainersReady=True",
+         "PodScheduled=True"
+        ],
+        "containers": [
+         {
+          "name": "jaeger",
+          "ready": true,
+          "restarts": 0,
+          "state": {
+           "running": {
+            "startedAt": "2026-10-18T14:53:54Z"
+           }
+          }
+         }
+        ]
+       }
+      ],
+      "events": [
+       {
+        "type": "Normal",
+        "reason": "Pulled",
+        "count": 1,
+        "object": "pod/jaeger-9fd7cdb7c-w6k46",
+        "last": "2026-10-18T14:53:54Z",
+        "message": "Container image \"docker.io/jaegertracing/all-in-one:1.57\" already present on machine"
+       },
+       {
+        "type": "Normal",
+        "reason": "Created",
+        "count": 1,
+        "object": "pod/jaeger-9fd7cdb7c-w6k46",
+        "last": "2026-10-18T14:53:54Z",
+        "message": "Created container: jaeger"
+       },
+       {
+        "type": "Normal",
+        "reason": "Started",
+        "count": 1,
+        "object": "pod/jaeger-9fd7cdb7c-w6k46",
+        "last": "2026-10-18T14:53:54Z",
+        "message": "Started container jaeger"
+       },
+       {
+        "type": "Normal",
+        "reason": "Scheduled",
+        "count": 1,
+        "object": "pod/jaeger-9fd7cdb7c-w6k46",
+        "last": "2026-10-18T14:53:53.908785Z",
+        "message": "Successfully assigned social-network/jaeger-9fd7cdb7c-w6k46 to kind-worker"
+       },
+       {
+        "type": "Warning",
+        "reason": "FailedScheduling",
+        "count": 1,
+        "object": "pod/jaeger-9fd7cdb7c-qjph2",
+        "last": "2026-10-18T14:53:51.710943Z",
+        "message": "0/4 nodes are available: 1 node(s) didn't match pod anti-affinity rules, 1 node(s) had untolerated taint {node-role.kubernetes.io/control-plane: }, 2 node(s) didn't find available persistent volumes to bind. preemption: 0/4 nodes are available: 1 No preemption victims found for incoming pod, 3 Pree\u2026"
+       },
+       {
+        "type": "Normal",
+        "reason": "SuccessfulCreate",
+        "count": 1,
+        "object": "replicaset/jaeger-9fd7cdb7c",
+        "last": "2026-10-18T14:53:49Z",
+        "message": "Created pod: jaeger-9fd7cdb7c-w6k46"
+       },
+       {
+        "type": "Normal",
+        "reason": "SuccessfulCreate",
+        "count": 1,
+        "object": "replicaset/jaeger-9fd7cdb7c",
+        "last": "2026-10-18T14:53:49Z",
+        "message": "Created pod: jaeger-9fd7cdb7c-qjph2"
+       },
+       {
+        "type": "Warning",
+        "reason": "FailedScheduling",
+        "count": 1,
+        "object": "pod/jaeger-9fd7cdb7c-qjph2",
+        "last": "2026-10-18T14:53:49.901138Z",
+        "message": "0/4 nodes are available: 1 node(s) didn't match pod anti-affinity rules, 1 node(s) had untolerated taint {node-role.kubernetes.io/control-plane: }, 2 node(s) didn't find available persistent volumes to bind. preemption: 0/4 nodes are available: 1 No preemption victims found for incoming pod, 3 Pree\u2026"
+       }
+      ],
+      "logs": {
+       "total_lines": 46,
+       "error_lines": 0,
+       "error_lines_still_occurring": 0,
+       "error_lines_stopped": 0,
+       "telemetry_export_error_lines": 0,
+       "tail": [
+        "2026-10-18T14:53:54.986868831Z {\"level\":\"info\",\"ts\":1792335234.9868238,\"caller\":\"grpc@v1.63.2/clientconn.go:1825\",\"msg\":\"[core][Channel #6]Channel authority set to \\\"localhost:14250\\\"\",\"system\":\"grpc\u2026",
+        "2026-10-18T14:53:54.987064214Z {\"level\":\"info\",\"ts\":1792335234.9869647,\"caller\":\"grpc/builder.go:115\",\"msg\":\"Checking connection to collector\"}",
+        "2026-10-18T14:53:54.987089944Z {\"level\":\"info\",\"ts\":1792335234.9870045,\"caller\":\"grpc/builder.go:131\",\"msg\":\"Agent collector connection state change\",\"dialTarget\":\"localhost:14250\",\"status\":\"IDLE\"}",
+        "2026-10-18T14:53:54.988529938Z {\"level\":\"info\",\"ts\":1792335234.988239,\"caller\":\"all-in-one/main.go:265\",\"msg\":\"Starting agent\"}",
+        "2026-10-18T14:53:54.988691619Z {\"level\":\"info\",\"ts\":1792335234.98862,\"caller\":\"app/agent.go:69\",\"msg\":\"Starting jaeger-agent HTTP server\",\"http-port\":5778}",
+        "2026-10-18T14:53:54.988911287Z {\"level\":\"info\",\"ts\":1792335234.988853,\"caller\":\"grpc@v1.63.2/server.go:675\",\"msg\":\"[core][Server #7]Server created\",\"system\":\"grpc\",\"grpc_log\":true}",
+        "2026-10-18T14:53:54.990733703Z {\"level\":\"info\",\"ts\":1792335234.9905694,\"caller\":\"app/static_handler.go:109\",\"msg\":\"Using UI configuration\",\"path\":\"\"}",
+        "2026-10-18T14:53:54.991388528Z {\"level\":\"info\",\"ts\":1792335234.9912968,\"caller\":\"app/server.go:236\",\"msg\":\"Query server started\",\"http_addr\":\"[::]:16686\",\"grpc_addr\":\"[::]:16685\"}",
+        "2026-10-18T14:53:54.991401394Z {\"level\":\"info\",\"ts\":1792335234.9913301,\"caller\":\"healthcheck/handler.go:129\",\"msg\":\"Health Check state change\",\"status\":\"ready\"}",
+        "2026-10-18T14:53:54.991446050Z {\"level\":\"info\",\"ts\":1792335234.9913704,\"caller\":\"app/server.go:301\",\"msg\":\"Starting HTTP server\",\"port\":16686,\"addr\":\":16686\"}",
+        "2026-10-18T14:53:54.991450302Z {\"level\":\"info\",\"ts\":1792335234.9913857,\"caller\":\"app/server.go:319\",\"msg\":\"Starting GRPC server\",\"port\":16685,\"addr\":\":16685\"}",
+        "2026-10-18T14:53:54.991520113Z {\"level\":\"info\",\"ts\":1792335234.991457,\"caller\":\"grpc@v1.63.2/server.go:871\",\"msg\":\"[core][Server #7 ListenSocket #8]ListenSocket created\",\"system\":\"grpc\",\"grpc_log\":tr\u2026"
+       ]
+      },
+      "configmaps": {
+       "jaeger": {
+        "last_update": "2026-10-18T14:53:39Z",
+        "keys": [
+         "jaeger-config.yml",
+         "service-config.json"
+        ],
+        "data": {
+         "jaeger-config.yml": "disabled: false \u23ce reporter: \u23ce logSpans: false \u23ce localAgentHostPort: \"jaeger:6831\" \u23ce queueSize: 1000000 \u23ce bufferFlushInterval: 10 \u23ce sampler: \u23ce type: \"probabilistic\" \u23ce param: 0.01 \u23ce",
+         "service-config.json": "{ \u23ce \"secret\": \"secret\", \u23ce \"social-graph-service\": { \u23ce \"addr\": \"social-graph-service\", \u23ce \"port\": 9090, \u23ce \"connections\": 512, \u23ce \"timeout_ms\": 10000, \u23ce \"keepalive_ms\": 10000 \u23ce }, \u23ce \"social-graph-mongodb\": { \u23ce \"addr\": \"social-graph-mongodb\", \u23ce \"port\": 27017, \u23ce \"connections\": 512, \u23ce \"timeout_ms\": 10000, \u23ce \"keepalive_ms\": 10000 \u23ce }, \u23ce \"social-graph-redis\": { \u23ce \"addr\": \"social-graph-redis\", \u23ce \"port\": 63\u2026"
+        }
+       }
+      }
+     }
+    },
+    "deployment/home-timeline-service": {
+     "kind": "Deployment",
+     "name": "home-timeline-service",
+     "namespace": "social-network",
+     "healthy": false,
+     "detail": {
+      "component": "deployment/home-timeline-service",
+      "namespace": "social-network",
+      "workload": {
+       "created": "2026-10-18T14:53:40Z",
+       "last_spec_write": "2026-10-18T14:53:40Z",
+       "spec_writers": [
+        {
+         "manager": "helm",
+         "op": "Apply",
+         "time": "2026-10-18T14:53:40Z"
+        }
+       ],
+       "replicas": 1,
+       "strategy": {
+        "rollingUpdate": {
+         "maxSurge": "25%",
+         "maxUnavailable": "25%"
+        },
+        "type": "RollingUpdate"
+       },
+       "dns_policy": "ClusterFirst",
+       "restart_policy": "Always",
+       "containers": [
+        {
+         "name": "home-timeline-service",
+         "image": "ghcr.io/sregym/social-network:sha-d2c036bc3d1138f5a0bdaffd3d87f37522c3461a@sha256:70287c4756f9187613e49409291927c342724e3974f93709b21595ed1cdf1d69",
+         "command": [
+          "HomeTimelineService"
+         ],
+         "ports": [
+          {
+           "port": 9090
+          }
+         ],
+         "volume_mounts": [
+          {
+           "name": "home-timeline-service-config",
+           "path": "/social-network-microservices/config/jaeger-config.yml",
+           "sub_path": "jaeger-config.yml"
+          },
+          {
+           "name": "home-timeline-service-config",
+           "path": "/social-network-microservices/config/service-config.json",
+           "sub_path": "service-config.json"
+          }
+         ]
+        }
+       ],
+       "volumes": [
+        {
+         "name": "home-timeline-service-config",
+         "configMap": {
+          "defaultMode": 420,
+          "name": "home-timeline-service"
+         }
+        }
+       ],
+       "template_labels": {
+        "app": "home-timeline-service",
+        "service": "home-timeline-service"
+       }
+      },
+      "pods": [
+       {
+        "name": "home-timeline-service-7b54b6f7b9-f56dl",
+        "node": "kind-worker3",
+        "phase": "Running",
+        "started": "2026-10-18T14:53:41Z",
+        "ready_since": "2026-10-18T14:53:43Z",
+        "conditions": [
+         "PodReadyToStartContainers=True",
+         "Initialized=True",
+         "Ready=True",
+         "ContainersReady=True",
+         "PodScheduled=True"
+        ],
+        "containers": [
+         {
+          "name": "home-timeline-service",
+          "ready": true,
+          "restarts": 0,
+          "state": {
+           "running": {
+            "startedAt": "2026-10-18T14:53:43Z"
+           }
+          }
+         }
+        ]
+       }
+      ],
+      "events": [
+       {
+        "type": "Normal",
+        "reason": "Pulled",
+        "count": 1,
+        "object": "pod/home-timeline-service-7b54b6f7b9-f56dl",
+        "last": "2026-10-18T14:53:43Z",
+        "message": "Container image \"ghcr.io/sregym/social-network:sha-d2c036bc3d1138f5a0bdaffd3d87f37522c3461a@sha256:70287c4756f9187613e49409291927c342724e3974f93709b21595ed1cdf1d69\" already present on machine"
+       },
+       {
+        "type": "Normal",
+        "reason": "Created",
+        "count": 1,
+        "object": "pod/home-timeline-service-7b54b6f7b9-f56dl",
+        "last": "2026-10-18T14:53:43Z",
+        "message": "Created container: home-timeline-service"
+       },
+       {
+        "type": "Normal",
+        "reason": "Started",
+        "count": 1,
+        "object": "pod/home-timeline-service-7b54b6f7b9-f56dl",
+        "last": "2026-10-18T14:53:43Z",
+        "message": "Started container home-timeline-service"
+       },
+       {
+        "type": "Normal",
+        "reason": "SuccessfulCreate",
+        "count": 1,
+        "object": "replicaset/home-timeline-service-7b54b6f7b9",
+        "last": "2026-10-18T14:53:41Z",
+        "message": "Created pod: home-timeline-service-7b54b6f7b9-f56dl"
+       },
+       {
+        "type": "Normal",
+        "reason": "Scheduled",
+        "count": 1,
+        "object": "pod/home-timeline-service-7b54b6f7b9-f56dl",
+        "last": "2026-10-18T14:53:41.535025Z",
+        "message": "Successfully assigned social-network/home-timeline-service-7b54b6f7b9-f56dl to kind-worker3"
+       }
+      ],
+      "logs": {
+       "total_lines": 2,
+       "error_lines": 1,
+       "error_lines_still_occurring": 1,
+       "error_lines_stopped": 0,
+       "telemetry_export_error_lines": 0,
+       "error_samples": [
+        {
+         "count": 1,
+         "line": "home-timeline-service: ERROR: Could not send span Failed to write message, numWritten=-1, size=1447: Message too long, code=90",
+         "first_seen_seconds_ago": 59,
+         "last_seen_seconds_ago": 59,
+         "state": "ongoing"
+        }
+       ],
+       "tail": [
+        "2026-10-18T14:53:43.920747423Z [2026-Oct-18 14:53:43.920060] <info>: (HomeTimelineService.cpp:141:main) Starting the home-timeline-service server...",
+        "2026-10-18T14:55:13.920698677Z ERROR: Could not send span Failed to write message, numWritten=-1, size=1447: Message too long, code=90"
+       ]
+      },
+      "configmaps": {
+       "home-timeline-service": {
+        "last_update": "2026-10-18T14:53:39Z",
+        "keys": [
+         "jaeger-config.yml",
+         "service-config.json"
+        ],
+        "data": {
+         "jaeger-config.yml": "disabled: false \u23ce reporter: \u23ce logSpans: false \u23ce localAgentHostPort: \"jaeger:6831\" \u23ce queueSize: 1000000 \u23ce bufferFlushInterval: 10 \u23ce sampler: \u23ce type: \"probabilistic\" \u23ce param: 0.01 \u23ce",
+         "service-config.json": "{ \u23ce \"secret\": \"secret\", \u23ce \"social-graph-service\": { \u23ce \"addr\": \"social-graph-service\", \u23ce \"port\": 9090, \u23ce \"connections\": 512, \u23ce \"timeout_ms\": 10000, \u23ce \"keepalive_ms\": 10000 \u23ce }, \u23ce \"social-graph-mongodb\": { \u23ce \"addr\": \"social-graph-mongodb\", \u23ce \"port\": 27017, \u23ce \"connections\": 512, \u23ce \"timeout_ms\": 10000, \u23ce \"keepalive_ms\": 10000 \u23ce }, \u23ce \"social-graph-redis\": { \u23ce \"addr\": \"social-graph-redis\", \u23ce \"port\": 63\u2026"
+        }
+       }
+      }
+     }
+    },
+    "deployment/social-graph-service": {
+     "kind": "Deployment",
+     "name": "social-graph-service",
+     "namespace": "social-network",
+     "healthy": false
+    }
+   },
+   "cluster": {
+    "symptom_onset": "2026-10-18T14:55:15+00:00",
+    "recent_changes": [
+     {
+      "object": "configmap/kube-system/coredns",
+      "at": "2026-10-18T14:18:25Z",
+      "modified_after_creation_s": 20204,
+      "fields": [
+       "data.Corefile"
+      ],
+      "seconds_ago": 2259,
+      "seconds_before_symptoms": 2210
+     }
+    ],
+    "findings": [
+     {
+      "kind": "ConfigMap",
+      "name": "coredns",
+      "namespace": "kube-system",
+      "signal": "ConfigMap coredns was modified 2259s ago, 20204s after it was created (fields: data.Corefile); 2210s before the first active symptom"
+     }
+    ]
+   }
+  },
+  "questions": {
+   "best_explanation": {
+    "type": "choice",
+    "criteria": {
+     "o1": "Origin: deployment/social-network/home-timeline-service. The fault is in this component; the mechanism is not established. | Observed impact on: deployment/social-network/home-timeline-service",
+     "o2": "Origin: deployment/social-network/jaeger. deployment/social-network/jaeger has a wrong setting of its own: PVC jaeger-pvc is ReadWriteOnce (attachable to one node at a time) but 2 replicas of this Deployment mount it and its required pod anti-affinity places replicas on different nodes; replicas scheduled on another node cannot attach it | Details: PVC jaeger-pvc is ReadWriteOnce (attachable to one node at a time) but 2 replicas of this Deployment mount it and its required pod anti-affinity places replicas on different nodes; replicas scheduled on another node cannot attach it | Observed impact on: deployment/social-network/jaeger | Checks: deployment/social-network/jaeger shows symptoms of its own (supports)",
+     "o3": "None of these explanations fits the evidence.",
+     "o4": "Origin: deployment/social-network/social-graph-service. The fault is in this component; the mechanism is not established. | Observed impact on: deployment/social-network/social-graph-service",
+     "o5": "Origin: configmap/kube-system/coredns. configmap coredns acts on the application: ConfigMap coredns was modified 2259s ago, 20204s after it was created (fields: data.Corefile); 2210s before the first active symptom. | Details: ConfigMap coredns was modified 2259s ago, 20204s after it was created (fields: data.Corefile); 2210s before the first active symptom"
+    },
+    "instructions": {
+     "question": "Which explanation best accounts for all the observed symptoms in `evidence`?",
+     "how_to_decide": [
+      "Prefer the explanation whose chain is supported by the observed facts and explains the most symptoms; an explanation contradicted by a fact is unlikely.",
+      "A component that only fails because something it calls fails is a victim, not the origin.",
+      "Choose `o3` when none of the explanations fits the evidence."
+     ]
+    }
+   }
+  },
+  "model": "typesafe/jev-1.13-20260917",
+  "latency_ms": 525,
+  "usage": {
+   "input_tokens": 7079,
+   "output_tokens": 61,
+   "cost": 0.000297318
+  },
+  "answers": {
+   "best_explanation": {
+    "type": "choice",
+    "choice": "o2",
+    "confidence": 0.7,
+    "probabilities": {
+     "o1": 0.01,
+     "o2": 0.76,
+     "o3": 0.06,
+     "o4": 0.0,
+     "o5": 0.17
+    }
+   }
+  }
+ },
+ {
+  "label": "decide:2",
+  "state": {
+   "application": {
+    "name": "Social Network",
+    "description": "A social network with unidirectional follow relationships, implemented with loosely-coupled microservices, communicating with each other via Thrift RPCs.",
+    "namespaces": [
+     "social-network"
+    ]
+   },
+   "evidence": {
+    "deployment/jaeger": {
+     "kind": "Deployment",
+     "name": "jaeger",
+     "namespace": "social-network",
+     "healthy": false,
+     "signals": [
+      "only 1 of 2 desired replicas are ready",
+      "pod jaeger-9fd7cdb7c-qjph2: pod phase Pending",
+      "pod jaeger-9fd7cdb7c-qjph2: pod unschedulable: 0/4 nodes are available: 1 node(s) didn't match pod anti-affinity rules, 1 node(s) had untolerated taint {node-role.kubernetes.io/control-plane: }, 2 node(s) h\u2026",
+      "warning events: FailedScheduling x3",
+      "PVC jaeger-pvc is ReadWriteOnce (attachable to one node at a time) but 2 replicas of this Deployment mount it and its required pod anti-affinity places replicas on different nodes; replicas scheduled on another node cannot attach it",
+      "pod jaeger-9fd7cdb7c-qjph2 is still in pod phase Pending after another 50s"
+     ],
+     "detail": {
+      "component": "deployment/jaeger",
+      "namespace": "social-network",
+      "workload": {
+       "created": "2026-10-18T14:53:49Z",
+       "last_spec_write": "2026-10-18T14:53:49Z",
+       "spec_writers": [
+        {
+         "manager": "kubectl-client-side-apply",
+         "op": "Update",
+         "time": "2026-10-18T14:53:49Z"
+        }
+       ],
+       "replicas": 2,
+       "strategy": {
+        "rollingUpdate": {
+         "maxSurge": "25%",
+         "maxUnavailable": "25%"
+        },
+        "type": "RollingUpdate"
+       },
+       "dns_policy": "ClusterFirst",
+       "affinity": "{\"podAntiAffinity\": {\"requiredDuringSchedulingIgnoredDuringExecution\": [{\"labelSelector\": {\"matchExpressions\": [{\"key\": \"service\", \"operator\": \"In\", \"values\": [\"jaeger\"]}]}, \"topologyKey\": \"kubernetes.io/hostname\"}]}}",
+       "restart_policy": "Always",
+       "containers": [
+        {
+         "name": "jaeger",
+         "image": "docker.io/jaegertracing/all-in-one:1.57",
+         "env": [
+          {
+           "name": "COLLECTOR_ZIPKIN_HTTP_PORT",
+           "value": "9411"
+          }
+         ],
+         "ports": [
+          {
+           "port": 5775
+          },
+          {
+           "port": 6831
+          },
+          {
+           "port": 6832
+          },
+          {
+           "port": 5778
+          },
+          {
+           "port": 16686
+          },
+          {
+           "port": 14268
+          },
+          {
+           "port": 9411
+          }
+         ],
+         "volume_mounts": [
+          {
+           "name": "jaeger-config",
+           "path": "/social-network-microservices/config/jaeger-config.yml",
+           "sub_path": "jaeger-config.yml"
+          },
+          {
+           "name": "jaeger-config",
+           "path": "/social-network-microservices/config/service-config.json",
+           "sub_path": "service-config.json"
+          },
+          {
+           "name": "jaeger-volume",
+           "path": "/jaeger-data"
+          }
+         ]
+        }
+       ],
+       "volumes": [
+        {
+         "name": "jaeger-config",
+         "configMap": {
+          "defaultMode": 420,
+          "name": "jaeger"
+         }
+        },
+        {
+         "name": "jaeger-volume",
+         "persistentVolumeClaim": {
+          "claimName": "jaeger-pvc"
+         }
+        }
+       ],
+       "template_labels": {
+        "app": "jaeger",
+        "service": "jaeger"
+       }
+      },
+      "pods": [
+       {
+        "name": "jaeger-9fd7cdb7c-qjph2",
+        "phase": "Pending",
+        "conditions": [
+         "PodScheduled=False (Unschedulable: 0/4 nodes are available: 1 node(s) didn't match pod anti-affinity rules, 1 node(s) had untolerated taint {node-role.kub\u2026)"
+        ]
+       },
+       {
+        "name": "jaeger-9fd7cdb7c-w6k46",
+        "node": "kind-worker",
+        "phase": "Running",
+        "started": "2026-10-18T14:53:53Z",
+        "ready_since": "2026-10-18T14:53:55Z",
+        "conditions": [
+         "PodReadyToStartContainers=True",
+         "Initialized=True",
+         "Ready=True",
+         "ContainersReady=True",
+         "PodScheduled=True"
+        ],
+        "containers": [
+         {
+          "name": "jaeger",
+          "ready": true,
+          "restarts": 0,
+          "state": {
+           "running": {
+            "startedAt": "2026-10-18T14:53:54Z"
+           }
+          }
+         }
+        ]
+       }
+      ],
+      "events": [
+       {
+        "type": "Normal",
+        "reason": "Pulled",
+        "count": 1,
+        "object": "pod/jaeger-9fd7cdb7c-w6k46",
+        "last": "2026-10-18T14:53:54Z",
+        "message": "Container image \"docker.io/jaegertracing/all-in-one:1.57\" already present on machine"
+       },
+       {
+        "type": "Normal",
+        "reason": "Created",
+        "count": 1,
+        "object": "pod/jaeger-9fd7cdb7c-w6k46",
+        "last": "2026-10-18T14:53:54Z",
+        "message": "Created container: jaeger"
+       },
+       {
+        "type": "Normal",
+        "reason": "Started",
+        "count": 1,
+        "object": "pod/jaeger-9fd7cdb7c-w6k46",
+        "last": "2026-10-18T14:53:54Z",
+        "message": "Started container jaeger"
+       },
+       {
+        "type": "Normal",
+        "reason": "Scheduled",
+        "count": 1,
+        "object": "pod/jaeger-9fd7cdb7c-w6k46",
+        "last": "2026-10-18T14:53:53.908785Z",
+        "message": "Successfully assigned social-network/jaeger-9fd7cdb7c-w6k46 to kind-worker"
+       },
+       {
+        "type": "Warning",
+        "reason": "FailedScheduling",
+        "count": 1,
+        "object": "pod/jaeger-9fd7cdb7c-qjph2",
+        "last": "2026-10-18T14:53:51.710943Z",
+        "message": "0/4 nodes are available: 1 node(s) didn't match pod anti-affinity rules, 1 node(s) had untolerated taint {node-role.kubernetes.io/control-plane: }, 2 node(s) didn't find available persistent volumes to bind. preemption: 0/4 nodes are available: 1 No preemption victims found for incoming pod, 3 Pree\u2026"
+       },
+       {
+        "type": "Normal",
+        "reason": "SuccessfulCreate",
+        "count": 1,
+        "object": "replicaset/jaeger-9fd7cdb7c",
+        "last": "2026-10-18T14:53:49Z",
+        "message": "Created pod: jaeger-9fd7cdb7c-w6k46"
+       },
+       {
+        "type": "Normal",
+        "reason": "SuccessfulCreate",
+        "count": 1,
+        "object": "replicaset/jaeger-9fd7cdb7c",
+        "last": "2026-10-18T14:53:49Z",
+        "message": "Created pod: jaeger-9fd7cdb7c-qjph2"
+       },
+       {
+        "type": "Warning",
+        "reason": "FailedScheduling",
+        "count": 1,
+        "object": "pod/jaeger-9fd7cdb7c-qjph2",
+        "last": "2026-10-18T14:53:49.901138Z",
+        "message": "0/4 nodes are available: 1 node(s) didn't match pod anti-affinity rules, 1 node(s) had untolerated taint {node-role.kubernetes.io/control-plane: }, 2 node(s) didn't find available persistent volumes to bind. preemption: 0/4 nodes are available: 1 No preemption victims found for incoming pod, 3 Pree\u2026"
+       }
+      ],
+      "logs": {
+       "total_lines": 46,
+       "error_lines": 0,
+       "error_lines_still_occurring": 0,
+       "error_lines_stopped": 0,
+       "telemetry_export_error_lines": 0,
+       "tail": [
+        "2026-10-18T14:53:54.986868831Z {\"level\":\"info\",\"ts\":1792335234.9868238,\"caller\":\"grpc@v1.63.2/clientconn.go:1825\",\"msg\":\"[core][Channel #6]Channel authority set to \\\"localhost:14250\\\"\",\"system\":\"grpc\u2026",
+        "2026-10-18T14:53:54.987064214Z {\"level\":\"info\",\"ts\":1792335234.9869647,\"caller\":\"grpc/builder.go:115\",\"msg\":\"Checking connection to collector\"}",
+        "2026-10-18T14:53:54.987089944Z {\"level\":\"info\",\"ts\":1792335234.9870045,\"caller\":\"grpc/builder.go:131\",\"msg\":\"Agent collector connection state change\",\"dialTarget\":\"localhost:14250\",\"status\":\"IDLE\"}",
+        "2026-10-18T14:53:54.988529938Z {\"level\":\"info\",\"ts\":1792335234.988239,\"caller\":\"all-in-one/main.go:265\",\"msg\":\"Starting agent\"}",
+        "2026-10-18T14:53:54.988691619Z {\"level\":\"info\",\"ts\":1792335234.98862,\"caller\":\"app/agent.go:69\",\"msg\":\"Starting jaeger-agent HTTP server\",\"http-port\":5778}",
+        "2026-10-18T14:53:54.988911287Z {\"level\":\"info\",\"ts\":1792335234.988853,\"caller\":\"grpc@v1.63.2/server.go:675\",\"msg\":\"[core][Server #7]Server created\",\"system\":\"grpc\",\"grpc_log\":true}",
+        "2026-10-18T14:53:54.990733703Z {\"level\":\"info\",\"ts\":1792335234.9905694,\"caller\":\"app/static_handler.go:109\",\"msg\":\"Using UI configuration\",\"path\":\"\"}",
+        "2026-10-18T14:53:54.991388528Z {\"level\":\"info\",\"ts\":1792335234.9912968,\"caller\":\"app/server.go:236\",\"msg\":\"Query server started\",\"http_addr\":\"[::]:16686\",\"grpc_addr\":\"[::]:16685\"}",
+        "2026-10-18T14:53:54.991401394Z {\"level\":\"info\",\"ts\":1792335234.9913301,\"caller\":\"healthcheck/handler.go:129\",\"msg\":\"Health Check state change\",\"status\":\"ready\"}",
+        "2026-10-18T14:53:54.991446050Z {\"level\":\"info\",\"ts\":1792335234.9913704,\"caller\":\"app/server.go:301\",\"msg\":\"Starting HTTP server\",\"port\":16686,\"addr\":\":16686\"}",
+        "2026-10-18T14:53:54.991450302Z {\"level\":\"info\",\"ts\":1792335234.9913857,\"caller\":\"app/server.go:319\",\"msg\":\"Starting GRPC server\",\"port\":16685,\"addr\":\":16685\"}",
+        "2026-10-18T14:53:54.991520113Z {\"level\":\"info\",\"ts\":1792335234.991457,\"caller\":\"grpc@v1.63.2/server.go:871\",\"msg\":\"[core][Server #7 ListenSocket #8]ListenSocket created\",\"system\":\"grpc\",\"grpc_log\":tr\u2026"
+       ]
+      },
+      "configmaps": {
+       "jaeger": {
+        "last_update": "2026-10-18T14:53:39Z",
+        "keys": [
+         "jaeger-config.yml",
+         "service-config.json"
+        ],
+        "data": {
+         "jaeger-config.yml": "disabled: false \u23ce reporter: \u23ce logSpans: false \u23ce localAgentHostPort: \"jaeger:6831\" \u23ce queueSize: 1000000 \u23ce bufferFlushInterval: 10 \u23ce sampler: \u23ce type: \"probabilistic\" \u23ce param: 0.01 \u23ce",
+         "service-config.json": "{ \u23ce \"secret\": \"secret\", \u23ce \"social-graph-service\": { \u23ce \"addr\": \"social-graph-service\", \u23ce \"port\": 9090, \u23ce \"connections\": 512, \u23ce \"timeout_ms\": 10000, \u23ce \"keepalive_ms\": 10000 \u23ce }, \u23ce \"social-graph-mongodb\": { \u23ce \"addr\": \"social-graph-mongodb\", \u23ce \"port\": 27017, \u23ce \"connections\": 512, \u23ce \"timeout_ms\": 10000, \u23ce \"keepalive_ms\": 10000 \u23ce }, \u23ce \"social-graph-redis\": { \u23ce \"addr\": \"social-graph-redis\", \u23ce \"port\": 63\u2026"
+        }
+       }
+      }
+     }
+    },
+    "deployment/home-timeline-service": {
+     "kind": "Deployment",
+     "name": "home-timeline-service",
+     "namespace": "social-network",
+     "healthy": false,
+     "detail": {
+      "component": "deployment/home-timeline-service",
+      "namespace": "social-network",
+      "workload": {
+       "created": "2026-10-18T14:53:40Z",
+       "last_spec_write": "2026-10-18T14:53:40Z",
+       "spec_writers": [
+        {
+         "manager": "helm",
+         "op": "Apply",
+         "time": "2026-10-18T14:53:40Z"
+        }
+       ],
+       "replicas": 1,
+       "strategy": {
+        "rollingUpdate": {
+         "maxSurge": "25%",
+         "maxUnavailable": "25%"
+        },
+        "type": "RollingUpdate"
+       },
+       "dns_policy": "ClusterFirst",
+       "restart_policy": "Always",
+       "containers": [
+        {
+         "name": "home-timeline-service",
+         "image": "ghcr.io/sregym/social-network:sha-d2c036bc3d1138f5a0bdaffd3d87f37522c3461a@sha256:70287c4756f9187613e49409291927c342724e3974f93709b21595ed1cdf1d69",
+         "command": [
+          "HomeTimelineService"
+         ],
+         "ports": [
+          {
+           "port": 9090
+          }
+         ],
+         "volume_mounts": [
+          {
+           "name": "home-timeline-service-config",
+           "path": "/social-network-microservices/config/jaeger-config.yml",
+           "sub_path": "jaeger-config.yml"
+          },
+          {
+           "name": "home-timeline-service-config",
+           "path": "/social-network-microservices/config/service-config.json",
+           "sub_path": "service-config.json"
+          }
+         ]
+        }
+       ],
+       "volumes": [
+        {
+         "name": "home-timeline-service-config",
+         "configMap": {
+          "defaultMode": 420,
+          "name": "home-timeline-service"
+         }
+        }
+       ],
+       "template_labels": {
+        "app": "home-timeline-service",
+        "service": "home-timeline-service"
+       }
+      },
+      "pods": [
+       {
+        "name": "home-timeline-service-7b54b6f7b9-f56dl",
+        "node": "kind-worker3",
+        "phase": "Running",
+        "started": "2026-10-18T14:53:41Z",
+        "ready_since": "2026-10-18T14:53:43Z",
+        "conditions": [
+         "PodReadyToStartContainers=True",
+         "Initialized=True",
+         "Ready=True",
+         "ContainersReady=True",
+         "PodScheduled=True"
+        ],
+        "containers": [
+         {
+          "name": "home-timeline-service",
+          "ready": true,
+          "restarts": 0,
+          "state": {
+           "running": {
+            "startedAt": "2026-10-18T14:53:43Z"
+           }
+          }
+         }
+        ]
+       }
+      ],
+      "events": [
+       {
+        "type": "Normal",
+        "reason": "Pulled",
+        "count": 1,
+        "object": "pod/home-timeline-service-7b54b6f7b9-f56dl",
+        "last": "2026-10-18T14:53:43Z",
+        "message": "Container image \"ghcr.io/sregym/social-network:sha-d2c036bc3d1138f5a0bdaffd3d87f37522c3461a@sha256:70287c4756f9187613e49409291927c342724e3974f93709b21595ed1cdf1d69\" already present on machine"
+       },
+       {
+        "type": "Normal",
+        "reason": "Created",
+        "count": 1,
+        "object": "pod/home-timeline-service-7b54b6f7b9-f56dl",
+        "last": "2026-10-18T14:53:43Z",
+        "message": "Created container: home-timeline-service"
+       },
+       {
+        "type": "Normal",
+        "reason": "Started",
+        "count": 1,
+        "object": "pod/home-timeline-service-7b54b6f7b9-f56dl",
+        "last": "2026-10-18T14:53:43Z",
+        "message": "Started container home-timeline-service"
+       },
+       {
+        "type": "Normal",
+        "reason": "SuccessfulCreate",
+        "count": 1,
+        "object": "replicaset/home-timeline-service-7b54b6f7b9",
+        "last": "2026-10-18T14:53:41Z",
+        "message": "Created pod: home-timeline-service-7b54b6f7b9-f56dl"
+       },
+       {
+        "type": "Normal",
+        "reason": "Scheduled",
+        "count": 1,
+        "object": "pod/home-timeline-service-7b54b6f7b9-f56dl",
+        "last": "2026-10-18T14:53:41.535025Z",
+        "message": "Successfully assigned social-network/home-timeline-service-7b54b6f7b9-f56dl to kind-worker3"
+       }
+      ],
+      "logs": {
+       "total_lines": 2,
+       "error_lines": 1,
+       "error_lines_still_occurring": 1,
+       "error_lines_stopped": 0,
+       "telemetry_export_error_lines": 0,
+       "error_samples": [
+        {
+         "count": 1,
+         "line": "home-timeline-service: ERROR: Could not send span Failed to write message, numWritten=-1, size=1447: Message too long, code=90",
+         "first_seen_seconds_ago": 59,
+         "last_seen_seconds_ago": 59,
+         "state": "ongoing"
+        }
+       ],
+       "tail": [
+        "2026-10-18T14:53:43.920747423Z [2026-Oct-18 14:53:43.920060] <info>: (HomeTimelineService.cpp:141:main) Starting the home-timeline-service server...",
+        "2026-10-18T14:55:13.920698677Z ERROR: Could not send span Failed to write message, numWritten=-1, size=1447: Message too long, code=90"
+       ]
+      },
+      "configmaps": {
+       "home-timeline-service": {
+        "last_update": "2026-10-18T14:53:39Z",
+        "keys": [
+         "jaeger-config.yml",
+         "service-config.json"
+        ],
+        "data": {
+         "jaeger-config.yml": "disabled: false \u23ce reporter: \u23ce logSpans: false \u23ce localAgentHostPort: \"jaeger:6831\" \u23ce queueSize: 1000000 \u23ce bufferFlushInterval: 10 \u23ce sampler: \u23ce type: \"probabilistic\" \u23ce param: 0.01 \u23ce",
+         "service-config.json": "{ \u23ce \"secret\": \"secret\", \u23ce \"social-graph-service\": { \u23ce \"addr\": \"social-graph-service\", \u23ce \"port\": 9090, \u23ce \"connections\": 512, \u23ce \"timeout_ms\": 10000, \u23ce \"keepalive_ms\": 10000 \u23ce }, \u23ce \"social-graph-mongodb\": { \u23ce \"addr\": \"social-graph-mongodb\", \u23ce \"port\": 27017, \u23ce \"connections\": 512, \u23ce \"timeout_ms\": 10000, \u23ce \"keepalive_ms\": 10000 \u23ce }, \u23ce \"social-graph-redis\": { \u23ce \"addr\": \"social-graph-redis\", \u23ce \"port\": 63\u2026"
+        }
+       }
+      }
+     }
+    },
+    "deployment/social-graph-service": {
+     "kind": "Deployment",
+     "name": "social-graph-service",
+     "namespace": "social-network",
+     "healthy": false
+    }
+   },
+   "cluster": {
+    "symptom_onset": "2026-10-18T14:55:15+00:00",
+    "recent_changes": [
+     {
+      "object": "configmap/kube-system/coredns",
+      "at": "2026-10-18T14:18:25Z",
+      "modified_after_creation_s": 20204,
+      "fields": [
+       "data.Corefile"
+      ],
+      "seconds_ago": 2259,
+      "seconds_before_symptoms": 2210
+     }
+    ],
+    "findings": [
+     {
+      "kind": "ConfigMap",
+      "name": "coredns",
+      "namespace": "kube-system",
+      "signal": "ConfigMap coredns was modified 2259s ago, 20204s after it was created (fields: data.Corefile); 2210s before the first active symptom"
+     }
+    ]
+   }
+  },
+  "questions": {
+   "best_explanation": {
+    "type": "choice",
+    "criteria": {
+     "o1": "Origin: deployment/social-network/social-graph-service. The fault is in this component; the mechanism is not established. | Observed impact on: deployment/social-network/social-graph-service",
+     "o2": "Origin: deployment/social-network/jaeger. deployment/social-network/jaeger has a wrong setting of its own: PVC jaeger-pvc is ReadWriteOnce (attachable to one node at a time) but 2 replicas of this Deployment mount it and its required pod anti-affinity places replicas on different nodes; replicas scheduled on another node cannot attach it | Details: PVC jaeger-pvc is ReadWriteOnce (attachable to one node at a time) but 2 replicas of this Deployment mount it and its required pod anti-affinity places replicas on different nodes; replicas scheduled on another node cannot attach it | Observed impact on: deployment/social-network/jaeger | Checks: deployment/social-network/jaeger shows symptoms of its own (supports)",
+     "o3": "Origin: configmap/kube-system/coredns. configmap coredns acts on the application: ConfigMap coredns was modified 2259s ago, 20204s after it was created (fields: data.Corefile); 2210s before the first active symptom. | Details: ConfigMap coredns was modified 2259s ago, 20204s after it was created (fields: data.Corefile); 2210s before the first active symptom",
+     "o4": "Origin: deployment/social-network/home-timeline-service. The fault is in this component; the mechanism is not established. | Observed impact on: deployment/social-network/home-timeline-service",
+     "o5": "None of these explanations fits the evidence."
+    },
+    "instructions": {
+     "question": "Which explanation best accounts for all the observed symptoms in `evidence`?",
+     "how_to_decide": [
+      "Prefer the explanation whose chain is supported by the observed facts and explains the most symptoms; an explanation contradicted by a fact is unlikely.",
+      "A component that only fails because something it calls fails is a victim, not the origin.",
+      "Choose `o5` when none of the explanations fits the evidence."
+     ]
+    }
+   }
+  },
+  "model": "typesafe/jev-1.13-20260917",
+  "latency_ms": 614,
+  "usage": {
+   "input_tokens": 7079,
+   "output_tokens": 61,
+   "cost": 0.000297318
+  },
+  "answers": {
+   "best_explanation": {
+    "type": "choice",
+    "choice": "o2",
+    "confidence": 0.65,
+    "probabilities": {
+     "o1": 0.01,
+     "o2": 0.72,
+     "o3": 0.15,
+     "o4": 0.01,
+     "o5": 0.11
+    }
+   }
+  }
+ }
+]

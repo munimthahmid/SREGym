@@ -1,0 +1,534 @@
+{
+ "problem_id": "jev_diag_anon_0a7a7b9624e1c4712761f1a31fcf1f1e_20261019_022232",
+ "submit_arm": 0,
+ "order": [
+  1,
+  2,
+  0,
+  3
+ ],
+ "arms": [
+  {
+   "arm": 0,
+   "kind": "v2",
+   "model": "openrouter/typesafe/jev-1.13",
+   "position": 2,
+   "seconds": 5.7,
+   "requests": 4,
+   "input_tokens": 40232,
+   "cost_usd": 0.00169,
+   "error": null,
+   "investigation": {
+    "rounds": [
+     {
+      "candidates": [
+       "acts-on:service/frontend:selector {'current_service_name': 'frontend', 'opentelemetry",
+       "change:daemonset/otel-collector-agent:template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-19T08:22:14+06:00",
+       "change:daemonset/astronomy-shop/otel-collector-agent",
+       "partial:deployment/frontend",
+       "acts-on:configmap/kube-system/coredns:ConfigMap coredns was modified 403s ago, 63373s after it was"
+      ],
+      "probabilities": {
+       "acts-on:service/frontend:selector {'current_service_name': 'frontend', 'opentelemetry": 0.955,
+       "change:daemonset/otel-collector-agent:template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-19T08:22:14+06:00": 0.015,
+       "change:daemonset/astronomy-shop/otel-collector-agent": 0.005,
+       "partial:deployment/frontend": 0.0,
+       "acts-on:configmap/kube-system/coredns:ConfigMap coredns was modified 403s ago, 63373s after it was": 0.01,
+       "none_of_these": 0.015
+      },
+      "picks": [
+       "acts-on:service/frontend:selector {'current_service_name': 'frontend', 'opentelemetry",
+       "acts-on:service/frontend:selector {'current_service_name': 'frontend', 'opentelemetry"
+      ],
+      "route": "accept"
+     }
+    ],
+    "explanations": 5,
+    "winner": "acts-on:service/frontend:selector {'current_service_name': 'frontend', 'opentelemetry",
+    "pattern": "acts-on",
+    "key_fact": "service frontend selector {'current_service_name': 'frontend', 'opentelemetry.io/name': 'frontend'} does not match this workload's pod labels {'app.kubernetes.io/component': 'frontend', 'app.kubernetes.io/name': 'frontend', 'app.kubernetes.io/version': '2.2.0', 'opentelemetry.io/name': 'frontend'}",
+    "key_fact_probability": 0.97,
+    "fault_type": "service_routing",
+    "fault_object": null,
+    "uncertain": false
+   },
+   "text": "Root cause: service `frontend`.\nMechanism: service frontend acts on deployment/frontend: selector {'current_service_name': 'frontend', 'opentelemetry.io/name': 'frontend'} matches no workload; Service frontend was modified 132s ago, 27s after it was created (fields: spec.selector); 61s before the first active symptom.\nConcrete details: selector {'current_service_name': 'frontend', 'opentelemetry.io/name': 'frontend'} matches no workload; Service frontend was modified 132s ago, 27s after it was created (fields: spec.selector); 61s before the first active symptom; service frontend selector {'current_service_name': 'frontend', 'opentelemetry.io/name': 'frontend'} does not match this workload's pod labels {'app.kubernetes.io/component': 'frontend', 'app.kubernetes.io/name': 'frontend', 'app.kubernetes.io/version': '2.2.0', 'opentelemetry.io/name': 'frontend'}.\nObserved impact: deployment `frontend` in namespace `astronomy-shop`.\nFault type: service routing (a Service selector or port sends traffic to the wrong pods or to none).\nEvidence:\n- selector {'current_service_name': 'frontend', 'opentelemetry.io/name': 'frontend'} matches no workload; Service frontend was modified 132s ago, 27s after it was created (fields: spec.selector); 61s before the first active symptom\n- service frontend selector {'current_service_name': 'frontend', 'opentelemetry.io/name': 'frontend'} does not match this workload's pod labels {'app.kubernetes.io/component': 'frontend', 'app.kubernetes.io/name': 'frontend', 'app.kubernetes.io/version': '2.2.0', 'opentelemetry.io/name': 'frontend'}\n- deployment/frontend: service frontend selector {'current_service_name': 'frontend', 'opentelemetry.io/name': 'frontend'} does not match this workload's pod labels {'app.kubernetes.io/component': 'frontend', 'app.kubernetes.io/name': 'frontend', 'app.kubernetes.io/version': '2.2.0', 'opentelemetry.io/name': 'frontend'}",
+   "grade": {
+    "judgment": "True",
+    "reasoning": "Verdict: True (composite=1.00). D1 Fault Localization: 1.00 | D2 Fault Characterization: 1.00 | D3 Scope Precision: 1.00. Weakest dimension: Fault Localization (1.00). Checklist details: [{\"id\": \"D1-Q1\", \"answer\": \"Yes\", \"evidence\": \"Diagnosis explicitly identifies service `frontend` as the root cause and places the affected frontend deployment in namespace `astronomy-shop`.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q2\", \"answer\": \"Yes\", \"evidence\": \"The Service selector is identified as the fault origin; deployment/frontend is described as the affected workload.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q3\", \"answer\": \"Yes\", \"evidence\": \"Diagnosis blames service `frontend` and its selector, rather than attributing the fault to a healthy deployment.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q1\", \"answer\": \"Yes\", \"evidence\": \"Diagnosis states that the frontend Service selector does not match the workload's pod labels, matching the ground-truth selector misconfiguration.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q2\", \"answer\": \"Yes\", \"evidence\": \"Diagnosis identifies selector label `current_service_name: frontend` and shows that this label is absent from the backing pod labels.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q3\", \"answer\": \"Yes\", \"evidence\": \"Diagnosis classifies the fault as service routing and specifically attributes it to a selector matching no workload.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q1\", \"answer\": \"Yes\", \"evidence\": \"Only the frontend Service is blamed; the frontend deployment is identified as affected by the Service selector mismatch.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q2\", \"answer\": \"Yes\", \"evidence\": \"Diagnosis includes service `frontend` and its intended deployment/frontend workload in namespace `astronomy-shop`, covering the components described in ground truth.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q3\", \"answer\": \"Yes\", \"evidence\": \"Diagnosis describes a selector matching no workload and service routing sending traffic to no pods, consistent with the ground-truth service-layer routing failure.\", \"confidence\": \"High\"}]",
+    "success": true,
+    "accuracy": 100.0,
+    "composite_score": 1.0,
+    "dimensions": {
+     "D1": {
+      "name": "Fault Localization",
+      "score": 1.0
+     },
+     "D2": {
+      "name": "Fault Characterization",
+      "score": 1.0
+     },
+     "D3": {
+      "name": "Scope Precision",
+      "score": 1.0
+     }
+    },
+    "checklist": [
+     {
+      "id": "D1-Q1",
+      "answer": "Yes",
+      "evidence": "Diagnosis explicitly identifies service `frontend` as the root cause and places the affected frontend deployment in namespace `astronomy-shop`.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q2",
+      "answer": "Yes",
+      "evidence": "The Service selector is identified as the fault origin; deployment/frontend is described as the affected workload.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q3",
+      "answer": "Yes",
+      "evidence": "Diagnosis blames service `frontend` and its selector, rather than attributing the fault to a healthy deployment.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q1",
+      "answer": "Yes",
+      "evidence": "Diagnosis states that the frontend Service selector does not match the workload's pod labels, matching the ground-truth selector misconfiguration.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q2",
+      "answer": "Yes",
+      "evidence": "Diagnosis identifies selector label `current_service_name: frontend` and shows that this label is absent from the backing pod labels.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q3",
+      "answer": "Yes",
+      "evidence": "Diagnosis classifies the fault as service routing and specifically attributes it to a selector matching no workload.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q1",
+      "answer": "Yes",
+      "evidence": "Only the frontend Service is blamed; the frontend deployment is identified as affected by the Service selector mismatch.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q2",
+      "answer": "Yes",
+      "evidence": "Diagnosis includes service `frontend` and its intended deployment/frontend workload in namespace `astronomy-shop`, covering the components described in ground truth.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q3",
+      "answer": "Yes",
+      "evidence": "Diagnosis describes a selector matching no workload and service routing sending traffic to no pods, consistent with the ground-truth service-layer routing failure.",
+      "confidence": "High"
+     }
+    ]
+   }
+  },
+  {
+   "arm": 1,
+   "kind": "v2",
+   "model": "openrouter/openai/gpt-6-luna-decisions",
+   "position": 0,
+   "seconds": 6.3,
+   "requests": 4,
+   "input_tokens": 26606,
+   "cost_usd": 0.002661,
+   "error": null,
+   "investigation": {
+    "rounds": [
+     {
+      "candidates": [
+       "acts-on:service/frontend:selector {'current_service_name': 'frontend', 'opentelemetry",
+       "change:daemonset/otel-collector-agent:template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-19T08:22:14+06:00",
+       "change:daemonset/astronomy-shop/otel-collector-agent",
+       "partial:deployment/frontend",
+       "acts-on:configmap/kube-system/coredns:ConfigMap coredns was modified 403s ago, 63373s after it was"
+      ],
+      "probabilities": {
+       "acts-on:service/frontend:selector {'current_service_name': 'frontend', 'opentelemetry": 0.885,
+       "change:daemonset/otel-collector-agent:template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-19T08:22:14+06:00": 0.07,
+       "change:daemonset/astronomy-shop/otel-collector-agent": 0.005,
+       "partial:deployment/frontend": 0.01,
+       "acts-on:configmap/kube-system/coredns:ConfigMap coredns was modified 403s ago, 63373s after it was": 0.015,
+       "none_of_these": 0.015
+      },
+      "picks": [
+       "acts-on:service/frontend:selector {'current_service_name': 'frontend', 'opentelemetry",
+       "acts-on:service/frontend:selector {'current_service_name': 'frontend', 'opentelemetry"
+      ],
+      "route": "accept"
+     }
+    ],
+    "explanations": 5,
+    "winner": "acts-on:service/frontend:selector {'current_service_name': 'frontend', 'opentelemetry",
+    "pattern": "acts-on",
+    "key_fact": "service frontend selector {'current_service_name': 'frontend', 'opentelemetry.io/name': 'frontend'} does not match this workload's pod labels {'app.kubernetes.io/component': 'frontend', 'app.kubernetes.io/name': 'frontend', 'app.kubernetes.io/version': '2.2.0', 'opentelemetry.io/name': 'frontend'}",
+    "key_fact_probability": 0.965,
+    "fault_type": "service_routing",
+    "fault_object": null,
+    "uncertain": false
+   },
+   "text": "Root cause: service `frontend`.\nMechanism: service frontend acts on deployment/frontend: selector {'current_service_name': 'frontend', 'opentelemetry.io/name': 'frontend'} matches no workload; Service frontend was modified 132s ago, 27s after it was created (fields: spec.selector); 61s before the first active symptom.\nConcrete details: selector {'current_service_name': 'frontend', 'opentelemetry.io/name': 'frontend'} matches no workload; Service frontend was modified 132s ago, 27s after it was created (fields: spec.selector); 61s before the first active symptom; service frontend selector {'current_service_name': 'frontend', 'opentelemetry.io/name': 'frontend'} does not match this workload's pod labels {'app.kubernetes.io/component': 'frontend', 'app.kubernetes.io/name': 'frontend', 'app.kubernetes.io/version': '2.2.0', 'opentelemetry.io/name': 'frontend'}.\nObserved impact: deployment `frontend` in namespace `astronomy-shop`.\nFault type: service routing (a Service selector or port sends traffic to the wrong pods or to none).\nEvidence:\n- selector {'current_service_name': 'frontend', 'opentelemetry.io/name': 'frontend'} matches no workload; Service frontend was modified 132s ago, 27s after it was created (fields: spec.selector); 61s before the first active symptom\n- service frontend selector {'current_service_name': 'frontend', 'opentelemetry.io/name': 'frontend'} does not match this workload's pod labels {'app.kubernetes.io/component': 'frontend', 'app.kubernetes.io/name': 'frontend', 'app.kubernetes.io/version': '2.2.0', 'opentelemetry.io/name': 'frontend'}\n- deployment/frontend: service frontend selector {'current_service_name': 'frontend', 'opentelemetry.io/name': 'frontend'} does not match this workload's pod labels {'app.kubernetes.io/component': 'frontend', 'app.kubernetes.io/name': 'frontend', 'app.kubernetes.io/version': '2.2.0', 'opentelemetry.io/name': 'frontend'}",
+   "grade": {
+    "judgment": "True",
+    "reasoning": "Verdict: True (composite=1.00). D1 Fault Localization: 1.00 | D2 Fault Characterization: 1.00 | D3 Scope Precision: 1.00. Weakest dimension: Fault Localization (1.00). Checklist details: [{\"id\": \"D1-Q1\", \"answer\": \"Yes\", \"evidence\": \"Diagnosis explicitly identifies the root cause as service `frontend`, matching the ground-truth fault origin.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q2\", \"answer\": \"Yes\", \"evidence\": \"Diagnosis identifies service `frontend` as the root cause and deployment `frontend` as the observed impact.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q3\", \"answer\": \"Yes\", \"evidence\": \"Diagnosis blames the frontend Service selector, not a healthy deployment or unrelated component.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q1\", \"answer\": \"Yes\", \"evidence\": \"Diagnosis states that the frontend Service selector does not match the workload's pod labels, matching the injected selector misconfiguration.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q2\", \"answer\": \"Yes\", \"evidence\": \"Diagnosis specifies selector label `current_service_name: frontend` and lists backing pod labels lacking that key, concretely describing the incorrect additional label.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q3\", \"answer\": \"Yes\", \"evidence\": \"Diagnosis classifies the fault as service routing and specifically attributes it to the mismatched Service selector.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q1\", \"answer\": \"Yes\", \"evidence\": \"Only the frontend Service is blamed; the frontend deployment is identified as affected by its selector mismatch.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q2\", \"answer\": \"Yes\", \"evidence\": \"Diagnosis includes service `frontend` and its backing deployment `frontend` in namespace `astronomy-shop`.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q3\", \"answer\": \"Yes\", \"evidence\": \"Diagnosis states the selector matches no workload and describes service routing to no pods, consistent with missing endpoints and routing failures.\", \"confidence\": \"High\"}]",
+    "success": true,
+    "accuracy": 100.0,
+    "composite_score": 1.0,
+    "dimensions": {
+     "D1": {
+      "name": "Fault Localization",
+      "score": 1.0
+     },
+     "D2": {
+      "name": "Fault Characterization",
+      "score": 1.0
+     },
+     "D3": {
+      "name": "Scope Precision",
+      "score": 1.0
+     }
+    },
+    "checklist": [
+     {
+      "id": "D1-Q1",
+      "answer": "Yes",
+      "evidence": "Diagnosis explicitly identifies the root cause as service `frontend`, matching the ground-truth fault origin.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q2",
+      "answer": "Yes",
+      "evidence": "Diagnosis identifies service `frontend` as the root cause and deployment `frontend` as the observed impact.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q3",
+      "answer": "Yes",
+      "evidence": "Diagnosis blames the frontend Service selector, not a healthy deployment or unrelated component.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q1",
+      "answer": "Yes",
+      "evidence": "Diagnosis states that the frontend Service selector does not match the workload's pod labels, matching the injected selector misconfiguration.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q2",
+      "answer": "Yes",
+      "evidence": "Diagnosis specifies selector label `current_service_name: frontend` and lists backing pod labels lacking that key, concretely describing the incorrect additional label.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q3",
+      "answer": "Yes",
+      "evidence": "Diagnosis classifies the fault as service routing and specifically attributes it to the mismatched Service selector.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q1",
+      "answer": "Yes",
+      "evidence": "Only the frontend Service is blamed; the frontend deployment is identified as affected by its selector mismatch.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q2",
+      "answer": "Yes",
+      "evidence": "Diagnosis includes service `frontend` and its backing deployment `frontend` in namespace `astronomy-shop`.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q3",
+      "answer": "Yes",
+      "evidence": "Diagnosis states the selector matches no workload and describes service routing to no pods, consistent with missing endpoints and routing failures.",
+      "confidence": "High"
+     }
+    ]
+   }
+  },
+  {
+   "arm": 2,
+   "kind": "v1",
+   "model": "openrouter/typesafe/jev-1.13",
+   "position": 1,
+   "seconds": 3.5,
+   "requests": 2,
+   "input_tokens": 37754,
+   "cost_usd": 0.001586,
+   "error": null,
+   "investigation": {
+    "steps": [
+     {
+      "step": 1,
+      "node": "investigate",
+      "component": "deployment/frontend",
+      "verdict": "origin",
+      "origin_p": 0.91,
+      "victim_p": 0.04,
+      "next": "none",
+      "next_p": 0.44,
+      "category": "service_routing",
+      "spec_checks": [
+       "service frontend has no ready endpoints"
+      ],
+      "blocked_input": null,
+      "key_evidence": "service frontend selector {'current_service_name': 'frontend', 'opentelemetry.io/name': 'frontend'} does not match this workload's pod labels {'app.kubernetes.io/component': 'frontend', 'app.kubernetes.io/name': 'frontend', 'app.kubernetes.io/version': '2.2.0', 'opentelemetry.io/name': 'frontend'}"
+     }
+    ],
+    "concluded": "deployment/frontend",
+    "fallback": null,
+    "triage_top": [
+     [
+      "deployment/frontend",
+      0.86
+     ],
+     [
+      "daemonset/otel-collector-agent",
+      0.09
+     ],
+     [
+      "other",
+      0.05
+     ],
+     [
+      "deployment/accounting",
+      0.0
+     ],
+     [
+      "deployment/ad",
+      0.0
+     ]
+    ]
+   },
+   "text": "Root cause component: Deployment `frontend` in namespace `astronomy-shop`.\nMechanism: service frontend selector {'current_service_name': 'frontend', 'opentelemetry.io/name': 'frontend'} does not match this workload's pod labels {'app.kubernetes.io/component': 'frontend', 'app.kubernetes.io/name': 'frontend', 'app.kubernetes.io/version': '2.2.0', 'opentelemetry.io/name': 'frontend'}.\nFault object: Service `frontend`: selector {'current_service_name': 'frontend', 'opentelemetry.io/name': 'frontend'} matches no workload; Service frontend was modified 132s ago, 27s after it was created (fields: spec.selector); 61s before the first active symptom.\nFault type: service routing (a Service selector or port sends traffic to the wrong pods or to none).\n- container frontend: image ghcr.io/open-telemetry/demo:2.2.0-frontend, limits {'memory': '250Mi'}\nClassification: Jev (typesafe/jev-1.13-20260917) confirmed this origin at investigation step 1 with probability 0.91 (triage probability 0.86).",
+   "grade": {
+    "judgment": "True",
+    "reasoning": "Verdict: True (composite=1.00). D1 Fault Localization: 1.00 | D2 Fault Characterization: 1.00 | D3 Scope Precision: 1.00. Weakest dimension: Fault Localization (1.00). Checklist details: [{\"id\": \"D1-Q1\", \"answer\": \"Yes\", \"evidence\": \"Explicitly identifies the fault object as Service frontend and places frontend in namespace astronomy-shop.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q2\", \"answer\": \"Yes\", \"evidence\": \"Attributes the failure to Service frontend's selector matching no workload, rather than a downstream victim.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q3\", \"answer\": \"Yes\", \"evidence\": \"Although the opening labels Deployment frontend as the root component, the explicit fault object and mechanism identify Service frontend's selector.\", \"confidence\": \"Medium\"}, {\"id\": \"D2-Q1\", \"answer\": \"Yes\", \"evidence\": \"States that Service frontend's selector does not match the workload's pod labels, matching the ground-truth selector misconfiguration.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q2\", \"answer\": \"Yes\", \"evidence\": \"Lists the selector's current_service_name: frontend label and pod labels lacking that key, concretely describing the incorrect additional selector label.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q3\", \"answer\": \"Yes\", \"evidence\": \"Classifies the fault as service routing and specifically attributes it to a selector matching no workload.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q1\", \"answer\": \"Yes\", \"evidence\": \"Confines the causal mechanism to Service frontend's selector; no additional service or unrelated workload is blamed.\", \"confidence\": \"Medium\"}, {\"id\": \"D3-Q2\", \"answer\": \"Yes\", \"evidence\": \"Names frontend, the sole component identified in the ground truth, and its Service fault object.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q3\", \"answer\": \"Yes\", \"evidence\": \"Reports that the selector matches no workload and describes service routing sending traffic to no pods, consistent with missing endpoints and routing failures.\", \"confidence\": \"High\"}]",
+    "success": true,
+    "accuracy": 100.0,
+    "composite_score": 1.0,
+    "dimensions": {
+     "D1": {
+      "name": "Fault Localization",
+      "score": 1.0
+     },
+     "D2": {
+      "name": "Fault Characterization",
+      "score": 1.0
+     },
+     "D3": {
+      "name": "Scope Precision",
+      "score": 1.0
+     }
+    },
+    "checklist": [
+     {
+      "id": "D1-Q1",
+      "answer": "Yes",
+      "evidence": "Explicitly identifies the fault object as Service frontend and places frontend in namespace astronomy-shop.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q2",
+      "answer": "Yes",
+      "evidence": "Attributes the failure to Service frontend's selector matching no workload, rather than a downstream victim.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q3",
+      "answer": "Yes",
+      "evidence": "Although the opening labels Deployment frontend as the root component, the explicit fault object and mechanism identify Service frontend's selector.",
+      "confidence": "Medium"
+     },
+     {
+      "id": "D2-Q1",
+      "answer": "Yes",
+      "evidence": "States that Service frontend's selector does not match the workload's pod labels, matching the ground-truth selector misconfiguration.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q2",
+      "answer": "Yes",
+      "evidence": "Lists the selector's current_service_name: frontend label and pod labels lacking that key, concretely describing the incorrect additional selector label.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q3",
+      "answer": "Yes",
+      "evidence": "Classifies the fault as service routing and specifically attributes it to a selector matching no workload.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q1",
+      "answer": "Yes",
+      "evidence": "Confines the causal mechanism to Service frontend's selector; no additional service or unrelated workload is blamed.",
+      "confidence": "Medium"
+     },
+     {
+      "id": "D3-Q2",
+      "answer": "Yes",
+      "evidence": "Names frontend, the sole component identified in the ground truth, and its Service fault object.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q3",
+      "answer": "Yes",
+      "evidence": "Reports that the selector matches no workload and describes service routing sending traffic to no pods, consistent with missing endpoints and routing failures.",
+      "confidence": "High"
+     }
+    ]
+   }
+  },
+  {
+   "arm": 3,
+   "kind": "v1",
+   "model": "openrouter/openai/gpt-6-luna-decisions",
+   "position": 3,
+   "seconds": 2.6,
+   "requests": 2,
+   "input_tokens": 25161,
+   "cost_usd": 0.002516,
+   "error": null,
+   "investigation": {
+    "steps": [
+     {
+      "step": 1,
+      "node": "investigate",
+      "component": "deployment/frontend",
+      "verdict": "origin",
+      "origin_p": 0.89,
+      "victim_p": 0.04,
+      "next": "none",
+      "next_p": 0.37,
+      "category": "service_routing",
+      "spec_checks": [
+       "service frontend has no ready endpoints"
+      ],
+      "blocked_input": null,
+      "key_evidence": "service frontend selector {'current_service_name': 'frontend', 'opentelemetry.io/name': 'frontend'} does not match this workload's pod labels {'app.kubernetes.io/component': 'frontend', 'app.kubernetes.io/name': 'frontend', 'app.kubernetes.io/version': '2.2.0', 'opentelemetry.io/name': 'frontend'}"
+     }
+    ],
+    "concluded": "deployment/frontend",
+    "fallback": null,
+    "triage_top": [
+     [
+      "deployment/frontend",
+      0.98
+     ],
+     [
+      "deployment/frontend-proxy",
+      0.01
+     ],
+     [
+      "other",
+      0.01
+     ],
+     [
+      "deployment/accounting",
+      0.0
+     ],
+     [
+      "deployment/ad",
+      0.0
+     ]
+    ]
+   },
+   "text": "Root cause component: Deployment `frontend` in namespace `astronomy-shop`.\nMechanism: service frontend selector {'current_service_name': 'frontend', 'opentelemetry.io/name': 'frontend'} does not match this workload's pod labels {'app.kubernetes.io/component': 'frontend', 'app.kubernetes.io/name': 'frontend', 'app.kubernetes.io/version': '2.2.0', 'opentelemetry.io/name': 'frontend'}.\nFault object: Service `frontend`: selector {'current_service_name': 'frontend', 'opentelemetry.io/name': 'frontend'} matches no workload; Service frontend was modified 132s ago, 27s after it was created (fields: spec.selector); 61s before the first active symptom.\nFault type: service routing (a Service selector or port sends traffic to the wrong pods or to none).\n- container frontend: image ghcr.io/open-telemetry/demo:2.2.0-frontend, limits {'memory': '250Mi'}\nClassification: Jev (openai/gpt-6-luna-decisions-20261006) confirmed this origin at investigation step 1 with probability 0.89 (triage probability 0.98).",
+   "grade": {
+    "judgment": "True",
+    "reasoning": "Verdict: True (composite=1.00). D1 Fault Localization: 1.00 | D2 Fault Characterization: 1.00 | D3 Scope Precision: 1.00. Weakest dimension: Fault Localization (1.00). Checklist details: [{\"id\": \"D1-Q1\", \"answer\": \"Yes\", \"evidence\": \"Explicitly identifies the fault object as Service `frontend` and names namespace `astronomy-shop`, despite initially labeling the root component as Deployment `frontend`.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q2\", \"answer\": \"Yes\", \"evidence\": \"Locates the fault in the frontend Service selector, which does not match backing pod labels, rather than blaming a downstream victim.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q3\", \"answer\": \"Yes\", \"evidence\": \"Although the heading names Deployment `frontend`, the explicit fault object and mechanism identify Service `frontend`; no different component is blamed.\", \"confidence\": \"Medium\"}, {\"id\": \"D2-Q1\", \"answer\": \"Yes\", \"evidence\": \"States that the frontend Service selector does not match the workload's pod labels, matching the incorrect-selector mechanism.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q2\", \"answer\": \"Yes\", \"evidence\": \"Identifies selector entry `current_service_name: frontend`, absent from the listed pod labels, and reports modification of `spec.selector`.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q3\", \"answer\": \"Yes\", \"evidence\": \"Classifies the fault as service routing and specifically describes a selector matching no workload, consistent with ground truth.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q1\", \"answer\": \"Yes\", \"evidence\": \"Attributes the concrete fault to Service `frontend` and its selector; no additional service or unrelated component is implicated.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q2\", \"answer\": \"Yes\", \"evidence\": \"Mentions frontend Service and its backing workload, covering the sole named component in the ground truth.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q3\", \"answer\": \"Yes\", \"evidence\": \"Describes the Service selector matching no workload and routing traffic to no pods, consistent with missing endpoints and service-layer routing failures.\", \"confidence\": \"High\"}]",
+    "success": true,
+    "accuracy": 100.0,
+    "composite_score": 1.0,
+    "dimensions": {
+     "D1": {
+      "name": "Fault Localization",
+      "score": 1.0
+     },
+     "D2": {
+      "name": "Fault Characterization",
+      "score": 1.0
+     },
+     "D3": {
+      "name": "Scope Precision",
+      "score": 1.0
+     }
+    },
+    "checklist": [
+     {
+      "id": "D1-Q1",
+      "answer": "Yes",
+      "evidence": "Explicitly identifies the fault object as Service `frontend` and names namespace `astronomy-shop`, despite initially labeling the root component as Deployment `frontend`.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q2",
+      "answer": "Yes",
+      "evidence": "Locates the fault in the frontend Service selector, which does not match backing pod labels, rather than blaming a downstream victim.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q3",
+      "answer": "Yes",
+      "evidence": "Although the heading names Deployment `frontend`, the explicit fault object and mechanism identify Service `frontend`; no different component is blamed.",
+      "confidence": "Medium"
+     },
+     {
+      "id": "D2-Q1",
+      "answer": "Yes",
+      "evidence": "States that the frontend Service selector does not match the workload's pod labels, matching the incorrect-selector mechanism.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q2",
+      "answer": "Yes",
+      "evidence": "Identifies selector entry `current_service_name: frontend`, absent from the listed pod labels, and reports modification of `spec.selector`.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q3",
+      "answer": "Yes",
+      "evidence": "Classifies the fault as service routing and specifically describes a selector matching no workload, consistent with ground truth.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q1",
+      "answer": "Yes",
+      "evidence": "Attributes the concrete fault to Service `frontend` and its selector; no additional service or unrelated component is implicated.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q2",
+      "answer": "Yes",
+      "evidence": "Mentions frontend Service and its backing workload, covering the sole named component in the ground truth.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q3",
+      "answer": "Yes",
+      "evidence": "Describes the Service selector matching no workload and routing traffic to no pods, consistent with missing endpoints and service-layer routing failures.",
+      "confidence": "High"
+     }
+    ]
+   }
+  }
+ ],
+ "submission": {
+  "status": "200",
+  "message": "Submission received",
+  "stage": "diagnosis"
+ },
+ "judge": {
+  "model": "gpt-6-astra",
+  "backend": "codex",
+  "effort": "high"
+ }
+}

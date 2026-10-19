@@ -1,0 +1,550 @@
+{
+ "problem_id": "sidecar_port_conflict_hotel_reservation",
+ "source": "held5_sidecar_port_conflict_hotel_reservation",
+ "replay": true,
+ "arms": [
+  {
+   "arm": 0,
+   "kind": "v1",
+   "model": "typesafe/jev-1.13",
+   "position": 0,
+   "seconds": 1.2,
+   "requests": 2,
+   "input_tokens": 27378,
+   "error": null,
+   "model_failed": false,
+   "component": "deployment/frontend",
+   "investigation": {
+    "steps": [
+     {
+      "step": 1,
+      "node": "investigate",
+      "component": "deployment/frontend",
+      "verdict": "origin",
+      "origin_p": 1.0,
+      "victim_p": 0.0,
+      "next": "none",
+      "next_p": 0.92,
+      "category": "config_value",
+      "spec_checks": [
+       "service frontend has no ready endpoints"
+      ],
+      "blocked_input": null,
+      "key_evidence": "previous log frontend-77cb75bf8-jkjrg/sidecar: nc: bind: Address already in use"
+     }
+    ],
+    "concluded": "deployment/frontend",
+    "fallback": null,
+    "triage_top": [
+     [
+      "deployment/frontend",
+      0.62
+     ],
+     [
+      "other",
+      0.37
+     ],
+     [
+      "deployment/mongodb-geo",
+      0.01
+     ],
+     [
+      "deployment/consul",
+      0.0
+     ],
+     [
+      "deployment/geo",
+      0.0
+     ]
+    ]
+   },
+   "text": "Root cause component: Deployment `frontend` in namespace `hotel-reservation`.\nMechanism: previous log frontend-77cb75bf8-jkjrg/sidecar: nc: bind: Address already in use.\nFault type: config value (a wrong, missing, or shadowed value in this component's own configuration).\nAbnormal state observed on this component:\n- only 0 of 1 desired replicas are ready\n- pod frontend-77cb75bf8-jkjrg: container sidecar waiting in CrashLoopBackOff\n- pod frontend-77cb75bf8-jkjrg: container sidecar restarted 4 times\n- warning events: BackOff x11\n- service frontend selects this component but has 0 ready endpoints\n- pod frontend-77cb75bf8-jkjrg: container sidecar restarted 1 more time(s) in the last 0s\n- warning event BackOff on pod/frontend-77cb75bf8-jkjrg repeated 4 more time(s) in the last 0s\nNotable spec settings:\n- Available=False (MinimumReplicasUnavailable)\n- container hotel-reserv-frontend: image ghcr.io/sregym/hotel-reservation:sha-d2c036bc3d1138f5a0bdaffd3d87f37522c3461a@sha256:1c685e1c4c304f327952397b3a99c54dadb086607774d71f222b200ec0d2e65e, limits {'cpu': '1'}\n- container sidecar: image busybox:latest\nWarning events:\n- BackOff x11 on pod/frontend-77cb75bf8-jkjrg: Back-off restarting failed container sidecar in pod frontend-77cb75bf8-jkjrg_hotel-reservation(10b9de8e-463e-477e-acf6-f265110cd57e)\nLast lines of the previous (crashed) run of container sidecar:\n- nc: bind: Address already in use\nClassification: Jev (typesafe/jev-1.13-20260917) confirmed this origin at investigation step 1 with probability 1.00 (triage probability 0.62).",
+   "grade": {
+    "judgment": "True",
+    "reasoning": "Verdict: True (composite=0.89). D1 Fault Localization: 1.00 | D2 Fault Characterization: 0.67 | D3 Scope Precision: 1.00. Weakest dimension: Fault Characterization (0.67). Checklist details: [{\"id\": \"D1-Q1\", \"answer\": \"Yes\", \"evidence\": \"Explicitly identifies Deployment frontend in namespace hotel-reservation as the root cause component.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q2\", \"answer\": \"Yes\", \"evidence\": \"Identifies the frontend deployment as the origin and describes zero ready service endpoints as an observed consequence.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q3\", \"answer\": \"Yes\", \"evidence\": \"Blames the specified frontend deployment and its sidecar; no different component is identified as the origin.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q1\", \"answer\": \"Yes\", \"evidence\": \"The stated mechanism is the sidecar error 'nc: bind: Address already in use,' matching a listening-port binding conflict.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q2\", \"answer\": \"No\", \"evidence\": \"Does not identify a conflicting port setting or explicitly state that the sidecar and primary application bind the same port.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q3\", \"answer\": \"Yes\", \"evidence\": \"Attributes the fault to component configuration and a sidecar binding conflict, consistent with the ground-truth configuration fault.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q1\", \"answer\": \"Yes\", \"evidence\": \"Fault attribution remains confined to the frontend deployment and its sidecar.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q2\", \"answer\": \"Yes\", \"evidence\": \"Mentions the frontend deployment, affected pod, sidecar container, and primary hotel-reserv-frontend container.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q3\", \"answer\": \"Yes\", \"evidence\": \"Reports zero of one desired replicas ready, sidecar CrashLoopBackOff, repeated restarts, and zero ready endpoints, consistent with pods failing readiness.\", \"confidence\": \"High\"}]",
+    "success": true,
+    "accuracy": 89.0,
+    "composite_score": 0.89,
+    "dimensions": {
+     "D1": {
+      "name": "Fault Localization",
+      "score": 1.0
+     },
+     "D2": {
+      "name": "Fault Characterization",
+      "score": 0.67
+     },
+     "D3": {
+      "name": "Scope Precision",
+      "score": 1.0
+     }
+    },
+    "checklist": [
+     {
+      "id": "D1-Q1",
+      "answer": "Yes",
+      "evidence": "Explicitly identifies Deployment frontend in namespace hotel-reservation as the root cause component.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q2",
+      "answer": "Yes",
+      "evidence": "Identifies the frontend deployment as the origin and describes zero ready service endpoints as an observed consequence.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q3",
+      "answer": "Yes",
+      "evidence": "Blames the specified frontend deployment and its sidecar; no different component is identified as the origin.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q1",
+      "answer": "Yes",
+      "evidence": "The stated mechanism is the sidecar error 'nc: bind: Address already in use,' matching a listening-port binding conflict.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q2",
+      "answer": "No",
+      "evidence": "Does not identify a conflicting port setting or explicitly state that the sidecar and primary application bind the same port.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q3",
+      "answer": "Yes",
+      "evidence": "Attributes the fault to component configuration and a sidecar binding conflict, consistent with the ground-truth configuration fault.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q1",
+      "answer": "Yes",
+      "evidence": "Fault attribution remains confined to the frontend deployment and its sidecar.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q2",
+      "answer": "Yes",
+      "evidence": "Mentions the frontend deployment, affected pod, sidecar container, and primary hotel-reserv-frontend container.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q3",
+      "answer": "Yes",
+      "evidence": "Reports zero of one desired replicas ready, sidecar CrashLoopBackOff, repeated restarts, and zero ready endpoints, consistent with pods failing readiness.",
+      "confidence": "High"
+     }
+    ]
+   }
+  },
+  {
+   "arm": 1,
+   "kind": "v1",
+   "model": "openai/gpt-6-luna-decisions",
+   "position": 1,
+   "seconds": 1.1,
+   "requests": 2,
+   "input_tokens": 18156,
+   "error": null,
+   "model_failed": false,
+   "component": "deployment/frontend",
+   "investigation": {
+    "steps": [
+     {
+      "step": 1,
+      "node": "investigate",
+      "component": "deployment/frontend",
+      "verdict": "origin",
+      "origin_p": 0.94,
+      "victim_p": 0.03,
+      "next": "none",
+      "next_p": 0.66,
+      "category": "config_value",
+      "spec_checks": [
+       "service frontend has no ready endpoints"
+      ],
+      "blocked_input": null,
+      "key_evidence": "previous log frontend-77cb75bf8-jkjrg/sidecar: nc: bind: Address already in use"
+     }
+    ],
+    "concluded": "deployment/frontend",
+    "fallback": null,
+    "triage_top": [
+     [
+      "deployment/frontend",
+      0.78
+     ],
+     [
+      "other",
+      0.14
+     ],
+     [
+      "deployment/consul",
+      0.02
+     ],
+     [
+      "deployment/geo",
+      0.01
+     ],
+     [
+      "deployment/jaeger",
+      0.01
+     ]
+    ]
+   },
+   "text": "Root cause component: Deployment `frontend` in namespace `hotel-reservation`.\nMechanism: previous log frontend-77cb75bf8-jkjrg/sidecar: nc: bind: Address already in use.\nFault type: config value (a wrong, missing, or shadowed value in this component's own configuration).\nAbnormal state observed on this component:\n- only 0 of 1 desired replicas are ready\n- pod frontend-77cb75bf8-jkjrg: container sidecar waiting in CrashLoopBackOff\n- pod frontend-77cb75bf8-jkjrg: container sidecar restarted 4 times\n- warning events: BackOff x11\n- service frontend selects this component but has 0 ready endpoints\n- pod frontend-77cb75bf8-jkjrg: container sidecar restarted 1 more time(s) in the last 0s\n- warning event BackOff on pod/frontend-77cb75bf8-jkjrg repeated 4 more time(s) in the last 0s\nNotable spec settings:\n- Available=False (MinimumReplicasUnavailable)\n- container hotel-reserv-frontend: image ghcr.io/sregym/hotel-reservation:sha-d2c036bc3d1138f5a0bdaffd3d87f37522c3461a@sha256:1c685e1c4c304f327952397b3a99c54dadb086607774d71f222b200ec0d2e65e, limits {'cpu': '1'}\n- container sidecar: image busybox:latest\nWarning events:\n- BackOff x11 on pod/frontend-77cb75bf8-jkjrg: Back-off restarting failed container sidecar in pod frontend-77cb75bf8-jkjrg_hotel-reservation(10b9de8e-463e-477e-acf6-f265110cd57e)\nLast lines of the previous (crashed) run of container sidecar:\n- nc: bind: Address already in use\nClassification: Jev (openai/gpt-6-luna-decisions-20261006) confirmed this origin at investigation step 1 with probability 0.94 (triage probability 0.78).",
+   "grade": {
+    "judgment": "True",
+    "reasoning": "Verdict: True (composite=0.89). D1 Fault Localization: 1.00 | D2 Fault Characterization: 0.67 | D3 Scope Precision: 1.00. Weakest dimension: Fault Characterization (0.67). Checklist details: [{\"id\": \"D1-Q1\", \"answer\": \"Yes\", \"evidence\": \"Explicitly identifies Deployment frontend in namespace hotel-reservation as the root cause component.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q2\", \"answer\": \"Yes\", \"evidence\": \"Identifies frontend as the origin and reports its service's zero ready endpoints as an observed consequence.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q3\", \"answer\": \"Yes\", \"evidence\": \"Blames the specified frontend deployment; no different component is identified as the fault origin.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q1\", \"answer\": \"Yes\", \"evidence\": \"The stated mechanism is the sidecar error 'nc: bind: Address already in use,' matching the binding conflict.\", \"confidence\": \"Medium\"}, {\"id\": \"D2-Q2\", \"answer\": \"No\", \"evidence\": \"Does not specify the sidecar's conflicting listening-port configuration or explicitly state that it shares the primary application's port.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q3\", \"answer\": \"Yes\", \"evidence\": \"Classifies the fault as component configuration and cites a sidecar binding conflict, consistent with the ground truth.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q1\", \"answer\": \"Yes\", \"evidence\": \"Attributes the fault only to frontend and its sidecar; no uninvolved components are blamed.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q2\", \"answer\": \"Yes\", \"evidence\": \"Mentions the frontend deployment, its pod, the sidecar, and the primary hotel-reserv-frontend container.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q3\", \"answer\": \"Yes\", \"evidence\": \"Reports zero ready replicas, sidecar CrashLoopBackOff, repeated restarts, and zero ready service endpoints, consistent with pods failing to become Ready.\", \"confidence\": \"High\"}]",
+    "success": true,
+    "accuracy": 89.0,
+    "composite_score": 0.89,
+    "dimensions": {
+     "D1": {
+      "name": "Fault Localization",
+      "score": 1.0
+     },
+     "D2": {
+      "name": "Fault Characterization",
+      "score": 0.67
+     },
+     "D3": {
+      "name": "Scope Precision",
+      "score": 1.0
+     }
+    },
+    "checklist": [
+     {
+      "id": "D1-Q1",
+      "answer": "Yes",
+      "evidence": "Explicitly identifies Deployment frontend in namespace hotel-reservation as the root cause component.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q2",
+      "answer": "Yes",
+      "evidence": "Identifies frontend as the origin and reports its service's zero ready endpoints as an observed consequence.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q3",
+      "answer": "Yes",
+      "evidence": "Blames the specified frontend deployment; no different component is identified as the fault origin.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q1",
+      "answer": "Yes",
+      "evidence": "The stated mechanism is the sidecar error 'nc: bind: Address already in use,' matching the binding conflict.",
+      "confidence": "Medium"
+     },
+     {
+      "id": "D2-Q2",
+      "answer": "No",
+      "evidence": "Does not specify the sidecar's conflicting listening-port configuration or explicitly state that it shares the primary application's port.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q3",
+      "answer": "Yes",
+      "evidence": "Classifies the fault as component configuration and cites a sidecar binding conflict, consistent with the ground truth.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q1",
+      "answer": "Yes",
+      "evidence": "Attributes the fault only to frontend and its sidecar; no uninvolved components are blamed.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q2",
+      "answer": "Yes",
+      "evidence": "Mentions the frontend deployment, its pod, the sidecar, and the primary hotel-reserv-frontend container.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q3",
+      "answer": "Yes",
+      "evidence": "Reports zero ready replicas, sidecar CrashLoopBackOff, repeated restarts, and zero ready service endpoints, consistent with pods failing to become Ready.",
+      "confidence": "High"
+     }
+    ]
+   }
+  },
+  {
+   "arm": 2,
+   "kind": "v2",
+   "model": "typesafe/jev-1.13",
+   "position": 2,
+   "seconds": 1.3,
+   "requests": 2,
+   "input_tokens": 26874,
+   "error": null,
+   "model_failed": false,
+   "component": "deployment/frontend",
+   "investigation": {
+    "steps": [
+     {
+      "step": 1,
+      "node": "investigate",
+      "component": "deployment/frontend",
+      "verdict": "origin",
+      "origin_p": 1.0,
+      "victim_p": 0.0,
+      "next": "none",
+      "next_p": 1.0,
+      "category": "config_value",
+      "spec_checks": [
+       "service frontend has no ready endpoints"
+      ],
+      "blocked_input": null,
+      "key_evidence": "previous log frontend-77cb75bf8-jkjrg/sidecar: nc: bind: Address already in use"
+     }
+    ],
+    "concluded": "deployment/frontend",
+    "fallback": null,
+    "triage_top": [
+     [
+      "deployment/frontend",
+      0.99
+     ],
+     [
+      "other",
+      0.01
+     ],
+     [
+      "deployment/consul",
+      0.0
+     ],
+     [
+      "deployment/geo",
+      0.0
+     ],
+     [
+      "deployment/jaeger",
+      0.0
+     ]
+    ],
+    "second": null
+   },
+   "text": "Root cause: Service `frontend` (Deployment `frontend`) in namespace `hotel-reservation`: previous log frontend-77cb75bf8-jkjrg/sidecar: nc: bind: Address already in use.\nMechanism: warning events: BackOff x11.\nDetails: service frontend has no ready endpoints.\nEffect: only 0 of 1 desired replicas are ready; pod frontend-77cb75bf8-jkjrg: container sidecar waiting in CrashLoopBackOff.\nObserved: pod frontend-77cb75bf8-jkjrg: container sidecar restarted 4 times; service frontend selects this component but has 0 ready endpoints; pod frontend-77cb75bf8-jkjrg: container sidecar restarted 1 more time(s) in the last 0s; warning event BackOff on pod/frontend-77cb75bf8-jkjrg repeated 4 more time(s) in the last 0s.",
+   "grade": {
+    "judgment": "True",
+    "reasoning": "Verdict: True (composite=0.78). D1 Fault Localization: 1.00 | D2 Fault Characterization: 0.67 | D3 Scope Precision: 0.67. Weakest dimension: Fault Characterization (0.67). Checklist details: [{\"id\": \"D1-Q1\", \"answer\": \"Yes\", \"evidence\": \"Explicitly identifies Deployment frontend in namespace hotel-reservation, matching the fault specification.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q2\", \"answer\": \"Yes\", \"evidence\": \"Locates the fault in frontend's sidecar and describes missing ready endpoints as an effect.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q3\", \"answer\": \"Yes\", \"evidence\": \"Blames only frontend and its sidecar; no different workload is identified as the origin.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q1\", \"answer\": \"Yes\", \"evidence\": \"The sidecar log reports 'nc: bind: Address already in use,' identifying the port-binding conflict.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q2\", \"answer\": \"No\", \"evidence\": \"Does not state that the sidecar uses the same listening port as the primary application container.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q3\", \"answer\": \"Yes\", \"evidence\": \"Reports a sidecar binding error and CrashLoopBackOff without attributing the failure to an unrelated fault type.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q1\", \"answer\": \"Yes\", \"evidence\": \"All blamed resources belong to frontend; no uninvolved component is implicated.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q2\", \"answer\": \"No\", \"evidence\": \"Identifies frontend and the sidecar but does not explicitly identify the primary application container participating in the port conflict.\", \"confidence\": \"Medium\"}, {\"id\": \"D3-Q3\", \"answer\": \"Yes\", \"evidence\": \"Reports zero of one desired replicas ready and no ready service endpoints, consistent with pods failing to become Ready.\", \"confidence\": \"High\"}]",
+    "success": true,
+    "accuracy": 78.0,
+    "composite_score": 0.78,
+    "dimensions": {
+     "D1": {
+      "name": "Fault Localization",
+      "score": 1.0
+     },
+     "D2": {
+      "name": "Fault Characterization",
+      "score": 0.67
+     },
+     "D3": {
+      "name": "Scope Precision",
+      "score": 0.67
+     }
+    },
+    "checklist": [
+     {
+      "id": "D1-Q1",
+      "answer": "Yes",
+      "evidence": "Explicitly identifies Deployment frontend in namespace hotel-reservation, matching the fault specification.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q2",
+      "answer": "Yes",
+      "evidence": "Locates the fault in frontend's sidecar and describes missing ready endpoints as an effect.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q3",
+      "answer": "Yes",
+      "evidence": "Blames only frontend and its sidecar; no different workload is identified as the origin.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q1",
+      "answer": "Yes",
+      "evidence": "The sidecar log reports 'nc: bind: Address already in use,' identifying the port-binding conflict.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q2",
+      "answer": "No",
+      "evidence": "Does not state that the sidecar uses the same listening port as the primary application container.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q3",
+      "answer": "Yes",
+      "evidence": "Reports a sidecar binding error and CrashLoopBackOff without attributing the failure to an unrelated fault type.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q1",
+      "answer": "Yes",
+      "evidence": "All blamed resources belong to frontend; no uninvolved component is implicated.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q2",
+      "answer": "No",
+      "evidence": "Identifies frontend and the sidecar but does not explicitly identify the primary application container participating in the port conflict.",
+      "confidence": "Medium"
+     },
+     {
+      "id": "D3-Q3",
+      "answer": "Yes",
+      "evidence": "Reports zero of one desired replicas ready and no ready service endpoints, consistent with pods failing to become Ready.",
+      "confidence": "High"
+     }
+    ]
+   }
+  },
+  {
+   "arm": 3,
+   "kind": "v2",
+   "model": "openai/gpt-6-luna-decisions",
+   "position": 3,
+   "seconds": 1.2,
+   "requests": 2,
+   "input_tokens": 17793,
+   "error": null,
+   "model_failed": false,
+   "component": "deployment/frontend",
+   "investigation": {
+    "steps": [
+     {
+      "step": 1,
+      "node": "investigate",
+      "component": "deployment/frontend",
+      "verdict": "origin",
+      "origin_p": 0.94,
+      "victim_p": 0.04,
+      "next": "none",
+      "next_p": 0.84,
+      "category": "config_value",
+      "spec_checks": [
+       "service frontend has no ready endpoints"
+      ],
+      "blocked_input": null,
+      "key_evidence": "container sidecar command: sh -c exec nc -lk -p 5000"
+     }
+    ],
+    "concluded": "deployment/frontend",
+    "fallback": null,
+    "triage_top": [
+     [
+      "deployment/frontend",
+      1.0
+     ],
+     [
+      "deployment/consul",
+      0.0
+     ],
+     [
+      "deployment/geo",
+      0.0
+     ],
+     [
+      "deployment/jaeger",
+      0.0
+     ],
+     [
+      "deployment/memcached-profile",
+      0.0
+     ]
+    ],
+    "second": null
+   },
+   "text": "Root cause: Service `frontend` (Deployment `frontend`) in namespace `hotel-reservation`: container sidecar command: sh -c exec nc -lk -p 5000.\nMechanism: warning events: BackOff x11.\nDetails: service frontend has no ready endpoints.\nEffect: only 0 of 1 desired replicas are ready; pod frontend-77cb75bf8-jkjrg: container sidecar waiting in CrashLoopBackOff.\nObserved: pod frontend-77cb75bf8-jkjrg: container sidecar restarted 4 times; service frontend selects this component but has 0 ready endpoints; pod frontend-77cb75bf8-jkjrg: container sidecar restarted 1 more time(s) in the last 0s; warning event BackOff on pod/frontend-77cb75bf8-jkjrg repeated 4 more time(s) in the last 0s.",
+   "grade": {
+    "judgment": "True",
+    "reasoning": "Verdict: True (composite=0.89). D1 Fault Localization: 1.00 | D2 Fault Characterization: 0.67 | D3 Scope Precision: 1.00. Weakest dimension: Fault Characterization (0.67). Checklist details: [{\"id\": \"D1-Q1\", \"answer\": \"Yes\", \"evidence\": \"Names Deployment frontend in namespace hotel-reservation, matching the fault specification.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q2\", \"answer\": \"Yes\", \"evidence\": \"Locates the root cause in frontend's sidecar and describes missing service endpoints as an effect.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q3\", \"answer\": \"Yes\", \"evidence\": \"Blames the specified frontend deployment; no different component is identified as the origin.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q1\", \"answer\": \"No\", \"evidence\": \"Lists the sidecar command and BackOff events but never states that the sidecar and primary application compete for the same listening port.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q2\", \"answer\": \"Yes\", \"evidence\": \"Provides the concrete sidecar command, sh -c exec nc -lk -p 5000, identifying its listening port configuration.\", \"confidence\": \"Medium\"}, {\"id\": \"D2-Q3\", \"answer\": \"Yes\", \"evidence\": \"Reports sidecar configuration and restart symptoms without attributing the fault to an unrelated or contradictory fault type.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q1\", \"answer\": \"Yes\", \"evidence\": \"Limits attribution to frontend and its sidecar; no uninvolved components are blamed.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q2\", \"answer\": \"Yes\", \"evidence\": \"Includes the affected frontend deployment, its pod, and the sidecar within the specified namespace.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q3\", \"answer\": \"Yes\", \"evidence\": \"Reports zero of one desired replicas ready and no ready service endpoints, consistent with pods failing to become Ready.\", \"confidence\": \"High\"}]",
+    "success": true,
+    "accuracy": 89.0,
+    "composite_score": 0.89,
+    "dimensions": {
+     "D1": {
+      "name": "Fault Localization",
+      "score": 1.0
+     },
+     "D2": {
+      "name": "Fault Characterization",
+      "score": 0.67
+     },
+     "D3": {
+      "name": "Scope Precision",
+      "score": 1.0
+     }
+    },
+    "checklist": [
+     {
+      "id": "D1-Q1",
+      "answer": "Yes",
+      "evidence": "Names Deployment frontend in namespace hotel-reservation, matching the fault specification.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q2",
+      "answer": "Yes",
+      "evidence": "Locates the root cause in frontend's sidecar and describes missing service endpoints as an effect.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q3",
+      "answer": "Yes",
+      "evidence": "Blames the specified frontend deployment; no different component is identified as the origin.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q1",
+      "answer": "No",
+      "evidence": "Lists the sidecar command and BackOff events but never states that the sidecar and primary application compete for the same listening port.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q2",
+      "answer": "Yes",
+      "evidence": "Provides the concrete sidecar command, sh -c exec nc -lk -p 5000, identifying its listening port configuration.",
+      "confidence": "Medium"
+     },
+     {
+      "id": "D2-Q3",
+      "answer": "Yes",
+      "evidence": "Reports sidecar configuration and restart symptoms without attributing the fault to an unrelated or contradictory fault type.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q1",
+      "answer": "Yes",
+      "evidence": "Limits attribution to frontend and its sidecar; no uninvolved components are blamed.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q2",
+      "answer": "Yes",
+      "evidence": "Includes the affected frontend deployment, its pod, and the sidecar within the specified namespace.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q3",
+      "answer": "Yes",
+      "evidence": "Reports zero of one desired replicas ready and no ready service endpoints, consistent with pods failing to become Ready.",
+      "confidence": "High"
+     }
+    ]
+   }
+  }
+ ],
+ "judge": {
+  "model": "gpt-6-astra",
+  "backend": "codex",
+  "effort": "high"
+ }
+}

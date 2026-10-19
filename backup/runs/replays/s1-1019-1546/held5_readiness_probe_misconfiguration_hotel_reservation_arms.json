@@ -1,0 +1,246 @@
+{
+ "problem_id": "readiness_probe_misconfiguration_hotel_reservation",
+ "source": "held5_readiness_probe_misconfiguration_hotel_reservation",
+ "replay": true,
+ "arms": [
+  {
+   "arm": 0,
+   "kind": "v1",
+   "model": "typesafe/jev-1.13",
+   "position": 0,
+   "seconds": 2.2,
+   "requests": 2,
+   "input_tokens": 25806,
+   "error": null,
+   "component": "deployment/frontend",
+   "investigation": {
+    "steps": [
+     {
+      "step": 1,
+      "node": "investigate",
+      "component": "deployment/frontend",
+      "verdict": "origin",
+      "origin_p": 1.0,
+      "victim_p": 0.0,
+      "next": "none",
+      "next_p": 0.83,
+      "category": "health_probe_config",
+      "spec_checks": [
+       "container hotel-reserv-frontend readiness probe (httpGet HTTP :8080/healthz) targets port 8080; the container declares ports [5000] and is not ready",
+       "service frontend has no ready endpoints"
+      ],
+      "blocked_input": null,
+      "key_evidence": "container hotel-reserv-frontend readiness probe (httpGet HTTP :8080/healthz) targets port 8080; the container declares ports [5000] and is not ready"
+     }
+    ],
+    "concluded": "deployment/frontend",
+    "fallback": null,
+    "triage_top": [
+     [
+      "other",
+      0.63
+     ],
+     [
+      "deployment/frontend",
+      0.32
+     ],
+     [
+      "deployment/mongodb-geo",
+      0.05
+     ],
+     [
+      "deployment/consul",
+      0.0
+     ],
+     [
+      "deployment/geo",
+      0.0
+     ]
+    ]
+   },
+   "text": "Root cause component: Deployment `frontend` in namespace `hotel-reservation`.\nMechanism: container hotel-reserv-frontend readiness probe (httpGet HTTP :8080/healthz) targets port 8080; the container declares ports [5000] and is not ready.\nFault type: health probe config (a health probe is misconfigured, so healthy containers are reported unhealthy).\nAbnormal state observed on this component:\n- only 0 of 1 desired replicas are ready\n- pod frontend-57cc6d6598-x4lng: container hotel-reserv-frontend is running but not ready\n- warning events: Unhealthy x12, FailedScheduling x2\n- service frontend selects this component but has 0 ready endpoints\n- warning event Unhealthy on pod/frontend-57cc6d6598-x4lng repeated 4 more time(s) in the last 0s\nNotable spec settings:\n- Available=False (MinimumReplicasUnavailable)\n- container hotel-reserv-frontend: image ghcr.io/sregym/hotel-reservation:sha-d2c036bc3d1138f5a0bdaffd3d87f37522c3461a@sha256:1c685e1c4c304f327952397b3a99c54dadb086607774d71f222b200ec0d2e65e, limits {'cpu': '1'}\nWarning events:\n- Unhealthy x12 on pod/frontend-57cc6d6598-x4lng: Readiness probe failed: Get \"http://10.244.195.250:8080/healthz\": dial tcp 10.244.195.250:8080: connect: connection refused\n- FailedScheduling x2 on pod/frontend-844b789d87-xzfmx: 0/4 nodes are available: 1 node(s) didn't match pod anti-affinity rules, 1 node(s) had untolerated taint {node-role.kubernetes.io/control-plane: }, 2 node(s) didn't find available persistent volumes to bind. preemption: 0/4 nodes are avail\u2026\nClassification: Jev (typesafe/jev-1.13-20260917) confirmed this origin at investigation step 1 with probability 1.00 (triage probability 0.32)."
+  },
+  {
+   "arm": 1,
+   "kind": "v1",
+   "model": "openai/gpt-6-luna-decisions",
+   "position": 1,
+   "seconds": 1.4,
+   "requests": 2,
+   "input_tokens": 17100,
+   "error": null,
+   "component": "deployment/frontend",
+   "investigation": {
+    "steps": [
+     {
+      "step": 1,
+      "node": "investigate",
+      "component": "deployment/frontend",
+      "verdict": "origin",
+      "origin_p": 0.97,
+      "victim_p": 0.02,
+      "next": "none",
+      "next_p": 0.92,
+      "category": "health_probe_config",
+      "spec_checks": [
+       "container hotel-reserv-frontend readiness probe (httpGet HTTP :8080/healthz) targets port 8080; the container declares ports [5000] and is not ready",
+       "service frontend has no ready endpoints"
+      ],
+      "blocked_input": null,
+      "key_evidence": "container hotel-reserv-frontend readiness probe (httpGet HTTP :8080/healthz) targets port 8080; the container declares ports [5000] and is not ready"
+     }
+    ],
+    "concluded": "deployment/frontend",
+    "fallback": null,
+    "triage_top": [
+     [
+      "deployment/frontend",
+      0.72
+     ],
+     [
+      "other",
+      0.27
+     ],
+     [
+      "deployment/consul",
+      0.01
+     ],
+     [
+      "deployment/geo",
+      0.0
+     ],
+     [
+      "deployment/jaeger",
+      0.0
+     ]
+    ]
+   },
+   "text": "Root cause component: Deployment `frontend` in namespace `hotel-reservation`.\nMechanism: container hotel-reserv-frontend readiness probe (httpGet HTTP :8080/healthz) targets port 8080; the container declares ports [5000] and is not ready.\nFault type: health probe config (a health probe is misconfigured, so healthy containers are reported unhealthy).\nAbnormal state observed on this component:\n- only 0 of 1 desired replicas are ready\n- pod frontend-57cc6d6598-x4lng: container hotel-reserv-frontend is running but not ready\n- warning events: Unhealthy x12, FailedScheduling x2\n- service frontend selects this component but has 0 ready endpoints\n- warning event Unhealthy on pod/frontend-57cc6d6598-x4lng repeated 4 more time(s) in the last 0s\nNotable spec settings:\n- Available=False (MinimumReplicasUnavailable)\n- container hotel-reserv-frontend: image ghcr.io/sregym/hotel-reservation:sha-d2c036bc3d1138f5a0bdaffd3d87f37522c3461a@sha256:1c685e1c4c304f327952397b3a99c54dadb086607774d71f222b200ec0d2e65e, limits {'cpu': '1'}\nWarning events:\n- Unhealthy x12 on pod/frontend-57cc6d6598-x4lng: Readiness probe failed: Get \"http://10.244.195.250:8080/healthz\": dial tcp 10.244.195.250:8080: connect: connection refused\n- FailedScheduling x2 on pod/frontend-844b789d87-xzfmx: 0/4 nodes are available: 1 node(s) didn't match pod anti-affinity rules, 1 node(s) had untolerated taint {node-role.kubernetes.io/control-plane: }, 2 node(s) didn't find available persistent volumes to bind. preemption: 0/4 nodes are avail\u2026\nClassification: Jev (openai/gpt-6-luna-decisions-20261006) confirmed this origin at investigation step 1 with probability 0.97 (triage probability 0.72)."
+  },
+  {
+   "arm": 2,
+   "kind": "v2",
+   "model": "typesafe/jev-1.13",
+   "position": 2,
+   "seconds": 1.8,
+   "requests": 3,
+   "input_tokens": 35252,
+   "error": null,
+   "component": "deployment/frontend",
+   "investigation": {
+    "steps": [
+     {
+      "step": 1,
+      "node": "investigate",
+      "component": "deployment/mongodb-geo",
+      "verdict": "origin",
+      "origin_p": 0.54,
+      "victim_p": 0.0,
+      "next": "deployment/frontend",
+      "next_p": 0.61,
+      "category": "config_value",
+      "spec_checks": [],
+      "blocked_input": null,
+      "key_evidence": "ConfigMap failure-admin-geo key remove-admin-mongo.sh: #!/bin/bash \u23ce \u23ce \u23ce ROOT_USER=\"root\" \u23ce ROOT_PWD=\"root\" \u23ce \u23ce echo \"Removing admin user...\" \u23ce \u23ce mongo admin -u $ROOT_USER -p $ROOT_PWD --authenticationDatabase admin \\ \u23ce --eval \"db.dropUser('admin');\" \u23ce \u23ce echo \"Admin user removed successfully\" \u23ce"
+     },
+     {
+      "step": 2,
+      "node": "investigate",
+      "component": "deployment/frontend",
+      "verdict": "origin",
+      "origin_p": 1.0,
+      "victim_p": 0.0,
+      "next": "none",
+      "next_p": 0.67,
+      "category": "health_probe_config",
+      "spec_checks": [
+       "container hotel-reserv-frontend readiness probe (httpGet HTTP :8080/healthz (initialDelaySeconds=10, periodSeconds=10, timeoutSeconds=1, failureThreshold=1)) targets port 8080; the container declares ports [5000] and is not ready",
+       "service frontend has no ready endpoints"
+      ],
+      "blocked_input": null,
+      "key_evidence": "container hotel-reserv-frontend readiness probe (httpGet HTTP :8080/healthz (initialDelaySeconds=10, periodSeconds=10, timeoutSeconds=1, failureThreshold=1)) targets port 8080; the container declares ports [5000] and is not ready"
+     }
+    ],
+    "concluded": "deployment/frontend",
+    "fallback": null,
+    "triage_top": [
+     [
+      "deployment/mongodb-geo",
+      0.76
+     ],
+     [
+      "deployment/frontend",
+      0.16
+     ],
+     [
+      "other",
+      0.05
+     ],
+     [
+      "deployment/mongodb-rate",
+      0.03
+     ],
+     [
+      "deployment/consul",
+      0.0
+     ]
+    ]
+   },
+   "text": "Root cause: Service `frontend` (Deployment `frontend`) in namespace `hotel-reservation`: container hotel-reserv-frontend readiness probe (httpGet HTTP :8080/healthz (initialDelaySeconds=10, periodSeconds=10, timeoutSeconds=1, failureThreshold=1)) targets port 8080; the container declares ports [5000] and is not ready.\nMechanism: container hotel-reserv-frontend readiness probe (httpGet HTTP :8080/healthz (initialDelaySeconds=10, periodSeconds=10, timeoutSeconds=1, failureThreshold=1)) targets port 8080; the container declares ports [5000] and is not ready.\nDetails: service frontend has no ready endpoints.\nEffect: only 0 of 1 desired replicas are ready; pod frontend-57cc6d6598-x4lng: container hotel-reserv-frontend is running but not ready."
+  },
+  {
+   "arm": 3,
+   "kind": "v2",
+   "model": "openai/gpt-6-luna-decisions",
+   "position": 3,
+   "seconds": 1.2,
+   "requests": 2,
+   "input_tokens": 19082,
+   "error": null,
+   "component": "deployment/mongodb-geo",
+   "investigation": {
+    "steps": [
+     {
+      "step": 1,
+      "node": "investigate",
+      "component": "deployment/mongodb-geo",
+      "verdict": "origin",
+      "origin_p": 0.6,
+      "victim_p": 0.06,
+      "next": "deployment/frontend",
+      "next_p": 0.74,
+      "category": "config_value",
+      "spec_checks": [],
+      "blocked_input": null,
+      "key_evidence": "ConfigMap failure-admin-geo key revoke-admin-geo-mongo.sh: #!/bin/bash \u23ce \u23ce \u23ce ADMIN_USER=\"admin\" \u23ce ADMIN_PWD=\"admin\" \u23ce # TARGET_DB=\"rate-db\" \u23ce TARGET_DB=\"geo-db\" \u23ce \u23ce echo \"Downgrading admin user privileges...\" \u23ce \u23ce # Connect to MongoDB and revoke roles \u23ce mongo admin -u $ADMIN_USER -p $ADMIN_PWD --authenticationDatabase admin \\ \u23ce --eval \"db.revokeRolesFromUser('$ADMIN_USER', [{role: 'readWrite', db: '$TARGET_DB'}]);\" \u23ce \u23ce echo \"Privileges downgraded\" \u23ce"
+     }
+    ],
+    "concluded": "deployment/mongodb-geo",
+    "fallback": null,
+    "triage_top": [
+     [
+      "deployment/mongodb-geo",
+      0.56
+     ],
+     [
+      "deployment/frontend",
+      0.32
+     ],
+     [
+      "deployment/mongodb-rate",
+      0.02
+     ],
+     [
+      "deployment/consul",
+      0.01
+     ],
+     [
+      "deployment/geo",
+      0.01
+     ]
+    ]
+   },
+   "text": "Root cause: Deployment `mongodb-geo` in namespace `hotel-reservation`: ConfigMap failure-admin-geo key revoke-admin-geo-mongo.sh: #!/bin/bash \u23ce \u23ce \u23ce ADMIN_USER=\"admin\" \u23ce ADMIN_PWD=\"admin\" \u23ce # TARGET_DB=\"rate-db\" \u23ce TARGET_DB=\"geo-db\" \u23ce \u23ce echo \"Downgrading admin user privileges...\" \u23ce \u23ce # Connect to MongoDB and revoke roles \u23ce mongo admin -u $ADMIN_USER -p $ADMIN_PWD --authenticationDatabase admin \\ \u23ce --eval \"db.revokeRolesFromUser('$ADMIN_USER', [{role: 'readWrite', db: '$TARGET_DB'}]);\" \u23ce \u23ce echo \"Privileges downgraded\" \u23ce.\nMechanism: ConfigMap failure-admin-geo key revoke-admin-geo-mongo.sh: #!/bin/bash \u23ce \u23ce \u23ce ADMIN_USER=\"admin\" \u23ce ADMIN_PWD=\"admin\" \u23ce # TARGET_DB=\"rate-db\" \u23ce TARGET_DB=\"geo-db\" \u23ce \u23ce echo \"Downgrading admin user privileges...\" \u23ce \u23ce # Connect to MongoDB and revoke roles \u23ce mongo admin -u $ADMIN_USER -p $ADMIN_PWD --authenticationDatabase admin \\ \u23ce --eval \"db.revokeRolesFromUser('$ADMIN_USER', [{role: 'readWrite', db: '$TARGET_DB'}]);\" \u23ce \u23ce echo \"Privileges downgraded\" \u23ce.\nDetails: volume failure-script added: {\"configMap\": {\"defaultMode\": 420, \"name\": \"failure-admin-geo\"}}; container hotel-reserv-geo-mongo mounts volume failure-script at /scripts.\nEffect: its pods are Running and Ready."
+  }
+ ]
+}

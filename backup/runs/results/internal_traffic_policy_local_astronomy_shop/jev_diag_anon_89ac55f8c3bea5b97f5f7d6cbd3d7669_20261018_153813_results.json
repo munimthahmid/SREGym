@@ -1,0 +1,215 @@
+{
+  "problem_id": "anon_89ac55f8c3bea5b97f5f7d6cbd3d7669",
+  "timestamp": "20261018_153813",
+  "success": true,
+  "trace_path": "/logs/jev_diag_anon_89ac55f8c3bea5b97f5f7d6cbd3d7669_20261018_153813_trace.jsonl",
+  "mode": "arms",
+  "arms": [
+    {
+      "arm": 0,
+      "kind": "v2",
+      "model": "openrouter/typesafe/jev-1.13",
+      "position": 3,
+      "seconds": 1.4,
+      "requests": 2,
+      "input_tokens": 5414,
+      "cost_usd": 0.000227,
+      "error": null,
+      "investigation": {
+        "rounds": [
+          {
+            "candidates": [
+              "change:deployment/frontend:pod nodeSelector: null -> {\"kubernetes.io/hostname\": \"kind-worker2\"}",
+              "change:deployment/recommendation:pod nodeSelector: null -> {\"kubernetes.io/hostname\": \"kind-worker\"}",
+              "change:daemonset/otel-collector-agent:template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-18T21:36:14+06:00",
+              "change:service/astronomy-shop/recommendation",
+              "change:deployment/astronomy-shop/frontend",
+              "change:deployment/astronomy-shop/recommendation"
+            ],
+            "probabilities": {
+              "change:deployment/frontend:pod nodeSelector: null -> {\"kubernetes.io/hostname\": \"kind-worker2\"}": 0.015,
+              "change:deployment/recommendation:pod nodeSelector: null -> {\"kubernetes.io/hostname\": \"kind-worker\"}": 0.01,
+              "change:daemonset/otel-collector-agent:template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-18T21:36:14+06:00": 0.005,
+              "change:service/astronomy-shop/recommendation": 0.915,
+              "change:deployment/astronomy-shop/frontend": 0.005,
+              "change:deployment/astronomy-shop/recommendation": 0.005,
+              "none_of_these": 0.045
+            },
+            "picks": [
+              "change:service/astronomy-shop/recommendation",
+              "change:service/astronomy-shop/recommendation"
+            ],
+            "route": "accept"
+          }
+        ],
+        "explanations": 10,
+        "winner": "change:service/astronomy-shop/recommendation",
+        "pattern": "acts-on",
+        "uncertain": false
+      },
+      "text": "Root cause: service `recommendation` in namespace `astronomy-shop`.\nMechanism: service recommendation was changed recently and breaks deployment/recommendation, which it acts on.\nConcrete details: service recommendation fields written: spec.internalTrafficPolicy; service recommendation has internalTrafficPolicy=Local: only endpoints on the client's own node receive traffic; service recommendation (internalTrafficPolicy=Local) has ready endpoints only on kind-worker; client deployment/frontend runs on kind-worker2, where calls to recommendation find no local endpoint; Service recommendation was modified 192s ago, 69s after it was created (fields: spec.internalTrafficPolicy); 102s before the first active symptom.\nObserved impact: deployment `recommendation` in namespace `astronomy-shop`.\nEvidence:\n- service recommendation fields written: spec.internalTrafficPolicy\n- service recommendation has internalTrafficPolicy=Local: only endpoints on the client's own node receive traffic\n- service recommendation (internalTrafficPolicy=Local) has ready endpoints only on kind-worker; client deployment/frontend runs on kind-worker2, where calls to recommendation find no local endpoint\n- Service recommendation was modified 192s ago, 69s after it was created (fields: spec.internalTrafficPolicy); 102s before the first active symptom\n- deployment/recommendation: service recommendation has internalTrafficPolicy=Local: only endpoints on the client's own node receive traffic"
+    },
+    {
+      "arm": 1,
+      "kind": "v2",
+      "model": "openrouter/openai/gpt-6-luna-decisions",
+      "position": 0,
+      "seconds": 1.5,
+      "requests": 2,
+      "input_tokens": 3764,
+      "cost_usd": 0.000376,
+      "error": null,
+      "investigation": {
+        "rounds": [
+          {
+            "candidates": [
+              "change:deployment/frontend:pod nodeSelector: null -> {\"kubernetes.io/hostname\": \"kind-worker2\"}",
+              "change:deployment/recommendation:pod nodeSelector: null -> {\"kubernetes.io/hostname\": \"kind-worker\"}",
+              "change:daemonset/otel-collector-agent:template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-18T21:36:14+06:00",
+              "change:service/astronomy-shop/recommendation",
+              "change:deployment/astronomy-shop/frontend",
+              "change:deployment/astronomy-shop/recommendation"
+            ],
+            "probabilities": {
+              "change:deployment/frontend:pod nodeSelector: null -> {\"kubernetes.io/hostname\": \"kind-worker2\"}": 0.015,
+              "change:deployment/recommendation:pod nodeSelector: null -> {\"kubernetes.io/hostname\": \"kind-worker\"}": 0.01,
+              "change:daemonset/otel-collector-agent:template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-18T21:36:14+06:00": 0.005,
+              "change:service/astronomy-shop/recommendation": 0.91,
+              "change:deployment/astronomy-shop/frontend": 0.01,
+              "change:deployment/astronomy-shop/recommendation": 0.005,
+              "none_of_these": 0.045
+            },
+            "picks": [
+              "change:service/astronomy-shop/recommendation",
+              "change:service/astronomy-shop/recommendation"
+            ],
+            "route": "accept"
+          }
+        ],
+        "explanations": 10,
+        "winner": "change:service/astronomy-shop/recommendation",
+        "pattern": "acts-on",
+        "uncertain": false
+      },
+      "text": "Root cause: service `recommendation` in namespace `astronomy-shop`.\nMechanism: service recommendation was changed recently and breaks deployment/recommendation, which it acts on.\nConcrete details: service recommendation fields written: spec.internalTrafficPolicy; service recommendation has internalTrafficPolicy=Local: only endpoints on the client's own node receive traffic; service recommendation (internalTrafficPolicy=Local) has ready endpoints only on kind-worker; client deployment/frontend runs on kind-worker2, where calls to recommendation find no local endpoint; Service recommendation was modified 192s ago, 69s after it was created (fields: spec.internalTrafficPolicy); 102s before the first active symptom.\nObserved impact: deployment `recommendation` in namespace `astronomy-shop`.\nEvidence:\n- service recommendation fields written: spec.internalTrafficPolicy\n- service recommendation has internalTrafficPolicy=Local: only endpoints on the client's own node receive traffic\n- service recommendation (internalTrafficPolicy=Local) has ready endpoints only on kind-worker; client deployment/frontend runs on kind-worker2, where calls to recommendation find no local endpoint\n- Service recommendation was modified 192s ago, 69s after it was created (fields: spec.internalTrafficPolicy); 102s before the first active symptom\n- deployment/recommendation: service recommendation has internalTrafficPolicy=Local: only endpoints on the client's own node receive traffic"
+    },
+    {
+      "arm": 2,
+      "kind": "v1",
+      "model": "openrouter/typesafe/jev-1.13",
+      "position": 2,
+      "seconds": 2.6,
+      "requests": 2,
+      "input_tokens": 35915,
+      "cost_usd": 0.001508,
+      "error": null,
+      "investigation": {
+        "steps": [
+          {
+            "step": 1,
+            "node": "investigate",
+            "component": "deployment/recommendation",
+            "verdict": "origin",
+            "origin_p": 1.0,
+            "victim_p": 0.0,
+            "next": "none",
+            "next_p": 0.91,
+            "category": "traffic_policy",
+            "spec_checks": [
+              "service recommendation has internalTrafficPolicy=Local and ready endpoints only on kind-worker; client deployment/frontend on kind-worker2, where it has no local endpoint"
+            ],
+            "blocked_input": null,
+            "key_evidence": "service recommendation has internalTrafficPolicy=Local: only endpoints on the client's own node receive traffic"
+          }
+        ],
+        "concluded": "deployment/recommendation",
+        "fallback": null,
+        "triage_top": [
+          [
+            "deployment/recommendation",
+            0.99
+          ],
+          [
+            "other",
+            0.01
+          ],
+          [
+            "deployment/accounting",
+            0.0
+          ],
+          [
+            "deployment/ad",
+            0.0
+          ],
+          [
+            "deployment/cart",
+            0.0
+          ]
+        ]
+      },
+      "text": "Root cause component: Deployment `recommendation` in namespace `astronomy-shop`.\nMechanism: service recommendation has internalTrafficPolicy=Local: only endpoints on the client's own node receive traffic.\nFault object: Service `recommendation`: Service recommendation was modified 192s ago, 69s after it was created (fields: spec.internalTrafficPolicy); 102s before the first active symptom.\nFault type: traffic policy (a Service traffic policy leaves some clients without a reachable endpoint).\nConfiguration mismatches found by code:\n- service recommendation has internalTrafficPolicy=Local and ready endpoints only on kind-worker; client deployment/frontend on kind-worker2, where it has no local endpoint\nAbnormal state observed on this component:\n- service recommendation (internalTrafficPolicy=Local) has ready endpoints only on kind-worker; client deployment/frontend runs on kind-worker2, where calls to recommendation find no local endpoint\n- firing alert ServiceEndpointDown\n- Service recommendation was modified 192s ago, 69s after it was created (fields: spec.internalTrafficPolicy); 102s before the first active symptom\n- spec modified 230s ago, 31s after this object was created (fields: nodeSelector); pod template changes: pod label pod-template-hash: 5bb649dccb -> 74758c88; pod nodeSelector: null -> {\"kubernetes.io/hostname\": \"kind-worker\"}; 140s before the first active symptom\nImpact on other components:\n- client deployment/frontend on kind-worker2 gets no endpoint of Service recommendation\nNotable spec settings:\n- nodeSelector set: {'kubernetes.io/hostname': 'kind-worker'}\n- container recommendation: image ghcr.io/open-telemetry/demo:2.2.0-recommendation, limits {'memory': '500Mi'}\nFiring alerts on this component: ServiceEndpointDown.\nClassification: Jev (typesafe/jev-1.13-20260917) confirmed this origin at investigation step 1 with probability 1.00 (triage probability 0.99)."
+    },
+    {
+      "arm": 3,
+      "kind": "v1",
+      "model": "openrouter/openai/gpt-6-luna-decisions",
+      "position": 1,
+      "seconds": 3.4,
+      "requests": 2,
+      "input_tokens": 24077,
+      "cost_usd": 0.002408,
+      "error": null,
+      "investigation": {
+        "steps": [
+          {
+            "step": 1,
+            "node": "investigate",
+            "component": "deployment/recommendation",
+            "verdict": "origin",
+            "origin_p": 0.98,
+            "victim_p": 0.01,
+            "next": "deployment/frontend",
+            "next_p": 0.6,
+            "category": "traffic_policy",
+            "spec_checks": [
+              "service recommendation has internalTrafficPolicy=Local and ready endpoints only on kind-worker; client deployment/frontend on kind-worker2, where it has no local endpoint"
+            ],
+            "blocked_input": null,
+            "key_evidence": "service recommendation has internalTrafficPolicy=Local: only endpoints on the client's own node receive traffic"
+          }
+        ],
+        "concluded": "deployment/recommendation",
+        "fallback": null,
+        "triage_top": [
+          [
+            "deployment/recommendation",
+            0.99
+          ],
+          [
+            "deployment/shipping",
+            0.01
+          ],
+          [
+            "deployment/accounting",
+            0.0
+          ],
+          [
+            "deployment/ad",
+            0.0
+          ],
+          [
+            "deployment/cart",
+            0.0
+          ]
+        ]
+      },
+      "text": "Root cause component: Deployment `recommendation` in namespace `astronomy-shop`.\nMechanism: service recommendation has internalTrafficPolicy=Local: only endpoints on the client's own node receive traffic.\nFault object: Service `recommendation`: Service recommendation was modified 192s ago, 69s after it was created (fields: spec.internalTrafficPolicy); 102s before the first active symptom.\nFault type: traffic policy (a Service traffic policy leaves some clients without a reachable endpoint).\nConfiguration mismatches found by code:\n- service recommendation has internalTrafficPolicy=Local and ready endpoints only on kind-worker; client deployment/frontend on kind-worker2, where it has no local endpoint\nAbnormal state observed on this component:\n- service recommendation (internalTrafficPolicy=Local) has ready endpoints only on kind-worker; client deployment/frontend runs on kind-worker2, where calls to recommendation find no local endpoint\n- firing alert ServiceEndpointDown\n- Service recommendation was modified 192s ago, 69s after it was created (fields: spec.internalTrafficPolicy); 102s before the first active symptom\n- spec modified 230s ago, 31s after this object was created (fields: nodeSelector); pod template changes: pod label pod-template-hash: 5bb649dccb -> 74758c88; pod nodeSelector: null -> {\"kubernetes.io/hostname\": \"kind-worker\"}; 140s before the first active symptom\nImpact on other components:\n- client deployment/frontend on kind-worker2 gets no endpoint of Service recommendation\nNotable spec settings:\n- nodeSelector set: {'kubernetes.io/hostname': 'kind-worker'}\n- container recommendation: image ghcr.io/open-telemetry/demo:2.2.0-recommendation, limits {'memory': '500Mi'}\nFiring alerts on this component: ServiceEndpointDown.\nClassification: Jev (openai/gpt-6-luna-decisions-20261006) confirmed this origin at investigation step 1 with probability 0.98 (triage probability 0.99)."
+    }
+  ],
+  "submission": {
+    "status": "200",
+    "message": "Submission received",
+    "stage": "diagnosis"
+  },
+  "trajectory_path": "/logs/trajectory/1018_1540_anon_89ac55f8c3bea5b97f5f7d6cbd3d7669_jev_diag_agent_trajectory.jsonl"
+}

@@ -1,0 +1,580 @@
+{
+ "problem_id": "jev_diag_anon_52f5e296dabe2f3dbb294eed1775ef1f_20261018_160121",
+ "submit_arm": 0,
+ "order": [
+  2,
+  3,
+  0,
+  1
+ ],
+ "arms": [
+  {
+   "arm": 0,
+   "kind": "v2",
+   "model": "openrouter/typesafe/jev-1.13",
+   "position": 2,
+   "seconds": 6.7,
+   "requests": 4,
+   "input_tokens": 26546,
+   "cost_usd": 0.001115,
+   "error": null,
+   "investigation": {
+    "rounds": [
+     {
+      "candidates": [
+       "change:deployment/checkout:container checkout env PRODUCT_CATALOG_ADDR: product-catalog:8080 -> product-catalog:8082",
+       "change:daemonset/otel-collector-agent:template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-18T22:01:03+06:00",
+       "change:deployment/astronomy-shop/checkout",
+       "change:daemonset/astronomy-shop/otel-collector-agent",
+       "own-setting:deployment/checkout",
+       "partial:deployment/checkout"
+      ],
+      "probabilities": {
+       "change:deployment/checkout:container checkout env PRODUCT_CATALOG_ADDR: product-catalog:8080 -> product-catalog:8082": 0.29000000000000004,
+       "change:daemonset/otel-collector-agent:template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-18T22:01:03+06:00": 0.08499999999999999,
+       "change:deployment/astronomy-shop/checkout": 0.18,
+       "change:daemonset/astronomy-shop/otel-collector-agent": 0.04,
+       "own-setting:deployment/checkout": 0.1,
+       "partial:deployment/checkout": 0.035,
+       "none_of_these": 0.27
+      },
+      "picks": [
+       "change:deployment/astronomy-shop/checkout",
+       "change:deployment/checkout:container checkout env PRODUCT_CATALOG_ADDR: product-catalog:8080 -> product-catalog:8082"
+      ],
+      "route": "check"
+     },
+     {
+      "candidates": [
+       "change:deployment/checkout:container checkout env PRODUCT_CATALOG_ADDR: product-catalog:8080 -> product-catalog:8082",
+       "change:daemonset/otel-collector-agent:template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-18T22:01:03+06:00",
+       "change:deployment/astronomy-shop/checkout",
+       "change:daemonset/astronomy-shop/otel-collector-agent",
+       "own-setting:deployment/checkout",
+       "partial:deployment/checkout"
+      ],
+      "probabilities": {
+       "change:deployment/checkout:container checkout env PRODUCT_CATALOG_ADDR: product-catalog:8080 -> product-catalog:8082": 0.35,
+       "change:daemonset/otel-collector-agent:template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-18T22:01:03+06:00": 0.08499999999999999,
+       "change:deployment/astronomy-shop/checkout": 0.125,
+       "change:daemonset/astronomy-shop/otel-collector-agent": 0.08,
+       "own-setting:deployment/checkout": 0.05500000000000001,
+       "partial:deployment/checkout": 0.04,
+       "none_of_these": 0.265
+      },
+      "picks": [
+       "change:deployment/checkout:container checkout env PRODUCT_CATALOG_ADDR: product-catalog:8080 -> product-catalog:8082",
+       "change:deployment/checkout:container checkout env PRODUCT_CATALOG_ADDR: product-catalog:8080 -> product-catalog:8082"
+      ],
+      "route": "check"
+     }
+    ],
+    "explanations": 7,
+    "winner": "change:deployment/checkout:container checkout env PRODUCT_CATALOG_ADDR: product-catalog:8080 -> product-catalog:8082",
+    "pattern": "change",
+    "uncertain": true
+   },
+   "text": "Root cause: deployment `checkout` in namespace `astronomy-shop`.\nMechanism: The pod template change 'container checkout env PRODUCT_CATALOG_ADDR: product-catalog:8080 -> product-catalog:8082' in revision 2 of deployment/checkout breaks deployment/checkout.\nConcrete details: container checkout env PRODUCT_CATALOG_ADDR: product-catalog:8080 -> product-catalog:8082.\nObserved impact: deployment `checkout` in namespace `astronomy-shop`.\nEvidence:\n- container checkout env PRODUCT_CATALOG_ADDR: product-catalog:8080 -> product-catalog:8082\n- only 0 of 1 desired replicas are ready\n- pod checkout-54579c864c-g6k46: pod phase Pending\n- pod checkout-54579c864c-g6k46: pod unschedulable: 0/4 nodes are available: 1 node(s) had untolerated taint {node-role.kubernetes.io/control-plane: }, 3 node(s) didn't match Pod's node affinity/selector. preemp\u2026\n- deployment/checkout: only 0 of 1 desired replicas are ready\nConfidence: low; the investigation budget ended before the leading explanation was confirmed.",
+   "grade": {
+    "judgment": "True",
+    "reasoning": "Verdict: True (composite=0.89). D1 Fault Localization: 1.00 | D2 Fault Characterization: 0.67 | D3 Scope Precision: 1.00. Weakest dimension: Fault Characterization (0.67). Checklist details: [{\"id\": \"D1-Q1\", \"answer\": \"Yes\", \"evidence\": \"Names deployment checkout in namespace astronomy-shop as the root cause, matching the fault specification.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q2\", \"answer\": \"Yes\", \"evidence\": \"Locates the fault in checkout's pod template rather than blaming product-catalog or another downstream component.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q3\", \"answer\": \"Yes\", \"evidence\": \"Identifies checkout, the ground-truth fault origin; no healthy component is identified as the origin.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q1\", \"answer\": \"No\", \"evidence\": \"Identifies the wrong backend port, but does not identify pinning to a nonexistent node as a second fault; selector mismatch appears only as evidence.\", \"confidence\": \"Medium\"}, {\"id\": \"D2-Q2\", \"answer\": \"Yes\", \"evidence\": \"Explicitly identifies PRODUCT_CATALOG_ADDR changing from product-catalog:8080 to product-catalog:8082.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q3\", \"answer\": \"Yes\", \"evidence\": \"The attributed environment-variable port misconfiguration matches an actual injected fault; no unrelated fault type is asserted as the cause.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q1\", \"answer\": \"Yes\", \"evidence\": \"Blames only deployment checkout in astronomy-shop.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q2\", \"answer\": \"Yes\", \"evidence\": \"Includes checkout, the deployment targeted by both faults, and its affected Pending pod.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q3\", \"answer\": \"Yes\", \"evidence\": \"Reports zero ready replicas, a Pending pod, and unschedulable events stating nodes did not match the pod's affinity/selector.\", \"confidence\": \"High\"}]",
+    "success": true,
+    "accuracy": 89.0,
+    "composite_score": 0.89,
+    "dimensions": {
+     "D1": {
+      "name": "Fault Localization",
+      "score": 1.0
+     },
+     "D2": {
+      "name": "Fault Characterization",
+      "score": 0.67
+     },
+     "D3": {
+      "name": "Scope Precision",
+      "score": 1.0
+     }
+    },
+    "checklist": [
+     {
+      "id": "D1-Q1",
+      "answer": "Yes",
+      "evidence": "Names deployment checkout in namespace astronomy-shop as the root cause, matching the fault specification.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q2",
+      "answer": "Yes",
+      "evidence": "Locates the fault in checkout's pod template rather than blaming product-catalog or another downstream component.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q3",
+      "answer": "Yes",
+      "evidence": "Identifies checkout, the ground-truth fault origin; no healthy component is identified as the origin.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q1",
+      "answer": "No",
+      "evidence": "Identifies the wrong backend port, but does not identify pinning to a nonexistent node as a second fault; selector mismatch appears only as evidence.",
+      "confidence": "Medium"
+     },
+     {
+      "id": "D2-Q2",
+      "answer": "Yes",
+      "evidence": "Explicitly identifies PRODUCT_CATALOG_ADDR changing from product-catalog:8080 to product-catalog:8082.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q3",
+      "answer": "Yes",
+      "evidence": "The attributed environment-variable port misconfiguration matches an actual injected fault; no unrelated fault type is asserted as the cause.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q1",
+      "answer": "Yes",
+      "evidence": "Blames only deployment checkout in astronomy-shop.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q2",
+      "answer": "Yes",
+      "evidence": "Includes checkout, the deployment targeted by both faults, and its affected Pending pod.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q3",
+      "answer": "Yes",
+      "evidence": "Reports zero ready replicas, a Pending pod, and unschedulable events stating nodes did not match the pod's affinity/selector.",
+      "confidence": "High"
+     }
+    ]
+   }
+  },
+  {
+   "arm": 1,
+   "kind": "v2",
+   "model": "openrouter/openai/gpt-6-luna-decisions",
+   "position": 3,
+   "seconds": 5.4,
+   "requests": 4,
+   "input_tokens": 17550,
+   "cost_usd": 0.001755,
+   "error": null,
+   "investigation": {
+    "rounds": [
+     {
+      "candidates": [
+       "change:deployment/checkout:container checkout env PRODUCT_CATALOG_ADDR: product-catalog:8080 -> product-catalog:8082",
+       "change:daemonset/otel-collector-agent:template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-18T22:01:03+06:00",
+       "change:deployment/astronomy-shop/checkout",
+       "change:daemonset/astronomy-shop/otel-collector-agent",
+       "own-setting:deployment/checkout",
+       "partial:deployment/checkout"
+      ],
+      "probabilities": {
+       "change:deployment/checkout:container checkout env PRODUCT_CATALOG_ADDR: product-catalog:8080 -> product-catalog:8082": 0.11,
+       "change:daemonset/otel-collector-agent:template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-18T22:01:03+06:00": 0.025,
+       "change:deployment/astronomy-shop/checkout": 0.09,
+       "change:daemonset/astronomy-shop/otel-collector-agent": 0.025,
+       "own-setting:deployment/checkout": 0.10500000000000001,
+       "partial:deployment/checkout": 0.33999999999999997,
+       "none_of_these": 0.305
+      },
+      "picks": [
+       "partial:deployment/checkout",
+       "none_of_these"
+      ],
+      "route": "check"
+     },
+     {
+      "candidates": [
+       "change:deployment/checkout:container checkout env PRODUCT_CATALOG_ADDR: product-catalog:8080 -> product-catalog:8082",
+       "change:daemonset/otel-collector-agent:template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-18T22:01:03+06:00",
+       "change:deployment/astronomy-shop/checkout",
+       "change:daemonset/astronomy-shop/otel-collector-agent",
+       "own-setting:deployment/checkout",
+       "partial:deployment/checkout"
+      ],
+      "probabilities": {
+       "change:deployment/checkout:container checkout env PRODUCT_CATALOG_ADDR: product-catalog:8080 -> product-catalog:8082": 0.175,
+       "change:daemonset/otel-collector-agent:template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-18T22:01:03+06:00": 0.03,
+       "change:deployment/astronomy-shop/checkout": 0.155,
+       "change:daemonset/astronomy-shop/otel-collector-agent": 0.045,
+       "own-setting:deployment/checkout": 0.175,
+       "partial:deployment/checkout": 0.28,
+       "none_of_these": 0.14
+      },
+      "picks": [
+       "partial:deployment/checkout",
+       "own-setting:deployment/checkout"
+      ],
+      "route": "check"
+     }
+    ],
+    "explanations": 7,
+    "winner": "partial:deployment/checkout",
+    "pattern": "partial",
+    "uncertain": true
+   },
+   "text": "Root cause: deployment `checkout` in namespace `astronomy-shop`.\nMechanism: not established from the collected evidence.\nObserved impact: deployment `checkout` in namespace `astronomy-shop`.\nEvidence:\n- only 0 of 1 desired replicas are ready\n- pod checkout-54579c864c-g6k46: pod phase Pending\n- pod checkout-54579c864c-g6k46: pod unschedulable: 0/4 nodes are available: 1 node(s) had untolerated taint {node-role.kubernetes.io/control-plane: }, 3 node(s) didn't match Pod's node affinity/selector. preemp\u2026\n- deployment/checkout: only 0 of 1 desired replicas are ready\nConfidence: low; the investigation budget ended before the leading explanation was confirmed.",
+   "grade": {
+    "judgment": "True",
+    "reasoning": "Verdict: True (composite=0.78). D1 Fault Localization: 1.00 | D2 Fault Characterization: 0.33 | D3 Scope Precision: 1.00. Weakest dimension: Fault Characterization (0.33). Checklist details: [{\"id\": \"D1-Q1\", \"answer\": \"Yes\", \"evidence\": \"Diagnosis explicitly identifies deployment checkout in namespace astronomy-shop as the root cause, matching the fault specification.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q2\", \"answer\": \"Yes\", \"evidence\": \"Diagnosis names checkout as the root-cause deployment rather than a downstream victim.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q3\", \"answer\": \"Yes\", \"evidence\": \"Only checkout is identified as the fault origin; no healthy component is blamed.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q1\", \"answer\": \"No\", \"evidence\": \"Diagnosis states \\u201cMechanism: not established\\u201d and omits the wrong backend port; selector mismatch appears only as an observed scheduling event.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q2\", \"answer\": \"No\", \"evidence\": \"Diagnosis provides no PRODUCT_CATALOG_ADDR value, incorrect port, or concrete nodeSelector mutation; the scheduling event reports only affinity/selector mismatch.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q3\", \"answer\": \"Yes\", \"evidence\": \"Diagnosis leaves the mechanism unestablished and does not attribute the fault to an incorrect or unrelated fault type.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q1\", \"answer\": \"Yes\", \"evidence\": \"Diagnosis confines root cause and observed impact to checkout; it does not blame additional components.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q2\", \"answer\": \"Yes\", \"evidence\": \"Diagnosis includes checkout deployment and its Pending pod in astronomy-shop, covering the component identified in the ground truth.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q3\", \"answer\": \"Yes\", \"evidence\": \"Reported Pending pod and unschedulable event citing node affinity/selector mismatch match the ground-truth scheduling symptoms.\", \"confidence\": \"High\"}]",
+    "success": true,
+    "accuracy": 78.0,
+    "composite_score": 0.78,
+    "dimensions": {
+     "D1": {
+      "name": "Fault Localization",
+      "score": 1.0
+     },
+     "D2": {
+      "name": "Fault Characterization",
+      "score": 0.33
+     },
+     "D3": {
+      "name": "Scope Precision",
+      "score": 1.0
+     }
+    },
+    "checklist": [
+     {
+      "id": "D1-Q1",
+      "answer": "Yes",
+      "evidence": "Diagnosis explicitly identifies deployment checkout in namespace astronomy-shop as the root cause, matching the fault specification.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q2",
+      "answer": "Yes",
+      "evidence": "Diagnosis names checkout as the root-cause deployment rather than a downstream victim.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q3",
+      "answer": "Yes",
+      "evidence": "Only checkout is identified as the fault origin; no healthy component is blamed.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q1",
+      "answer": "No",
+      "evidence": "Diagnosis states \u201cMechanism: not established\u201d and omits the wrong backend port; selector mismatch appears only as an observed scheduling event.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q2",
+      "answer": "No",
+      "evidence": "Diagnosis provides no PRODUCT_CATALOG_ADDR value, incorrect port, or concrete nodeSelector mutation; the scheduling event reports only affinity/selector mismatch.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q3",
+      "answer": "Yes",
+      "evidence": "Diagnosis leaves the mechanism unestablished and does not attribute the fault to an incorrect or unrelated fault type.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q1",
+      "answer": "Yes",
+      "evidence": "Diagnosis confines root cause and observed impact to checkout; it does not blame additional components.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q2",
+      "answer": "Yes",
+      "evidence": "Diagnosis includes checkout deployment and its Pending pod in astronomy-shop, covering the component identified in the ground truth.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q3",
+      "answer": "Yes",
+      "evidence": "Reported Pending pod and unschedulable event citing node affinity/selector mismatch match the ground-truth scheduling symptoms.",
+      "confidence": "High"
+     }
+    ]
+   }
+  },
+  {
+   "arm": 2,
+   "kind": "v1",
+   "model": "openrouter/typesafe/jev-1.13",
+   "position": 0,
+   "seconds": 3.1,
+   "requests": 2,
+   "input_tokens": 35990,
+   "cost_usd": 0.001512,
+   "error": null,
+   "investigation": {
+    "steps": [
+     {
+      "step": 1,
+      "node": "investigate",
+      "component": "deployment/checkout",
+      "verdict": "origin",
+      "origin_p": 1.0,
+      "victim_p": 0.0,
+      "next": "none",
+      "next_p": 0.59,
+      "category": "scheduling_constraint",
+      "spec_checks": [
+       "env PRODUCT_CATALOG_ADDR='product-catalog:8082' addresses Service product-catalog on port 8082; that Service exposes ports [8080] (component deployment/product-catalog)",
+       "service checkout has no ready endpoints"
+      ],
+      "blocked_input": null,
+      "key_evidence": "workload node_selector: {'kubernetes.io/hostname': 'extra-node'}"
+     }
+    ],
+    "concluded": "deployment/checkout",
+    "fallback": null,
+    "triage_top": [
+     [
+      "deployment/checkout",
+      0.97
+     ],
+     [
+      "daemonset/otel-collector-agent",
+      0.02
+     ],
+     [
+      "other",
+      0.01
+     ],
+     [
+      "deployment/accounting",
+      0.0
+     ],
+     [
+      "deployment/ad",
+      0.0
+     ]
+    ]
+   },
+   "text": "Root cause component: Deployment `checkout` in namespace `astronomy-shop`.\nMechanism: workload node_selector: {'kubernetes.io/hostname': 'extra-node'}.\nFault type: scheduling constraint (no node satisfies the pod's placement constraints).\nConfiguration mismatches found by code:\n- env PRODUCT_CATALOG_ADDR='product-catalog:8082' addresses Service product-catalog on port 8082; that Service exposes ports [8080] (component deployment/product-catalog)\nAbnormal state observed on this component:\n- only 0 of 1 desired replicas are ready\n- pod checkout-54579c864c-g6k46: pod phase Pending\n- pod checkout-54579c864c-g6k46: pod unschedulable: 0/4 nodes are available: 1 node(s) had untolerated taint {node-role.kubernetes.io/control-plane: }, 3 node(s) didn't match Pod's node affinity/selector. preemp\u2026\n- pod checkout-c69887c97-xcm7x: pod phase Pending\n- pod checkout-c69887c97-xcm7x: pod unschedulable: 0/4 nodes are available: 1 node(s) had untolerated taint {node-role.kubernetes.io/control-plane: }, 3 node(s) didn't match Pod's node affinity/selector. preemp\u2026\n- warning events: FailedScheduling x2\n- service checkout selects this component but has 0 ready endpoints\n- firing alert PendingPodsDetected\n- firing alert PodSchedulingFailure\n- pod checkout-54579c864c-g6k46 is still in pod phase Pending after another 49s\n- pod checkout-c69887c97-xcm7x is still in pod phase Pending after another 49s\n- created 132s ago, 28s after the workloads it calls; 0s before the first active symptom\nNotable spec settings:\n- nodeSelector set: {'kubernetes.io/hostname': 'extra-node'}\n- Available=False (MinimumReplicasUnavailable)\n- container wait-for-kafka: image busybox:latest\n- container checkout: image ghcr.io/open-telemetry/demo:2.2.0-checkout, limits {'memory': '20Mi'}\nWarning events:\n- FailedScheduling x1 on pod/checkout-c69887c97-xcm7x: 0/4 nodes are available: 1 node(s) had untolerated taint {node-role.kubernetes.io/control-plane: }, 3 node(s) didn't match Pod's node affinity/selector. preemption: 0/4 nodes are available: 4 Preemption is not helpful for scheduling.\n- FailedScheduling x1 on pod/checkout-54579c864c-g6k46: 0/4 nodes are available: 1 node(s) had untolerated taint {node-role.kubernetes.io/control-plane: }, 3 node(s) didn't match Pod's node affinity/selector. preemption: 0/4 nodes are available: 4 Preemption is not helpful for scheduling.\nFiring alerts on this component: PendingPodsDetected, PodSchedulingFailure.\nClassification: Jev (typesafe/jev-1.13-20260917) confirmed this origin at investigation step 1 with probability 1.00 (triage probability 0.97).",
+   "grade": {
+    "judgment": "True",
+    "reasoning": "Verdict: True (composite=1.00). D1 Fault Localization: 1.00 | D2 Fault Characterization: 1.00 | D3 Scope Precision: 1.00. Weakest dimension: Fault Localization (1.00). Checklist details: [{\"id\": \"D1-Q1\", \"answer\": \"Yes\", \"evidence\": \"Explicitly identifies Deployment checkout in namespace astronomy-shop as the root cause component.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q2\", \"answer\": \"Yes\", \"evidence\": \"Names checkout as the origin and describes its Pending pods and zero ready service endpoints as observed consequences.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q3\", \"answer\": \"Yes\", \"evidence\": \"The declared root cause is deployment/checkout, matching the fault specification; no different component is identified as the origin.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q1\", \"answer\": \"Yes\", \"evidence\": \"Identifies both the unsatisfiable node selector and PRODUCT_CATALOG_ADDR targeting port 8082 while the service exposes 8080.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q2\", \"answer\": \"Yes\", \"evidence\": \"Provides nodeSelector kubernetes.io/hostname=extra-node and PRODUCT_CATALOG_ADDR=product-catalog:8082, explicitly contrasting the latter with exposed port 8080.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q3\", \"answer\": \"Yes\", \"evidence\": \"Attributes the fault to scheduling constraints and a backend port configuration mismatch, both consistent with the ground truth.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q1\", \"answer\": \"Yes\", \"evidence\": \"Blames checkout; references product-catalog to establish the configured destination port mismatch, without declaring that service faulty.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q2\", \"answer\": \"Yes\", \"evidence\": \"Includes checkout, the sole fault-bearing deployment specified in the ground truth, and describes its affected pods and service endpoints.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q3\", \"answer\": \"Yes\", \"evidence\": \"Reports Pending pods, node selector mismatch, FailedScheduling events, zero ready endpoints, and a configured backend port absent from the service.\", \"confidence\": \"High\"}]",
+    "success": true,
+    "accuracy": 100.0,
+    "composite_score": 1.0,
+    "dimensions": {
+     "D1": {
+      "name": "Fault Localization",
+      "score": 1.0
+     },
+     "D2": {
+      "name": "Fault Characterization",
+      "score": 1.0
+     },
+     "D3": {
+      "name": "Scope Precision",
+      "score": 1.0
+     }
+    },
+    "checklist": [
+     {
+      "id": "D1-Q1",
+      "answer": "Yes",
+      "evidence": "Explicitly identifies Deployment checkout in namespace astronomy-shop as the root cause component.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q2",
+      "answer": "Yes",
+      "evidence": "Names checkout as the origin and describes its Pending pods and zero ready service endpoints as observed consequences.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q3",
+      "answer": "Yes",
+      "evidence": "The declared root cause is deployment/checkout, matching the fault specification; no different component is identified as the origin.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q1",
+      "answer": "Yes",
+      "evidence": "Identifies both the unsatisfiable node selector and PRODUCT_CATALOG_ADDR targeting port 8082 while the service exposes 8080.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q2",
+      "answer": "Yes",
+      "evidence": "Provides nodeSelector kubernetes.io/hostname=extra-node and PRODUCT_CATALOG_ADDR=product-catalog:8082, explicitly contrasting the latter with exposed port 8080.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q3",
+      "answer": "Yes",
+      "evidence": "Attributes the fault to scheduling constraints and a backend port configuration mismatch, both consistent with the ground truth.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q1",
+      "answer": "Yes",
+      "evidence": "Blames checkout; references product-catalog to establish the configured destination port mismatch, without declaring that service faulty.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q2",
+      "answer": "Yes",
+      "evidence": "Includes checkout, the sole fault-bearing deployment specified in the ground truth, and describes its affected pods and service endpoints.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q3",
+      "answer": "Yes",
+      "evidence": "Reports Pending pods, node selector mismatch, FailedScheduling events, zero ready endpoints, and a configured backend port absent from the service.",
+      "confidence": "High"
+     }
+    ]
+   }
+  },
+  {
+   "arm": 3,
+   "kind": "v1",
+   "model": "openrouter/openai/gpt-6-luna-decisions",
+   "position": 1,
+   "seconds": 3.3,
+   "requests": 2,
+   "input_tokens": 24115,
+   "cost_usd": 0.002412,
+   "error": null,
+   "investigation": {
+    "steps": [
+     {
+      "step": 1,
+      "node": "investigate",
+      "component": "deployment/checkout",
+      "verdict": "origin",
+      "origin_p": 0.9,
+      "victim_p": 0.06,
+      "next": "none",
+      "next_p": 0.52,
+      "category": "scheduling_constraint",
+      "spec_checks": [
+       "env PRODUCT_CATALOG_ADDR='product-catalog:8082' addresses Service product-catalog on port 8082; that Service exposes ports [8080] (component deployment/product-catalog)",
+       "service checkout has no ready endpoints"
+      ],
+      "blocked_input": null,
+      "key_evidence": "workload node_selector: {'kubernetes.io/hostname': 'extra-node'}"
+     }
+    ],
+    "concluded": "deployment/checkout",
+    "fallback": null,
+    "triage_top": [
+     [
+      "deployment/checkout",
+      0.96
+     ],
+     [
+      "deployment/ad",
+      0.01
+     ],
+     [
+      "deployment/frontend",
+      0.01
+     ],
+     [
+      "daemonset/otel-collector-agent",
+      0.01
+     ],
+     [
+      "other",
+      0.01
+     ]
+    ]
+   },
+   "text": "Root cause component: Deployment `checkout` in namespace `astronomy-shop`.\nMechanism: workload node_selector: {'kubernetes.io/hostname': 'extra-node'}.\nFault type: scheduling constraint (no node satisfies the pod's placement constraints).\nConfiguration mismatches found by code:\n- env PRODUCT_CATALOG_ADDR='product-catalog:8082' addresses Service product-catalog on port 8082; that Service exposes ports [8080] (component deployment/product-catalog)\nAbnormal state observed on this component:\n- only 0 of 1 desired replicas are ready\n- pod checkout-54579c864c-g6k46: pod phase Pending\n- pod checkout-54579c864c-g6k46: pod unschedulable: 0/4 nodes are available: 1 node(s) had untolerated taint {node-role.kubernetes.io/control-plane: }, 3 node(s) didn't match Pod's node affinity/selector. preemp\u2026\n- pod checkout-c69887c97-xcm7x: pod phase Pending\n- pod checkout-c69887c97-xcm7x: pod unschedulable: 0/4 nodes are available: 1 node(s) had untolerated taint {node-role.kubernetes.io/control-plane: }, 3 node(s) didn't match Pod's node affinity/selector. preemp\u2026\n- warning events: FailedScheduling x2\n- service checkout selects this component but has 0 ready endpoints\n- firing alert PendingPodsDetected\n- firing alert PodSchedulingFailure\n- pod checkout-54579c864c-g6k46 is still in pod phase Pending after another 49s\n- pod checkout-c69887c97-xcm7x is still in pod phase Pending after another 49s\n- created 132s ago, 28s after the workloads it calls; 0s before the first active symptom\nNotable spec settings:\n- nodeSelector set: {'kubernetes.io/hostname': 'extra-node'}\n- Available=False (MinimumReplicasUnavailable)\n- container wait-for-kafka: image busybox:latest\n- container checkout: image ghcr.io/open-telemetry/demo:2.2.0-checkout, limits {'memory': '20Mi'}\nWarning events:\n- FailedScheduling x1 on pod/checkout-c69887c97-xcm7x: 0/4 nodes are available: 1 node(s) had untolerated taint {node-role.kubernetes.io/control-plane: }, 3 node(s) didn't match Pod's node affinity/selector. preemption: 0/4 nodes are available: 4 Preemption is not helpful for scheduling.\n- FailedScheduling x1 on pod/checkout-54579c864c-g6k46: 0/4 nodes are available: 1 node(s) had untolerated taint {node-role.kubernetes.io/control-plane: }, 3 node(s) didn't match Pod's node affinity/selector. preemption: 0/4 nodes are available: 4 Preemption is not helpful for scheduling.\nFiring alerts on this component: PendingPodsDetected, PodSchedulingFailure.\nClassification: Jev (openai/gpt-6-luna-decisions-20261006) confirmed this origin at investigation step 1 with probability 0.90 (triage probability 0.96).",
+   "grade": {
+    "judgment": "True",
+    "reasoning": "Verdict: True (composite=1.00). D1 Fault Localization: 1.00 | D2 Fault Characterization: 1.00 | D3 Scope Precision: 1.00. Weakest dimension: Fault Localization (1.00). Checklist details: [{\"id\": \"D1-Q1\", \"answer\": \"Yes\", \"evidence\": \"Explicitly identifies Deployment checkout in namespace astronomy-shop as the root cause component.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q2\", \"answer\": \"Yes\", \"evidence\": \"Locates the origin in checkout and describes Pending pods and zero ready service endpoints as consequences on that component.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q3\", \"answer\": \"Yes\", \"evidence\": \"Names checkout as the root cause; product-catalog is referenced to establish the configured port mismatch.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q1\", \"answer\": \"Yes\", \"evidence\": \"Identifies both an unsatisfiable node selector and PRODUCT_CATALOG_ADDR pointing to port 8082 instead of the service's exposed port 8080.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q2\", \"answer\": \"Yes\", \"evidence\": \"Provides kubernetes.io/hostname: extra-node and PRODUCT_CATALOG_ADDR='product-catalog:8082', with the service exposing port 8080.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q3\", \"answer\": \"Yes\", \"evidence\": \"Attributes the problem to scheduling constraints and a backend port configuration mismatch, both consistent with the ground truth.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q1\", \"answer\": \"Yes\", \"evidence\": \"Blames checkout's placement constraints and configured backend address; no additional component is identified as a fault origin.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q2\", \"answer\": \"Yes\", \"evidence\": \"Includes checkout, the deployment identified in the ground truth, and references its product-catalog backend configuration.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q3\", \"answer\": \"Yes\", \"evidence\": \"Reports Pending pods, node selector mismatch, FailedScheduling events, zero ready endpoints, and a backend address using an unexposed service port.\", \"confidence\": \"High\"}]",
+    "success": true,
+    "accuracy": 100.0,
+    "composite_score": 1.0,
+    "dimensions": {
+     "D1": {
+      "name": "Fault Localization",
+      "score": 1.0
+     },
+     "D2": {
+      "name": "Fault Characterization",
+      "score": 1.0
+     },
+     "D3": {
+      "name": "Scope Precision",
+      "score": 1.0
+     }
+    },
+    "checklist": [
+     {
+      "id": "D1-Q1",
+      "answer": "Yes",
+      "evidence": "Explicitly identifies Deployment checkout in namespace astronomy-shop as the root cause component.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q2",
+      "answer": "Yes",
+      "evidence": "Locates the origin in checkout and describes Pending pods and zero ready service endpoints as consequences on that component.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q3",
+      "answer": "Yes",
+      "evidence": "Names checkout as the root cause; product-catalog is referenced to establish the configured port mismatch.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q1",
+      "answer": "Yes",
+      "evidence": "Identifies both an unsatisfiable node selector and PRODUCT_CATALOG_ADDR pointing to port 8082 instead of the service's exposed port 8080.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q2",
+      "answer": "Yes",
+      "evidence": "Provides kubernetes.io/hostname: extra-node and PRODUCT_CATALOG_ADDR='product-catalog:8082', with the service exposing port 8080.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q3",
+      "answer": "Yes",
+      "evidence": "Attributes the problem to scheduling constraints and a backend port configuration mismatch, both consistent with the ground truth.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q1",
+      "answer": "Yes",
+      "evidence": "Blames checkout's placement constraints and configured backend address; no additional component is identified as a fault origin.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q2",
+      "answer": "Yes",
+      "evidence": "Includes checkout, the deployment identified in the ground truth, and references its product-catalog backend configuration.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q3",
+      "answer": "Yes",
+      "evidence": "Reports Pending pods, node selector mismatch, FailedScheduling events, zero ready endpoints, and a backend address using an unexposed service port.",
+      "confidence": "High"
+     }
+    ]
+   }
+  }
+ ],
+ "submission": {
+  "status": "200",
+  "message": "Submission received",
+  "stage": "diagnosis"
+ },
+ "judge": {
+  "model": "gpt-6-astra",
+  "backend": "codex",
+  "effort": "high"
+ }
+}

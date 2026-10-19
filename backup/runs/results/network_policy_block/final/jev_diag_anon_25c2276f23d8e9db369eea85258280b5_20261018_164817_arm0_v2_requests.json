@@ -1,0 +1,248 @@
+[
+ {
+  "label": "decide:1",
+  "state": {
+   "application": {
+    "name": "Hotel Reservation",
+    "description": "A hotel reservation application built with Go and gRPC, providing backend in-memory and persistent databases, a recommender system for hotel recommendations, and a functionality to place reservations.",
+    "namespaces": [
+     "hotel-reservation"
+    ]
+   },
+   "evidence": {
+    "deployment/recommendation": {
+     "kind": "Deployment",
+     "name": "recommendation",
+     "namespace": "hotel-reservation",
+     "healthy": false,
+     "signals": [
+      "selected by NetworkPolicy deny-all-recommendation (denies all ingress; denies all egress)",
+      "firing alert ServiceEndpointDown",
+      "NetworkPolicy deny-all-recommendation was created 125s ago, 14s after the workloads it selects; 32s before the first active symptom"
+     ]
+    },
+    "deployment/mongodb-geo": {
+     "kind": "Deployment",
+     "name": "mongodb-geo",
+     "namespace": "hotel-reservation",
+     "healthy": true,
+     "template_changes": {
+      "revision": 2,
+      "changed_at": "2026-10-18T16:48:07Z",
+      "changes": [
+       "pod label pod-template-hash: 78487c9767 -> 5ff578bcb8",
+       "volume failure-script added: {\"configMap\": {\"defaultMode\": 420, \"name\": \"failure-admin-geo\"}}",
+       "container hotel-reserv-geo-mongo mounts volume failure-script at /scripts"
+      ]
+     }
+    },
+    "deployment/mongodb-rate": {
+     "kind": "Deployment",
+     "name": "mongodb-rate",
+     "namespace": "hotel-reservation",
+     "healthy": true,
+     "template_changes": {
+      "revision": 2,
+      "changed_at": "2026-10-18T16:48:07Z",
+      "changes": [
+       "pod label pod-template-hash: 6747cb74bf -> 56cc8659c9",
+       "volume failure-script added: {\"configMap\": {\"defaultMode\": 420, \"name\": \"failure-admin-rate\"}}",
+       "container hotel-reserv-rate-mongo mounts volume failure-script at /scripts"
+      ]
+     }
+    }
+   },
+   "cluster": {
+    "symptom_onset": "2026-10-18T16:48:49+00:00",
+    "recent_changes": [
+     {
+      "object": "networkpolicy/hotel-reservation/deny-all-recommendation",
+      "at": "2026-10-18T16:48:17Z",
+      "created_after_targets_s": 14,
+      "seconds_ago": 125,
+      "seconds_before_symptoms": 32
+     }
+    ],
+    "findings": [
+     {
+      "kind": "NetworkPolicy",
+      "name": "deny-all-recommendation",
+      "namespace": "hotel-reservation",
+      "signal": "denies all ingress; denies all egress; NetworkPolicy deny-all-recommendation was created 125s ago, 14s after the workloads it selects; 32s before the first active symptom",
+      "components": [
+       "deployment/recommendation"
+      ]
+     }
+    ]
+   }
+  },
+  "questions": {
+   "best_explanation": {
+    "type": "choice",
+    "criteria": {
+     "o1": "Origin: deployment/hotel-reservation/mongodb-geo. The pod template changes in revision 2 of deployment/mongodb-geo, which only cause the fault together, break deployment/mongodb-geo. | Details: volume failure-script added: {\"configMap\": {\"defaultMode\": 420, \"name\": \"failure-admin-geo\"}}; container hotel-reserv-geo-mongo mounts volume failure-script at /scripts | Checks: revision 2 of deployment/mongodb-geo was made before the symptoms began (supports); deployment/mongodb-geo shows symptoms of its own (contradicts)",
+     "o2": "Origin: deployment/hotel-reservation/mongodb-geo. The pod template change 'volume failure-script added: {\"configMap\": {\"defaultMode\": 420, \"name\": \"failure-admin-geo\"}}' in revision 2 of deployment/mongodb-geo breaks deployment/mongodb-geo. | Details: volume failure-script added: {\"configMap\": {\"defaultMode\": 420, \"name\": \"failure-admin-geo\"}} | Checks: revision 2 of deployment/mongodb-geo was made before the symptoms began (supports); deployment/mongodb-geo shows symptoms of its own (contradicts)",
+     "o3": "Origin: deployment/hotel-reservation/recommendation. The fault is in this component; the mechanism is not established. | Observed impact on: deployment/hotel-reservation/recommendation",
+     "o4": "Origin: networkpolicy/hotel-reservation/deny-all-recommendation. networkpolicy deny-all-recommendation was created recently and breaks deployment/recommendation, which it acts on. | Details: selected by NetworkPolicy deny-all-recommendation (denies all ingress; denies all egress); denies all ingress; denies all egress; NetworkPolicy deny-all-recommendation was created 125s ago, 14s after the workloads it selects; 32s before the first active symptom | Observed impact on: deployment/hotel-reservation/recommendation | Checks: networkpolicy/hotel-reservation/deny-all-recommendation was made before the symptoms began (supports); deployment/recommendation shows symptoms of its own (supports)",
+     "o5": "Origin: deployment/hotel-reservation/mongodb-rate. The pod template change 'volume failure-script added: {\"configMap\": {\"defaultMode\": 420, \"name\": \"failure-admin-rate\"}}' in revision 2 of deployment/mongodb-rate breaks deployment/mongodb-rate. | Details: volume failure-script added: {\"configMap\": {\"defaultMode\": 420, \"name\": \"failure-admin-rate\"}} | Checks: revision 2 of deployment/mongodb-rate was made before the symptoms began (supports); deployment/mongodb-rate shows symptoms of its own (contradicts)",
+     "o6": "Origin: deployment/hotel-reservation/mongodb-geo. The pod template change 'container hotel-reserv-geo-mongo mounts volume failure-script at /scripts' in revision 2 of deployment/mongodb-geo breaks deployment/mongodb-geo. | Details: container hotel-reserv-geo-mongo mounts volume failure-script at /scripts | Checks: revision 2 of deployment/mongodb-geo was made before the symptoms began (supports); deployment/mongodb-geo shows symptoms of its own (contradicts)",
+     "o7": "None of these explanations fits the evidence."
+    },
+    "instructions": {
+     "question": "Which explanation best accounts for all the observed symptoms in `evidence`?",
+     "how_to_decide": [
+      "Prefer the explanation whose chain is supported by the observed facts and explains the most symptoms; an explanation contradicted by a fact is unlikely.",
+      "A component that only fails because something it calls fails is a victim, not the origin.",
+      "Choose `o7` when none of the explanations fits the evidence."
+     ]
+    }
+   }
+  },
+  "model": "typesafe/jev-1.13-20260917",
+  "latency_ms": 1117,
+  "usage": {
+   "input_tokens": 2001,
+   "output_tokens": 77,
+   "cost": 8.4042e-05
+  },
+  "answers": {
+   "best_explanation": {
+    "type": "choice",
+    "choice": "o4",
+    "confidence": 1.0,
+    "probabilities": {
+     "o1": 0.0,
+     "o2": 0.0,
+     "o3": 0.0,
+     "o4": 1.0,
+     "o5": 0.0,
+     "o6": 0.0,
+     "o7": 0.0
+    }
+   }
+  }
+ },
+ {
+  "label": "decide:2",
+  "state": {
+   "application": {
+    "name": "Hotel Reservation",
+    "description": "A hotel reservation application built with Go and gRPC, providing backend in-memory and persistent databases, a recommender system for hotel recommendations, and a functionality to place reservations.",
+    "namespaces": [
+     "hotel-reservation"
+    ]
+   },
+   "evidence": {
+    "deployment/recommendation": {
+     "kind": "Deployment",
+     "name": "recommendation",
+     "namespace": "hotel-reservation",
+     "healthy": false,
+     "signals": [
+      "selected by NetworkPolicy deny-all-recommendation (denies all ingress; denies all egress)",
+      "firing alert ServiceEndpointDown",
+      "NetworkPolicy deny-all-recommendation was created 125s ago, 14s after the workloads it selects; 32s before the first active symptom"
+     ]
+    },
+    "deployment/mongodb-geo": {
+     "kind": "Deployment",
+     "name": "mongodb-geo",
+     "namespace": "hotel-reservation",
+     "healthy": true,
+     "template_changes": {
+      "revision": 2,
+      "changed_at": "2026-10-18T16:48:07Z",
+      "changes": [
+       "pod label pod-template-hash: 78487c9767 -> 5ff578bcb8",
+       "volume failure-script added: {\"configMap\": {\"defaultMode\": 420, \"name\": \"failure-admin-geo\"}}",
+       "container hotel-reserv-geo-mongo mounts volume failure-script at /scripts"
+      ]
+     }
+    },
+    "deployment/mongodb-rate": {
+     "kind": "Deployment",
+     "name": "mongodb-rate",
+     "namespace": "hotel-reservation",
+     "healthy": true,
+     "template_changes": {
+      "revision": 2,
+      "changed_at": "2026-10-18T16:48:07Z",
+      "changes": [
+       "pod label pod-template-hash: 6747cb74bf -> 56cc8659c9",
+       "volume failure-script added: {\"configMap\": {\"defaultMode\": 420, \"name\": \"failure-admin-rate\"}}",
+       "container hotel-reserv-rate-mongo mounts volume failure-script at /scripts"
+      ]
+     }
+    }
+   },
+   "cluster": {
+    "symptom_onset": "2026-10-18T16:48:49+00:00",
+    "recent_changes": [
+     {
+      "object": "networkpolicy/hotel-reservation/deny-all-recommendation",
+      "at": "2026-10-18T16:48:17Z",
+      "created_after_targets_s": 14,
+      "seconds_ago": 125,
+      "seconds_before_symptoms": 32
+     }
+    ],
+    "findings": [
+     {
+      "kind": "NetworkPolicy",
+      "name": "deny-all-recommendation",
+      "namespace": "hotel-reservation",
+      "signal": "denies all ingress; denies all egress; NetworkPolicy deny-all-recommendation was created 125s ago, 14s after the workloads it selects; 32s before the first active symptom",
+      "components": [
+       "deployment/recommendation"
+      ]
+     }
+    ]
+   }
+  },
+  "questions": {
+   "best_explanation": {
+    "type": "choice",
+    "criteria": {
+     "o1": "Origin: deployment/hotel-reservation/recommendation. The fault is in this component; the mechanism is not established. | Observed impact on: deployment/hotel-reservation/recommendation",
+     "o2": "Origin: networkpolicy/hotel-reservation/deny-all-recommendation. networkpolicy deny-all-recommendation was created recently and breaks deployment/recommendation, which it acts on. | Details: selected by NetworkPolicy deny-all-recommendation (denies all ingress; denies all egress); denies all ingress; denies all egress; NetworkPolicy deny-all-recommendation was created 125s ago, 14s after the workloads it selects; 32s before the first active symptom | Observed impact on: deployment/hotel-reservation/recommendation | Checks: networkpolicy/hotel-reservation/deny-all-recommendation was made before the symptoms began (supports); deployment/recommendation shows symptoms of its own (supports)",
+     "o3": "Origin: deployment/hotel-reservation/mongodb-geo. The pod template changes in revision 2 of deployment/mongodb-geo, which only cause the fault together, break deployment/mongodb-geo. | Details: volume failure-script added: {\"configMap\": {\"defaultMode\": 420, \"name\": \"failure-admin-geo\"}}; container hotel-reserv-geo-mongo mounts volume failure-script at /scripts | Checks: revision 2 of deployment/mongodb-geo was made before the symptoms began (supports); deployment/mongodb-geo shows symptoms of its own (contradicts)",
+     "o4": "Origin: deployment/hotel-reservation/mongodb-rate. The pod template change 'volume failure-script added: {\"configMap\": {\"defaultMode\": 420, \"name\": \"failure-admin-rate\"}}' in revision 2 of deployment/mongodb-rate breaks deployment/mongodb-rate. | Details: volume failure-script added: {\"configMap\": {\"defaultMode\": 420, \"name\": \"failure-admin-rate\"}} | Checks: revision 2 of deployment/mongodb-rate was made before the symptoms began (supports); deployment/mongodb-rate shows symptoms of its own (contradicts)",
+     "o5": "None of these explanations fits the evidence.",
+     "o6": "Origin: deployment/hotel-reservation/mongodb-geo. The pod template change 'volume failure-script added: {\"configMap\": {\"defaultMode\": 420, \"name\": \"failure-admin-geo\"}}' in revision 2 of deployment/mongodb-geo breaks deployment/mongodb-geo. | Details: volume failure-script added: {\"configMap\": {\"defaultMode\": 420, \"name\": \"failure-admin-geo\"}} | Checks: revision 2 of deployment/mongodb-geo was made before the symptoms began (supports); deployment/mongodb-geo shows symptoms of its own (contradicts)",
+     "o7": "Origin: deployment/hotel-reservation/mongodb-geo. The pod template change 'container hotel-reserv-geo-mongo mounts volume failure-script at /scripts' in revision 2 of deployment/mongodb-geo breaks deployment/mongodb-geo. | Details: container hotel-reserv-geo-mongo mounts volume failure-script at /scripts | Checks: revision 2 of deployment/mongodb-geo was made before the symptoms began (supports); deployment/mongodb-geo shows symptoms of its own (contradicts)"
+    },
+    "instructions": {
+     "question": "Which explanation best accounts for all the observed symptoms in `evidence`?",
+     "how_to_decide": [
+      "Prefer the explanation whose chain is supported by the observed facts and explains the most symptoms; an explanation contradicted by a fact is unlikely.",
+      "A component that only fails because something it calls fails is a victim, not the origin.",
+      "Choose `o5` when none of the explanations fits the evidence."
+     ]
+    }
+   }
+  },
+  "model": "typesafe/jev-1.13-20260917",
+  "latency_ms": 516,
+  "usage": {
+   "input_tokens": 2001,
+   "output_tokens": 77,
+   "cost": 8.4042e-05
+  },
+  "answers": {
+   "best_explanation": {
+    "type": "choice",
+    "choice": "o2",
+    "confidence": 1.0,
+    "probabilities": {
+     "o1": 0.0,
+     "o2": 1.0,
+     "o3": 0.0,
+     "o4": 0.0,
+     "o5": 0.0,
+     "o6": 0.0,
+     "o7": 0.0
+    }
+   }
+  }
+ }
+]

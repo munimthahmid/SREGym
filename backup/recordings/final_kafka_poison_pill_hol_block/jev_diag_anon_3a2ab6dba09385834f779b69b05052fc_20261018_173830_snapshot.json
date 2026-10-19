@@ -1,0 +1,3179 @@
+{
+  "application": {
+    "name": "OpenTelemetry Demo Astronomy Shop",
+    "description": "An online shopping platform built with a microservices architecture, showcasing OpenTelemetry instrumentation for distributed tracing across services.",
+    "namespaces": [
+      "astronomy-shop"
+    ]
+  },
+  "cluster": {
+    "namespaces": [
+      "astronomy-shop"
+    ],
+    "nodes": [
+      {
+        "name": "kind-control-plane"
+      },
+      {
+        "name": "kind-worker"
+      },
+      {
+        "name": "kind-worker2"
+      },
+      {
+        "name": "kind-worker3"
+      }
+    ],
+    "cluster_dns": {
+      "configmap": "kube-system/coredns",
+      "modified": "2026-10-18T16:57:47Z",
+      "corefile_lines": 23,
+      "plugins": [
+        "disable",
+        "errors",
+        "fallthrough",
+        "lameduck",
+        "loadbalance",
+        "loop",
+        "max_concurrent",
+        "pods",
+        "prometheus",
+        "ready",
+        "reload",
+        "ttl"
+      ],
+      "pods": 2,
+      "changed": true
+    },
+    "rbac": [
+      {
+        "kind": "ClusterRole",
+        "name": "otel-collector",
+        "bindings": [
+          "ClusterRoleBinding/otel-collector"
+        ],
+        "service_accounts": [
+          "astronomy-shop/otel-collector"
+        ],
+        "components": [
+          "daemonset/otel-collector-agent"
+        ],
+        "rules": [
+          "leases [coordination.k8s.io]: get,list,watch,create,update,patch,delete",
+          "pods,namespaces [core]: get,watch,list",
+          "replicasets [apps]: get,list,watch",
+          "replicasets [extensions]: get,list,watch",
+          "events,namespaces,namespaces/status,nodes,nodes/spec,pods,pods/status,replicationcontrollers,replicationcontrollers/status,resourcequotas,services [core]: get,list,watch",
+          "daemonsets,deployments,replicasets,statefulsets [apps]: get,list,watch",
+          "daemonsets,deployments,replicasets [extensions]: get,list,watch",
+          "jobs,cronjobs [batch]: get,list,watch"
+        ],
+        "created": "2026-10-18T17:37:32Z",
+        "modified": "2026-10-18T17:37:32Z"
+      }
+    ],
+    "trend": {
+      "interval_s": 48,
+      "observations": 0
+    },
+    "_changes": [
+      {
+        "object": "deployment/order-stream",
+        "kind": "Deployment",
+        "name": "order-stream",
+        "namespace": "astronomy-shop",
+        "created": "2026-10-18T17:38:09Z",
+        "at": "2026-10-18T17:38:09Z",
+        "affects": [
+          "deployment/order-stream"
+        ],
+        "created_after_targets_s": 37
+      },
+      {
+        "object": "deployment/orders-validator",
+        "kind": "Deployment",
+        "name": "orders-validator",
+        "namespace": "astronomy-shop",
+        "created": "2026-10-18T17:38:25Z",
+        "at": "2026-10-18T17:38:25Z",
+        "affects": [
+          "deployment/orders-validator"
+        ],
+        "created_after_targets_s": 53
+      },
+      {
+        "object": "daemonset/otel-collector-agent",
+        "kind": "DaemonSet",
+        "name": "otel-collector-agent",
+        "namespace": "astronomy-shop",
+        "created": "2026-10-18T17:37:32Z",
+        "at": "2026-10-18T17:37:50Z",
+        "affects": [
+          "daemonset/otel-collector-agent"
+        ],
+        "modified_after_creation_s": 18,
+        "fields": [
+          "template.annotations.kubectl.kubernetes.io/restartedAt"
+        ],
+        "template_changes": [
+          "template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-18T23:37:50+06:00"
+        ]
+      },
+      {
+        "object": "configmap/kube-system/coredns",
+        "kind": "ConfigMap",
+        "name": "coredns",
+        "namespace": "kube-system",
+        "created": "2026-10-18T08:41:41Z",
+        "at": "2026-10-18T16:57:47Z",
+        "modified_after_creation_s": 29766,
+        "fields": [
+          "data.Corefile"
+        ]
+      }
+    ],
+    "symptom_onset": "2026-10-18T17:39:43+00:00",
+    "symptom_onset_source": "errors in deployment/orders-validator",
+    "recent_changes": [
+      {
+        "object": "deployment/orders-validator",
+        "at": "2026-10-18T17:38:25Z",
+        "created_after_targets_s": 53,
+        "seconds_ago": 131,
+        "seconds_before_symptoms": 78
+      },
+      {
+        "object": "deployment/order-stream",
+        "at": "2026-10-18T17:38:09Z",
+        "created_after_targets_s": 37,
+        "seconds_ago": 147,
+        "seconds_before_symptoms": 94
+      },
+      {
+        "object": "daemonset/otel-collector-agent",
+        "at": "2026-10-18T17:37:50Z",
+        "modified_after_creation_s": 18,
+        "fields": [
+          "template.annotations.kubectl.kubernetes.io/restartedAt"
+        ],
+        "seconds_ago": 166,
+        "seconds_before_symptoms": 113,
+        "role": "observability"
+      },
+      {
+        "object": "configmap/kube-system/coredns",
+        "at": "2026-10-18T16:57:47Z",
+        "modified_after_creation_s": 29766,
+        "fields": [
+          "data.Corefile"
+        ],
+        "seconds_ago": 2569,
+        "seconds_before_symptoms": 2516
+      }
+    ],
+    "findings": [
+      {
+        "kind": "ConfigMap",
+        "name": "coredns",
+        "namespace": "kube-system",
+        "signal": "ConfigMap coredns was modified 2569s ago, 29766s after it was created (fields: data.Corefile); 2516s before the first active symptom"
+      }
+    ]
+  },
+  "components": {
+    "deployment/accounting": {
+      "kind": "Deployment",
+      "name": "accounting",
+      "namespace": "astronomy-shop",
+      "created": "2026-10-18T17:37:32Z",
+      "modified": "2026-10-18T17:37:32Z",
+      "service_account": "astronomy-shop",
+      "replicas": {
+        "desired": 1,
+        "ready": 1,
+        "available": 1,
+        "updated": 1
+      },
+      "_env_hosts": [
+        "cumulative",
+        "false",
+        "kafka",
+        "otel-collector"
+      ],
+      "strategy": {
+        "type": "RollingUpdate",
+        "maxSurge": "25%",
+        "maxUnavailable": "25%"
+      },
+      "rollout": {
+        "progressDeadlineSeconds": 600
+      },
+      "containers": [
+        {
+          "name": "wait-for-kafka",
+          "init": true,
+          "image": "busybox:latest",
+          "command": [
+            "sh",
+            "-c",
+            "until nc -z -v -w30 kafka 9092; do echo waiting for kafka; sleep 2; done;"
+          ]
+        },
+        {
+          "name": "accounting",
+          "init": false,
+          "image": "ghcr.io/open-telemetry/demo:nightly-20939609681-accounting@sha256:51e6720438c13d0a4fefd129b01e2422b176fdb18a9ea71ef08fd84e717e82f4",
+          "limits": {
+            "memory": "120Mi"
+          },
+          "env_names": [
+            "OTEL_SERVICE_NAME",
+            "OTEL_COLLECTOR_NAME",
+            "OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE",
+            "KAFKA_ADDR",
+            "OTEL_EXPORTER_OTLP_ENDPOINT",
+            "DB_CONNECTION_STRING",
+            "OTEL_DOTNET_AUTO_TRACES_ENTITYFRAMEWORKCORE_INSTRUMENTATION_ENABLED"
+          ]
+        }
+      ],
+      "pods": [
+        {
+          "name": "accounting-5897477844-lpzvw",
+          "phase": "Running",
+          "ready": "1/1",
+          "restarts": 0,
+          "created": "2026-10-18T17:37:32Z",
+          "started": "2026-10-18T17:37:32Z",
+          "ready_since": "2026-10-18T17:37:46Z",
+          "node": "kind-worker2",
+          "ip": "10.244.110.185",
+          "container_states": [
+            "wait-for-kafka: terminated Completed exit=0"
+          ]
+        }
+      ],
+      "log_signals": [
+        {
+          "count": 1,
+          "line": "accounting: fail: Accounting.Consumer[0]",
+          "first_seen_seconds_ago": 167,
+          "last_seen_seconds_ago": 167,
+          "state": "stopped"
+        },
+        {
+          "count": 1,
+          "line": "accounting: Consume error: Subscribed topic not available: orders: Broker: Unknown topic or partition",
+          "first_seen_seconds_ago": 167,
+          "last_seen_seconds_ago": 167,
+          "state": "stopped"
+        },
+        {
+          "count": 1,
+          "line": "accounting: Confluent.Kafka.ConsumeException: Subscribed topic not available: orders: Broker: Unknown topic or partition",
+          "first_seen_seconds_ago": 167,
+          "last_seen_seconds_ago": 167,
+          "state": "stopped"
+        },
+        {
+          "count": 1,
+          "line": "accounting: at Confluent.Kafka.Consumer`2.Consume(Int32 millisecondsTimeout)",
+          "first_seen_seconds_ago": 167,
+          "last_seen_seconds_ago": 167,
+          "state": "stopped"
+        },
+        {
+          "count": 1,
+          "line": "accounting: Error: libgssapi_krb5.so.2: cannot open shared object file: No such file or directory",
+          "first_seen_seconds_ago": 162,
+          "last_seen_seconds_ago": 162,
+          "state": "stopped"
+        }
+      ],
+      "resource_usage": [
+        {
+          "pod": "accounting-5897477844-lpzvw",
+          "container": "accounting",
+          "cpu": "13m",
+          "memory": "111Mi",
+          "memory_limit": "120Mi"
+        }
+      ],
+      "signals": [
+        "container accounting memory usage 111Mi is near its limit 120Mi"
+      ],
+      "modified_seconds_ago": 181,
+      "calls_services": [
+        "astronomy-shop/kafka",
+        "astronomy-shop/otel-collector"
+      ],
+      "_calls": [
+        "daemonset/otel-collector-agent",
+        "deployment/kafka"
+      ],
+      "stopped_error_lines": 5,
+      "healthy": false,
+      "spec_flags": [],
+      "log_error_lines": null,
+      "_derived_signals": [],
+      "_derived": true,
+      "evidence_kinds": [
+        "symptoms"
+      ]
+    },
+    "deployment/ad": {
+      "kind": "Deployment",
+      "name": "ad",
+      "namespace": "astronomy-shop",
+      "created": "2026-10-18T17:37:32Z",
+      "modified": "2026-10-18T17:37:32Z",
+      "service_account": "astronomy-shop",
+      "replicas": {
+        "desired": 1,
+        "ready": 1,
+        "available": 1,
+        "updated": 1
+      },
+      "_env_hosts": [
+        "cumulative",
+        "flagd",
+        "otel-collector",
+        "otlp"
+      ],
+      "strategy": {
+        "type": "RollingUpdate",
+        "maxSurge": "25%",
+        "maxUnavailable": "25%"
+      },
+      "rollout": {
+        "progressDeadlineSeconds": 600
+      },
+      "containers": [
+        {
+          "name": "ad",
+          "init": false,
+          "image": "ghcr.io/open-telemetry/demo:2.2.0-ad",
+          "limits": {
+            "memory": "512Mi"
+          },
+          "requests": {
+            "memory": "300Mi"
+          },
+          "ports": [
+            8080
+          ],
+          "env_names": [
+            "OTEL_SERVICE_NAME",
+            "OTEL_COLLECTOR_NAME",
+            "OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE",
+            "AD_PORT",
+            "FLAGD_HOST",
+            "FLAGD_PORT",
+            "OTEL_EXPORTER_OTLP_ENDPOINT",
+            "OTEL_LOGS_EXPORTER",
+            "JAVA_TOOL_OPTIONS"
+          ]
+        }
+      ],
+      "pods": [
+        {
+          "name": "ad-7749d94d56-lv7rc",
+          "phase": "Running",
+          "ready": "1/1",
+          "restarts": 0,
+          "created": "2026-10-18T17:37:32Z",
+          "started": "2026-10-18T17:37:32Z",
+          "ready_since": "2026-10-18T17:37:34Z",
+          "node": "kind-worker",
+          "ip": "10.244.162.191"
+        }
+      ],
+      "services": [
+        {
+          "name": "ad",
+          "type": "ClusterIP",
+          "ports": [
+            "8080->8080/TCP"
+          ],
+          "ready_endpoints": 1,
+          "not_ready_endpoints": 0
+        }
+      ],
+      "resource_usage": [
+        {
+          "pod": "ad-7749d94d56-lv7rc",
+          "container": "ad",
+          "cpu": "13m",
+          "memory": "245Mi",
+          "memory_limit": "512Mi"
+        }
+      ],
+      "modified_seconds_ago": 181,
+      "calls_services": [
+        "astronomy-shop/flagd",
+        "astronomy-shop/otel-collector"
+      ],
+      "_calls": [
+        "daemonset/otel-collector-agent",
+        "deployment/flagd"
+      ],
+      "clients": [
+        "deployment/frontend"
+      ],
+      "healthy": true,
+      "signals": [],
+      "spec_flags": [],
+      "_derived_signals": [],
+      "_derived": true,
+      "evidence_kinds": []
+    },
+    "deployment/cart": {
+      "kind": "Deployment",
+      "name": "cart",
+      "namespace": "astronomy-shop",
+      "created": "2026-10-18T17:37:32Z",
+      "modified": "2026-10-18T17:37:32Z",
+      "service_account": "astronomy-shop",
+      "replicas": {
+        "desired": 1,
+        "ready": 1,
+        "available": 1,
+        "updated": 1
+      },
+      "_env_hosts": [
+        "cumulative",
+        "flagd",
+        "otel-collector",
+        "valkey-cart"
+      ],
+      "strategy": {
+        "type": "RollingUpdate",
+        "maxSurge": "25%",
+        "maxUnavailable": "25%"
+      },
+      "rollout": {
+        "progressDeadlineSeconds": 600
+      },
+      "containers": [
+        {
+          "name": "wait-for-valkey-cart",
+          "init": true,
+          "image": "busybox:latest",
+          "command": [
+            "sh",
+            "-c",
+            "until nc -z -v -w30 valkey-cart 6379; do echo waiting for valkey-cart; sleep 2; done;"
+          ]
+        },
+        {
+          "name": "cart",
+          "init": false,
+          "image": "ghcr.io/open-telemetry/demo:2.2.0-cart",
+          "limits": {
+            "memory": "160Mi"
+          },
+          "ports": [
+            8080
+          ],
+          "env_names": [
+            "OTEL_SERVICE_NAME",
+            "OTEL_COLLECTOR_NAME",
+            "OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE",
+            "CART_PORT",
+            "ASPNETCORE_URLS",
+            "VALKEY_ADDR",
+            "FLAGD_HOST",
+            "FLAGD_PORT",
+            "OTEL_EXPORTER_OTLP_ENDPOINT"
+          ]
+        }
+      ],
+      "pods": [
+        {
+          "name": "cart-74587775fc-4b8xn",
+          "phase": "Running",
+          "ready": "1/1",
+          "restarts": 0,
+          "created": "2026-10-18T17:37:33Z",
+          "started": "2026-10-18T17:37:33Z",
+          "ready_since": "2026-10-18T17:37:38Z",
+          "node": "kind-worker3",
+          "ip": "10.244.195.237",
+          "container_states": [
+            "wait-for-valkey-cart: terminated Completed exit=0"
+          ]
+        }
+      ],
+      "services": [
+        {
+          "name": "cart",
+          "type": "ClusterIP",
+          "ports": [
+            "8080->8080/TCP"
+          ],
+          "ready_endpoints": 1,
+          "not_ready_endpoints": 0
+        }
+      ],
+      "resource_usage": [
+        {
+          "pod": "cart-74587775fc-4b8xn",
+          "container": "cart",
+          "cpu": "9m",
+          "memory": "52Mi",
+          "memory_limit": "160Mi"
+        }
+      ],
+      "modified_seconds_ago": 181,
+      "calls_services": [
+        "astronomy-shop/flagd",
+        "astronomy-shop/otel-collector",
+        "astronomy-shop/valkey-cart"
+      ],
+      "_calls": [
+        "daemonset/otel-collector-agent",
+        "deployment/flagd",
+        "deployment/valkey-cart"
+      ],
+      "clients": [
+        "deployment/checkout",
+        "deployment/frontend"
+      ],
+      "healthy": true,
+      "signals": [],
+      "spec_flags": [],
+      "_derived_signals": [],
+      "_derived": true,
+      "evidence_kinds": []
+    },
+    "deployment/checkout": {
+      "kind": "Deployment",
+      "name": "checkout",
+      "namespace": "astronomy-shop",
+      "created": "2026-10-18T17:37:32Z",
+      "modified": "2026-10-18T17:37:32Z",
+      "service_account": "astronomy-shop",
+      "replicas": {
+        "desired": 1,
+        "ready": 1,
+        "available": 1,
+        "updated": 1
+      },
+      "_env_hosts": [
+        "cart",
+        "cumulative",
+        "currency",
+        "email",
+        "flagd",
+        "kafka",
+        "otel-collector",
+        "payment",
+        "product-catalog",
+        "shipping"
+      ],
+      "strategy": {
+        "type": "RollingUpdate",
+        "maxSurge": "25%",
+        "maxUnavailable": "25%"
+      },
+      "rollout": {
+        "progressDeadlineSeconds": 600
+      },
+      "containers": [
+        {
+          "name": "wait-for-kafka",
+          "init": true,
+          "image": "busybox:latest",
+          "command": [
+            "sh",
+            "-c",
+            "until nc -z -v -w30 kafka 9092; do echo waiting for kafka; sleep 2; done;"
+          ]
+        },
+        {
+          "name": "checkout",
+          "init": false,
+          "image": "ghcr.io/open-telemetry/demo:2.2.0-checkout",
+          "limits": {
+            "memory": "20Mi"
+          },
+          "ports": [
+            8080
+          ],
+          "env_names": [
+            "OTEL_SERVICE_NAME",
+            "OTEL_COLLECTOR_NAME",
+            "OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE",
+            "CHECKOUT_PORT",
+            "CART_ADDR",
+            "CURRENCY_ADDR",
+            "EMAIL_ADDR",
+            "PAYMENT_ADDR",
+            "PRODUCT_CATALOG_ADDR",
+            "SHIPPING_ADDR",
+            "KAFKA_ADDR",
+            "FLAGD_HOST",
+            "FLAGD_PORT",
+            "OTEL_EXPORTER_OTLP_ENDPOINT",
+            "GOMEMLIMIT"
+          ]
+        }
+      ],
+      "pods": [
+        {
+          "name": "checkout-6c769b88b5-wxhz4",
+          "phase": "Running",
+          "ready": "1/1",
+          "restarts": 0,
+          "created": "2026-10-18T17:37:34Z",
+          "started": "2026-10-18T17:37:35Z",
+          "ready_since": "2026-10-18T17:37:46Z",
+          "node": "kind-worker3",
+          "ip": "10.244.195.239",
+          "container_states": [
+            "wait-for-kafka: terminated Completed exit=0"
+          ]
+        }
+      ],
+      "services": [
+        {
+          "name": "checkout",
+          "type": "ClusterIP",
+          "ports": [
+            "8080->8080/TCP"
+          ],
+          "ready_endpoints": 1,
+          "not_ready_endpoints": 0
+        }
+      ],
+      "resource_usage": [
+        {
+          "pod": "checkout-6c769b88b5-wxhz4",
+          "container": "checkout",
+          "cpu": "27m",
+          "memory": "15Mi",
+          "memory_limit": "20Mi"
+        }
+      ],
+      "modified_seconds_ago": 181,
+      "calls_services": [
+        "astronomy-shop/cart",
+        "astronomy-shop/currency",
+        "astronomy-shop/email",
+        "astronomy-shop/flagd",
+        "astronomy-shop/kafka",
+        "astronomy-shop/otel-collector",
+        "astronomy-shop/payment",
+        "astronomy-shop/product-catalog",
+        "astronomy-shop/shipping"
+      ],
+      "_calls": [
+        "daemonset/otel-collector-agent",
+        "deployment/cart",
+        "deployment/currency",
+        "deployment/email",
+        "deployment/flagd",
+        "deployment/kafka",
+        "deployment/payment",
+        "deployment/product-catalog",
+        "deployment/shipping"
+      ],
+      "clients": [
+        "deployment/frontend"
+      ],
+      "healthy": true,
+      "signals": [],
+      "spec_flags": [],
+      "_derived_signals": [],
+      "_derived": true,
+      "evidence_kinds": []
+    },
+    "deployment/currency": {
+      "kind": "Deployment",
+      "name": "currency",
+      "namespace": "astronomy-shop",
+      "created": "2026-10-18T17:37:32Z",
+      "modified": "2026-10-18T17:37:32Z",
+      "service_account": "astronomy-shop",
+      "replicas": {
+        "desired": 1,
+        "ready": 1,
+        "available": 1,
+        "updated": 1
+      },
+      "_env_hosts": [
+        "cumulative",
+        "false",
+        "otel-collector"
+      ],
+      "strategy": {
+        "type": "RollingUpdate",
+        "maxSurge": "25%",
+        "maxUnavailable": "25%"
+      },
+      "rollout": {
+        "progressDeadlineSeconds": 600
+      },
+      "containers": [
+        {
+          "name": "currency",
+          "init": false,
+          "image": "ghcr.io/open-telemetry/demo:2.2.0-currency",
+          "limits": {
+            "memory": "20Mi"
+          },
+          "ports": [
+            8080
+          ],
+          "env_names": [
+            "OTEL_SERVICE_NAME",
+            "OTEL_COLLECTOR_NAME",
+            "OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE",
+            "CURRENCY_PORT",
+            "OTEL_EXPORTER_OTLP_ENDPOINT",
+            "VERSION",
+            "IPV6_ENABLED"
+          ]
+        }
+      ],
+      "pods": [
+        {
+          "name": "currency-7b6cd9c94c-45fgf",
+          "phase": "Running",
+          "ready": "1/1",
+          "restarts": 0,
+          "created": "2026-10-18T17:37:32Z",
+          "started": "2026-10-18T17:37:32Z",
+          "ready_since": "2026-10-18T17:37:34Z",
+          "node": "kind-worker2",
+          "ip": "10.244.110.154"
+        }
+      ],
+      "services": [
+        {
+          "name": "currency",
+          "type": "ClusterIP",
+          "ports": [
+            "8080->8080/TCP"
+          ],
+          "ready_endpoints": 1,
+          "not_ready_endpoints": 0
+        }
+      ],
+      "log_signals": [
+        {
+          "count": 3,
+          "line": "currency: [Error] File: /opentelemetry-cpp/exporters/otlp/src/otlp_grpc_log_record_exporter.cc:184 [OTLP LOG GRPC Exporter] Export() failed: failed to connect to all addresses; last error: UNKNOWN: ipv4:10.96.122.172:4317: Failed to connec\u2026",
+          "first_seen_seconds_ago": 181,
+          "last_seen_seconds_ago": 163,
+          "median_gap_seconds": 8.8,
+          "state": "stopped"
+        },
+        {
+          "count": 2,
+          "line": "currency: [Error] File: /opentelemetry-cpp/exporters/otlp/src/otlp_grpc_exporter.cc:180 [OTLP TRACE GRPC Exporter] Export() failed with status_code: \"UNAVAILABLE\" error_message: \"failed to connect to all addresses; last error: UNKNOWN: ipv\u2026",
+          "first_seen_seconds_ago": 163,
+          "last_seen_seconds_ago": 163,
+          "median_gap_seconds": 0.1,
+          "state": "stopped"
+        }
+      ],
+      "resource_usage": [
+        {
+          "pod": "currency-7b6cd9c94c-45fgf",
+          "container": "currency",
+          "cpu": "3m",
+          "memory": "8Mi",
+          "memory_limit": "20Mi"
+        }
+      ],
+      "modified_seconds_ago": 181,
+      "calls_services": [
+        "astronomy-shop/otel-collector"
+      ],
+      "_calls": [
+        "daemonset/otel-collector-agent"
+      ],
+      "clients": [
+        "deployment/checkout",
+        "deployment/frontend"
+      ],
+      "stopped_error_lines": 5,
+      "healthy": true,
+      "signals": [],
+      "spec_flags": [],
+      "log_error_lines": null,
+      "_derived_signals": [],
+      "_derived": true,
+      "evidence_kinds": []
+    },
+    "deployment/email": {
+      "kind": "Deployment",
+      "name": "email",
+      "namespace": "astronomy-shop",
+      "created": "2026-10-18T17:37:32Z",
+      "modified": "2026-10-18T17:37:32Z",
+      "service_account": "astronomy-shop",
+      "replicas": {
+        "desired": 1,
+        "ready": 1,
+        "available": 1,
+        "updated": 1
+      },
+      "_env_hosts": [
+        "cumulative",
+        "flagd",
+        "otel-collector",
+        "production"
+      ],
+      "strategy": {
+        "type": "RollingUpdate",
+        "maxSurge": "25%",
+        "maxUnavailable": "25%"
+      },
+      "rollout": {
+        "progressDeadlineSeconds": 600
+      },
+      "containers": [
+        {
+          "name": "email",
+          "init": false,
+          "image": "ghcr.io/open-telemetry/demo:2.2.0-email",
+          "limits": {
+            "memory": "100Mi"
+          },
+          "ports": [
+            8080
+          ],
+          "env_names": [
+            "OTEL_SERVICE_NAME",
+            "OTEL_COLLECTOR_NAME",
+            "OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE",
+            "EMAIL_PORT",
+            "APP_ENV",
+            "OTEL_EXPORTER_OTLP_ENDPOINT",
+            "FLAGD_HOST",
+            "FLAGD_PORT"
+          ]
+        }
+      ],
+      "pods": [
+        {
+          "name": "email-74f9c666b6-4b2v7",
+          "phase": "Running",
+          "ready": "1/1",
+          "restarts": 0,
+          "created": "2026-10-18T17:37:32Z",
+          "started": "2026-10-18T17:37:32Z",
+          "ready_since": "2026-10-18T17:37:34Z",
+          "node": "kind-worker3",
+          "ip": "10.244.195.210"
+        }
+      ],
+      "services": [
+        {
+          "name": "email",
+          "type": "ClusterIP",
+          "ports": [
+            "8080->8080/TCP"
+          ],
+          "ready_endpoints": 1,
+          "not_ready_endpoints": 0
+        }
+      ],
+      "resource_usage": [
+        {
+          "pod": "email-74f9c666b6-4b2v7",
+          "container": "email",
+          "cpu": "3m",
+          "memory": "53Mi",
+          "memory_limit": "100Mi"
+        }
+      ],
+      "modified_seconds_ago": 181,
+      "calls_services": [
+        "astronomy-shop/flagd",
+        "astronomy-shop/otel-collector"
+      ],
+      "_calls": [
+        "daemonset/otel-collector-agent",
+        "deployment/flagd"
+      ],
+      "clients": [
+        "deployment/checkout"
+      ],
+      "healthy": true,
+      "signals": [],
+      "spec_flags": [],
+      "_derived_signals": [],
+      "_derived": true,
+      "evidence_kinds": []
+    },
+    "deployment/flagd": {
+      "kind": "Deployment",
+      "name": "flagd",
+      "namespace": "astronomy-shop",
+      "created": "2026-10-18T17:37:32Z",
+      "modified": "2026-10-18T17:37:32Z",
+      "service_account": "astronomy-shop",
+      "replicas": {
+        "desired": 1,
+        "ready": 1,
+        "available": 1,
+        "updated": 1
+      },
+      "_env_hosts": [
+        "cumulative",
+        "otel",
+        "otel-collector"
+      ],
+      "strategy": {
+        "type": "RollingUpdate",
+        "maxSurge": "25%",
+        "maxUnavailable": "25%"
+      },
+      "rollout": {
+        "progressDeadlineSeconds": 600
+      },
+      "containers": [
+        {
+          "name": "init-config",
+          "init": true,
+          "image": "busybox",
+          "mounts": [
+            "/config-ro",
+            "/config-rw"
+          ],
+          "command": [
+            "sh",
+            "-c",
+            "cp /config-ro/demo.flagd.json /config-rw/demo.flagd.json && cat /config-rw/demo.flagd.json"
+          ]
+        },
+        {
+          "name": "flagd",
+          "init": false,
+          "image": "ghcr.io/open-feature/flagd:v0.12.9",
+          "limits": {
+            "memory": "75Mi"
+          },
+          "ports": [
+            8013
+          ],
+          "env_names": [
+            "OTEL_SERVICE_NAME",
+            "OTEL_COLLECTOR_NAME",
+            "OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE",
+            "FLAGD_METRICS_EXPORTER",
+            "FLAGD_OTEL_COLLECTOR_URI",
+            "GOMEMLIMIT"
+          ],
+          "mounts": [
+            "/etc/flagd"
+          ],
+          "command": [
+            "/flagd-build",
+            "start",
+            "--port",
+            "8013",
+            "--uri",
+            "file:./etc/flagd/demo.flagd.json"
+          ]
+        }
+      ],
+      "volumes": [
+        {
+          "name": "config-ro",
+          "configMap": "flagd-config"
+        }
+      ],
+      "config_refs": {
+        "configmaps": [
+          "flagd-config"
+        ]
+      },
+      "pods": [
+        {
+          "name": "flagd-55bdd5956d-g6t8m",
+          "phase": "Running",
+          "ready": "1/1",
+          "restarts": 0,
+          "created": "2026-10-18T17:37:32Z",
+          "started": "2026-10-18T17:37:32Z",
+          "ready_since": "2026-10-18T17:37:36Z",
+          "node": "kind-worker",
+          "ip": "10.244.162.148",
+          "container_states": [
+            "init-config: terminated Completed exit=0"
+          ]
+        }
+      ],
+      "services": [
+        {
+          "name": "flagd",
+          "type": "ClusterIP",
+          "ports": [
+            "8013->8013/TCP"
+          ],
+          "ready_endpoints": 1,
+          "not_ready_endpoints": 0
+        }
+      ],
+      "resource_usage": [
+        {
+          "pod": "flagd-55bdd5956d-g6t8m",
+          "container": "flagd",
+          "cpu": "2m",
+          "memory": "43Mi",
+          "memory_limit": "75Mi"
+        }
+      ],
+      "modified_seconds_ago": 181,
+      "calls_services": [
+        "astronomy-shop/otel-collector"
+      ],
+      "_calls": [
+        "daemonset/otel-collector-agent"
+      ],
+      "clients": [
+        "deployment/ad",
+        "deployment/cart",
+        "deployment/checkout",
+        "deployment/email",
+        "deployment/fraud-detection",
+        "deployment/frontend",
+        "deployment/frontend-proxy",
+        "deployment/llm",
+        "deployment/payment",
+        "deployment/product-catalog",
+        "deployment/product-reviews",
+        "deployment/recommendation"
+      ],
+      "config_objects": {
+        "configmap/flagd-config": {
+          "keys": [
+            "demo.flagd.json"
+          ],
+          "last_update": "2026-10-18T17:37:32Z"
+        }
+      },
+      "warmup_log_errors_ignored": 9,
+      "healthy": true,
+      "signals": [],
+      "spec_flags": [],
+      "_derived_signals": [],
+      "_derived": true,
+      "evidence_kinds": []
+    },
+    "deployment/fraud-detection": {
+      "kind": "Deployment",
+      "name": "fraud-detection",
+      "namespace": "astronomy-shop",
+      "created": "2026-10-18T17:37:32Z",
+      "modified": "2026-10-18T17:37:32Z",
+      "service_account": "astronomy-shop",
+      "replicas": {
+        "desired": 1,
+        "ready": 1,
+        "available": 1,
+        "updated": 1
+      },
+      "_env_hosts": [
+        "cumulative",
+        "flagd",
+        "kafka",
+        "otel-collector",
+        "true"
+      ],
+      "strategy": {
+        "type": "RollingUpdate",
+        "maxSurge": "25%",
+        "maxUnavailable": "25%"
+      },
+      "rollout": {
+        "progressDeadlineSeconds": 600
+      },
+      "containers": [
+        {
+          "name": "wait-for-kafka",
+          "init": true,
+          "image": "busybox:latest",
+          "command": [
+            "sh",
+            "-c",
+            "until nc -z -v -w30 kafka 9092; do echo waiting for kafka; sleep 2; done;"
+          ]
+        },
+        {
+          "name": "fraud-detection",
+          "init": false,
+          "image": "ghcr.io/open-telemetry/demo:2.2.0-fraud-detection",
+          "limits": {
+            "memory": "512Mi"
+          },
+          "requests": {
+            "memory": "300Mi"
+          },
+          "env_names": [
+            "OTEL_SERVICE_NAME",
+            "OTEL_COLLECTOR_NAME",
+            "OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE",
+            "KAFKA_ADDR",
+            "FLAGD_HOST",
+            "FLAGD_PORT",
+            "OTEL_EXPORTER_OTLP_ENDPOINT",
+            "OTEL_INSTRUMENTATION_KAFKA_EXPERIMENTAL_SPAN_ATTRIBUTES",
+            "OTEL_INSTRUMENTATION_MESSAGING_EXPERIMENTAL_RECEIVE_TELEMETRY_ENABLED",
+            "JAVA_TOOL_OPTIONS"
+          ]
+        }
+      ],
+      "pods": [
+        {
+          "name": "fraud-detection-7c945fdfbb-2wncx",
+          "phase": "Running",
+          "ready": "1/1",
+          "restarts": 0,
+          "created": "2026-10-18T17:37:32Z",
+          "started": "2026-10-18T17:37:32Z",
+          "ready_since": "2026-10-18T17:37:47Z",
+          "node": "kind-worker2",
+          "ip": "10.244.110.171",
+          "container_states": [
+            "wait-for-kafka: terminated Completed exit=0"
+          ]
+        }
+      ],
+      "resource_usage": [
+        {
+          "pod": "fraud-detection-7c945fdfbb-2wncx",
+          "container": "fraud-detection",
+          "cpu": "16m",
+          "memory": "277Mi",
+          "memory_limit": "512Mi"
+        }
+      ],
+      "modified_seconds_ago": 181,
+      "calls_services": [
+        "astronomy-shop/flagd",
+        "astronomy-shop/kafka",
+        "astronomy-shop/otel-collector"
+      ],
+      "_calls": [
+        "daemonset/otel-collector-agent",
+        "deployment/flagd",
+        "deployment/kafka"
+      ],
+      "healthy": true,
+      "signals": [],
+      "spec_flags": [],
+      "_derived_signals": [],
+      "_derived": true,
+      "evidence_kinds": []
+    },
+    "deployment/frontend": {
+      "kind": "Deployment",
+      "name": "frontend",
+      "namespace": "astronomy-shop",
+      "created": "2026-10-18T17:37:32Z",
+      "modified": "2026-10-18T17:37:32Z",
+      "service_account": "astronomy-shop",
+      "replicas": {
+        "desired": 1,
+        "ready": 1,
+        "available": 1,
+        "updated": 1
+      },
+      "_env_hosts": [
+        "ad",
+        "cart",
+        "checkout",
+        "cumulative",
+        "currency",
+        "flagd",
+        "frontend-web",
+        "kubernetes",
+        "localhost",
+        "otel-collector",
+        "product-catalog",
+        "product-reviews",
+        "recommendation",
+        "shipping"
+      ],
+      "strategy": {
+        "type": "RollingUpdate",
+        "maxSurge": "25%",
+        "maxUnavailable": "25%"
+      },
+      "rollout": {
+        "progressDeadlineSeconds": 600
+      },
+      "containers": [
+        {
+          "name": "frontend",
+          "init": false,
+          "image": "ghcr.io/open-telemetry/demo:2.2.0-frontend",
+          "limits": {
+            "memory": "250Mi"
+          },
+          "ports": [
+            8080
+          ],
+          "env_names": [
+            "OTEL_SERVICE_NAME",
+            "OTEL_COLLECTOR_NAME",
+            "OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE",
+            "FRONTEND_PORT",
+            "PORT",
+            "FRONTEND_ADDR",
+            "AD_ADDR",
+            "CART_ADDR",
+            "CHECKOUT_ADDR",
+            "CURRENCY_ADDR",
+            "PRODUCT_CATALOG_ADDR",
+            "PRODUCT_REVIEWS_ADDR",
+            "RECOMMENDATION_ADDR",
+            "SHIPPING_ADDR",
+            "FLAGD_HOST",
+            "FLAGD_PORT",
+            "ENV_PLATFORM",
+            "OTEL_COLLECTOR_HOST",
+            "OTEL_EXPORTER_OTLP_ENDPOINT",
+            "WEB_OTEL_SERVICE_NAME",
+            "PUBLIC_OTEL_EXPORTER_OTLP_TRACES_ENDPOINT"
+          ]
+        }
+      ],
+      "pods": [
+        {
+          "name": "frontend-6859c775df-gs7cv",
+          "phase": "Running",
+          "ready": "1/1",
+          "restarts": 0,
+          "created": "2026-10-18T17:37:35Z",
+          "started": "2026-10-18T17:37:35Z",
+          "ready_since": "2026-10-18T17:37:36Z",
+          "node": "kind-worker",
+          "ip": "10.244.162.160"
+        }
+      ],
+      "services": [
+        {
+          "name": "frontend",
+          "type": "ClusterIP",
+          "ports": [
+            "8080->8080/TCP"
+          ],
+          "ready_endpoints": 1,
+          "not_ready_endpoints": 0
+        }
+      ],
+      "log_signals": [
+        {
+          "count": 9,
+          "line": "frontend: Error: 14 UNAVAILABLE: No connection established. Last error: connect ECONNREFUSED 10.96.174.212:8080 (2026-10-18T17:37:38.538Z)",
+          "first_seen_seconds_ago": 177,
+          "last_seen_seconds_ago": 176,
+          "median_gap_seconds": 0.0,
+          "state": "stopped"
+        },
+        {
+          "count": 9,
+          "line": "frontend: details: 'No connection established. Last error: connect ECONNREFUSED 10.96.174.212:8080 (2026-10-18T17:37:38.538Z)',",
+          "first_seen_seconds_ago": 177,
+          "last_seen_seconds_ago": 176,
+          "median_gap_seconds": 0.0,
+          "state": "stopped"
+        }
+      ],
+      "resource_usage": [
+        {
+          "pod": "frontend-6859c775df-gs7cv",
+          "container": "frontend",
+          "cpu": "30m",
+          "memory": "83Mi",
+          "memory_limit": "250Mi"
+        }
+      ],
+      "modified_seconds_ago": 181,
+      "calls_services": [
+        "astronomy-shop/ad",
+        "astronomy-shop/cart",
+        "astronomy-shop/checkout",
+        "astronomy-shop/currency",
+        "astronomy-shop/flagd",
+        "astronomy-shop/otel-collector",
+        "astronomy-shop/product-catalog",
+        "astronomy-shop/product-reviews",
+        "astronomy-shop/recommendation",
+        "astronomy-shop/shipping"
+      ],
+      "_calls": [
+        "daemonset/otel-collector-agent",
+        "deployment/ad",
+        "deployment/cart",
+        "deployment/checkout",
+        "deployment/currency",
+        "deployment/flagd",
+        "deployment/product-catalog",
+        "deployment/product-reviews",
+        "deployment/recommendation",
+        "deployment/shipping"
+      ],
+      "clients": [
+        "deployment/frontend-proxy"
+      ],
+      "stopped_error_lines": 18,
+      "healthy": true,
+      "signals": [],
+      "spec_flags": [],
+      "log_error_lines": null,
+      "_derived_signals": [],
+      "_derived": true,
+      "evidence_kinds": []
+    },
+    "deployment/frontend-proxy": {
+      "kind": "Deployment",
+      "name": "frontend-proxy",
+      "namespace": "astronomy-shop",
+      "created": "2026-10-18T17:37:32Z",
+      "modified": "2026-10-18T17:37:32Z",
+      "service_account": "astronomy-shop",
+      "replicas": {
+        "desired": 1,
+        "ready": 1,
+        "available": 1,
+        "updated": 1
+      },
+      "_env_hosts": [
+        "cumulative",
+        "flagd",
+        "frontend",
+        "grafana",
+        "image-provider",
+        "jaeger",
+        "load-generator",
+        "otel-collector"
+      ],
+      "strategy": {
+        "type": "RollingUpdate",
+        "maxSurge": "25%",
+        "maxUnavailable": "25%"
+      },
+      "rollout": {
+        "progressDeadlineSeconds": 600
+      },
+      "containers": [
+        {
+          "name": "frontend-proxy",
+          "init": false,
+          "image": "ghcr.io/open-telemetry/demo:2.2.0-frontend-proxy",
+          "limits": {
+            "memory": "65Mi"
+          },
+          "ports": [
+            8080
+          ],
+          "env_names": [
+            "OTEL_SERVICE_NAME",
+            "OTEL_COLLECTOR_NAME",
+            "OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE",
+            "ENVOY_PORT",
+            "ENVOY_ADDR",
+            "ENVOY_ADMIN_PORT",
+            "FLAGD_HOST",
+            "FLAGD_PORT",
+            "FLAGD_UI_HOST",
+            "FLAGD_UI_PORT",
+            "FRONTEND_HOST",
+            "FRONTEND_PORT",
+            "GRAFANA_HOST",
+            "GRAFANA_PORT",
+            "IMAGE_PROVIDER_HOST",
+            "IMAGE_PROVIDER_PORT",
+            "JAEGER_HOST",
+            "JAEGER_UI_PORT",
+            "LOCUST_WEB_HOST",
+            "LOCUST_WEB_PORT",
+            "OTEL_COLLECTOR_HOST",
+            "OTEL_COLLECTOR_PORT_GRPC",
+            "OTEL_COLLECTOR_PORT_HTTP"
+          ],
+          "command": [
+            "/bin/sh",
+            "-c",
+            "envsubst < envoy.tmpl.yaml | sed '/type: STRICT_DNS/a\\      dns_lookup_family: V4_PREFERRED' > envoy.yaml && exec envoy -c envoy.yaml\n"
+          ]
+        }
+      ],
+      "pods": [
+        {
+          "name": "frontend-proxy-579d54f6f5-vk6tb",
+          "phase": "Running",
+          "ready": "1/1",
+          "restarts": 0,
+          "created": "2026-10-18T17:37:34Z",
+          "started": "2026-10-18T17:37:34Z",
+          "ready_since": "2026-10-18T17:37:36Z",
+          "node": "kind-worker3",
+          "ip": "10.244.195.202"
+        }
+      ],
+      "services": [
+        {
+          "name": "frontend-proxy",
+          "type": "ClusterIP",
+          "ports": [
+            "8080->8080/TCP"
+          ],
+          "ready_endpoints": 1,
+          "not_ready_endpoints": 0
+        }
+      ],
+      "log_signals": [
+        {
+          "count": 1,
+          "line": "frontend-proxy: [2026-10-18 17:37:36.015][1][warning][tracing] [source/extensions/tracers/opentelemetry/resource_detectors/environment/environment_resource_detector.cc:37] Failed to detect resource attributes from the environment: Environm\u2026",
+          "first_seen_seconds_ago": 179,
+          "last_seen_seconds_ago": 179,
+          "state": "stopped"
+        }
+      ],
+      "resource_usage": [
+        {
+          "pod": "frontend-proxy-579d54f6f5-vk6tb",
+          "container": "frontend-proxy",
+          "cpu": "17m",
+          "memory": "21Mi",
+          "memory_limit": "65Mi"
+        }
+      ],
+      "modified_seconds_ago": 181,
+      "calls_services": [
+        "astronomy-shop/flagd",
+        "astronomy-shop/frontend",
+        "astronomy-shop/image-provider",
+        "astronomy-shop/otel-collector"
+      ],
+      "_calls": [
+        "daemonset/otel-collector-agent",
+        "deployment/flagd",
+        "deployment/frontend",
+        "deployment/image-provider"
+      ],
+      "stopped_error_lines": 1,
+      "healthy": true,
+      "signals": [],
+      "spec_flags": [],
+      "log_error_lines": null,
+      "_derived_signals": [],
+      "_derived": true,
+      "evidence_kinds": []
+    },
+    "deployment/image-provider": {
+      "kind": "Deployment",
+      "name": "image-provider",
+      "namespace": "astronomy-shop",
+      "created": "2026-10-18T17:37:32Z",
+      "modified": "2026-10-18T17:37:32Z",
+      "service_account": "astronomy-shop",
+      "replicas": {
+        "desired": 1,
+        "ready": 1,
+        "available": 1,
+        "updated": 1
+      },
+      "_env_hosts": [
+        "cumulative",
+        "otel-collector"
+      ],
+      "strategy": {
+        "type": "RollingUpdate",
+        "maxSurge": "25%",
+        "maxUnavailable": "25%"
+      },
+      "rollout": {
+        "progressDeadlineSeconds": 600
+      },
+      "containers": [
+        {
+          "name": "image-provider",
+          "init": false,
+          "image": "ghcr.io/open-telemetry/demo:2.2.0-image-provider",
+          "limits": {
+            "memory": "50Mi"
+          },
+          "ports": [
+            8081
+          ],
+          "env_names": [
+            "OTEL_SERVICE_NAME",
+            "OTEL_COLLECTOR_NAME",
+            "OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE",
+            "IMAGE_PROVIDER_PORT",
+            "OTEL_COLLECTOR_PORT_GRPC",
+            "OTEL_COLLECTOR_HOST"
+          ]
+        }
+      ],
+      "pods": [
+        {
+          "name": "image-provider-86b767dd45-h5nh6",
+          "phase": "Running",
+          "ready": "1/1",
+          "restarts": 0,
+          "created": "2026-10-18T17:37:33Z",
+          "started": "2026-10-18T17:37:33Z",
+          "ready_since": "2026-10-18T17:37:36Z",
+          "node": "kind-worker3",
+          "ip": "10.244.195.213"
+        }
+      ],
+      "services": [
+        {
+          "name": "image-provider",
+          "type": "ClusterIP",
+          "ports": [
+            "8081->8081/TCP"
+          ],
+          "ready_endpoints": 1,
+          "not_ready_endpoints": 0
+        }
+      ],
+      "resource_usage": [
+        {
+          "pod": "image-provider-86b767dd45-h5nh6",
+          "container": "image-provider",
+          "cpu": "2m",
+          "memory": "9Mi",
+          "memory_limit": "50Mi"
+        }
+      ],
+      "modified_seconds_ago": 181,
+      "calls_services": [
+        "astronomy-shop/otel-collector"
+      ],
+      "_calls": [
+        "daemonset/otel-collector-agent"
+      ],
+      "clients": [
+        "deployment/frontend-proxy"
+      ],
+      "healthy": true,
+      "signals": [],
+      "spec_flags": [],
+      "_derived_signals": [],
+      "_derived": true,
+      "evidence_kinds": []
+    },
+    "deployment/kafka": {
+      "kind": "Deployment",
+      "name": "kafka",
+      "namespace": "astronomy-shop",
+      "created": "2026-10-18T17:37:32Z",
+      "modified": "2026-10-18T17:37:32Z",
+      "service_account": "astronomy-shop",
+      "replicas": {
+        "desired": 1,
+        "ready": 1,
+        "available": 1,
+        "updated": 1
+      },
+      "_env_hosts": [
+        "controller",
+        "cumulative",
+        "kafka",
+        "otel-collector"
+      ],
+      "strategy": {
+        "type": "RollingUpdate",
+        "maxSurge": "25%",
+        "maxUnavailable": "25%"
+      },
+      "rollout": {
+        "progressDeadlineSeconds": 600
+      },
+      "containers": [
+        {
+          "name": "kafka",
+          "init": false,
+          "image": "ghcr.io/open-telemetry/demo:2.2.0-kafka",
+          "limits": {
+            "memory": "1Gi"
+          },
+          "requests": {
+            "memory": "600Mi"
+          },
+          "ports": [
+            9092,
+            9093
+          ],
+          "env_names": [
+            "OTEL_SERVICE_NAME",
+            "OTEL_COLLECTOR_NAME",
+            "OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE",
+            "KAFKA_ADVERTISED_LISTENERS",
+            "OTEL_EXPORTER_OTLP_ENDPOINT",
+            "KAFKA_HEAP_OPTS",
+            "KAFKA_LISTENERS",
+            "KAFKA_CONTROLLER_LISTENER_NAMES",
+            "KAFKA_CONTROLLER_QUORUM_VOTERS"
+          ]
+        }
+      ],
+      "pods": [
+        {
+          "name": "kafka-6fb5bb8f77-xrp2g",
+          "phase": "Running",
+          "ready": "1/1",
+          "restarts": 0,
+          "created": "2026-10-18T17:37:32Z",
+          "started": "2026-10-18T17:37:32Z",
+          "ready_since": "2026-10-18T17:37:34Z",
+          "node": "kind-worker3",
+          "ip": "10.244.195.247"
+        }
+      ],
+      "services": [
+        {
+          "name": "kafka",
+          "type": "ClusterIP",
+          "ports": [
+            "9092->9092/TCP",
+            "9093->9093/TCP"
+          ],
+          "ready_endpoints": 1,
+          "not_ready_endpoints": 0
+        }
+      ],
+      "resource_usage": [
+        {
+          "pod": "kafka-6fb5bb8f77-xrp2g",
+          "container": "kafka",
+          "cpu": "64m",
+          "memory": "654Mi",
+          "memory_limit": "1Gi"
+        }
+      ],
+      "modified_seconds_ago": 181,
+      "calls_services": [
+        "astronomy-shop/otel-collector"
+      ],
+      "_calls": [
+        "daemonset/otel-collector-agent"
+      ],
+      "clients": [
+        "deployment/accounting",
+        "deployment/checkout",
+        "deployment/fraud-detection",
+        "deployment/order-stream",
+        "deployment/orders-validator"
+      ],
+      "healthy": true,
+      "signals": [],
+      "spec_flags": [],
+      "_derived_signals": [],
+      "_derived": true,
+      "evidence_kinds": []
+    },
+    "deployment/llm": {
+      "kind": "Deployment",
+      "name": "llm",
+      "namespace": "astronomy-shop",
+      "created": "2026-10-18T17:37:32Z",
+      "modified": "2026-10-18T17:37:32Z",
+      "service_account": "astronomy-shop",
+      "replicas": {
+        "desired": 1,
+        "ready": 1,
+        "available": 1,
+        "updated": 1
+      },
+      "_env_hosts": [
+        "cumulative",
+        "flagd",
+        "otel-collector"
+      ],
+      "strategy": {
+        "type": "RollingUpdate",
+        "maxSurge": "25%",
+        "maxUnavailable": "25%"
+      },
+      "rollout": {
+        "progressDeadlineSeconds": 600
+      },
+      "containers": [
+        {
+          "name": "llm",
+          "init": false,
+          "image": "ghcr.io/open-telemetry/demo:2.2.0-llm",
+          "ports": [
+            8000
+          ],
+          "env_names": [
+            "OTEL_SERVICE_NAME",
+            "OTEL_COLLECTOR_NAME",
+            "OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE",
+            "FLAGD_HOST",
+            "FLAGD_PORT"
+          ]
+        }
+      ],
+      "pods": [
+        {
+          "name": "llm-74d9597c76-csr8p",
+          "phase": "Running",
+          "ready": "1/1",
+          "restarts": 0,
+          "created": "2026-10-18T17:37:32Z",
+          "started": "2026-10-18T17:37:32Z",
+          "ready_since": "2026-10-18T17:37:34Z",
+          "node": "kind-worker2",
+          "ip": "10.244.110.178"
+        }
+      ],
+      "services": [
+        {
+          "name": "llm",
+          "type": "ClusterIP",
+          "ports": [
+            "8000->8000/TCP"
+          ],
+          "ready_endpoints": 1,
+          "not_ready_endpoints": 0
+        }
+      ],
+      "resource_usage": [
+        {
+          "pod": "llm-74d9597c76-csr8p",
+          "container": "llm",
+          "cpu": "27m",
+          "memory": "86Mi"
+        }
+      ],
+      "modified_seconds_ago": 181,
+      "calls_services": [
+        "astronomy-shop/flagd",
+        "astronomy-shop/otel-collector"
+      ],
+      "_calls": [
+        "daemonset/otel-collector-agent",
+        "deployment/flagd"
+      ],
+      "clients": [
+        "deployment/product-reviews"
+      ],
+      "healthy": true,
+      "signals": [],
+      "spec_flags": [],
+      "_derived_signals": [],
+      "_derived": true,
+      "evidence_kinds": []
+    },
+    "deployment/order-stream": {
+      "kind": "Deployment",
+      "name": "order-stream",
+      "namespace": "astronomy-shop",
+      "created": "2026-10-18T17:38:09Z",
+      "modified": "2026-10-18T17:38:09Z",
+      "service_account": "default",
+      "replicas": {
+        "desired": 1,
+        "ready": 1,
+        "available": 1,
+        "updated": 1
+      },
+      "_env_hosts": [
+        "kafka",
+        "orders-fulfillment"
+      ],
+      "strategy": {
+        "type": "RollingUpdate",
+        "maxSurge": "25%",
+        "maxUnavailable": "25%"
+      },
+      "rollout": {
+        "progressDeadlineSeconds": 600
+      },
+      "containers": [
+        {
+          "name": "order-stream",
+          "init": false,
+          "image": "ghcr.io/sregym/kafka-client:2.5.3-py3.12",
+          "env_names": [
+            "KAFKA_BOOTSTRAP",
+            "ORDERS_TOPIC"
+          ],
+          "mounts": [
+            "/scripts"
+          ],
+          "command": [
+            "python",
+            "/scripts/producer.py"
+          ]
+        }
+      ],
+      "volumes": [
+        {
+          "name": "scripts",
+          "configMap": "orders-pipeline-scripts"
+        }
+      ],
+      "config_refs": {
+        "configmaps": [
+          "orders-pipeline-scripts"
+        ]
+      },
+      "pods": [
+        {
+          "name": "order-stream-5c7cc84b47-jkxcr",
+          "phase": "Running",
+          "ready": "1/1",
+          "restarts": 0,
+          "created": "2026-10-18T17:38:10Z",
+          "started": "2026-10-18T17:38:10Z",
+          "ready_since": "2026-10-18T17:38:21Z",
+          "node": "kind-worker3",
+          "ip": "10.244.195.222"
+        }
+      ],
+      "resource_usage": [
+        {
+          "pod": "order-stream-5c7cc84b47-jkxcr",
+          "container": "order-stream",
+          "cpu": "1m",
+          "memory": "16Mi"
+        }
+      ],
+      "modified_seconds_ago": 144,
+      "calls_services": [
+        "astronomy-shop/kafka"
+      ],
+      "_calls": [
+        "deployment/kafka"
+      ],
+      "config_objects": {
+        "configmap/orders-pipeline-scripts": {
+          "keys": [
+            "consumer.py",
+            "producer.py"
+          ],
+          "last_update": "2026-10-18T17:38:09Z"
+        }
+      },
+      "healthy": false,
+      "signals": [
+        "created 147s ago, 37s after the workloads it calls; 94s before the first active symptom"
+      ],
+      "spec_flags": [],
+      "_derived_signals": [
+        "created 147s ago, 37s after the workloads it calls; 94s before the first active symptom"
+      ],
+      "_derived": true,
+      "evidence_kinds": [
+        "change"
+      ]
+    },
+    "deployment/orders-validator": {
+      "kind": "Deployment",
+      "name": "orders-validator",
+      "namespace": "astronomy-shop",
+      "created": "2026-10-18T17:38:25Z",
+      "modified": "2026-10-18T17:38:25Z",
+      "service_account": "default",
+      "replicas": {
+        "desired": 1,
+        "ready": 1,
+        "available": 1,
+        "updated": 1
+      },
+      "_env_hosts": [
+        "kafka",
+        "orders-fulfillment",
+        "orders-processed",
+        "orders-validator"
+      ],
+      "strategy": {
+        "type": "RollingUpdate",
+        "maxSurge": "25%",
+        "maxUnavailable": "25%"
+      },
+      "rollout": {
+        "progressDeadlineSeconds": 600
+      },
+      "containers": [
+        {
+          "name": "orders-validator",
+          "init": false,
+          "image": "ghcr.io/sregym/kafka-client:2.5.3-py3.12",
+          "env_names": [
+            "KAFKA_BOOTSTRAP",
+            "ORDERS_TOPIC",
+            "OUTPUT_TOPIC",
+            "CONSUMER_GROUP"
+          ],
+          "mounts": [
+            "/scripts"
+          ],
+          "command": [
+            "python",
+            "/scripts/consumer.py"
+          ]
+        }
+      ],
+      "volumes": [
+        {
+          "name": "scripts",
+          "configMap": "orders-pipeline-scripts"
+        }
+      ],
+      "config_refs": {
+        "configmaps": [
+          "orders-pipeline-scripts"
+        ]
+      },
+      "pods": [
+        {
+          "name": "orders-validator-6d49bfb98d-2jwmt",
+          "phase": "Running",
+          "ready": "1/1",
+          "restarts": 0,
+          "created": "2026-10-18T17:38:25Z",
+          "started": "2026-10-18T17:38:25Z",
+          "ready_since": "2026-10-18T17:38:25Z",
+          "node": "kind-worker",
+          "ip": "10.244.162.190"
+        }
+      ],
+      "log_signals": [
+        {
+          "count": 1,
+          "line": "orders-validator: 2026-10-18 17:39:41,821 ERROR partition remains paused at offset=20",
+          "first_seen_seconds_ago": 53,
+          "last_seen_seconds_ago": 53,
+          "state": "ongoing"
+        },
+        {
+          "count": 1,
+          "line": "orders-validator: 2026-10-18 17:39:56,823 ERROR partition remains paused at offset=20",
+          "first_seen_seconds_ago": 38,
+          "last_seen_seconds_ago": 38,
+          "state": "ongoing"
+        },
+        {
+          "count": 1,
+          "line": "orders-validator: 2026-10-18 17:40:11,825 ERROR partition remains paused at offset=20",
+          "first_seen_seconds_ago": 23,
+          "last_seen_seconds_ago": 23,
+          "state": "ongoing"
+        },
+        {
+          "count": 1,
+          "line": "orders-validator: 2026-10-18 17:40:26,827 ERROR partition remains paused at offset=20",
+          "first_seen_seconds_ago": 8,
+          "last_seen_seconds_ago": 8,
+          "state": "ongoing"
+        },
+        {
+          "count": 1,
+          "line": "orders-validator: 2026-10-18 17:38:26,812 ERROR record validation failed at offset=20: Expecting value: line 1 column 35 (char 34)",
+          "first_seen_seconds_ago": 128,
+          "last_seen_seconds_ago": 128,
+          "state": "stopped"
+        },
+        {
+          "count": 1,
+          "line": "orders-validator: 2026-10-18 17:38:26,812 ERROR partition processing paused at offset=20",
+          "first_seen_seconds_ago": 128,
+          "last_seen_seconds_ago": 128,
+          "state": "stopped"
+        },
+        {
+          "count": 1,
+          "line": "orders-validator: 2026-10-18 17:38:41,814 ERROR partition remains paused at offset=20",
+          "first_seen_seconds_ago": 113,
+          "last_seen_seconds_ago": 113,
+          "state": "stopped"
+        },
+        {
+          "count": 1,
+          "line": "orders-validator: 2026-10-18 17:38:56,815 ERROR partition remains paused at offset=20",
+          "first_seen_seconds_ago": 98,
+          "last_seen_seconds_ago": 98,
+          "state": "stopped"
+        }
+      ],
+      "resource_usage": [
+        {
+          "pod": "orders-validator-6d49bfb98d-2jwmt",
+          "container": "orders-validator",
+          "cpu": "2m",
+          "memory": "22Mi"
+        }
+      ],
+      "modified_seconds_ago": 128,
+      "calls_services": [
+        "astronomy-shop/kafka"
+      ],
+      "_calls": [
+        "deployment/kafka"
+      ],
+      "config_objects": {
+        "configmap/orders-pipeline-scripts": {
+          "keys": [
+            "consumer.py",
+            "producer.py"
+          ],
+          "last_update": "2026-10-18T17:38:09Z"
+        }
+      },
+      "log_error_lines": 4,
+      "stopped_error_lines": 4,
+      "healthy": false,
+      "signals": [
+        "created 131s ago, 53s after the workloads it calls; 78s before the first active symptom"
+      ],
+      "spec_flags": [],
+      "nearest_change_before_symptoms": true,
+      "_derived_signals": [
+        "created 131s ago, 53s after the workloads it calls; 78s before the first active symptom"
+      ],
+      "_derived": true,
+      "evidence_kinds": [
+        "change"
+      ]
+    },
+    "deployment/payment": {
+      "kind": "Deployment",
+      "name": "payment",
+      "namespace": "astronomy-shop",
+      "created": "2026-10-18T17:37:32Z",
+      "modified": "2026-10-18T17:37:32Z",
+      "service_account": "astronomy-shop",
+      "replicas": {
+        "desired": 1,
+        "ready": 1,
+        "available": 1,
+        "updated": 1
+      },
+      "_env_hosts": [
+        "cumulative",
+        "false",
+        "flagd",
+        "otel-collector"
+      ],
+      "strategy": {
+        "type": "RollingUpdate",
+        "maxSurge": "25%",
+        "maxUnavailable": "25%"
+      },
+      "rollout": {
+        "progressDeadlineSeconds": 600
+      },
+      "containers": [
+        {
+          "name": "payment",
+          "init": false,
+          "image": "ghcr.io/open-telemetry/demo:2.2.0-payment",
+          "limits": {
+            "memory": "140Mi"
+          },
+          "ports": [
+            8080
+          ],
+          "env_names": [
+            "OTEL_SERVICE_NAME",
+            "OTEL_COLLECTOR_NAME",
+            "OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE",
+            "PAYMENT_PORT",
+            "FLAGD_HOST",
+            "FLAGD_PORT",
+            "OTEL_EXPORTER_OTLP_ENDPOINT",
+            "IPV6_ENABLED"
+          ]
+        }
+      ],
+      "pods": [
+        {
+          "name": "payment-556cf8d457-xbmmq",
+          "phase": "Running",
+          "ready": "1/1",
+          "restarts": 0,
+          "created": "2026-10-18T17:37:33Z",
+          "started": "2026-10-18T17:37:33Z",
+          "ready_since": "2026-10-18T17:37:35Z",
+          "node": "kind-worker",
+          "ip": "10.244.162.182"
+        }
+      ],
+      "services": [
+        {
+          "name": "payment",
+          "type": "ClusterIP",
+          "ports": [
+            "8080->8080/TCP"
+          ],
+          "ready_endpoints": 1,
+          "not_ready_endpoints": 0
+        }
+      ],
+      "resource_usage": [
+        {
+          "pod": "payment-556cf8d457-xbmmq",
+          "container": "payment",
+          "cpu": "10m",
+          "memory": "82Mi",
+          "memory_limit": "140Mi"
+        }
+      ],
+      "modified_seconds_ago": 181,
+      "calls_services": [
+        "astronomy-shop/flagd",
+        "astronomy-shop/otel-collector"
+      ],
+      "_calls": [
+        "daemonset/otel-collector-agent",
+        "deployment/flagd"
+      ],
+      "clients": [
+        "deployment/checkout"
+      ],
+      "healthy": true,
+      "signals": [],
+      "spec_flags": [],
+      "_derived_signals": [],
+      "_derived": true,
+      "evidence_kinds": []
+    },
+    "deployment/postgresql": {
+      "kind": "Deployment",
+      "name": "postgresql",
+      "namespace": "astronomy-shop",
+      "created": "2026-10-18T17:37:32Z",
+      "modified": "2026-10-18T17:37:32Z",
+      "service_account": "astronomy-shop",
+      "replicas": {
+        "desired": 1,
+        "ready": 1,
+        "available": 1,
+        "updated": 1
+      },
+      "_env_hosts": [
+        "otel",
+        "root"
+      ],
+      "strategy": {
+        "type": "RollingUpdate",
+        "maxSurge": "25%",
+        "maxUnavailable": "25%"
+      },
+      "rollout": {
+        "progressDeadlineSeconds": 600
+      },
+      "containers": [
+        {
+          "name": "postgresql",
+          "init": false,
+          "image": "postgres:17.6",
+          "limits": {
+            "memory": "100Mi"
+          },
+          "ports": [
+            5432
+          ],
+          "env_names": [
+            "POSTGRES_USER",
+            "POSTGRES_PASSWORD",
+            "POSTGRES_DB"
+          ],
+          "mounts": [
+            "/docker-entrypoint-initdb.d"
+          ]
+        }
+      ],
+      "volumes": [
+        {
+          "name": "postgresql-init",
+          "configMap": "postgresql-init"
+        }
+      ],
+      "config_refs": {
+        "configmaps": [
+          "postgresql-init"
+        ]
+      },
+      "pods": [
+        {
+          "name": "postgresql-6bd9b846cb-rmnh6",
+          "phase": "Running",
+          "ready": "1/1",
+          "restarts": 0,
+          "created": "2026-10-18T17:37:32Z",
+          "started": "2026-10-18T17:37:32Z",
+          "ready_since": "2026-10-18T17:37:34Z",
+          "node": "kind-worker2",
+          "ip": "10.244.110.179"
+        }
+      ],
+      "services": [
+        {
+          "name": "postgresql",
+          "type": "ClusterIP",
+          "ports": [
+            "5432->5432/TCP"
+          ],
+          "ready_endpoints": 1,
+          "not_ready_endpoints": 0
+        }
+      ],
+      "log_signals": [
+        {
+          "count": 1,
+          "line": "postgresql: 2026-10-18 17:37:37.517 UTC [56] LOG: checkpoint complete: wrote 955 buffers (5.8%); 0 WAL file(s) added, 0 removed, 0 recycled; write=0.039 s, sync=0.364 s, total=0.421 s; sync files=331, longest=0.006 s, average=0.002 s; dist\u2026",
+          "first_seen_seconds_ago": 178,
+          "last_seen_seconds_ago": 178,
+          "state": "stopped"
+        },
+        {
+          "count": 1,
+          "line": "postgresql: 2026-10-18 17:37:37.528 UTC [55] LOG: database system is shut down",
+          "first_seen_seconds_ago": 178,
+          "last_seen_seconds_ago": 178,
+          "state": "stopped"
+        }
+      ],
+      "resource_usage": [
+        {
+          "pod": "postgresql-6bd9b846cb-rmnh6",
+          "container": "postgresql",
+          "cpu": "9m",
+          "memory": "82Mi",
+          "memory_limit": "100Mi"
+        }
+      ],
+      "modified_seconds_ago": 181,
+      "clients": [
+        "deployment/product-catalog"
+      ],
+      "config_objects": {
+        "configmap/postgresql-init": {
+          "keys": [
+            "init.sql"
+          ],
+          "last_update": "2026-10-18T17:37:32Z"
+        }
+      },
+      "stopped_error_lines": 2,
+      "healthy": true,
+      "signals": [],
+      "spec_flags": [],
+      "log_error_lines": null,
+      "_derived_signals": [],
+      "_derived": true,
+      "evidence_kinds": []
+    },
+    "deployment/product-catalog": {
+      "kind": "Deployment",
+      "name": "product-catalog",
+      "namespace": "astronomy-shop",
+      "created": "2026-10-18T17:37:32Z",
+      "modified": "2026-10-18T17:37:32Z",
+      "service_account": "astronomy-shop",
+      "replicas": {
+        "desired": 1,
+        "ready": 1,
+        "available": 1,
+        "updated": 1
+      },
+      "_env_hosts": [
+        "cumulative",
+        "database",
+        "flagd",
+        "otel-collector",
+        "postgresql"
+      ],
+      "strategy": {
+        "type": "RollingUpdate",
+        "maxSurge": "25%",
+        "maxUnavailable": "25%"
+      },
+      "rollout": {
+        "progressDeadlineSeconds": 600
+      },
+      "containers": [
+        {
+          "name": "wait-for-postgresql",
+          "init": true,
+          "image": "busybox:latest",
+          "command": [
+            "sh",
+            "-c",
+            "until nc -z -v -w30 postgresql 5432; do echo waiting for postgresql; sleep 2; done;"
+          ]
+        },
+        {
+          "name": "product-catalog",
+          "init": false,
+          "image": "ghcr.io/open-telemetry/demo:2.2.0-product-catalog",
+          "limits": {
+            "memory": "64Mi"
+          },
+          "ports": [
+            8080
+          ],
+          "env_names": [
+            "OTEL_SERVICE_NAME",
+            "OTEL_COLLECTOR_NAME",
+            "OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE",
+            "PRODUCT_CATALOG_PORT",
+            "FLAGD_HOST",
+            "FLAGD_PORT",
+            "GOMEMLIMIT",
+            "DB_CONNECTION_STRING",
+            "OTEL_SEMCONV_STABILITY_OPT_IN",
+            "OTEL_EXPORTER_OTLP_ENDPOINT"
+          ]
+        }
+      ],
+      "pods": [
+        {
+          "name": "product-catalog-6bc6bd6ff4-6s5w5",
+          "phase": "Running",
+          "ready": "1/1",
+          "restarts": 0,
+          "created": "2026-10-18T17:37:34Z",
+          "started": "2026-10-18T17:37:34Z",
+          "ready_since": "2026-10-18T17:37:39Z",
+          "node": "kind-worker",
+          "ip": "10.244.162.179",
+          "container_states": [
+            "wait-for-postgresql: terminated Completed exit=0"
+          ]
+        }
+      ],
+      "services": [
+        {
+          "name": "product-catalog",
+          "type": "ClusterIP",
+          "ports": [
+            "8080->8080/TCP"
+          ],
+          "ready_endpoints": 1,
+          "not_ready_endpoints": 0
+        }
+      ],
+      "resource_usage": [
+        {
+          "pod": "product-catalog-6bc6bd6ff4-6s5w5",
+          "container": "product-catalog",
+          "cpu": "19m",
+          "memory": "11Mi",
+          "memory_limit": "64Mi"
+        }
+      ],
+      "modified_seconds_ago": 181,
+      "calls_services": [
+        "astronomy-shop/flagd",
+        "astronomy-shop/otel-collector",
+        "astronomy-shop/postgresql"
+      ],
+      "_calls": [
+        "daemonset/otel-collector-agent",
+        "deployment/flagd",
+        "deployment/postgresql"
+      ],
+      "clients": [
+        "deployment/checkout",
+        "deployment/frontend",
+        "deployment/product-reviews",
+        "deployment/recommendation"
+      ],
+      "healthy": true,
+      "signals": [],
+      "spec_flags": [],
+      "_derived_signals": [],
+      "_derived": true,
+      "evidence_kinds": []
+    },
+    "deployment/product-reviews": {
+      "kind": "Deployment",
+      "name": "product-reviews",
+      "namespace": "astronomy-shop",
+      "created": "2026-10-18T17:37:32Z",
+      "modified": "2026-10-18T17:37:32Z",
+      "service_account": "astronomy-shop",
+      "replicas": {
+        "desired": 1,
+        "ready": 1,
+        "available": 1,
+        "updated": 1
+      },
+      "_env_hosts": [
+        "astronomy-llm",
+        "cumulative",
+        "dummy",
+        "flagd",
+        "llm",
+        "otel-collector",
+        "product-catalog",
+        "python",
+        "true"
+      ],
+      "strategy": {
+        "type": "RollingUpdate",
+        "maxSurge": "25%",
+        "maxUnavailable": "25%"
+      },
+      "rollout": {
+        "progressDeadlineSeconds": 600
+      },
+      "containers": [
+        {
+          "name": "product-reviews",
+          "init": false,
+          "image": "ghcr.io/open-telemetry/demo:2.2.0-product-reviews",
+          "limits": {
+            "memory": "100Mi"
+          },
+          "ports": [
+            3551
+          ],
+          "env_names": [
+            "OTEL_SERVICE_NAME",
+            "OTEL_COLLECTOR_NAME",
+            "OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE",
+            "OPENAI_API_KEY",
+            "LLM_MODEL",
+            "LLM_HOST",
+            "LLM_PORT",
+            "LLM_BASE_URL",
+            "PRODUCT_REVIEWS_PORT",
+            "PRODUCT_CATALOG_ADDR",
+            "FLAGD_HOST",
+            "FLAGD_PORT",
+            "DB_CONNECTION_STRING",
+            "PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION",
+            "OTEL_PYTHON_LOG_CORRELATION",
+            "OTEL_INSTRUMENTATION_GENAI_CAPTURE_MESSAGE_CONTENT",
+            "OTEL_EXPORTER_OTLP_ENDPOINT"
+          ]
+        }
+      ],
+      "pods": [
+        {
+          "name": "product-reviews-7bccd49cb7-zf7fz",
+          "phase": "Running",
+          "ready": "1/1",
+          "restarts": 0,
+          "created": "2026-10-18T17:37:33Z",
+          "started": "2026-10-18T17:37:33Z",
+          "ready_since": "2026-10-18T17:37:35Z",
+          "node": "kind-worker",
+          "ip": "10.244.162.186"
+        }
+      ],
+      "services": [
+        {
+          "name": "product-reviews",
+          "type": "ClusterIP",
+          "ports": [
+            "3551->3551/TCP"
+          ],
+          "ready_endpoints": 1,
+          "not_ready_endpoints": 0
+        }
+      ],
+      "resource_usage": [
+        {
+          "pod": "product-reviews-7bccd49cb7-zf7fz",
+          "container": "product-reviews",
+          "cpu": "22m",
+          "memory": "87Mi",
+          "memory_limit": "100Mi"
+        }
+      ],
+      "modified_seconds_ago": 181,
+      "calls_services": [
+        "astronomy-shop/flagd",
+        "astronomy-shop/llm",
+        "astronomy-shop/otel-collector",
+        "astronomy-shop/product-catalog"
+      ],
+      "_calls": [
+        "daemonset/otel-collector-agent",
+        "deployment/flagd",
+        "deployment/llm",
+        "deployment/product-catalog"
+      ],
+      "clients": [
+        "deployment/frontend"
+      ],
+      "healthy": true,
+      "signals": [],
+      "spec_flags": [],
+      "_derived_signals": [],
+      "_derived": true,
+      "evidence_kinds": []
+    },
+    "deployment/quote": {
+      "kind": "Deployment",
+      "name": "quote",
+      "namespace": "astronomy-shop",
+      "created": "2026-10-18T17:37:32Z",
+      "modified": "2026-10-18T17:37:32Z",
+      "service_account": "astronomy-shop",
+      "replicas": {
+        "desired": 1,
+        "ready": 1,
+        "available": 1,
+        "updated": 1
+      },
+      "_env_hosts": [
+        "cumulative",
+        "false",
+        "otel-collector",
+        "true"
+      ],
+      "strategy": {
+        "type": "RollingUpdate",
+        "maxSurge": "25%",
+        "maxUnavailable": "25%"
+      },
+      "rollout": {
+        "progressDeadlineSeconds": 600
+      },
+      "containers": [
+        {
+          "name": "quote",
+          "init": false,
+          "image": "ghcr.io/open-telemetry/demo:2.2.0-quote",
+          "limits": {
+            "memory": "40Mi"
+          },
+          "ports": [
+            8080
+          ],
+          "env_names": [
+            "OTEL_SERVICE_NAME",
+            "OTEL_COLLECTOR_NAME",
+            "OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE",
+            "QUOTE_PORT",
+            "OTEL_PHP_AUTOLOAD_ENABLED",
+            "OTEL_PHP_INTERNAL_METRICS_ENABLED",
+            "OTEL_EXPORTER_OTLP_ENDPOINT",
+            "IPV6_ENABLED"
+          ]
+        }
+      ],
+      "pods": [
+        {
+          "name": "quote-7c77885dc4-f9xrn",
+          "phase": "Running",
+          "ready": "1/1",
+          "restarts": 0,
+          "created": "2026-10-18T17:37:33Z",
+          "started": "2026-10-18T17:37:33Z",
+          "ready_since": "2026-10-18T17:37:36Z",
+          "node": "kind-worker3",
+          "ip": "10.244.195.236"
+        }
+      ],
+      "services": [
+        {
+          "name": "quote",
+          "type": "ClusterIP",
+          "ports": [
+            "8080->8080/TCP"
+          ],
+          "ready_endpoints": 1,
+          "not_ready_endpoints": 0
+        }
+      ],
+      "resource_usage": [
+        {
+          "pod": "quote-7c77885dc4-f9xrn",
+          "container": "quote",
+          "cpu": "1m",
+          "memory": "17Mi",
+          "memory_limit": "40Mi"
+        }
+      ],
+      "modified_seconds_ago": 181,
+      "calls_services": [
+        "astronomy-shop/otel-collector"
+      ],
+      "_calls": [
+        "daemonset/otel-collector-agent"
+      ],
+      "clients": [
+        "deployment/shipping"
+      ],
+      "healthy": true,
+      "signals": [],
+      "spec_flags": [],
+      "_derived_signals": [],
+      "_derived": true,
+      "evidence_kinds": []
+    },
+    "deployment/recommendation": {
+      "kind": "Deployment",
+      "name": "recommendation",
+      "namespace": "astronomy-shop",
+      "created": "2026-10-18T17:37:32Z",
+      "modified": "2026-10-18T17:37:32Z",
+      "service_account": "astronomy-shop",
+      "replicas": {
+        "desired": 1,
+        "ready": 1,
+        "available": 1,
+        "updated": 1
+      },
+      "_env_hosts": [
+        "cumulative",
+        "flagd",
+        "otel-collector",
+        "product-catalog",
+        "python",
+        "true"
+      ],
+      "strategy": {
+        "type": "RollingUpdate",
+        "maxSurge": "25%",
+        "maxUnavailable": "25%"
+      },
+      "rollout": {
+        "progressDeadlineSeconds": 600
+      },
+      "containers": [
+        {
+          "name": "recommendation",
+          "init": false,
+          "image": "ghcr.io/open-telemetry/demo:2.2.0-recommendation",
+          "limits": {
+            "memory": "500Mi"
+          },
+          "ports": [
+            8080
+          ],
+          "env_names": [
+            "OTEL_SERVICE_NAME",
+            "OTEL_COLLECTOR_NAME",
+            "OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE",
+            "RECOMMENDATION_PORT",
+            "PRODUCT_CATALOG_ADDR",
+            "OTEL_PYTHON_LOG_CORRELATION",
+            "PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION",
+            "FLAGD_HOST",
+            "FLAGD_PORT",
+            "OTEL_EXPORTER_OTLP_ENDPOINT"
+          ]
+        }
+      ],
+      "pods": [
+        {
+          "name": "recommendation-5bb649dccb-l6dl7",
+          "phase": "Running",
+          "ready": "1/1",
+          "restarts": 0,
+          "created": "2026-10-18T17:37:32Z",
+          "started": "2026-10-18T17:37:33Z",
+          "ready_since": "2026-10-18T17:37:34Z",
+          "node": "kind-worker",
+          "ip": "10.244.162.129"
+        }
+      ],
+      "services": [
+        {
+          "name": "recommendation",
+          "type": "ClusterIP",
+          "ports": [
+            "8080->8080/TCP"
+          ],
+          "ready_endpoints": 1,
+          "not_ready_endpoints": 0
+        }
+      ],
+      "resource_usage": [
+        {
+          "pod": "recommendation-5bb649dccb-l6dl7",
+          "container": "recommendation",
+          "cpu": "16m",
+          "memory": "56Mi",
+          "memory_limit": "500Mi"
+        }
+      ],
+      "modified_seconds_ago": 181,
+      "calls_services": [
+        "astronomy-shop/flagd",
+        "astronomy-shop/otel-collector",
+        "astronomy-shop/product-catalog"
+      ],
+      "_calls": [
+        "daemonset/otel-collector-agent",
+        "deployment/flagd",
+        "deployment/product-catalog"
+      ],
+      "clients": [
+        "deployment/frontend"
+      ],
+      "healthy": true,
+      "signals": [],
+      "spec_flags": [],
+      "_derived_signals": [],
+      "_derived": true,
+      "evidence_kinds": []
+    },
+    "deployment/shipping": {
+      "kind": "Deployment",
+      "name": "shipping",
+      "namespace": "astronomy-shop",
+      "created": "2026-10-18T17:37:32Z",
+      "modified": "2026-10-18T17:37:32Z",
+      "service_account": "astronomy-shop",
+      "replicas": {
+        "desired": 1,
+        "ready": 1,
+        "available": 1,
+        "updated": 1
+      },
+      "_env_hosts": [
+        "cumulative",
+        "false",
+        "otel-collector",
+        "quote"
+      ],
+      "strategy": {
+        "type": "RollingUpdate",
+        "maxSurge": "25%",
+        "maxUnavailable": "25%"
+      },
+      "rollout": {
+        "progressDeadlineSeconds": 600
+      },
+      "containers": [
+        {
+          "name": "shipping",
+          "init": false,
+          "image": "ghcr.io/open-telemetry/demo:2.2.0-shipping",
+          "limits": {
+            "memory": "20Mi"
+          },
+          "ports": [
+            8080
+          ],
+          "env_names": [
+            "OTEL_SERVICE_NAME",
+            "OTEL_COLLECTOR_NAME",
+            "OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE",
+            "SHIPPING_PORT",
+            "QUOTE_ADDR",
+            "OTEL_EXPORTER_OTLP_ENDPOINT",
+            "IPV6_ENABLED"
+          ]
+        }
+      ],
+      "pods": [
+        {
+          "name": "shipping-6d777796df-qxwk5",
+          "phase": "Running",
+          "ready": "1/1",
+          "restarts": 0,
+          "created": "2026-10-18T17:37:32Z",
+          "started": "2026-10-18T17:37:32Z",
+          "ready_since": "2026-10-18T17:37:34Z",
+          "node": "kind-worker",
+          "ip": "10.244.162.180"
+        }
+      ],
+      "services": [
+        {
+          "name": "shipping",
+          "type": "ClusterIP",
+          "ports": [
+            "8080->8080/TCP"
+          ],
+          "ready_endpoints": 1,
+          "not_ready_endpoints": 0
+        }
+      ],
+      "resource_usage": [
+        {
+          "pod": "shipping-6d777796df-qxwk5",
+          "container": "shipping",
+          "cpu": "4m",
+          "memory": "5Mi",
+          "memory_limit": "20Mi"
+        }
+      ],
+      "modified_seconds_ago": 181,
+      "calls_services": [
+        "astronomy-shop/otel-collector",
+        "astronomy-shop/quote"
+      ],
+      "_calls": [
+        "daemonset/otel-collector-agent",
+        "deployment/quote"
+      ],
+      "clients": [
+        "deployment/checkout",
+        "deployment/frontend"
+      ],
+      "healthy": true,
+      "signals": [],
+      "spec_flags": [],
+      "_derived_signals": [],
+      "_derived": true,
+      "evidence_kinds": []
+    },
+    "deployment/valkey-cart": {
+      "kind": "Deployment",
+      "name": "valkey-cart",
+      "namespace": "astronomy-shop",
+      "created": "2026-10-18T17:37:32Z",
+      "modified": "2026-10-18T17:37:32Z",
+      "service_account": "astronomy-shop",
+      "replicas": {
+        "desired": 1,
+        "ready": 1,
+        "available": 1,
+        "updated": 1
+      },
+      "strategy": {
+        "type": "RollingUpdate",
+        "maxSurge": "25%",
+        "maxUnavailable": "25%"
+      },
+      "rollout": {
+        "progressDeadlineSeconds": 600
+      },
+      "containers": [
+        {
+          "name": "valkey-cart",
+          "init": false,
+          "image": "valkey/valkey:9.0.1-alpine3.23",
+          "limits": {
+            "memory": "64Mi"
+          },
+          "ports": [
+            6379
+          ]
+        }
+      ],
+      "pods": [
+        {
+          "name": "valkey-cart-859985f49d-l58ln",
+          "phase": "Running",
+          "ready": "1/1",
+          "restarts": 0,
+          "created": "2026-10-18T17:37:32Z",
+          "started": "2026-10-18T17:37:32Z",
+          "ready_since": "2026-10-18T17:37:34Z",
+          "node": "kind-worker2",
+          "ip": "10.244.110.162"
+        }
+      ],
+      "services": [
+        {
+          "name": "valkey-cart",
+          "type": "ClusterIP",
+          "ports": [
+            "6379->6379/TCP"
+          ],
+          "ready_endpoints": 1,
+          "not_ready_endpoints": 0
+        }
+      ],
+      "resource_usage": [
+        {
+          "pod": "valkey-cart-859985f49d-l58ln",
+          "container": "valkey-cart",
+          "cpu": "4m",
+          "memory": "3Mi",
+          "memory_limit": "64Mi"
+        }
+      ],
+      "modified_seconds_ago": 181,
+      "clients": [
+        "deployment/cart"
+      ],
+      "healthy": true,
+      "signals": [],
+      "spec_flags": [],
+      "_derived_signals": [],
+      "_derived": true,
+      "evidence_kinds": []
+    },
+    "daemonset/otel-collector-agent": {
+      "kind": "DaemonSet",
+      "name": "otel-collector-agent",
+      "namespace": "astronomy-shop",
+      "created": "2026-10-18T17:37:32Z",
+      "modified": "2026-10-18T17:37:50Z",
+      "service_account": "otel-collector",
+      "replicas": {
+        "desired": 3,
+        "ready": 3,
+        "available": 3
+      },
+      "strategy": {
+        "type": "RollingUpdate",
+        "maxSurge": 0,
+        "maxUnavailable": 1
+      },
+      "containers": [
+        {
+          "name": "opentelemetry-collector",
+          "init": false,
+          "image": "otel/opentelemetry-collector-contrib:0.142.0",
+          "limits": {
+            "memory": "200Mi"
+          },
+          "ports": [
+            6831,
+            14250,
+            14268,
+            8888,
+            4317,
+            4318,
+            9411
+          ],
+          "env_names": [
+            "MY_POD_IP",
+            "K8S_NODE_NAME",
+            "K8S_NODE_IP",
+            "GOMEMLIMIT"
+          ],
+          "probes": {
+            "readiness": {
+              "http": "/:13133"
+            },
+            "liveness": {
+              "http": "/:13133"
+            }
+          },
+          "mounts": [
+            "/conf",
+            "/hostfs"
+          ],
+          "args": [
+            "--config=/conf/relay.yaml"
+          ]
+        }
+      ],
+      "volumes": [
+        {
+          "name": "opentelemetry-collector-configmap",
+          "configMap": "otel-collector-agent"
+        }
+      ],
+      "config_refs": {
+        "configmaps": [
+          "otel-collector-agent"
+        ]
+      },
+      "pods": [
+        {
+          "name": "otel-collector-agent-jwpck",
+          "phase": "Running",
+          "ready": "1/1",
+          "restarts": 0,
+          "created": "2026-10-18T17:37:50Z",
+          "started": "2026-10-18T17:37:50Z",
+          "ready_since": "2026-10-18T17:37:51Z",
+          "node": "kind-worker",
+          "ip": "10.244.162.163"
+        },
+        {
+          "name": "otel-collector-agent-k9fk8",
+          "phase": "Running",
+          "ready": "1/1",
+          "restarts": 0,
+          "created": "2026-10-18T17:37:52Z",
+          "started": "2026-10-18T17:37:52Z",
+          "ready_since": "2026-10-18T17:37:53Z",
+          "node": "kind-worker2",
+          "ip": "10.244.110.170"
+        },
+        {
+          "name": "otel-collector-agent-z96j5",
+          "phase": "Running",
+          "ready": "1/1",
+          "restarts": 0,
+          "created": "2026-10-18T17:37:54Z",
+          "started": "2026-10-18T17:37:54Z",
+          "ready_since": "2026-10-18T17:37:56Z",
+          "node": "kind-worker3",
+          "ip": "10.244.195.243"
+        }
+      ],
+      "services": [
+        {
+          "name": "otel-collector",
+          "type": "ClusterIP",
+          "ports": [
+            "6831->6831/UDP",
+            "14250->14250/TCP",
+            "14268->14268/TCP",
+            "8888->8888/TCP",
+            "4317->4317/TCP",
+            "4318->4318/TCP",
+            "9411->9411/TCP"
+          ],
+          "ready_endpoints": 3,
+          "not_ready_endpoints": 0,
+          "internal_traffic_policy": "Local",
+          "endpoint_nodes": [
+            "kind-worker",
+            "kind-worker2",
+            "kind-worker3"
+          ]
+        }
+      ],
+      "log_signals": [
+        {
+          "count": 1,
+          "line": "opentelemetry-collector: 2026-10-18T17:39:42.626Z info Metrics {\"resource\": {\"service.instance.id\": \"2dd79973-efaf-4d84-88cf-429637407ddd\", \"service.name\": \"otelcol-contrib\", \"service.version\": \"0.142.0\"}, \"otelcol.component.id\": \"debug\", \u2026",
+          "first_seen_seconds_ago": 53,
+          "last_seen_seconds_ago": 53,
+          "state": "ongoing"
+        },
+        {
+          "count": 1,
+          "line": "opentelemetry-collector: 2026-10-18T17:39:52.488Z error kubeletstatsreceiver@v0.142.0/scraper.go:106 call to /stats/summary endpoint failed {\"resource\": {\"service.instance.id\": \"2dd79973-efaf-4d84-88cf-429637407ddd\", \"service.name\": \"otelc\u2026",
+          "first_seen_seconds_ago": 43,
+          "last_seen_seconds_ago": 43,
+          "state": "ongoing"
+        },
+        {
+          "count": 1,
+          "line": "opentelemetry-collector: 2026-10-18T17:39:52.488Z error scraperhelper@v0.142.0/obs_metrics.go:61 Error scraping metrics {\"resource\": {\"service.instance.id\": \"2dd79973-efaf-4d84-88cf-429637407ddd\", \"service.name\": \"otelcol-contrib\", \"servic\u2026",
+          "first_seen_seconds_ago": 43,
+          "last_seen_seconds_ago": 43,
+          "state": "ongoing"
+        },
+        {
+          "count": 1,
+          "line": "opentelemetry-collector: 2026-10-18T17:39:52.655Z info Metrics {\"resource\": {\"service.instance.id\": \"2dd79973-efaf-4d84-88cf-429637407ddd\", \"service.name\": \"otelcol-contrib\", \"service.version\": \"0.142.0\"}, \"otelcol.component.id\": \"debug\", \u2026",
+          "first_seen_seconds_ago": 43,
+          "last_seen_seconds_ago": 43,
+          "state": "ongoing"
+        },
+        {
+          "count": 1,
+          "line": "opentelemetry-collector: 2026-10-18T17:40:02.688Z info Metrics {\"resource\": {\"service.instance.id\": \"2dd79973-efaf-4d84-88cf-429637407ddd\", \"service.name\": \"otelcol-contrib\", \"service.version\": \"0.142.0\"}, \"otelcol.component.id\": \"debug\", \u2026",
+          "first_seen_seconds_ago": 33,
+          "last_seen_seconds_ago": 33,
+          "state": "ongoing"
+        },
+        {
+          "count": 1,
+          "line": "opentelemetry-collector: 2026-10-18T17:40:12.487Z error kubeletstatsreceiver@v0.142.0/scraper.go:106 call to /stats/summary endpoint failed {\"resource\": {\"service.instance.id\": \"2dd79973-efaf-4d84-88cf-429637407ddd\", \"service.name\": \"otelc\u2026",
+          "first_seen_seconds_ago": 23,
+          "last_seen_seconds_ago": 23,
+          "state": "ongoing"
+        },
+        {
+          "count": 1,
+          "line": "opentelemetry-collector: 2026-10-18T17:40:12.487Z error scraperhelper@v0.142.0/obs_metrics.go:61 Error scraping metrics {\"resource\": {\"service.instance.id\": \"2dd79973-efaf-4d84-88cf-429637407ddd\", \"service.name\": \"otelcol-contrib\", \"servic\u2026",
+          "first_seen_seconds_ago": 23,
+          "last_seen_seconds_ago": 23,
+          "state": "ongoing"
+        },
+        {
+          "count": 1,
+          "line": "opentelemetry-collector: 2026-10-18T17:40:12.522Z info Metrics {\"resource\": {\"service.instance.id\": \"2dd79973-efaf-4d84-88cf-429637407ddd\", \"service.name\": \"otelcol-contrib\", \"service.version\": \"0.142.0\"}, \"otelcol.component.id\": \"debug\", \u2026",
+          "first_seen_seconds_ago": 23,
+          "last_seen_seconds_ago": 23,
+          "state": "ongoing"
+        }
+      ],
+      "resource_usage": [
+        {
+          "pod": "otel-collector-agent-jwpck",
+          "container": "opentelemetry-collector",
+          "cpu": "17m",
+          "memory": "75Mi",
+          "memory_limit": "200Mi"
+        },
+        {
+          "pod": "otel-collector-agent-k9fk8",
+          "container": "opentelemetry-collector",
+          "cpu": "24m",
+          "memory": "66Mi",
+          "memory_limit": "200Mi"
+        },
+        {
+          "pod": "otel-collector-agent-z96j5",
+          "container": "opentelemetry-collector",
+          "cpu": "19m",
+          "memory": "79Mi",
+          "memory_limit": "200Mi"
+        }
+      ],
+      "template_changes": {
+        "revision": 2,
+        "changed_at": "2026-10-18T17:37:50Z",
+        "changes": [
+          "template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-18T23:37:50+06:00"
+        ]
+      },
+      "modified_seconds_ago": 163,
+      "startup_events": [
+        {
+          "reason": "Unhealthy",
+          "count": 1,
+          "object": "pod/otel-collector-agent-z96j5",
+          "first_seen": "2026-10-18T17:37:55Z",
+          "last_seen": "2026-10-18T17:37:55Z",
+          "message": "Readiness probe failed: Get \"http://10.244.195.243:13133/\": dial tcp 10.244.195.243:13133: connect: connection refused"
+        }
+      ],
+      "clients": [
+        "deployment/accounting",
+        "deployment/ad",
+        "deployment/cart",
+        "deployment/checkout",
+        "deployment/currency",
+        "deployment/email",
+        "deployment/flagd",
+        "deployment/fraud-detection",
+        "deployment/frontend",
+        "deployment/frontend-proxy",
+        "deployment/image-provider",
+        "deployment/kafka",
+        "deployment/llm",
+        "deployment/payment",
+        "deployment/product-catalog",
+        "deployment/product-reviews",
+        "deployment/quote",
+        "deployment/recommendation",
+        "deployment/shipping"
+      ],
+      "config_objects": {
+        "configmap/otel-collector-agent": {
+          "keys": [
+            "relay"
+          ],
+          "last_update": "2026-10-18T17:37:32Z"
+        }
+      },
+      "log_error_lines": 8,
+      "healthy": false,
+      "signals": [
+        "spec modified 166s ago, 18s after this object was created (fields: template.annotations.kubectl.kubernetes.io/restartedAt); pod template changes: template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-18T23:37:50+06:00; 113s before the first active symptom"
+      ],
+      "spec_flags": [],
+      "role": "observability",
+      "spec_changed_after_creation_s": 18,
+      "_derived_signals": [
+        "spec modified 166s ago, 18s after this object was created (fields: template.annotations.kubectl.kubernetes.io/restartedAt); pod template changes: template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-18T23:37:50+06:00; 113s before the first active symptom"
+      ],
+      "_derived": true,
+      "evidence_kinds": [
+        "change"
+      ]
+    }
+  },
+  "collection_errors": [],
+  "collected_at": "2026-10-18T17:40:36+00:00"
+}

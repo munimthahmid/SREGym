@@ -1,0 +1,1128 @@
+[
+ {
+  "label": "decide:1",
+  "state": {
+   "application": {
+    "name": "Hotel Reservation",
+    "description": "A hotel reservation application built with Go and gRPC, providing backend in-memory and persistent databases, a recommender system for hotel recommendations, and a functionality to place reservations.",
+    "namespaces": [
+     "hotel-reservation"
+    ]
+   },
+   "evidence": {
+    "cronjob/audit-log-archiver": {
+     "kind": "CronJob",
+     "name": "audit-log-archiver",
+     "namespace": "hotel-reservation",
+     "healthy": false,
+     "signals": [
+      "4 job(s) still active and no successful completion since the last schedule at 2026-10-18T15:06:00Z (last success: never)",
+      "4 jobs of this cronjob are active without completing (they pile up)",
+      "pod audit-log-archiver-29872263-s7dlt: container archiver completed but container fluent-bit-sidecar keeps running, so this job pod never completes",
+      "pod audit-log-archiver-29872264-wckb4: container archiver completed but container fluent-bit-sidecar keeps running, so this job pod never completes",
+      "pod audit-log-archiver-29872265-8t7fm: container archiver completed but container fluent-bit-sidecar keeps running, so this job pod never completes",
+      "pod audit-log-archiver-29872266-4s8fm: pod phase Pending",
+      "firing alert KubePodNotReady"
+     ]
+    },
+    "deployment/mongodb-geo": {
+     "kind": "Deployment",
+     "name": "mongodb-geo",
+     "namespace": "hotel-reservation",
+     "healthy": true,
+     "template_changes": {
+      "revision": 2,
+      "changed_at": "2026-10-18T15:02:43Z",
+      "changes": [
+       "pod label pod-template-hash: 78487c9767 -> 5ff578bcb8",
+       "volume failure-script added: {\"configMap\": {\"defaultMode\": 420, \"name\": \"failure-admin-geo\"}}",
+       "container hotel-reserv-geo-mongo mounts volume failure-script at /scripts"
+      ]
+     }
+    }
+   },
+   "cluster": {
+    "symptom_onset": "2026-10-18T15:03:09+00:00",
+    "recent_changes": [
+     {
+      "object": "configmap/kube-system/coredns",
+      "at": "2026-10-18T14:18:25Z",
+      "modified_after_creation_s": 20204,
+      "fields": [
+       "data.Corefile"
+      ],
+      "seconds_ago": 2864,
+      "seconds_before_symptoms": 2684
+     }
+    ],
+    "findings": [
+     {
+      "kind": "ConfigMap",
+      "name": "coredns",
+      "namespace": "kube-system",
+      "signal": "ConfigMap coredns was modified 2864s ago, 20204s after it was created (fields: data.Corefile); 2684s before the first active symptom"
+     }
+    ]
+   }
+  },
+  "questions": {
+   "best_explanation": {
+    "type": "choice",
+    "criteria": {
+     "o1": "Origin: deployment/hotel-reservation/mongodb-geo. The pod template change 'container hotel-reserv-geo-mongo mounts volume failure-script at /scripts' in revision 2 of deployment/mongodb-geo breaks deployment/mongodb-geo. | Details: container hotel-reserv-geo-mongo mounts volume failure-script at /scripts | Checks: revision 2 of deployment/mongodb-geo was made before the symptoms began (supports); deployment/mongodb-geo shows symptoms of its own (contradicts)",
+     "o2": "Origin: configmap/kube-system/coredns. configmap coredns acts on the application: ConfigMap coredns was modified 2864s ago, 20204s after it was created (fields: data.Corefile); 2684s before the first active symptom. | Details: ConfigMap coredns was modified 2864s ago, 20204s after it was created (fields: data.Corefile); 2684s before the first active symptom",
+     "o3": "Origin: cronjob/hotel-reservation/audit-log-archiver. The fault is in this component; the mechanism is not established. | Observed impact on: cronjob/hotel-reservation/audit-log-archiver",
+     "o4": "Origin: cronjob/hotel-reservation/audit-log-archiver. cronjob/hotel-reservation/audit-log-archiver has a wrong setting of its own: 4 job(s) still active and no successful completion since the last schedule at 2026-10-18T15:06:00Z (last success: never); 4 jobs of this cronjob are active without completing (they pile up); container archiver completed but container fluent-bit-sidecar keeps running, so this job pod never completes | Details: 4 job(s) still active and no successful completion since the last schedule at 2026-10-18T15:06:00Z (last success: never); 4 jobs of this cronjob are active without completing (they pile up); container archiver completed but container fluent-bit-sidecar keeps running, so this job pod never completes | Observed impact on: cronjob/hotel-reservation/audit-log-archiver | Checks: cronjob/hotel-reservation/audit-log-archiver shows symptoms of its own (supports)",
+     "o5": "Origin: deployment/hotel-reservation/mongodb-geo. The pod template changes in revision 2 of deployment/mongodb-geo, which only cause the fault together, break deployment/mongodb-geo. | Details: volume failure-script added: {\"configMap\": {\"defaultMode\": 420, \"name\": \"failure-admin-geo\"}}; container hotel-reserv-geo-mongo mounts volume failure-script at /scripts | Checks: revision 2 of deployment/mongodb-geo was made before the symptoms began (supports); deployment/mongodb-geo shows symptoms of its own (contradicts)",
+     "o6": "Origin: deployment/hotel-reservation/mongodb-geo. The pod template change 'volume failure-script added: {\"configMap\": {\"defaultMode\": 420, \"name\": \"failure-admin-geo\"}}' in revision 2 of deployment/mongodb-geo breaks deployment/mongodb-geo. | Details: volume failure-script added: {\"configMap\": {\"defaultMode\": 420, \"name\": \"failure-admin-geo\"}} | Checks: revision 2 of deployment/mongodb-geo was made before the symptoms began (supports); deployment/mongodb-geo shows symptoms of its own (contradicts)",
+     "o7": "None of these explanations fits the evidence."
+    },
+    "instructions": {
+     "question": "Which explanation best accounts for all the observed symptoms in `evidence`?",
+     "how_to_decide": [
+      "Prefer the explanation whose chain is supported by the observed facts and explains the most symptoms; an explanation contradicted by a fact is unlikely.",
+      "A component that only fails because something it calls fails is a victim, not the origin.",
+      "Choose `o7` when none of the explanations fits the evidence."
+     ]
+    }
+   }
+  },
+  "model": "typesafe/jev-1.13-20260917",
+  "latency_ms": 604,
+  "usage": {
+   "input_tokens": 2030,
+   "output_tokens": 77,
+   "cost": 8.526e-05
+  },
+  "answers": {
+   "best_explanation": {
+    "type": "choice",
+    "choice": "o4",
+    "confidence": 0.48,
+    "probabilities": {
+     "o1": 0.0,
+     "o2": 0.32,
+     "o3": 0.05,
+     "o4": 0.55,
+     "o5": 0.0,
+     "o6": 0.0,
+     "o7": 0.08
+    }
+   }
+  }
+ },
+ {
+  "label": "decide:2",
+  "state": {
+   "application": {
+    "name": "Hotel Reservation",
+    "description": "A hotel reservation application built with Go and gRPC, providing backend in-memory and persistent databases, a recommender system for hotel recommendations, and a functionality to place reservations.",
+    "namespaces": [
+     "hotel-reservation"
+    ]
+   },
+   "evidence": {
+    "cronjob/audit-log-archiver": {
+     "kind": "CronJob",
+     "name": "audit-log-archiver",
+     "namespace": "hotel-reservation",
+     "healthy": false,
+     "signals": [
+      "4 job(s) still active and no successful completion since the last schedule at 2026-10-18T15:06:00Z (last success: never)",
+      "4 jobs of this cronjob are active without completing (they pile up)",
+      "pod audit-log-archiver-29872263-s7dlt: container archiver completed but container fluent-bit-sidecar keeps running, so this job pod never completes",
+      "pod audit-log-archiver-29872264-wckb4: container archiver completed but container fluent-bit-sidecar keeps running, so this job pod never completes",
+      "pod audit-log-archiver-29872265-8t7fm: container archiver completed but container fluent-bit-sidecar keeps running, so this job pod never completes",
+      "pod audit-log-archiver-29872266-4s8fm: pod phase Pending",
+      "firing alert KubePodNotReady"
+     ]
+    },
+    "deployment/mongodb-geo": {
+     "kind": "Deployment",
+     "name": "mongodb-geo",
+     "namespace": "hotel-reservation",
+     "healthy": true,
+     "template_changes": {
+      "revision": 2,
+      "changed_at": "2026-10-18T15:02:43Z",
+      "changes": [
+       "pod label pod-template-hash: 78487c9767 -> 5ff578bcb8",
+       "volume failure-script added: {\"configMap\": {\"defaultMode\": 420, \"name\": \"failure-admin-geo\"}}",
+       "container hotel-reserv-geo-mongo mounts volume failure-script at /scripts"
+      ]
+     }
+    }
+   },
+   "cluster": {
+    "symptom_onset": "2026-10-18T15:03:09+00:00",
+    "recent_changes": [
+     {
+      "object": "configmap/kube-system/coredns",
+      "at": "2026-10-18T14:18:25Z",
+      "modified_after_creation_s": 20204,
+      "fields": [
+       "data.Corefile"
+      ],
+      "seconds_ago": 2864,
+      "seconds_before_symptoms": 2684
+     }
+    ],
+    "findings": [
+     {
+      "kind": "ConfigMap",
+      "name": "coredns",
+      "namespace": "kube-system",
+      "signal": "ConfigMap coredns was modified 2864s ago, 20204s after it was created (fields: data.Corefile); 2684s before the first active symptom"
+     }
+    ]
+   }
+  },
+  "questions": {
+   "best_explanation": {
+    "type": "choice",
+    "criteria": {
+     "o1": "Origin: cronjob/hotel-reservation/audit-log-archiver. The fault is in this component; the mechanism is not established. | Observed impact on: cronjob/hotel-reservation/audit-log-archiver",
+     "o2": "Origin: cronjob/hotel-reservation/audit-log-archiver. cronjob/hotel-reservation/audit-log-archiver has a wrong setting of its own: 4 job(s) still active and no successful completion since the last schedule at 2026-10-18T15:06:00Z (last success: never); 4 jobs of this cronjob are active without completing (they pile up); container archiver completed but container fluent-bit-sidecar keeps running, so this job pod never completes | Details: 4 job(s) still active and no successful completion since the last schedule at 2026-10-18T15:06:00Z (last success: never); 4 jobs of this cronjob are active without completing (they pile up); container archiver completed but container fluent-bit-sidecar keeps running, so this job pod never completes | Observed impact on: cronjob/hotel-reservation/audit-log-archiver | Checks: cronjob/hotel-reservation/audit-log-archiver shows symptoms of its own (supports)",
+     "o3": "Origin: deployment/hotel-reservation/mongodb-geo. The pod template change 'container hotel-reserv-geo-mongo mounts volume failure-script at /scripts' in revision 2 of deployment/mongodb-geo breaks deployment/mongodb-geo. | Details: container hotel-reserv-geo-mongo mounts volume failure-script at /scripts | Checks: revision 2 of deployment/mongodb-geo was made before the symptoms began (supports); deployment/mongodb-geo shows symptoms of its own (contradicts)",
+     "o4": "Origin: deployment/hotel-reservation/mongodb-geo. The pod template changes in revision 2 of deployment/mongodb-geo, which only cause the fault together, break deployment/mongodb-geo. | Details: volume failure-script added: {\"configMap\": {\"defaultMode\": 420, \"name\": \"failure-admin-geo\"}}; container hotel-reserv-geo-mongo mounts volume failure-script at /scripts | Checks: revision 2 of deployment/mongodb-geo was made before the symptoms began (supports); deployment/mongodb-geo shows symptoms of its own (contradicts)",
+     "o5": "None of these explanations fits the evidence.",
+     "o6": "Origin: configmap/kube-system/coredns. configmap coredns acts on the application: ConfigMap coredns was modified 2864s ago, 20204s after it was created (fields: data.Corefile); 2684s before the first active symptom. | Details: ConfigMap coredns was modified 2864s ago, 20204s after it was created (fields: data.Corefile); 2684s before the first active symptom",
+     "o7": "Origin: deployment/hotel-reservation/mongodb-geo. The pod template change 'volume failure-script added: {\"configMap\": {\"defaultMode\": 420, \"name\": \"failure-admin-geo\"}}' in revision 2 of deployment/mongodb-geo breaks deployment/mongodb-geo. | Details: volume failure-script added: {\"configMap\": {\"defaultMode\": 420, \"name\": \"failure-admin-geo\"}} | Checks: revision 2 of deployment/mongodb-geo was made before the symptoms began (supports); deployment/mongodb-geo shows symptoms of its own (contradicts)"
+    },
+    "instructions": {
+     "question": "Which explanation best accounts for all the observed symptoms in `evidence`?",
+     "how_to_decide": [
+      "Prefer the explanation whose chain is supported by the observed facts and explains the most symptoms; an explanation contradicted by a fact is unlikely.",
+      "A component that only fails because something it calls fails is a victim, not the origin.",
+      "Choose `o5` when none of the explanations fits the evidence."
+     ]
+    }
+   }
+  },
+  "model": "typesafe/jev-1.13-20260917",
+  "latency_ms": 706,
+  "usage": {
+   "input_tokens": 2030,
+   "output_tokens": 77,
+   "cost": 8.526e-05
+  },
+  "answers": {
+   "best_explanation": {
+    "type": "choice",
+    "choice": "o2",
+    "confidence": 0.53,
+    "probabilities": {
+     "o1": 0.04,
+     "o2": 0.6,
+     "o3": 0.0,
+     "o4": 0.0,
+     "o5": 0.1,
+     "o6": 0.26,
+     "o7": 0.0
+    }
+   }
+  }
+ },
+ {
+  "label": "decide:1",
+  "state": {
+   "application": {
+    "name": "Hotel Reservation",
+    "description": "A hotel reservation application built with Go and gRPC, providing backend in-memory and persistent databases, a recommender system for hotel recommendations, and a functionality to place reservations.",
+    "namespaces": [
+     "hotel-reservation"
+    ]
+   },
+   "evidence": {
+    "cronjob/audit-log-archiver": {
+     "kind": "CronJob",
+     "name": "audit-log-archiver",
+     "namespace": "hotel-reservation",
+     "healthy": false,
+     "signals": [
+      "4 job(s) still active and no successful completion since the last schedule at 2026-10-18T15:06:00Z (last success: never)",
+      "4 jobs of this cronjob are active without completing (they pile up)",
+      "pod audit-log-archiver-29872263-s7dlt: container archiver completed but container fluent-bit-sidecar keeps running, so this job pod never completes",
+      "pod audit-log-archiver-29872264-wckb4: container archiver completed but container fluent-bit-sidecar keeps running, so this job pod never completes",
+      "pod audit-log-archiver-29872265-8t7fm: container archiver completed but container fluent-bit-sidecar keeps running, so this job pod never completes",
+      "pod audit-log-archiver-29872266-4s8fm: pod phase Pending",
+      "firing alert KubePodNotReady"
+     ],
+     "detail": {
+      "component": "cronjob/audit-log-archiver",
+      "namespace": "hotel-reservation",
+      "workload": {
+       "created": "2026-10-18T15:02:53Z",
+       "last_spec_write": "2026-10-18T15:02:53Z",
+       "spec_writers": [
+        {
+         "manager": "OpenAPI-Generator",
+         "op": "Update",
+         "time": "2026-10-18T15:02:53Z"
+        }
+       ],
+       "dns_policy": "ClusterFirst",
+       "restart_policy": "Never",
+       "containers": [
+        {
+         "name": "archiver",
+         "image": "busybox:1.36",
+         "command": [
+          "sh",
+          "-c",
+          "set -eu\necho \"[$(date -u '+%FT%TZ')] archiver: starting audit log archive\"\necho \"[$(date -u '+%FT%TZ')] archiver: bundling /var/log/audit\"\nattempt=0\nuntil printf 'audit-archive-ready\\n' | nc -w 2 127.0.0.1 24224 >/dev/null; do\n  attempt=$((attempt + 1))\n  if [ \"$attempt\" -ge 10 ]; then\n    echo \"archiver: log forwarding unavailable\" >&2\n    exit 1\n  fi\n  sleep 1\ndone\necho \"[$(date -u '+%FT%TZ')] archiver: audit record forwarded\"\nsleep 1\necho \"[$(date -u '+%FT%TZ')] archiver: upload complete (0 bytes archived)\"\n"
+         ],
+         "resources": {
+          "limits": {
+           "cpu": "50m",
+           "memory": "32Mi"
+          },
+          "requests": {
+           "cpu": "10m",
+           "memory": "16Mi"
+          }
+         }
+        },
+        {
+         "name": "fluent-bit-sidecar",
+         "image": "busybox:1.36",
+         "command": [
+          "sh",
+          "-c",
+          "echo \"[$(date -u '+%FT%TZ')] fluent-bit: binding to forward port 24224\"\necho \"[$(date -u '+%FT%TZ')] fluent-bit: ready to receive log streams\"\nexec nc -lk -p 24224 -e cat\n"
+         ],
+         "ports": [
+          {
+           "port": 24224,
+           "name": "forward"
+          }
+         ],
+         "resources": {
+          "limits": {
+           "cpu": "50m",
+           "memory": "32Mi"
+          },
+          "requests": {
+           "cpu": "10m",
+           "memory": "16Mi"
+          }
+         },
+         "probes": {
+          "startup": {
+           "failureThreshold": 30,
+           "periodSeconds": 1,
+           "successThreshold": 1,
+           "tcpSocket": {
+            "port": 24224
+           },
+           "timeoutSeconds": 1
+          }
+         }
+        }
+       ],
+       "template_labels": {
+        "app.kubernetes.io/name": "audit-log-archiver"
+       }
+      },
+      "pods": [
+       {
+        "name": "audit-log-archiver-29872263-s7dlt",
+        "node": "kind-worker2",
+        "phase": "Running",
+        "started": "2026-10-18T15:03:00Z",
+        "conditions": [
+         "PodReadyToStartContainers=True",
+         "Initialized=True",
+         "Ready=False (ContainersNotReady: containers with unready status: [archiver])",
+         "ContainersReady=False (ContainersNotReady: containers with unready status: [archiver])",
+         "PodScheduled=True"
+        ],
+        "containers": [
+         {
+          "name": "archiver",
+          "ready": false,
+          "restarts": 0,
+          "state": {
+           "terminated": {
+            "containerID": "containerd://31850ab3d694822dba13dc79076613e34fba7e9870cdf41a491cf8a701a9d82f",
+            "exitCode": 0,
+            "finishedAt": "2026-10-18T15:03:08Z",
+            "reason": "Completed",
+            "startedAt": "2026-10-18T15:03:03Z"
+           }
+          }
+         },
+         {
+          "name": "fluent-bit-sidecar",
+          "ready": true,
+          "restarts": 0,
+          "state": {
+           "running": {
+            "startedAt": "2026-10-18T15:03:06Z"
+           }
+          }
+         }
+        ]
+       },
+       {
+        "name": "audit-log-archiver-29872264-wckb4",
+        "node": "kind-worker2",
+        "phase": "Running",
+        "started": "2026-10-18T15:04:00Z",
+        "conditions": [
+         "PodReadyToStartContainers=True",
+         "Initialized=True",
+         "Ready=False (ContainersNotReady: containers with unready status: [archiver])",
+         "ContainersReady=False (ContainersNotReady: containers with unready status: [archiver])",
+         "PodScheduled=True"
+        ],
+        "containers": [
+         {
+          "name": "archiver",
+          "ready": false,
+          "restarts": 0,
+          "state": {
+           "terminated": {
+            "containerID": "containerd://7ed7f6943b290d1b8cd6e05f3c627d145c69226ed538fef188321d6dfcc0cba1",
+            "exitCode": 0,
+            "finishedAt": "2026-10-18T15:04:07Z",
+            "reason": "Completed",
+            "startedAt": "2026-10-18T15:04:03Z"
+           }
+          }
+         },
+         {
+          "name": "fluent-bit-sidecar",
+          "ready": true,
+          "restarts": 0,
+          "state": {
+           "running": {
+            "startedAt": "2026-10-18T15:04:06Z"
+           }
+          }
+         }
+        ]
+       },
+       {
+        "name": "audit-log-archiver-29872265-8t7fm",
+        "node": "kind-worker2",
+        "phase": "Running",
+        "started": "2026-10-18T15:05:00Z",
+        "conditions": [
+         "PodReadyToStartContainers=True",
+         "Initialized=True",
+         "Ready=False (ContainersNotReady: containers with unready status: [archiver])",
+         "ContainersReady=False (ContainersNotReady: containers with unready status: [archiver])",
+         "PodScheduled=True"
+        ],
+        "containers": [
+         {
+          "name": "archiver",
+          "ready": false,
+          "restarts": 0,
+          "state": {
+           "terminated": {
+            "containerID": "containerd://760eedc50894f5967e2aada90e1a815440460c76de715b12952c8c7a251cbc0c",
+            "exitCode": 0,
+            "finishedAt": "2026-10-18T15:05:04Z",
+            "reason": "Completed",
+            "startedAt": "2026-10-18T15:05:02Z"
+           }
+          }
+         },
+         {
+          "name": "fluent-bit-sidecar",
+          "ready": true,
+          "restarts": 0,
+          "state": {
+           "running": {
+            "startedAt": "2026-10-18T15:05:03Z"
+           }
+          }
+         }
+        ]
+       }
+      ],
+      "events": [
+       {
+        "type": "Normal",
+        "reason": "Started",
+        "count": 1,
+        "object": "pod/audit-log-archiver-29872266-4s8fm",
+        "last": "2026-10-18T15:06:06Z",
+        "message": "Started container fluent-bit-sidecar"
+       },
+       {
+        "type": "Normal",
+        "reason": "Started",
+        "count": 1,
+        "object": "pod/audit-log-archiver-29872266-4s8fm",
+        "last": "2026-10-18T15:06:03Z",
+        "message": "Started container archiver"
+       },
+       {
+        "type": "Normal",
+        "reason": "Pulled",
+        "count": 1,
+        "object": "pod/audit-log-archiver-29872266-4s8fm",
+        "last": "2026-10-18T15:06:03Z",
+        "message": "Container image \"busybox:1.36\" already present on machine"
+       },
+       {
+        "type": "Normal",
+        "reason": "Created",
+        "count": 1,
+        "object": "pod/audit-log-archiver-29872266-4s8fm",
+        "last": "2026-10-18T15:06:03Z",
+        "message": "Created container: fluent-bit-sidecar"
+       },
+       {
+        "type": "Normal",
+        "reason": "Pulled",
+        "count": 1,
+        "object": "pod/audit-log-archiver-29872266-4s8fm",
+        "last": "2026-10-18T15:06:01Z",
+        "message": "Container image \"busybox:1.36\" already present on machine"
+       },
+       {
+        "type": "Normal",
+        "reason": "Created",
+        "count": 1,
+        "object": "pod/audit-log-archiver-29872266-4s8fm",
+        "last": "2026-10-18T15:06:01Z",
+        "message": "Created container: archiver"
+       },
+       {
+        "type": "Normal",
+        "reason": "SuccessfulCreate",
+        "count": 1,
+        "object": "job/audit-log-archiver-29872266",
+        "last": "2026-10-18T15:06:00Z",
+        "message": "Created pod: audit-log-archiver-29872266-4s8fm"
+       },
+       {
+        "type": "Normal",
+        "reason": "Scheduled",
+        "count": 1,
+        "object": "pod/audit-log-archiver-29872266-4s8fm",
+        "last": "2026-10-18T15:06:00.148217Z",
+        "message": "Successfully assigned hotel-reservation/audit-log-archiver-29872266-4s8fm to kind-worker2"
+       },
+       {
+        "type": "Normal",
+        "reason": "Started",
+        "count": 1,
+        "object": "pod/audit-log-archiver-29872265-8t7fm",
+        "last": "2026-10-18T15:05:03Z",
+        "message": "Started container fluent-bit-sidecar"
+       },
+       {
+        "type": "Normal",
+        "reason": "Started",
+        "count": 1,
+        "object": "pod/audit-log-archiver-29872265-8t7fm",
+        "last": "2026-10-18T15:05:02Z",
+        "message": "Started container archiver"
+       },
+       {
+        "type": "Normal",
+        "reason": "Pulled",
+        "count": 1,
+        "object": "pod/audit-log-archiver-29872265-8t7fm",
+        "last": "2026-10-18T15:05:02Z",
+        "message": "Container image \"busybox:1.36\" already present on machine"
+       },
+       {
+        "type": "Normal",
+        "reason": "Created",
+        "count": 1,
+        "object": "pod/audit-log-archiver-29872265-8t7fm",
+        "last": "2026-10-18T15:05:02Z",
+        "message": "Created container: fluent-bit-sidecar"
+       },
+       {
+        "type": "Normal",
+        "reason": "Pulled",
+        "count": 1,
+        "object": "pod/audit-log-archiver-29872265-8t7fm",
+        "last": "2026-10-18T15:05:00Z",
+        "message": "Container image \"busybox:1.36\" already present on machine"
+       },
+       {
+        "type": "Normal",
+        "reason": "Created",
+        "count": 1,
+        "object": "pod/audit-log-archiver-29872265-8t7fm",
+        "last": "2026-10-18T15:05:00Z",
+        "message": "Created container: archiver"
+       },
+       {
+        "type": "Normal",
+        "reason": "SuccessfulCreate",
+        "count": 1,
+        "object": "job/audit-log-archiver-29872265",
+        "last": "2026-10-18T15:05:00Z",
+        "message": "Created pod: audit-log-archiver-29872265-8t7fm"
+       }
+      ],
+      "logs": {
+       "total_lines": 12,
+       "error_lines": 0,
+       "error_lines_still_occurring": 0,
+       "error_lines_stopped": 0,
+       "telemetry_export_error_lines": 0,
+       "tail": [
+        "2026-10-18T15:03:06.401304376Z [2026-10-18T15:03:06Z] fluent-bit: binding to forward port 24224",
+        "2026-10-18T15:03:06.500703076Z [2026-10-18T15:03:06Z] fluent-bit: ready to receive log streams",
+        "2026-10-18T15:03:04.047546903Z [2026-10-18T15:03:04Z] archiver: starting audit log archive",
+        "2026-10-18T15:03:04.146272994Z [2026-10-18T15:03:04Z] archiver: bundling /var/log/audit",
+        "2026-10-18T15:03:07.346100438Z [2026-10-18T15:03:07Z] archiver: audit record forwarded",
+        "2026-10-18T15:03:08.349993541Z [2026-10-18T15:03:08Z] archiver: upload complete (0 bytes archived)",
+        "2026-10-18T15:04:03.637281547Z [2026-10-18T15:04:03Z] archiver: starting audit log archive",
+        "2026-10-18T15:04:03.727984501Z [2026-10-18T15:04:03Z] archiver: bundling /var/log/audit",
+        "2026-10-18T15:04:06.744418525Z [2026-10-18T15:04:06Z] archiver: audit record forwarded",
+        "2026-10-18T15:04:07.747897393Z [2026-10-18T15:04:07Z] archiver: upload complete (0 bytes archived)",
+        "2026-10-18T15:04:06.163236967Z [2026-10-18T15:04:06Z] fluent-bit: binding to forward port 24224",
+        "2026-10-18T15:04:06.359193522Z [2026-10-18T15:04:06Z] fluent-bit: ready to receive log streams"
+       ]
+      }
+     }
+    },
+    "deployment/mongodb-geo": {
+     "kind": "Deployment",
+     "name": "mongodb-geo",
+     "namespace": "hotel-reservation",
+     "healthy": true,
+     "template_changes": {
+      "revision": 2,
+      "changed_at": "2026-10-18T15:02:43Z",
+      "changes": [
+       "pod label pod-template-hash: 78487c9767 -> 5ff578bcb8",
+       "volume failure-script added: {\"configMap\": {\"defaultMode\": 420, \"name\": \"failure-admin-geo\"}}",
+       "container hotel-reserv-geo-mongo mounts volume failure-script at /scripts"
+      ]
+     }
+    }
+   },
+   "cluster": {
+    "symptom_onset": "2026-10-18T15:03:09+00:00",
+    "recent_changes": [
+     {
+      "object": "configmap/kube-system/coredns",
+      "at": "2026-10-18T14:18:25Z",
+      "modified_after_creation_s": 20204,
+      "fields": [
+       "data.Corefile"
+      ],
+      "seconds_ago": 2864,
+      "seconds_before_symptoms": 2684
+     }
+    ],
+    "findings": [
+     {
+      "kind": "ConfigMap",
+      "name": "coredns",
+      "namespace": "kube-system",
+      "signal": "ConfigMap coredns was modified 2864s ago, 20204s after it was created (fields: data.Corefile); 2684s before the first active symptom"
+     }
+    ]
+   }
+  },
+  "questions": {
+   "best_explanation": {
+    "type": "choice",
+    "criteria": {
+     "o1": "None of these explanations fits the evidence.",
+     "o2": "Origin: deployment/hotel-reservation/mongodb-geo. The pod template change 'volume failure-script added: {\"configMap\": {\"defaultMode\": 420, \"name\": \"failure-admin-geo\"}}' in revision 2 of deployment/mongodb-geo breaks deployment/mongodb-geo. | Details: volume failure-script added: {\"configMap\": {\"defaultMode\": 420, \"name\": \"failure-admin-geo\"}} | Checks: revision 2 of deployment/mongodb-geo was made before the symptoms began (supports); deployment/mongodb-geo shows symptoms of its own (contradicts)",
+     "o3": "Origin: cronjob/hotel-reservation/audit-log-archiver. cronjob/hotel-reservation/audit-log-archiver has a wrong setting of its own: 4 job(s) still active and no successful completion since the last schedule at 2026-10-18T15:06:00Z (last success: never); 4 jobs of this cronjob are active without completing (they pile up); container archiver completed but container fluent-bit-sidecar keeps running, so this job pod never completes | Details: 4 job(s) still active and no successful completion since the last schedule at 2026-10-18T15:06:00Z (last success: never); 4 jobs of this cronjob are active without completing (they pile up); container archiver completed but container fluent-bit-sidecar keeps running, so this job pod never completes | Observed impact on: cronjob/hotel-reservation/audit-log-archiver | Checks: cronjob/hotel-reservation/audit-log-archiver shows symptoms of its own (supports)",
+     "o4": "Origin: deployment/hotel-reservation/mongodb-geo. The pod template changes in revision 2 of deployment/mongodb-geo, which only cause the fault together, break deployment/mongodb-geo. | Details: volume failure-script added: {\"configMap\": {\"defaultMode\": 420, \"name\": \"failure-admin-geo\"}}; container hotel-reserv-geo-mongo mounts volume failure-script at /scripts | Checks: revision 2 of deployment/mongodb-geo was made before the symptoms began (supports); deployment/mongodb-geo shows symptoms of its own (contradicts)",
+     "o5": "Origin: configmap/kube-system/coredns. configmap coredns acts on the application: ConfigMap coredns was modified 2864s ago, 20204s after it was created (fields: data.Corefile); 2684s before the first active symptom. | Details: ConfigMap coredns was modified 2864s ago, 20204s after it was created (fields: data.Corefile); 2684s before the first active symptom",
+     "o6": "Origin: cronjob/hotel-reservation/audit-log-archiver. The fault is in this component; the mechanism is not established. | Observed impact on: cronjob/hotel-reservation/audit-log-archiver",
+     "o7": "Origin: deployment/hotel-reservation/mongodb-geo. The pod template change 'container hotel-reserv-geo-mongo mounts volume failure-script at /scripts' in revision 2 of deployment/mongodb-geo breaks deployment/mongodb-geo. | Details: container hotel-reserv-geo-mongo mounts volume failure-script at /scripts | Checks: revision 2 of deployment/mongodb-geo was made before the symptoms began (supports); deployment/mongodb-geo shows symptoms of its own (contradicts)"
+    },
+    "instructions": {
+     "question": "Which explanation best accounts for all the observed symptoms in `evidence`?",
+     "how_to_decide": [
+      "Prefer the explanation whose chain is supported by the observed facts and explains the most symptoms; an explanation contradicted by a fact is unlikely.",
+      "A component that only fails because something it calls fails is a victim, not the origin.",
+      "Choose `o1` when none of the explanations fits the evidence."
+     ]
+    }
+   }
+  },
+  "model": "typesafe/jev-1.13-20260917",
+  "latency_ms": 5859,
+  "usage": {
+   "input_tokens": 6331,
+   "output_tokens": 77,
+   "cost": 0.000265902
+  },
+  "answers": {
+   "best_explanation": {
+    "type": "choice",
+    "choice": "o3",
+    "confidence": 0.94,
+    "probabilities": {
+     "o1": 0.03,
+     "o2": 0.0,
+     "o3": 0.95,
+     "o4": 0.0,
+     "o5": 0.02,
+     "o6": 0.0,
+     "o7": 0.0
+    }
+   }
+  }
+ },
+ {
+  "label": "decide:2",
+  "state": {
+   "application": {
+    "name": "Hotel Reservation",
+    "description": "A hotel reservation application built with Go and gRPC, providing backend in-memory and persistent databases, a recommender system for hotel recommendations, and a functionality to place reservations.",
+    "namespaces": [
+     "hotel-reservation"
+    ]
+   },
+   "evidence": {
+    "cronjob/audit-log-archiver": {
+     "kind": "CronJob",
+     "name": "audit-log-archiver",
+     "namespace": "hotel-reservation",
+     "healthy": false,
+     "signals": [
+      "4 job(s) still active and no successful completion since the last schedule at 2026-10-18T15:06:00Z (last success: never)",
+      "4 jobs of this cronjob are active without completing (they pile up)",
+      "pod audit-log-archiver-29872263-s7dlt: container archiver completed but container fluent-bit-sidecar keeps running, so this job pod never completes",
+      "pod audit-log-archiver-29872264-wckb4: container archiver completed but container fluent-bit-sidecar keeps running, so this job pod never completes",
+      "pod audit-log-archiver-29872265-8t7fm: container archiver completed but container fluent-bit-sidecar keeps running, so this job pod never completes",
+      "pod audit-log-archiver-29872266-4s8fm: pod phase Pending",
+      "firing alert KubePodNotReady"
+     ],
+     "detail": {
+      "component": "cronjob/audit-log-archiver",
+      "namespace": "hotel-reservation",
+      "workload": {
+       "created": "2026-10-18T15:02:53Z",
+       "last_spec_write": "2026-10-18T15:02:53Z",
+       "spec_writers": [
+        {
+         "manager": "OpenAPI-Generator",
+         "op": "Update",
+         "time": "2026-10-18T15:02:53Z"
+        }
+       ],
+       "dns_policy": "ClusterFirst",
+       "restart_policy": "Never",
+       "containers": [
+        {
+         "name": "archiver",
+         "image": "busybox:1.36",
+         "command": [
+          "sh",
+          "-c",
+          "set -eu\necho \"[$(date -u '+%FT%TZ')] archiver: starting audit log archive\"\necho \"[$(date -u '+%FT%TZ')] archiver: bundling /var/log/audit\"\nattempt=0\nuntil printf 'audit-archive-ready\\n' | nc -w 2 127.0.0.1 24224 >/dev/null; do\n  attempt=$((attempt + 1))\n  if [ \"$attempt\" -ge 10 ]; then\n    echo \"archiver: log forwarding unavailable\" >&2\n    exit 1\n  fi\n  sleep 1\ndone\necho \"[$(date -u '+%FT%TZ')] archiver: audit record forwarded\"\nsleep 1\necho \"[$(date -u '+%FT%TZ')] archiver: upload complete (0 bytes archived)\"\n"
+         ],
+         "resources": {
+          "limits": {
+           "cpu": "50m",
+           "memory": "32Mi"
+          },
+          "requests": {
+           "cpu": "10m",
+           "memory": "16Mi"
+          }
+         }
+        },
+        {
+         "name": "fluent-bit-sidecar",
+         "image": "busybox:1.36",
+         "command": [
+          "sh",
+          "-c",
+          "echo \"[$(date -u '+%FT%TZ')] fluent-bit: binding to forward port 24224\"\necho \"[$(date -u '+%FT%TZ')] fluent-bit: ready to receive log streams\"\nexec nc -lk -p 24224 -e cat\n"
+         ],
+         "ports": [
+          {
+           "port": 24224,
+           "name": "forward"
+          }
+         ],
+         "resources": {
+          "limits": {
+           "cpu": "50m",
+           "memory": "32Mi"
+          },
+          "requests": {
+           "cpu": "10m",
+           "memory": "16Mi"
+          }
+         },
+         "probes": {
+          "startup": {
+           "failureThreshold": 30,
+           "periodSeconds": 1,
+           "successThreshold": 1,
+           "tcpSocket": {
+            "port": 24224
+           },
+           "timeoutSeconds": 1
+          }
+         }
+        }
+       ],
+       "template_labels": {
+        "app.kubernetes.io/name": "audit-log-archiver"
+       }
+      },
+      "pods": [
+       {
+        "name": "audit-log-archiver-29872263-s7dlt",
+        "node": "kind-worker2",
+        "phase": "Running",
+        "started": "2026-10-18T15:03:00Z",
+        "conditions": [
+         "PodReadyToStartContainers=True",
+         "Initialized=True",
+         "Ready=False (ContainersNotReady: containers with unready status: [archiver])",
+         "ContainersReady=False (ContainersNotReady: containers with unready status: [archiver])",
+         "PodScheduled=True"
+        ],
+        "containers": [
+         {
+          "name": "archiver",
+          "ready": false,
+          "restarts": 0,
+          "state": {
+           "terminated": {
+            "containerID": "containerd://31850ab3d694822dba13dc79076613e34fba7e9870cdf41a491cf8a701a9d82f",
+            "exitCode": 0,
+            "finishedAt": "2026-10-18T15:03:08Z",
+            "reason": "Completed",
+            "startedAt": "2026-10-18T15:03:03Z"
+           }
+          }
+         },
+         {
+          "name": "fluent-bit-sidecar",
+          "ready": true,
+          "restarts": 0,
+          "state": {
+           "running": {
+            "startedAt": "2026-10-18T15:03:06Z"
+           }
+          }
+         }
+        ]
+       },
+       {
+        "name": "audit-log-archiver-29872264-wckb4",
+        "node": "kind-worker2",
+        "phase": "Running",
+        "started": "2026-10-18T15:04:00Z",
+        "conditions": [
+         "PodReadyToStartContainers=True",
+         "Initialized=True",
+         "Ready=False (ContainersNotReady: containers with unready status: [archiver])",
+         "ContainersReady=False (ContainersNotReady: containers with unready status: [archiver])",
+         "PodScheduled=True"
+        ],
+        "containers": [
+         {
+          "name": "archiver",
+          "ready": false,
+          "restarts": 0,
+          "state": {
+           "terminated": {
+            "containerID": "containerd://7ed7f6943b290d1b8cd6e05f3c627d145c69226ed538fef188321d6dfcc0cba1",
+            "exitCode": 0,
+            "finishedAt": "2026-10-18T15:04:07Z",
+            "reason": "Completed",
+            "startedAt": "2026-10-18T15:04:03Z"
+           }
+          }
+         },
+         {
+          "name": "fluent-bit-sidecar",
+          "ready": true,
+          "restarts": 0,
+          "state": {
+           "running": {
+            "startedAt": "2026-10-18T15:04:06Z"
+           }
+          }
+         }
+        ]
+       },
+       {
+        "name": "audit-log-archiver-29872265-8t7fm",
+        "node": "kind-worker2",
+        "phase": "Running",
+        "started": "2026-10-18T15:05:00Z",
+        "conditions": [
+         "PodReadyToStartContainers=True",
+         "Initialized=True",
+         "Ready=False (ContainersNotReady: containers with unready status: [archiver])",
+         "ContainersReady=False (ContainersNotReady: containers with unready status: [archiver])",
+         "PodScheduled=True"
+        ],
+        "containers": [
+         {
+          "name": "archiver",
+          "ready": false,
+          "restarts": 0,
+          "state": {
+           "terminated": {
+            "containerID": "containerd://760eedc50894f5967e2aada90e1a815440460c76de715b12952c8c7a251cbc0c",
+            "exitCode": 0,
+            "finishedAt": "2026-10-18T15:05:04Z",
+            "reason": "Completed",
+            "startedAt": "2026-10-18T15:05:02Z"
+           }
+          }
+         },
+         {
+          "name": "fluent-bit-sidecar",
+          "ready": true,
+          "restarts": 0,
+          "state": {
+           "running": {
+            "startedAt": "2026-10-18T15:05:03Z"
+           }
+          }
+         }
+        ]
+       }
+      ],
+      "events": [
+       {
+        "type": "Normal",
+        "reason": "Started",
+        "count": 1,
+        "object": "pod/audit-log-archiver-29872266-4s8fm",
+        "last": "2026-10-18T15:06:06Z",
+        "message": "Started container fluent-bit-sidecar"
+       },
+       {
+        "type": "Normal",
+        "reason": "Started",
+        "count": 1,
+        "object": "pod/audit-log-archiver-29872266-4s8fm",
+        "last": "2026-10-18T15:06:03Z",
+        "message": "Started container archiver"
+       },
+       {
+        "type": "Normal",
+        "reason": "Pulled",
+        "count": 1,
+        "object": "pod/audit-log-archiver-29872266-4s8fm",
+        "last": "2026-10-18T15:06:03Z",
+        "message": "Container image \"busybox:1.36\" already present on machine"
+       },
+       {
+        "type": "Normal",
+        "reason": "Created",
+        "count": 1,
+        "object": "pod/audit-log-archiver-29872266-4s8fm",
+        "last": "2026-10-18T15:06:03Z",
+        "message": "Created container: fluent-bit-sidecar"
+       },
+       {
+        "type": "Normal",
+        "reason": "Pulled",
+        "count": 1,
+        "object": "pod/audit-log-archiver-29872266-4s8fm",
+        "last": "2026-10-18T15:06:01Z",
+        "message": "Container image \"busybox:1.36\" already present on machine"
+       },
+       {
+        "type": "Normal",
+        "reason": "Created",
+        "count": 1,
+        "object": "pod/audit-log-archiver-29872266-4s8fm",
+        "last": "2026-10-18T15:06:01Z",
+        "message": "Created container: archiver"
+       },
+       {
+        "type": "Normal",
+        "reason": "SuccessfulCreate",
+        "count": 1,
+        "object": "job/audit-log-archiver-29872266",
+        "last": "2026-10-18T15:06:00Z",
+        "message": "Created pod: audit-log-archiver-29872266-4s8fm"
+       },
+       {
+        "type": "Normal",
+        "reason": "Scheduled",
+        "count": 1,
+        "object": "pod/audit-log-archiver-29872266-4s8fm",
+        "last": "2026-10-18T15:06:00.148217Z",
+        "message": "Successfully assigned hotel-reservation/audit-log-archiver-29872266-4s8fm to kind-worker2"
+       },
+       {
+        "type": "Normal",
+        "reason": "Started",
+        "count": 1,
+        "object": "pod/audit-log-archiver-29872265-8t7fm",
+        "last": "2026-10-18T15:05:03Z",
+        "message": "Started container fluent-bit-sidecar"
+       },
+       {
+        "type": "Normal",
+        "reason": "Started",
+        "count": 1,
+        "object": "pod/audit-log-archiver-29872265-8t7fm",
+        "last": "2026-10-18T15:05:02Z",
+        "message": "Started container archiver"
+       },
+       {
+        "type": "Normal",
+        "reason": "Pulled",
+        "count": 1,
+        "object": "pod/audit-log-archiver-29872265-8t7fm",
+        "last": "2026-10-18T15:05:02Z",
+        "message": "Container image \"busybox:1.36\" already present on machine"
+       },
+       {
+        "type": "Normal",
+        "reason": "Created",
+        "count": 1,
+        "object": "pod/audit-log-archiver-29872265-8t7fm",
+        "last": "2026-10-18T15:05:02Z",
+        "message": "Created container: fluent-bit-sidecar"
+       },
+       {
+        "type": "Normal",
+        "reason": "Pulled",
+        "count": 1,
+        "object": "pod/audit-log-archiver-29872265-8t7fm",
+        "last": "2026-10-18T15:05:00Z",
+        "message": "Container image \"busybox:1.36\" already present on machine"
+       },
+       {
+        "type": "Normal",
+        "reason": "Created",
+        "count": 1,
+        "object": "pod/audit-log-archiver-29872265-8t7fm",
+        "last": "2026-10-18T15:05:00Z",
+        "message": "Created container: archiver"
+       },
+       {
+        "type": "Normal",
+        "reason": "SuccessfulCreate",
+        "count": 1,
+        "object": "job/audit-log-archiver-29872265",
+        "last": "2026-10-18T15:05:00Z",
+        "message": "Created pod: audit-log-archiver-29872265-8t7fm"
+       }
+      ],
+      "logs": {
+       "total_lines": 12,
+       "error_lines": 0,
+       "error_lines_still_occurring": 0,
+       "error_lines_stopped": 0,
+       "telemetry_export_error_lines": 0,
+       "tail": [
+        "2026-10-18T15:03:06.401304376Z [2026-10-18T15:03:06Z] fluent-bit: binding to forward port 24224",
+        "2026-10-18T15:03:06.500703076Z [2026-10-18T15:03:06Z] fluent-bit: ready to receive log streams",
+        "2026-10-18T15:03:04.047546903Z [2026-10-18T15:03:04Z] archiver: starting audit log archive",
+        "2026-10-18T15:03:04.146272994Z [2026-10-18T15:03:04Z] archiver: bundling /var/log/audit",
+        "2026-10-18T15:03:07.346100438Z [2026-10-18T15:03:07Z] archiver: audit record forwarded",
+        "2026-10-18T15:03:08.349993541Z [2026-10-18T15:03:08Z] archiver: upload complete (0 bytes archived)",
+        "2026-10-18T15:04:03.637281547Z [2026-10-18T15:04:03Z] archiver: starting audit log archive",
+        "2026-10-18T15:04:03.727984501Z [2026-10-18T15:04:03Z] archiver: bundling /var/log/audit",
+        "2026-10-18T15:04:06.744418525Z [2026-10-18T15:04:06Z] archiver: audit record forwarded",
+        "2026-10-18T15:04:07.747897393Z [2026-10-18T15:04:07Z] archiver: upload complete (0 bytes archived)",
+        "2026-10-18T15:04:06.163236967Z [2026-10-18T15:04:06Z] fluent-bit: binding to forward port 24224",
+        "2026-10-18T15:04:06.359193522Z [2026-10-18T15:04:06Z] fluent-bit: ready to receive log streams"
+       ]
+      }
+     }
+    },
+    "deployment/mongodb-geo": {
+     "kind": "Deployment",
+     "name": "mongodb-geo",
+     "namespace": "hotel-reservation",
+     "healthy": true,
+     "template_changes": {
+      "revision": 2,
+      "changed_at": "2026-10-18T15:02:43Z",
+      "changes": [
+       "pod label pod-template-hash: 78487c9767 -> 5ff578bcb8",
+       "volume failure-script added: {\"configMap\": {\"defaultMode\": 420, \"name\": \"failure-admin-geo\"}}",
+       "container hotel-reserv-geo-mongo mounts volume failure-script at /scripts"
+      ]
+     }
+    }
+   },
+   "cluster": {
+    "symptom_onset": "2026-10-18T15:03:09+00:00",
+    "recent_changes": [
+     {
+      "object": "configmap/kube-system/coredns",
+      "at": "2026-10-18T14:18:25Z",
+      "modified_after_creation_s": 20204,
+      "fields": [
+       "data.Corefile"
+      ],
+      "seconds_ago": 2864,
+      "seconds_before_symptoms": 2684
+     }
+    ],
+    "findings": [
+     {
+      "kind": "ConfigMap",
+      "name": "coredns",
+      "namespace": "kube-system",
+      "signal": "ConfigMap coredns was modified 2864s ago, 20204s after it was created (fields: data.Corefile); 2684s before the first active symptom"
+     }
+    ]
+   }
+  },
+  "questions": {
+   "best_explanation": {
+    "type": "choice",
+    "criteria": {
+     "o1": "Origin: configmap/kube-system/coredns. configmap coredns acts on the application: ConfigMap coredns was modified 2864s ago, 20204s after it was created (fields: data.Corefile); 2684s before the first active symptom. | Details: ConfigMap coredns was modified 2864s ago, 20204s after it was created (fields: data.Corefile); 2684s before the first active symptom",
+     "o2": "Origin: cronjob/hotel-reservation/audit-log-archiver. cronjob/hotel-reservation/audit-log-archiver has a wrong setting of its own: 4 job(s) still active and no successful completion since the last schedule at 2026-10-18T15:06:00Z (last success: never); 4 jobs of this cronjob are active without completing (they pile up); container archiver completed but container fluent-bit-sidecar keeps running, so this job pod never completes | Details: 4 job(s) still active and no successful completion since the last schedule at 2026-10-18T15:06:00Z (last success: never); 4 jobs of this cronjob are active without completing (they pile up); container archiver completed but container fluent-bit-sidecar keeps running, so this job pod never completes | Observed impact on: cronjob/hotel-reservation/audit-log-archiver | Checks: cronjob/hotel-reservation/audit-log-archiver shows symptoms of its own (supports)",
+     "o3": "Origin: deployment/hotel-reservation/mongodb-geo. The pod template change 'volume failure-script added: {\"configMap\": {\"defaultMode\": 420, \"name\": \"failure-admin-geo\"}}' in revision 2 of deployment/mongodb-geo breaks deployment/mongodb-geo. | Details: volume failure-script added: {\"configMap\": {\"defaultMode\": 420, \"name\": \"failure-admin-geo\"}} | Checks: revision 2 of deployment/mongodb-geo was made before the symptoms began (supports); deployment/mongodb-geo shows symptoms of its own (contradicts)",
+     "o4": "Origin: cronjob/hotel-reservation/audit-log-archiver. The fault is in this component; the mechanism is not established. | Observed impact on: cronjob/hotel-reservation/audit-log-archiver",
+     "o5": "None of these explanations fits the evidence.",
+     "o6": "Origin: deployment/hotel-reservation/mongodb-geo. The pod template changes in revision 2 of deployment/mongodb-geo, which only cause the fault together, break deployment/mongodb-geo. | Details: volume failure-script added: {\"configMap\": {\"defaultMode\": 420, \"name\": \"failure-admin-geo\"}}; container hotel-reserv-geo-mongo mounts volume failure-script at /scripts | Checks: revision 2 of deployment/mongodb-geo was made before the symptoms began (supports); deployment/mongodb-geo shows symptoms of its own (contradicts)",
+     "o7": "Origin: deployment/hotel-reservation/mongodb-geo. The pod template change 'container hotel-reserv-geo-mongo mounts volume failure-script at /scripts' in revision 2 of deployment/mongodb-geo breaks deployment/mongodb-geo. | Details: container hotel-reserv-geo-mongo mounts volume failure-script at /scripts | Checks: revision 2 of deployment/mongodb-geo was made before the symptoms began (supports); deployment/mongodb-geo shows symptoms of its own (contradicts)"
+    },
+    "instructions": {
+     "question": "Which explanation best accounts for all the observed symptoms in `evidence`?",
+     "how_to_decide": [
+      "Prefer the explanation whose chain is supported by the observed facts and explains the most symptoms; an explanation contradicted by a fact is unlikely.",
+      "A component that only fails because something it calls fails is a victim, not the origin.",
+      "Choose `o5` when none of the explanations fits the evidence."
+     ]
+    }
+   }
+  },
+  "model": "typesafe/jev-1.13-20260917",
+  "latency_ms": 776,
+  "usage": {
+   "input_tokens": 6331,
+   "output_tokens": 77,
+   "cost": 0.000265902
+  },
+  "answers": {
+   "best_explanation": {
+    "type": "choice",
+    "choice": "o2",
+    "confidence": 0.93,
+    "probabilities": {
+     "o1": 0.03,
+     "o2": 0.94,
+     "o3": 0.0,
+     "o4": 0.01,
+     "o5": 0.02,
+     "o6": 0.0,
+     "o7": 0.0
+    }
+   }
+  }
+ }
+]

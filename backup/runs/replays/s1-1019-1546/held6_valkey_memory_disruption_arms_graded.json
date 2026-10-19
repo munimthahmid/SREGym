@@ -1,0 +1,536 @@
+{
+ "problem_id": "valkey_memory_disruption",
+ "source": "held6_valkey_memory_disruption",
+ "replay": true,
+ "arms": [
+  {
+   "arm": 0,
+   "kind": "v1",
+   "model": "typesafe/jev-1.13",
+   "position": 0,
+   "seconds": 1.2,
+   "requests": 2,
+   "input_tokens": 32445,
+   "error": null,
+   "component": "job/valkey-memory-flood",
+   "investigation": {
+    "steps": [
+     {
+      "step": 1,
+      "node": "investigate",
+      "component": "job/valkey-memory-flood",
+      "verdict": "origin",
+      "origin_p": 0.89,
+      "victim_p": 0.01,
+      "next": "deployment/valkey-cart",
+      "next_p": 0.52,
+      "category": "job_lifecycle",
+      "spec_checks": [],
+      "blocked_input": null,
+      "key_evidence": "container flooder command: python3 -c import base64; exec(base64.b64decode('aW1wb3J0IHJlZGlzCmltcG9ydCB0aHJlYWRpbmcKaW1wb3J0IHRpbWUKCmRlZiBmbG9vZF9yZWRpcygpOgogICAgY2xpZW50ID0gcmVkaXMuUmVkaXMoaG9zdD0ndmFsa2V5LWNhcnQnLCBwb3J0PTYzNzkpCiAgICB3aGlsZSBUcnVlOgogICAgICAgIHRyeToKICAgICAgICAgICAgcGF5bG9hZCA9ICd4JyAqIDEwMDAwMDAKICAgICAgICAgICAgY2xpZW50LnNldChmImtleV97dGltZS50aW1lKCl9IiwgcGF5bG9hZCkKICAgICAgICBleGNlcHQgRXhjZXB0aW9uIGFzIGU6CiAgICAgICAgICAgIHByaW50KGYiRXJyb3I6IHtlfSIpCiAgICAgICAgICAgIHRpbWUuc2xlZXAoMSkKCnRocmVhZHMgPSB"
+     }
+    ],
+    "concluded": "job/valkey-memory-flood",
+    "fallback": null,
+    "triage_top": [
+     [
+      "job/valkey-memory-flood",
+      0.82
+     ],
+     [
+      "deployment/valkey-cart",
+      0.15
+     ],
+     [
+      "daemonset/otel-collector-agent",
+      0.03
+     ],
+     [
+      "deployment/accounting",
+      0.0
+     ],
+     [
+      "deployment/ad",
+      0.0
+     ]
+    ]
+   },
+   "text": "Root cause component: Job `valkey-memory-flood` in namespace `astronomy-shop`.\nMechanism: container flooder command: python3 -c import base64; exec(base64.b64decode('aW1wb3J0IHJlZGlzCmltcG9ydCB0aHJlYWRpbmcKaW1wb3J0IHRpbWUKCmRlZiBmbG9vZF9yZWRpcygpOgogICAgY2xpZW50ID0gcmVkaXMuUmVkaXMoaG9zdD0ndmFsa2V5LWNhcnQnLCBwb3J0PTYzNzkpCiAgICB3aGlsZSBUcnVlOgogICAgICAgIHRyeToKICAgICAgICAgICAgcGF5bG9hZCA9ICd4JyAqIDEwMDAwMDAKICAgICAgICAgICAgY2xpZW50LnNldChmImtleV97dGltZS50aW1lKCl9IiwgcGF5bG9hZCkKICAgICAgICBleGNlcHQgRXhjZXB0aW9uIGFzIGU6CiAgICAgICAgICAgIHByaW50KGYiRXJyb3I6IHtlfSIpCiAgICAgICAgICAgIHRpbWUuc2xlZXAoMSkKCnRocmVhZHMgPSB.\nFault type: job lifecycle (the job pod cannot complete or the job runs wrongly).\nAbnormal state observed on this component:\n- job has 1 active pod(s) and has not completed\n- container flooder: image ghcr.io/sregym/redis-client:8.1.0-py3.10\nClassification: Jev (typesafe/jev-1.13-20260917) confirmed this origin at investigation step 1 with probability 0.89 (triage probability 0.82).",
+   "grade": {
+    "judgment": "False",
+    "reasoning": "Verdict: False (composite=0.45). D1 Fault Localization: 0.00 | D2 Fault Characterization: 0.67 | D3 Scope Precision: 0.67. Weakest dimension: Fault Localization (0.00). Checklist details: [{\"id\": \"D1-Q1\", \"answer\": \"No\", \"evidence\": \"Names Job valkey-memory-flood as the root cause, whereas the fault specification identifies service/valkey-cart.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q2\", \"answer\": \"No\", \"evidence\": \"Attributes the origin to the flooder Job rather than valkey-cart, the authoritative fault-spec origin.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q3\", \"answer\": \"No\", \"evidence\": \"The blamed Job differs from the specified origin, service/valkey-cart, despite matching namespace astronomy-shop.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q1\", \"answer\": \"Yes\", \"evidence\": \"The encoded flooder command contains repeated large-payload Redis writes to valkey-cart, matching the flooding mechanism.\", \"confidence\": \"Medium\"}, {\"id\": \"D2-Q2\", \"answer\": \"Yes\", \"evidence\": \"The encoded command specifies valkey-cart, port 6379, and repeated writes of a one-million-character payload.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q3\", \"answer\": \"No\", \"evidence\": \"Explicitly classifies the fault as job lifecycle rather than cache memory exhaustion caused by flooding.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q1\", \"answer\": \"Yes\", \"evidence\": \"Blames the flooding workload, which the ground truth explicitly identifies as contributing to the cache failure.\", \"confidence\": \"Medium\"}, {\"id\": \"D3-Q2\", \"answer\": \"Yes\", \"evidence\": \"Includes the flooding Job and references valkey-cart as the Redis destination within the encoded command.\", \"confidence\": \"Medium\"}, {\"id\": \"D3-Q3\", \"answer\": \"No\", \"evidence\": \"Reports an active, incomplete Job; does not describe cache memory exhaustion, OOM behavior, or disrupted request processing.\", \"confidence\": \"High\"}]",
+    "success": false,
+    "accuracy": 45.0,
+    "composite_score": 0.45,
+    "dimensions": {
+     "D1": {
+      "name": "Fault Localization",
+      "score": 0.0
+     },
+     "D2": {
+      "name": "Fault Characterization",
+      "score": 0.67
+     },
+     "D3": {
+      "name": "Scope Precision",
+      "score": 0.67
+     }
+    },
+    "checklist": [
+     {
+      "id": "D1-Q1",
+      "answer": "No",
+      "evidence": "Names Job valkey-memory-flood as the root cause, whereas the fault specification identifies service/valkey-cart.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q2",
+      "answer": "No",
+      "evidence": "Attributes the origin to the flooder Job rather than valkey-cart, the authoritative fault-spec origin.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q3",
+      "answer": "No",
+      "evidence": "The blamed Job differs from the specified origin, service/valkey-cart, despite matching namespace astronomy-shop.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q1",
+      "answer": "Yes",
+      "evidence": "The encoded flooder command contains repeated large-payload Redis writes to valkey-cart, matching the flooding mechanism.",
+      "confidence": "Medium"
+     },
+     {
+      "id": "D2-Q2",
+      "answer": "Yes",
+      "evidence": "The encoded command specifies valkey-cart, port 6379, and repeated writes of a one-million-character payload.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q3",
+      "answer": "No",
+      "evidence": "Explicitly classifies the fault as job lifecycle rather than cache memory exhaustion caused by flooding.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q1",
+      "answer": "Yes",
+      "evidence": "Blames the flooding workload, which the ground truth explicitly identifies as contributing to the cache failure.",
+      "confidence": "Medium"
+     },
+     {
+      "id": "D3-Q2",
+      "answer": "Yes",
+      "evidence": "Includes the flooding Job and references valkey-cart as the Redis destination within the encoded command.",
+      "confidence": "Medium"
+     },
+     {
+      "id": "D3-Q3",
+      "answer": "No",
+      "evidence": "Reports an active, incomplete Job; does not describe cache memory exhaustion, OOM behavior, or disrupted request processing.",
+      "confidence": "High"
+     }
+    ]
+   }
+  },
+  {
+   "arm": 1,
+   "kind": "v1",
+   "model": "openai/gpt-6-luna-decisions",
+   "position": 1,
+   "seconds": 1.1,
+   "requests": 2,
+   "input_tokens": 22024,
+   "error": null,
+   "component": "job/valkey-memory-flood",
+   "investigation": {
+    "steps": [
+     {
+      "step": 1,
+      "node": "investigate",
+      "component": "job/valkey-memory-flood",
+      "verdict": "origin",
+      "origin_p": 0.96,
+      "victim_p": 0.02,
+      "next": "deployment/valkey-cart",
+      "next_p": 0.57,
+      "category": "config_value",
+      "spec_checks": [],
+      "blocked_input": null,
+      "key_evidence": "container flooder command: python3 -c import base64; exec(base64.b64decode('aW1wb3J0IHJlZGlzCmltcG9ydCB0aHJlYWRpbmcKaW1wb3J0IHRpbWUKCmRlZiBmbG9vZF9yZWRpcygpOgogICAgY2xpZW50ID0gcmVkaXMuUmVkaXMoaG9zdD0ndmFsa2V5LWNhcnQnLCBwb3J0PTYzNzkpCiAgICB3aGlsZSBUcnVlOgogICAgICAgIHRyeToKICAgICAgICAgICAgcGF5bG9hZCA9ICd4JyAqIDEwMDAwMDAKICAgICAgICAgICAgY2xpZW50LnNldChmImtleV97dGltZS50aW1lKCl9IiwgcGF5bG9hZCkKICAgICAgICBleGNlcHQgRXhjZXB0aW9uIGFzIGU6CiAgICAgICAgICAgIHByaW50KGYiRXJyb3I6IHtlfSIpCiAgICAgICAgICAgIHRpbWUuc2xlZXAoMSkKCnRocmVhZHMgPSB"
+     }
+    ],
+    "concluded": "job/valkey-memory-flood",
+    "fallback": null,
+    "triage_top": [
+     [
+      "job/valkey-memory-flood",
+      0.74
+     ],
+     [
+      "deployment/valkey-cart",
+      0.19
+     ],
+     [
+      "deployment/accounting",
+      0.01
+     ],
+     [
+      "deployment/ad",
+      0.01
+     ],
+     [
+      "deployment/cart",
+      0.01
+     ]
+    ]
+   },
+   "text": "Root cause component: Job `valkey-memory-flood` in namespace `astronomy-shop`.\nMechanism: container flooder command: python3 -c import base64; exec(base64.b64decode('aW1wb3J0IHJlZGlzCmltcG9ydCB0aHJlYWRpbmcKaW1wb3J0IHRpbWUKCmRlZiBmbG9vZF9yZWRpcygpOgogICAgY2xpZW50ID0gcmVkaXMuUmVkaXMoaG9zdD0ndmFsa2V5LWNhcnQnLCBwb3J0PTYzNzkpCiAgICB3aGlsZSBUcnVlOgogICAgICAgIHRyeToKICAgICAgICAgICAgcGF5bG9hZCA9ICd4JyAqIDEwMDAwMDAKICAgICAgICAgICAgY2xpZW50LnNldChmImtleV97dGltZS50aW1lKCl9IiwgcGF5bG9hZCkKICAgICAgICBleGNlcHQgRXhjZXB0aW9uIGFzIGU6CiAgICAgICAgICAgIHByaW50KGYiRXJyb3I6IHtlfSIpCiAgICAgICAgICAgIHRpbWUuc2xlZXAoMSkKCnRocmVhZHMgPSB.\nFault type: config value (a wrong, missing, or shadowed value in this component's own configuration).\nAbnormal state observed on this component:\n- job has 1 active pod(s) and has not completed\n- container flooder: image ghcr.io/sregym/redis-client:8.1.0-py3.10\nClassification: Jev (openai/gpt-6-luna-decisions-20261006) confirmed this origin at investigation step 1 with probability 0.96 (triage probability 0.74).",
+   "grade": {
+    "judgment": "False",
+    "reasoning": "Verdict: False (composite=0.45). D1 Fault Localization: 0.00 | D2 Fault Characterization: 0.67 | D3 Scope Precision: 0.67. Weakest dimension: Fault Localization (0.00). Checklist details: [{\"id\": \"D1-Q1\", \"answer\": \"No\", \"evidence\": \"The diagnosis identifies Job valkey-memory-flood as the origin; the authoritative fault specification identifies service/valkey-cart.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q2\", \"answer\": \"No\", \"evidence\": \"The diagnosis assigns fault origin to the flooding Job rather than valkey-cart, the origin designated by the fault specification.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q3\", \"answer\": \"No\", \"evidence\": \"The blamed Job differs from the fault specification's target component, service/valkey-cart.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q1\", \"answer\": \"Yes\", \"evidence\": \"The supplied encoded command repeatedly writes large payloads to valkey-cart, matching the workload flooding mechanism.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q2\", \"answer\": \"Yes\", \"evidence\": \"The encoded command specifies valkey-cart on port 6379 and repeatedly stores payloads of one million characters under timestamped keys.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q3\", \"answer\": \"No\", \"evidence\": \"The diagnosis labels the fault a wrong, missing, or shadowed configuration value; ground truth describes memory exhaustion from payload flooding.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q1\", \"answer\": \"Yes\", \"evidence\": \"The blamed flooding workload corresponds to the workload explicitly described as contributing to the fault in ground truth.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q2\", \"answer\": \"Yes\", \"evidence\": \"The diagnosis identifies the flooding workload and includes valkey-cart as the destination in its encoded command.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q3\", \"answer\": \"No\", \"evidence\": \"The stated abnormal condition is an active, unfinished Job; the diagnosis does not describe cache memory exhaustion, OOM behavior, or disrupted request processing.\", \"confidence\": \"High\"}]",
+    "success": false,
+    "accuracy": 45.0,
+    "composite_score": 0.45,
+    "dimensions": {
+     "D1": {
+      "name": "Fault Localization",
+      "score": 0.0
+     },
+     "D2": {
+      "name": "Fault Characterization",
+      "score": 0.67
+     },
+     "D3": {
+      "name": "Scope Precision",
+      "score": 0.67
+     }
+    },
+    "checklist": [
+     {
+      "id": "D1-Q1",
+      "answer": "No",
+      "evidence": "The diagnosis identifies Job valkey-memory-flood as the origin; the authoritative fault specification identifies service/valkey-cart.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q2",
+      "answer": "No",
+      "evidence": "The diagnosis assigns fault origin to the flooding Job rather than valkey-cart, the origin designated by the fault specification.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q3",
+      "answer": "No",
+      "evidence": "The blamed Job differs from the fault specification's target component, service/valkey-cart.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q1",
+      "answer": "Yes",
+      "evidence": "The supplied encoded command repeatedly writes large payloads to valkey-cart, matching the workload flooding mechanism.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q2",
+      "answer": "Yes",
+      "evidence": "The encoded command specifies valkey-cart on port 6379 and repeatedly stores payloads of one million characters under timestamped keys.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q3",
+      "answer": "No",
+      "evidence": "The diagnosis labels the fault a wrong, missing, or shadowed configuration value; ground truth describes memory exhaustion from payload flooding.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q1",
+      "answer": "Yes",
+      "evidence": "The blamed flooding workload corresponds to the workload explicitly described as contributing to the fault in ground truth.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q2",
+      "answer": "Yes",
+      "evidence": "The diagnosis identifies the flooding workload and includes valkey-cart as the destination in its encoded command.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q3",
+      "answer": "No",
+      "evidence": "The stated abnormal condition is an active, unfinished Job; the diagnosis does not describe cache memory exhaustion, OOM behavior, or disrupted request processing.",
+      "confidence": "High"
+     }
+    ]
+   }
+  },
+  {
+   "arm": 2,
+   "kind": "v2",
+   "model": "typesafe/jev-1.13",
+   "position": 2,
+   "seconds": 1.3,
+   "requests": 2,
+   "input_tokens": 32402,
+   "error": null,
+   "component": "job/valkey-memory-flood",
+   "investigation": {
+    "steps": [
+     {
+      "step": 1,
+      "node": "investigate",
+      "component": "job/valkey-memory-flood",
+      "verdict": "origin",
+      "origin_p": 0.9,
+      "victim_p": 0.01,
+      "next": "none",
+      "next_p": 0.51,
+      "category": "job_lifecycle",
+      "spec_checks": [],
+      "blocked_input": null,
+      "key_evidence": "container flooder command: python3 -c import base64; exec(base64.b64decode('aW1wb3J0IHJlZGlzCmltcG9ydCB0aHJlYWRpbmcKaW1wb3J0IHRpbWUKCmRlZiBmbG9vZF9yZWRpcygpOgogICAgY2xpZW50ID0gcmVkaXMuUmVkaXMoaG9zdD0ndmFsa2V5LWNhcnQnLCBwb3J0PTYzNzkpCiAgICB3aGlsZSBUcnVlOgogICAgICAgIHRyeToKICAgICAgICAgICAgcGF5bG9hZCA9ICd4JyAqIDEwMDAwMDAKICAgICAgICAgICAgY2xpZW50LnNldChmImtleV97dGltZS50aW1lKCl9IiwgcGF5bG9hZCkKICAgICAgICBleGNlcHQgRXhjZXB0aW9uIGFzIGU6CiAgICAgICAgICAgIHByaW50KGYiRXJyb3I6IHtlfSIpCiAgICAgICAgICAgIHRpbWUuc2xlZXAoMSkKCnRocmVhZHMgPSB"
+     }
+    ],
+    "concluded": "job/valkey-memory-flood",
+    "fallback": null,
+    "triage_top": [
+     [
+      "job/valkey-memory-flood",
+      0.86
+     ],
+     [
+      "deployment/valkey-cart",
+      0.13
+     ],
+     [
+      "daemonset/otel-collector-agent",
+      0.01
+     ],
+     [
+      "deployment/accounting",
+      0.0
+     ],
+     [
+      "deployment/ad",
+      0.0
+     ]
+    ]
+   },
+   "text": "Root cause: Job `valkey-memory-flood` in namespace `astronomy-shop`: container flooder command: python3 -c import base64; exec(base64.b64decode('aW1wb3J0IHJlZGlzCmltcG9ydCB0aHJlYWRpbmcKaW1wb3J0IHRpbWUKCmRlZiBmbG9vZF9yZWRpcygpOgogICAgY2xpZW50ID0gcmVkaXMuUmVkaXMoaG9zdD0ndmFsa2V5LWNhcnQnLCBwb3J0PTYzNzkpCiAgICB3aGlsZSBUcnVlOgogICAgICAgIHRyeToKICAgICAgICAgICAgcGF5bG9hZCA9ICd4JyAqIDEwMDAwMDAKICAgICAgICAgICAgY2xpZW50LnNldChmImtleV97dGltZS50aW1lKCl9IiwgcGF5bG9hZCkKICAgICAgICBleGNlcHQgRXhjZXB0aW9uIGFzIGU6CiAgICAgICAgICAgIHByaW50KGYiRXJyb3I6IHtlfSIpCiAgICAgICAgICAgIHRpbWUuc2xlZXAoMSkKCnRocmVhZHMgPSB.\nMechanism: container flooder command: python3 -c import base64; exec(base64.b64decode('aW1wb3J0IHJlZGlzCmltcG9ydCB0aHJlYWRpbmcKaW1wb3J0IHRpbWUKCmRlZiBmbG9vZF9yZWRpcygpOgogICAgY2xpZW50ID0gcmVkaXMuUmVkaXMoaG9zdD0ndmFsa2V5LWNhcnQnLCBwb3J0PTYzNzkpCiAgICB3aGlsZSBUcnVlOgogICAgICAgIHRyeToKICAgICAgICAgICAgcGF5bG9hZCA9ICd4JyAqIDEwMDAwMDAKICAgICAgICAgICAgY2xpZW50LnNldChmImtleV97dGltZS50aW1lKCl9IiwgcGF5bG9hZCkKICAgICAgICBleGNlcHQgRXhjZXB0aW9uIGFzIGU6CiAgICAgICAgICAgIHByaW50KGYiRXJyb3I6IHtlfSIpCiAgICAgICAgICAgIHRpbWUuc2xlZXAoMSkKCnRocmVhZHMgPSB.\nEffect: its pods are Running and Ready.",
+   "grade": {
+    "judgment": "False",
+    "reasoning": "Verdict: False (composite=0.56). D1 Fault Localization: 0.00 | D2 Fault Characterization: 1.00 | D3 Scope Precision: 0.67. Weakest dimension: Fault Localization (0.00). Checklist details: [{\"id\": \"D1-Q1\", \"answer\": \"No\", \"evidence\": \"The diagnosis identifies Job valkey-memory-flood as the root cause, whereas the authoritative target is service/valkey-cart.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q2\", \"answer\": \"No\", \"evidence\": \"The diagnosis assigns fault origin to the flooder Job rather than the fault specification\\u2019s designated origin, valkey-cart.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q3\", \"answer\": \"No\", \"evidence\": \"The blamed resource is Job valkey-memory-flood, which differs from the specified target service/valkey-cart.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q1\", \"answer\": \"Yes\", \"evidence\": \"The encoded command contains a loop writing large payloads to valkey-cart, matching the flooding mechanism.\", \"confidence\": \"Medium\"}, {\"id\": \"D2-Q2\", \"answer\": \"Yes\", \"evidence\": \"The encoded command specifies valkey-cart, port 6379, repeated SET operations, and a large repeated-character payload.\", \"confidence\": \"Medium\"}, {\"id\": \"D2-Q3\", \"answer\": \"Yes\", \"evidence\": \"The diagnosis attributes the fault to a memory-flood workload and introduces no unrelated fault type.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q1\", \"answer\": \"Yes\", \"evidence\": \"The blamed flooder Job corresponds to the contributing workload described in the ground truth; no unrelated components are blamed.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q2\", \"answer\": \"Yes\", \"evidence\": \"The diagnosis identifies the flooding workload, and its encoded command names valkey-cart as the destination.\", \"confidence\": \"Medium\"}, {\"id\": \"D3-Q3\", \"answer\": \"No\", \"evidence\": \"The stated effect is 'its pods are Running and Ready'; it does not describe memory exhaustion, OOM behavior, or disrupted request processing.\", \"confidence\": \"High\"}]",
+    "success": false,
+    "accuracy": 56.0,
+    "composite_score": 0.56,
+    "dimensions": {
+     "D1": {
+      "name": "Fault Localization",
+      "score": 0.0
+     },
+     "D2": {
+      "name": "Fault Characterization",
+      "score": 1.0
+     },
+     "D3": {
+      "name": "Scope Precision",
+      "score": 0.67
+     }
+    },
+    "checklist": [
+     {
+      "id": "D1-Q1",
+      "answer": "No",
+      "evidence": "The diagnosis identifies Job valkey-memory-flood as the root cause, whereas the authoritative target is service/valkey-cart.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q2",
+      "answer": "No",
+      "evidence": "The diagnosis assigns fault origin to the flooder Job rather than the fault specification\u2019s designated origin, valkey-cart.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q3",
+      "answer": "No",
+      "evidence": "The blamed resource is Job valkey-memory-flood, which differs from the specified target service/valkey-cart.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q1",
+      "answer": "Yes",
+      "evidence": "The encoded command contains a loop writing large payloads to valkey-cart, matching the flooding mechanism.",
+      "confidence": "Medium"
+     },
+     {
+      "id": "D2-Q2",
+      "answer": "Yes",
+      "evidence": "The encoded command specifies valkey-cart, port 6379, repeated SET operations, and a large repeated-character payload.",
+      "confidence": "Medium"
+     },
+     {
+      "id": "D2-Q3",
+      "answer": "Yes",
+      "evidence": "The diagnosis attributes the fault to a memory-flood workload and introduces no unrelated fault type.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q1",
+      "answer": "Yes",
+      "evidence": "The blamed flooder Job corresponds to the contributing workload described in the ground truth; no unrelated components are blamed.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q2",
+      "answer": "Yes",
+      "evidence": "The diagnosis identifies the flooding workload, and its encoded command names valkey-cart as the destination.",
+      "confidence": "Medium"
+     },
+     {
+      "id": "D3-Q3",
+      "answer": "No",
+      "evidence": "The stated effect is 'its pods are Running and Ready'; it does not describe memory exhaustion, OOM behavior, or disrupted request processing.",
+      "confidence": "High"
+     }
+    ]
+   }
+  },
+  {
+   "arm": 3,
+   "kind": "v2",
+   "model": "openai/gpt-6-luna-decisions",
+   "position": 3,
+   "seconds": 1.2,
+   "requests": 2,
+   "input_tokens": 21983,
+   "error": null,
+   "component": "job/valkey-memory-flood",
+   "investigation": {
+    "steps": [
+     {
+      "step": 1,
+      "node": "investigate",
+      "component": "job/valkey-memory-flood",
+      "verdict": "origin",
+      "origin_p": 0.94,
+      "victim_p": 0.03,
+      "next": "deployment/valkey-cart",
+      "next_p": 0.7,
+      "category": "config_value",
+      "spec_checks": [],
+      "blocked_input": null,
+      "key_evidence": "container flooder command: python3 -c import base64; exec(base64.b64decode('aW1wb3J0IHJlZGlzCmltcG9ydCB0aHJlYWRpbmcKaW1wb3J0IHRpbWUKCmRlZiBmbG9vZF9yZWRpcygpOgogICAgY2xpZW50ID0gcmVkaXMuUmVkaXMoaG9zdD0ndmFsa2V5LWNhcnQnLCBwb3J0PTYzNzkpCiAgICB3aGlsZSBUcnVlOgogICAgICAgIHRyeToKICAgICAgICAgICAgcGF5bG9hZCA9ICd4JyAqIDEwMDAwMDAKICAgICAgICAgICAgY2xpZW50LnNldChmImtleV97dGltZS50aW1lKCl9IiwgcGF5bG9hZCkKICAgICAgICBleGNlcHQgRXhjZXB0aW9uIGFzIGU6CiAgICAgICAgICAgIHByaW50KGYiRXJyb3I6IHtlfSIpCiAgICAgICAgICAgIHRpbWUuc2xlZXAoMSkKCnRocmVhZHMgPSB"
+     }
+    ],
+    "concluded": "job/valkey-memory-flood",
+    "fallback": null,
+    "triage_top": [
+     [
+      "job/valkey-memory-flood",
+      0.68
+     ],
+     [
+      "deployment/valkey-cart",
+      0.29
+     ],
+     [
+      "deployment/accounting",
+      0.01
+     ],
+     [
+      "deployment/cart",
+      0.01
+     ],
+     [
+      "daemonset/otel-collector-agent",
+      0.01
+     ]
+    ]
+   },
+   "text": "Root cause: Job `valkey-memory-flood` in namespace `astronomy-shop`: container flooder command: python3 -c import base64; exec(base64.b64decode('aW1wb3J0IHJlZGlzCmltcG9ydCB0aHJlYWRpbmcKaW1wb3J0IHRpbWUKCmRlZiBmbG9vZF9yZWRpcygpOgogICAgY2xpZW50ID0gcmVkaXMuUmVkaXMoaG9zdD0ndmFsa2V5LWNhcnQnLCBwb3J0PTYzNzkpCiAgICB3aGlsZSBUcnVlOgogICAgICAgIHRyeToKICAgICAgICAgICAgcGF5bG9hZCA9ICd4JyAqIDEwMDAwMDAKICAgICAgICAgICAgY2xpZW50LnNldChmImtleV97dGltZS50aW1lKCl9IiwgcGF5bG9hZCkKICAgICAgICBleGNlcHQgRXhjZXB0aW9uIGFzIGU6CiAgICAgICAgICAgIHByaW50KGYiRXJyb3I6IHtlfSIpCiAgICAgICAgICAgIHRpbWUuc2xlZXAoMSkKCnRocmVhZHMgPSB.\nMechanism: container flooder command: python3 -c import base64; exec(base64.b64decode('aW1wb3J0IHJlZGlzCmltcG9ydCB0aHJlYWRpbmcKaW1wb3J0IHRpbWUKCmRlZiBmbG9vZF9yZWRpcygpOgogICAgY2xpZW50ID0gcmVkaXMuUmVkaXMoaG9zdD0ndmFsa2V5LWNhcnQnLCBwb3J0PTYzNzkpCiAgICB3aGlsZSBUcnVlOgogICAgICAgIHRyeToKICAgICAgICAgICAgcGF5bG9hZCA9ICd4JyAqIDEwMDAwMDAKICAgICAgICAgICAgY2xpZW50LnNldChmImtleV97dGltZS50aW1lKCl9IiwgcGF5bG9hZCkKICAgICAgICBleGNlcHQgRXhjZXB0aW9uIGFzIGU6CiAgICAgICAgICAgIHByaW50KGYiRXJyb3I6IHtlfSIpCiAgICAgICAgICAgIHRpbWUuc2xlZXAoMSkKCnRocmVhZHMgPSB.\nEffect: its pods are Running and Ready.",
+   "grade": {
+    "judgment": "False",
+    "reasoning": "Verdict: False (composite=0.56). D1 Fault Localization: 0.00 | D2 Fault Characterization: 1.00 | D3 Scope Precision: 0.67. Weakest dimension: Fault Localization (0.00). Checklist details: [{\"id\": \"D1-Q1\", \"answer\": \"No\", \"evidence\": \"Diagnosis names Job valkey-memory-flood as the root cause; the authoritative target is service/valkey-cart in astronomy-shop.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q2\", \"answer\": \"No\", \"evidence\": \"Diagnosis assigns fault origin to the flooding Job rather than valkey-cart, which the fault specification defines as the origin.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q3\", \"answer\": \"No\", \"evidence\": \"The blamed component is Job valkey-memory-flood, not the specified target service/valkey-cart.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q1\", \"answer\": \"Yes\", \"evidence\": \"The embedded encoded script repeatedly writes large payloads to valkey-cart, matching the workload flooding mechanism.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q2\", \"answer\": \"Yes\", \"evidence\": \"The encoded script specifies valkey-cart:6379, a million-character payload, and repeated SET operations using timestamped keys.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q3\", \"answer\": \"Yes\", \"evidence\": \"Diagnosis attributes the fault to a memory-flood workload and its write loop; it introduces no unrelated fault type.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q1\", \"answer\": \"Yes\", \"evidence\": \"The blamed flooding Job corresponds to the workload explicitly described as contributing to the fault in ground truth.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q2\", \"answer\": \"Yes\", \"evidence\": \"Diagnosis identifies the flooding workload and includes valkey-cart as the destination in its encoded command.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q3\", \"answer\": \"No\", \"evidence\": \"The stated effect is 'its pods are Running and Ready'; diagnosis does not describe memory exhaustion, OOM behavior, or disrupted request processing.\", \"confidence\": \"High\"}]",
+    "success": false,
+    "accuracy": 56.0,
+    "composite_score": 0.56,
+    "dimensions": {
+     "D1": {
+      "name": "Fault Localization",
+      "score": 0.0
+     },
+     "D2": {
+      "name": "Fault Characterization",
+      "score": 1.0
+     },
+     "D3": {
+      "name": "Scope Precision",
+      "score": 0.67
+     }
+    },
+    "checklist": [
+     {
+      "id": "D1-Q1",
+      "answer": "No",
+      "evidence": "Diagnosis names Job valkey-memory-flood as the root cause; the authoritative target is service/valkey-cart in astronomy-shop.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q2",
+      "answer": "No",
+      "evidence": "Diagnosis assigns fault origin to the flooding Job rather than valkey-cart, which the fault specification defines as the origin.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q3",
+      "answer": "No",
+      "evidence": "The blamed component is Job valkey-memory-flood, not the specified target service/valkey-cart.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q1",
+      "answer": "Yes",
+      "evidence": "The embedded encoded script repeatedly writes large payloads to valkey-cart, matching the workload flooding mechanism.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q2",
+      "answer": "Yes",
+      "evidence": "The encoded script specifies valkey-cart:6379, a million-character payload, and repeated SET operations using timestamped keys.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q3",
+      "answer": "Yes",
+      "evidence": "Diagnosis attributes the fault to a memory-flood workload and its write loop; it introduces no unrelated fault type.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q1",
+      "answer": "Yes",
+      "evidence": "The blamed flooding Job corresponds to the workload explicitly described as contributing to the fault in ground truth.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q2",
+      "answer": "Yes",
+      "evidence": "Diagnosis identifies the flooding workload and includes valkey-cart as the destination in its encoded command.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q3",
+      "answer": "No",
+      "evidence": "The stated effect is 'its pods are Running and Ready'; diagnosis does not describe memory exhaustion, OOM behavior, or disrupted request processing.",
+      "confidence": "High"
+     }
+    ]
+   }
+  }
+ ],
+ "judge": {
+  "model": "gpt-6-astra",
+  "backend": "codex",
+  "effort": "high"
+ }
+}

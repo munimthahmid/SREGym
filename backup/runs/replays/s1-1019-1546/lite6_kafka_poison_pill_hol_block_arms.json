@@ -1,0 +1,243 @@
+{
+ "problem_id": "kafka_poison_pill_hol_block",
+ "source": "lite6_kafka_poison_pill_hol_block",
+ "replay": true,
+ "arms": [
+  {
+   "arm": 0,
+   "kind": "v1",
+   "model": "typesafe/jev-1.13",
+   "position": 0,
+   "seconds": 1.3,
+   "requests": 2,
+   "input_tokens": 36349,
+   "error": null,
+   "component": "deployment/orders-validator",
+   "investigation": {
+    "steps": [
+     {
+      "step": 1,
+      "node": "investigate",
+      "component": "deployment/orders-validator",
+      "verdict": "origin",
+      "origin_p": 0.72,
+      "victim_p": 0.17,
+      "next": "deployment/kafka",
+      "next_p": 0.41,
+      "category": "data_or_traffic",
+      "spec_checks": [],
+      "blocked_input": {
+       "source": "logs",
+       "evidence": "2026-10-19 06:34:55,505 ERROR partition remains paused at offset=20",
+       "probability": 0.95,
+       "input": "env ORDERS_TOPIC=orders-fulfillment"
+      },
+      "key_evidence": "log x1 (stopped, last seen 78s ago): orders-validator: 2026-10-19 06:32:55,489 ERROR record validation failed at offset=20: Expecting value: line 1 column 35 (char 34)"
+     }
+    ],
+    "concluded": "deployment/orders-validator",
+    "fallback": null,
+    "triage_top": [
+     [
+      "deployment/orders-validator",
+      0.56
+     ],
+     [
+      "other",
+      0.19
+     ],
+     [
+      "deployment/order-stream",
+      0.11
+     ],
+     [
+      "daemonset/otel-collector-agent",
+      0.07
+     ],
+     [
+      "deployment/kafka",
+      0.04
+     ]
+    ]
+   },
+   "text": "Root cause: one input item fails processing repeatedly and blocks later input: 2026-10-19 06:34:55,505 ERROR partition remains paused at offset=20; the input comes from env ORDERS_TOPIC=orders-fulfillment. The blocked component is Deployment `orders-validator` in namespace `astronomy-shop`.\nMechanism: log x1 (stopped, last seen 78s ago): orders-validator: 2026-10-19 06:32:55,489 ERROR record validation failed at offset=20: Expecting value: line 1 column 35 (char 34).\nFault type: data or traffic (the component's inputs or traffic pattern overwhelm or break it).\nAbnormal state observed on this component:\n- created 81s ago, 48s after the workloads it calls; 33s before the first active symptom\n- 7 error-like log lines still occurring in the recent pod logs\n- container orders-validator: image ghcr.io/sregym/kafka-client:2.5.3-py3.12\nError-like log lines still occurring:\n- x1: orders-validator: 2026-10-19 06:33:25,495 ERROR partition remains paused at offset=20\n- x1: orders-validator: 2026-10-19 06:33:40,496 ERROR partition remains paused at offset=20\n- x1: orders-validator: 2026-10-19 06:33:55,498 ERROR partition remains paused at offset=20\n- x1: orders-validator: 2026-10-19 06:34:10,499 ERROR partition remains paused at offset=20\nClassification: Jev (typesafe/jev-1.13-20260917) confirmed this origin at investigation step 1 with probability 0.72 (triage probability 0.56)."
+  },
+  {
+   "arm": 1,
+   "kind": "v1",
+   "model": "openai/gpt-6-luna-decisions",
+   "position": 1,
+   "seconds": 1.2,
+   "requests": 2,
+   "input_tokens": 24164,
+   "error": null,
+   "component": "deployment/orders-validator",
+   "investigation": {
+    "steps": [
+     {
+      "step": 1,
+      "node": "investigate",
+      "component": "deployment/orders-validator",
+      "verdict": "origin",
+      "origin_p": 0.91,
+      "victim_p": 0.07,
+      "next": "none",
+      "next_p": 0.31,
+      "category": "data_or_traffic",
+      "spec_checks": [],
+      "blocked_input": {
+       "source": "logs",
+       "evidence": "2026-10-19 06:34:55,505 ERROR partition remains paused at offset=20",
+       "probability": 1.0,
+       "input": "env ORDERS_TOPIC=orders-fulfillment"
+      },
+      "key_evidence": "log x1 (stopped, last seen 78s ago): orders-validator: 2026-10-19 06:32:55,489 ERROR record validation failed at offset=20: Expecting value: line 1 column 35 (char 34)"
+     }
+    ],
+    "concluded": "deployment/orders-validator",
+    "fallback": null,
+    "triage_top": [
+     [
+      "deployment/orders-validator",
+      0.96
+     ],
+     [
+      "deployment/order-stream",
+      0.04
+     ],
+     [
+      "deployment/accounting",
+      0.0
+     ],
+     [
+      "deployment/ad",
+      0.0
+     ],
+     [
+      "deployment/cart",
+      0.0
+     ]
+    ]
+   },
+   "text": "Root cause: one input item fails processing repeatedly and blocks later input: 2026-10-19 06:34:55,505 ERROR partition remains paused at offset=20; the input comes from env ORDERS_TOPIC=orders-fulfillment. The blocked component is Deployment `orders-validator` in namespace `astronomy-shop`.\nMechanism: log x1 (stopped, last seen 78s ago): orders-validator: 2026-10-19 06:32:55,489 ERROR record validation failed at offset=20: Expecting value: line 1 column 35 (char 34).\nFault type: data or traffic (the component's inputs or traffic pattern overwhelm or break it).\nAbnormal state observed on this component:\n- created 81s ago, 48s after the workloads it calls; 33s before the first active symptom\n- 7 error-like log lines still occurring in the recent pod logs\n- container orders-validator: image ghcr.io/sregym/kafka-client:2.5.3-py3.12\nError-like log lines still occurring:\n- x1: orders-validator: 2026-10-19 06:33:25,495 ERROR partition remains paused at offset=20\n- x1: orders-validator: 2026-10-19 06:33:40,496 ERROR partition remains paused at offset=20\n- x1: orders-validator: 2026-10-19 06:33:55,498 ERROR partition remains paused at offset=20\n- x1: orders-validator: 2026-10-19 06:34:10,499 ERROR partition remains paused at offset=20\nClassification: Jev (openai/gpt-6-luna-decisions-20261006) confirmed this origin at investigation step 1 with probability 0.91 (triage probability 0.96)."
+  },
+  {
+   "arm": 2,
+   "kind": "v2",
+   "model": "typesafe/jev-1.13",
+   "position": 2,
+   "seconds": 1.3,
+   "requests": 2,
+   "input_tokens": 36043,
+   "error": null,
+   "component": "deployment/orders-validator",
+   "investigation": {
+    "steps": [
+     {
+      "step": 1,
+      "node": "investigate",
+      "component": "deployment/orders-validator",
+      "verdict": "origin",
+      "origin_p": 0.82,
+      "victim_p": 0.11,
+      "next": "deployment/order-stream",
+      "next_p": 0.42,
+      "category": "data_or_traffic",
+      "spec_checks": [],
+      "blocked_input": {
+       "source": "logs",
+       "evidence": "2026-10-19 06:34:55,505 ERROR partition remains paused at offset=20",
+       "probability": 0.95,
+       "input": "env ORDERS_TOPIC=orders-fulfillment"
+      },
+      "key_evidence": "log x1 (stopped, last seen 78s ago): orders-validator: 2026-10-19 06:32:55,489 ERROR record validation failed at offset=20: Expecting value: line 1 column 35 (char 34)"
+     }
+    ],
+    "concluded": "deployment/orders-validator",
+    "fallback": null,
+    "triage_top": [
+     [
+      "deployment/orders-validator",
+      0.65
+     ],
+     [
+      "deployment/order-stream",
+      0.25
+     ],
+     [
+      "deployment/kafka",
+      0.05
+     ],
+     [
+      "other",
+      0.02
+     ],
+     [
+      "deployment/accounting",
+      0.01
+     ]
+    ]
+   },
+   "text": "Root cause: the input `env ORDERS_TOPIC=orders-fulfillment` consumed by Deployment `orders-validator` in namespace `astronomy-shop`: log x1 (stopped, last seen 78s ago): orders-validator: 2026-10-19 06:32:55,489 ERROR record validation failed at offset=20: Expecting value: line 1 column 35 (char 34).\nMechanism: one input item fails processing again and again and blocks the items behind it: 2026-10-19 06:34:55,505 ERROR partition remains paused at offset=20; the component logs \"ERROR partition remains paused at offset=20\".\nEffect: its pods are Running and Ready."
+  },
+  {
+   "arm": 3,
+   "kind": "v2",
+   "model": "openai/gpt-6-luna-decisions",
+   "position": 3,
+   "seconds": 1.3,
+   "requests": 2,
+   "input_tokens": 23957,
+   "error": null,
+   "component": "deployment/orders-validator",
+   "investigation": {
+    "steps": [
+     {
+      "step": 1,
+      "node": "investigate",
+      "component": "deployment/orders-validator",
+      "verdict": "origin",
+      "origin_p": 0.95,
+      "victim_p": 0.03,
+      "next": "none",
+      "next_p": 0.36,
+      "category": "data_or_traffic",
+      "spec_checks": [],
+      "blocked_input": {
+       "source": "logs",
+       "evidence": "2026-10-19 06:34:55,505 ERROR partition remains paused at offset=20",
+       "probability": 1.0,
+       "input": "env ORDERS_TOPIC=orders-fulfillment"
+      },
+      "key_evidence": "log x1 (stopped, last seen 78s ago): orders-validator: 2026-10-19 06:32:55,489 ERROR record validation failed at offset=20: Expecting value: line 1 column 35 (char 34)"
+     }
+    ],
+    "concluded": "deployment/orders-validator",
+    "fallback": null,
+    "triage_top": [
+     [
+      "deployment/orders-validator",
+      0.94
+     ],
+     [
+      "deployment/order-stream",
+      0.06
+     ],
+     [
+      "deployment/accounting",
+      0.0
+     ],
+     [
+      "deployment/ad",
+      0.0
+     ],
+     [
+      "deployment/cart",
+      0.0
+     ]
+    ]
+   },
+   "text": "Root cause: the input `env ORDERS_TOPIC=orders-fulfillment` consumed by Deployment `orders-validator` in namespace `astronomy-shop`: log x1 (stopped, last seen 78s ago): orders-validator: 2026-10-19 06:32:55,489 ERROR record validation failed at offset=20: Expecting value: line 1 column 35 (char 34).\nMechanism: one input item fails processing again and again and blocks the items behind it: 2026-10-19 06:34:55,505 ERROR partition remains paused at offset=20; the component logs \"ERROR partition remains paused at offset=20\".\nEffect: its pods are Running and Ready."
+  }
+ ]
+}

@@ -1,0 +1,231 @@
+{
+ "problem_id": "liveness_probe_too_aggressive_social_network",
+ "source": "held5_liveness_probe_too_aggressive_social_network",
+ "replay": true,
+ "arms": [
+  {
+   "arm": 0,
+   "kind": "v1",
+   "model": "typesafe/jev-1.13",
+   "position": 0,
+   "seconds": 1.2,
+   "requests": 2,
+   "input_tokens": 26057,
+   "error": null,
+   "component": "deployment/aux-service",
+   "investigation": {
+    "steps": [
+     {
+      "step": 1,
+      "node": "investigate",
+      "component": "deployment/aux-service",
+      "verdict": "origin",
+      "origin_p": 0.9,
+      "victim_p": 0.0,
+      "next": "none",
+      "next_p": 0.84,
+      "category": "code_bug",
+      "spec_checks": [
+       "service aux-service has no ready endpoints"
+      ],
+      "blocked_input": null,
+      "key_evidence": "ConfigMap aux-service-script key service.py: import http.server \u23ce import random \u23ce import socketserver \u23ce import time \u23ce \u23ce INIT_SECONDS = 15 \u23ce _START = time.time() \u23ce \u23ce \u23ce def _initialized() -> bool: \u23ce return time.time() - _START >= INIT_SECONDS \u23ce \u23ce \u23ce class MainHandler(http.server.SimpleHTTPRequestHandler): \u23ce def _write(self, status: int, body: str): \u23ce self.send_response(status) \u23ce self.end_headers() \u23ce self.wfile.write(body.encode()) \u23ce \u23ce def do_G\u2026"
+     }
+    ],
+    "concluded": "deployment/aux-service",
+    "fallback": null,
+    "triage_top": [
+     [
+      "other",
+      0.57
+     ],
+     [
+      "deployment/aux-service",
+      0.33
+     ],
+     [
+      "deployment/social-graph-service",
+      0.08
+     ],
+     [
+      "deployment/jaeger",
+      0.01
+     ],
+     [
+      "deployment/compose-post-service",
+      0.0
+     ]
+    ]
+   },
+   "text": "Root cause component: Deployment `aux-service` in namespace `social-network`.\nMechanism: ConfigMap aux-service-script key service.py: import http.server \u23ce import random \u23ce import socketserver \u23ce import time \u23ce \u23ce INIT_SECONDS = 15 \u23ce _START = time.time() \u23ce \u23ce \u23ce def _initialized() -> bool: \u23ce return time.time() - _START >= INIT_SECONDS \u23ce \u23ce \u23ce class MainHandler(http.server.SimpleHTTPRequestHandler): \u23ce def _write(self, status: int, body: str): \u23ce self.send_response(status) \u23ce self.end_headers() \u23ce self.wfile.write(body.encode()) \u23ce \u23ce def do_G\u2026.\nFault type: code bug (the component's own logic is faulty).\nAbnormal state observed on this component:\n- only 0 of 1 desired replicas are ready\n- pod aux-service-9df4c6c8c-f22ql: container aux-service-container waiting in CrashLoopBackOff\n- pod aux-service-9df4c6c8c-f22ql: container aux-service-container restarted 5 times\n- warning events: BackOff x14, Unhealthy x3\n- service aux-service selects this component but has 0 ready endpoints\n- pod aux-service-9df4c6c8c-f22ql: container aux-service-container restarted 1 more time(s) in the last 0s\n- warning event Unhealthy on pod/aux-service-9df4c6c8c-f22ql repeated 1 more time(s) in the last 0s\n- warning event BackOff on pod/aux-service-9df4c6c8c-f22ql repeated 4 more time(s) in the last 0s\nNotable spec settings:\n- Available=False (MinimumReplicasUnavailable)\n- container aux-service-container: image python:3.9-slim\nWarning events:\n- BackOff x14 on pod/aux-service-9df4c6c8c-f22ql: Back-off restarting failed container aux-service-container in pod aux-service-9df4c6c8c-f22ql_social-network(db9f0d03-d8f4-4adf-b7a5-6dfcbc686d3d)\n- Unhealthy x2 on pod/aux-service-9df4c6c8c-f22ql: Liveness probe failed: HTTP probe failed with statuscode: 503\n- Unhealthy x1 on pod/aux-service-9df4c6c8c-f22ql: Liveness probe failed: Get \"http://10.244.195.240:8080/health\": dial tcp 10.244.195.240:8080: connect: connection refused\nClassification: Jev (typesafe/jev-1.13-20260917) confirmed this origin at investigation step 1 with probability 0.90 (triage probability 0.33)."
+  },
+  {
+   "arm": 1,
+   "kind": "v1",
+   "model": "openai/gpt-6-luna-decisions",
+   "position": 1,
+   "seconds": 1.3,
+   "requests": 2,
+   "input_tokens": 17997,
+   "error": null,
+   "component": "deployment/aux-service",
+   "investigation": {
+    "steps": [
+     {
+      "step": 1,
+      "node": "investigate",
+      "component": "deployment/aux-service",
+      "verdict": "origin",
+      "origin_p": 0.72,
+      "victim_p": 0.04,
+      "next": "none",
+      "next_p": 0.76,
+      "category": "code_bug",
+      "spec_checks": [
+       "service aux-service has no ready endpoints"
+      ],
+      "blocked_input": null,
+      "key_evidence": "container aux-service-container liveness probe: httpGet HTTP :8080/health"
+     }
+    ],
+    "concluded": "deployment/aux-service",
+    "fallback": null,
+    "triage_top": [
+     [
+      "other",
+      0.55
+     ],
+     [
+      "deployment/aux-service",
+      0.32
+     ],
+     [
+      "deployment/social-graph-service",
+      0.06
+     ],
+     [
+      "deployment/text-service",
+      0.02
+     ],
+     [
+      "deployment/compose-post-service",
+      0.01
+     ]
+    ]
+   },
+   "text": "Root cause component: Deployment `aux-service` in namespace `social-network`.\nMechanism: container aux-service-container liveness probe: httpGet HTTP :8080/health.\nFault type: code bug (the component's own logic is faulty).\nAbnormal state observed on this component:\n- only 0 of 1 desired replicas are ready\n- pod aux-service-9df4c6c8c-f22ql: container aux-service-container waiting in CrashLoopBackOff\n- pod aux-service-9df4c6c8c-f22ql: container aux-service-container restarted 5 times\n- warning events: BackOff x14, Unhealthy x3\n- service aux-service selects this component but has 0 ready endpoints\n- pod aux-service-9df4c6c8c-f22ql: container aux-service-container restarted 1 more time(s) in the last 0s\n- warning event Unhealthy on pod/aux-service-9df4c6c8c-f22ql repeated 1 more time(s) in the last 0s\n- warning event BackOff on pod/aux-service-9df4c6c8c-f22ql repeated 4 more time(s) in the last 0s\nNotable spec settings:\n- Available=False (MinimumReplicasUnavailable)\n- container aux-service-container: image python:3.9-slim\nWarning events:\n- BackOff x14 on pod/aux-service-9df4c6c8c-f22ql: Back-off restarting failed container aux-service-container in pod aux-service-9df4c6c8c-f22ql_social-network(db9f0d03-d8f4-4adf-b7a5-6dfcbc686d3d)\n- Unhealthy x2 on pod/aux-service-9df4c6c8c-f22ql: Liveness probe failed: HTTP probe failed with statuscode: 503\n- Unhealthy x1 on pod/aux-service-9df4c6c8c-f22ql: Liveness probe failed: Get \"http://10.244.195.240:8080/health\": dial tcp 10.244.195.240:8080: connect: connection refused\nClassification: Jev (openai/gpt-6-luna-decisions-20261006) confirmed this origin at investigation step 1 with probability 0.72 (triage probability 0.32)."
+  },
+  {
+   "arm": 2,
+   "kind": "v2",
+   "model": "typesafe/jev-1.13",
+   "position": 2,
+   "seconds": 1.2,
+   "requests": 2,
+   "input_tokens": 25906,
+   "error": null,
+   "component": "deployment/aux-service",
+   "investigation": {
+    "steps": [
+     {
+      "step": 1,
+      "node": "investigate",
+      "component": "deployment/aux-service",
+      "verdict": "origin",
+      "origin_p": 0.97,
+      "victim_p": 0.0,
+      "next": "none",
+      "next_p": 0.75,
+      "category": "health_probe_config",
+      "spec_checks": [
+       "service aux-service has no ready endpoints"
+      ],
+      "blocked_input": null,
+      "key_evidence": "container aux-service-container liveness probe: httpGet HTTP :8080/health (initialDelaySeconds=0 (default), periodSeconds=1, timeoutSeconds=1, failureThreshold=1)"
+     }
+    ],
+    "concluded": "deployment/aux-service",
+    "fallback": null,
+    "triage_top": [
+     [
+      "deployment/aux-service",
+      0.7
+     ],
+     [
+      "deployment/social-graph-service",
+      0.21
+     ],
+     [
+      "other",
+      0.05
+     ],
+     [
+      "deployment/jaeger",
+      0.04
+     ],
+     [
+      "deployment/compose-post-service",
+      0.0
+     ]
+    ]
+   },
+   "text": "Root cause: Service `aux-service` (Deployment `aux-service`) in namespace `social-network`: container aux-service-container liveness probe: httpGet HTTP :8080/health (initialDelaySeconds=0 (default), periodSeconds=1, timeoutSeconds=1, failureThreshold=1).\nMechanism: container aux-service-container liveness probe: httpGet HTTP :8080/health (initialDelaySeconds=0 (default), periodSeconds=1, timeoutSeconds=1, failureThreshold=1).\nDetails: service aux-service has no ready endpoints.\nEffect: only 0 of 1 desired replicas are ready; pod aux-service-9df4c6c8c-f22ql: container aux-service-container waiting in CrashLoopBackOff."
+  },
+  {
+   "arm": 3,
+   "kind": "v2",
+   "model": "openai/gpt-6-luna-decisions",
+   "position": 3,
+   "seconds": 1.1,
+   "requests": 2,
+   "input_tokens": 17891,
+   "error": null,
+   "component": "deployment/aux-service",
+   "investigation": {
+    "steps": [
+     {
+      "step": 1,
+      "node": "investigate",
+      "component": "deployment/aux-service",
+      "verdict": "origin",
+      "origin_p": 0.75,
+      "victim_p": 0.03,
+      "next": "none",
+      "next_p": 0.81,
+      "category": "health_probe_config",
+      "spec_checks": [
+       "service aux-service has no ready endpoints"
+      ],
+      "blocked_input": null,
+      "key_evidence": "container aux-service-container liveness probe: httpGet HTTP :8080/health (initialDelaySeconds=0 (default), periodSeconds=1, timeoutSeconds=1, failureThreshold=1)"
+     }
+    ],
+    "concluded": "deployment/aux-service",
+    "fallback": null,
+    "triage_top": [
+     [
+      "deployment/aux-service",
+      0.76
+     ],
+     [
+      "deployment/social-graph-service",
+      0.22
+     ],
+     [
+      "deployment/user-timeline-service",
+      0.01
+     ],
+     [
+      "other",
+      0.01
+     ],
+     [
+      "deployment/compose-post-service",
+      0.0
+     ]
+    ]
+   },
+   "text": "Root cause: Service `aux-service` (Deployment `aux-service`) in namespace `social-network`: container aux-service-container liveness probe: httpGet HTTP :8080/health (initialDelaySeconds=0 (default), periodSeconds=1, timeoutSeconds=1, failureThreshold=1).\nMechanism: container aux-service-container liveness probe: httpGet HTTP :8080/health (initialDelaySeconds=0 (default), periodSeconds=1, timeoutSeconds=1, failureThreshold=1).\nDetails: service aux-service has no ready endpoints.\nEffect: only 0 of 1 desired replicas are ready; pod aux-service-9df4c6c8c-f22ql: container aux-service-container waiting in CrashLoopBackOff."
+  }
+ ]
+}

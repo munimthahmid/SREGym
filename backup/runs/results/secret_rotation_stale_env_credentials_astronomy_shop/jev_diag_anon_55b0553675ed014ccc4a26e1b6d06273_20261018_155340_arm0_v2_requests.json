@@ -1,0 +1,2172 @@
+[
+ {
+  "label": "decide:1",
+  "state": {
+   "application": {
+    "name": "OpenTelemetry Demo Astronomy Shop",
+    "description": "An online shopping platform built with a microservices architecture, showcasing OpenTelemetry instrumentation for distributed tracing across services.",
+    "namespaces": [
+     "astronomy-shop"
+    ]
+   },
+   "evidence": {
+    "deployment/accounting": {
+     "kind": "Deployment",
+     "name": "accounting",
+     "namespace": "astronomy-shop",
+     "healthy": false,
+     "signals": [
+      "spec modified 136s ago, 40s after this object was created (fields: containers[accounting].env[DB_CONNECTION_STRING]); pod template changes: pod label pod-template-hash: 5897477844 -> 67495c6c98; container accounting env DB_CONNECTION_STRING: Host=postgresql;Username=otelu;Password=otelp;Database=otel -> Host=postgresql;Username=otelu;Password=otelp_7k9m2q4x;Database=otel; 57s before the first active symptom"
+     ],
+     "template_changes": {
+      "revision": 2,
+      "changed_at": "2026-10-18T15:53:29Z",
+      "changes": [
+       "pod label pod-template-hash: 5897477844 -> 67495c6c98",
+       "container accounting env DB_CONNECTION_STRING: Host=postgresql;Username=otelu;Password=otelp;Database=otel -> Host=postgresql;Username=otelu;Password=otelp_7k9m2q4x;Database=otel"
+      ]
+     }
+    },
+    "deployment/product-catalog": {
+     "kind": "Deployment",
+     "name": "product-catalog",
+     "namespace": "astronomy-shop",
+     "healthy": false,
+     "signals": [
+      "Secret product-catalog-db-conn was rewritten at 2026-10-18T15:53:29Z, after 1 of 1 running containers of this workload started; it is read through env DB_CONNECTION_STRING, which are fixed when the container starts, so those containers still use the previous values",
+      "server deployment/postgresql rejects logins for account otelu (12 lines, still occurring); this component may present those credentials: secret/product-catalog-db-conn, which it reads through env values, was rewritten 85s before the rejections began and after its containers started; its env var DB_CONNECTION_STRING names a database connection and postgresql is the application's only database",
+      "spec modified 137s ago, 39s after this object was created (fields: template.annotations.kubectl.kubernetes.io/restartedAt, containers[product-catalog].env[DB_CONNECTION_STRING]); pod template changes: template annotation kubectl.kubernetes.io/restartedAt: 2026-10-18T21:53:22+06:00 -> 2026-10-18T21:53:25+06:00; pod label pod-template-hash: 56456cc9ff -> 577557ddb4; 58s before the first active symptom",
+      "Secret product-catalog-db-conn was created 140s ago, 36s after the workloads that read it; 61s before the first active symptom"
+     ],
+     "template_changes": {
+      "revision": 4,
+      "changed_at": "2026-10-18T15:53:25Z",
+      "changes": [
+       "template annotation kubectl.kubernetes.io/restartedAt: 2026-10-18T21:53:22+06:00 -> 2026-10-18T21:53:25+06:00",
+       "pod label pod-template-hash: 56456cc9ff -> 577557ddb4"
+      ]
+     }
+    },
+    "deployment/product-reviews": {
+     "kind": "Deployment",
+     "name": "product-reviews",
+     "namespace": "astronomy-shop",
+     "healthy": false,
+     "signals": [
+      "spec modified 133s ago, 43s after this object was created (fields: containers[product-reviews].env[DB_CONNECTION_STRING]); pod template changes: pod label pod-template-hash: 7bccd49cb7 -> 7cdd9d8df7; container product-reviews env DB_CONNECTION_STRING: host=postgresql user=otelu password=otelp dbname=otel -> host=postgresql user=otelu password=otelp_7k9m2q4x dbname=otel; 54s before the first active symptom"
+     ],
+     "template_changes": {
+      "revision": 2,
+      "changed_at": "2026-10-18T15:53:32Z",
+      "changes": [
+       "pod label pod-template-hash: 7bccd49cb7 -> 7cdd9d8df7",
+       "container product-reviews env DB_CONNECTION_STRING: host=postgresql user=otelu password=otelp dbname=otel -> host=postgresql user=otelu password=otelp_7k9m2q4x dbname=otel"
+      ]
+     }
+    },
+    "daemonset/otel-collector-agent": {
+     "kind": "DaemonSet",
+     "name": "otel-collector-agent",
+     "namespace": "astronomy-shop",
+     "healthy": false,
+     "signals": [
+      "spec modified 159s ago, 17s after this object was created (fields: template.annotations.kubectl.kubernetes.io/restartedAt); pod template changes: template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-18T21:53:06+06:00; 80s before the first active symptom"
+     ],
+     "template_changes": {
+      "revision": 2,
+      "changed_at": "2026-10-18T15:53:06Z",
+      "changes": [
+       "template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-18T21:53:06+06:00"
+      ]
+     }
+    },
+    "deployment/postgresql": {
+     "kind": "Deployment",
+     "name": "postgresql",
+     "namespace": "astronomy-shop",
+     "healthy": false,
+     "signals": [
+      "ConfigMap postgresql-init was rewritten at 2026-10-18T15:53:29Z, after 1 of 1 running containers of this workload started; it is mounted as files (volume /docker-entrypoint-initdb.d), which the kubelet updates in place, so the running process sees the new content only if it re-reads the files",
+      "rejects logins for account otelu (12 lines, still occurring); the rejected credentials come from its clients: candidates deployment/product-catalog (secret/product-catalog-db-conn, which it reads through env values, was rewritten 85s before the rejections began and after its containers started, its env var DB_CONNECTION_STRING names a database connection and postgresql is the application's only database)",
+      "ConfigMap postgresql-init was modified 136s ago, 41s after it was created (fields: data.init.sql); 57s before the first active symptom"
+     ]
+    }
+   },
+   "cluster": {
+    "symptom_onset": "2026-10-18T15:54:26+00:00",
+    "recent_changes": [
+     {
+      "object": "deployment/product-reviews",
+      "at": "2026-10-18T15:53:32Z",
+      "modified_after_creation_s": 43,
+      "fields": [
+       "containers[product-reviews].env[DB_CONNECTION_STRING]"
+      ],
+      "seconds_ago": 133,
+      "seconds_before_symptoms": 54
+     },
+     {
+      "object": "configmap/astronomy-shop/postgresql-init",
+      "at": "2026-10-18T15:53:29Z",
+      "modified_after_creation_s": 41,
+      "fields": [
+       "data.init.sql"
+      ],
+      "seconds_ago": 136,
+      "seconds_before_symptoms": 57
+     },
+     {
+      "object": "deployment/accounting",
+      "at": "2026-10-18T15:53:29Z",
+      "modified_after_creation_s": 40,
+      "fields": [
+       "containers[accounting].env[DB_CONNECTION_STRING]"
+      ],
+      "seconds_ago": 136,
+      "seconds_before_symptoms": 57
+     },
+     {
+      "object": "deployment/product-catalog",
+      "at": "2026-10-18T15:53:28Z",
+      "modified_after_creation_s": 39,
+      "fields": [
+       "template.annotations.kubectl.kubernetes.io/restartedAt",
+       "containers[product-catalog].env[DB_CONNECTION_STRING]"
+      ],
+      "seconds_ago": 137,
+      "seconds_before_symptoms": 58
+     },
+     {
+      "object": "secret/astronomy-shop/product-catalog-db-conn",
+      "at": "2026-10-18T15:53:25Z",
+      "created_after_targets_s": 36,
+      "seconds_ago": 140,
+      "seconds_before_symptoms": 61
+     },
+     {
+      "object": "daemonset/otel-collector-agent",
+      "at": "2026-10-18T15:53:06Z",
+      "modified_after_creation_s": 17,
+      "fields": [
+       "template.annotations.kubectl.kubernetes.io/restartedAt"
+      ],
+      "seconds_ago": 159,
+      "seconds_before_symptoms": 80,
+      "role": "observability"
+     }
+    ],
+    "findings": [
+     {
+      "kind": "ConfigMap",
+      "name": "postgresql-init",
+      "namespace": "astronomy-shop",
+      "signal": "ConfigMap postgresql-init was modified 136s ago, 41s after it was created (fields: data.init.sql); 57s before the first active symptom",
+      "components": [
+       "deployment/postgresql"
+      ]
+     },
+     {
+      "kind": "Secret",
+      "name": "product-catalog-db-conn",
+      "namespace": "astronomy-shop",
+      "signal": "Secret product-catalog-db-conn was created 140s ago, 36s after the workloads that read it; 61s before the first active symptom",
+      "components": [
+       "deployment/product-catalog"
+      ]
+     }
+    ]
+   }
+  },
+  "questions": {
+   "best_explanation": {
+    "type": "choice",
+    "criteria": {
+     "o1": "Origin: configmap/astronomy-shop/postgresql-init. configmap postgresql-init was changed recently and breaks deployment/postgresql, which it acts on. | Details: configmap postgresql-init fields written: data.init.sql; ConfigMap postgresql-init was rewritten at 2026-10-18T15:53:29Z, after 1 of 1 running containers of this workload started; it is mounted as files (volume /docker-entrypoint-initdb.d), which the kubelet updates in place, so the running process sees the new content only if it re-reads the files; ConfigMap postgresql-init was modified 136s ago, 41s after it was created (fields: data.init.sql); 57s before the first active symptom | Observed impact on: deployment/astronomy-shop/postgresql | Checks: configmap/astronomy-shop/postgresql-init was made before the symptoms began (supports); deployment/postgresql shows symptoms of its own (supports)",
+     "o2": "Origin: deployment/astronomy-shop/product-reviews. The pod template change 'container product-reviews env DB_CONNECTION_STRING: host=postgresql user=otelu password=otelp dbname=otel -> host=postgresql user=otelu password=otelp_7k9m2q4x dbname=otel' in revision 2 of deployment/product-reviews breaks deployment/product-reviews. | Details: container product-reviews env DB_CONNECTION_STRING: host=postgresql user=otelu password=otelp dbname=otel -> host=postgresql user=otelu password=otelp_7k9m2q4x dbname=otel | Observed impact on: deployment/astronomy-shop/product-reviews | Checks: revision 2 of deployment/product-reviews was made before the symptoms began (supports); deployment/product-reviews shows symptoms of its own (supports)",
+     "o3": "Origin: deployment/astronomy-shop/product-catalog. The pod template change 'template annotation kubectl.kubernetes.io/restartedAt: 2026-10-18T21:53:22+06:00 -> 2026-10-18T21:53:25+06:00' in revision 4 of deployment/product-catalog breaks deployment/product-catalog. | Details: template annotation kubectl.kubernetes.io/restartedAt: 2026-10-18T21:53:22+06:00 -> 2026-10-18T21:53:25+06:00 | Observed impact on: deployment/astronomy-shop/product-catalog | Checks: revision 4 of deployment/product-catalog was made before the symptoms began (supports); deployment/product-catalog shows symptoms of its own (supports)",
+     "o4": "Origin: deployment/astronomy-shop/accounting. The pod template change 'container accounting env DB_CONNECTION_STRING: Host=postgresql;Username=otelu;Password=otelp;Database=otel -> Host=postgresql;Username=otelu;Password=otelp_7k9m2q4x;Database=otel' in revision 2 of deployment/accounting breaks deployment/accounting. | Details: container accounting env DB_CONNECTION_STRING: Host=postgresql;Username=otelu;Password=otelp;Database=otel -> Host=postgresql;Username=otelu;Password=otelp_7k9m2q4x;Database=otel | Observed impact on: deployment/astronomy-shop/accounting | Checks: revision 2 of deployment/accounting was made before the symptoms began (supports); deployment/accounting shows symptoms of its own (supports)",
+     "o5": "Origin: secret/astronomy-shop/product-catalog-db-conn. secret product-catalog-db-conn was created recently and breaks deployment/product-catalog, which it acts on. | Details: Secret product-catalog-db-conn was rewritten at 2026-10-18T15:53:29Z, after 1 of 1 running containers of this workload started; it is read through env DB_CONNECTION_STRING, which are fixed when the container starts, so those containers still use the previous values; Secret product-catalog-db-conn was created 140s ago, 36s after the workloads that read it; 61s before the first active symptom | Observed impact on: deployment/astronomy-shop/product-catalog | Checks: secret/astronomy-shop/product-catalog-db-conn was made before the symptoms began (supports); deployment/product-catalog shows symptoms of its own (supports)",
+     "o6": "Origin: daemonset/astronomy-shop/otel-collector-agent. The pod template change 'template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-18T21:53:06+06:00' in revision 2 of daemonset/otel-collector-agent breaks daemonset/otel-collector-agent. | Details: template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-18T21:53:06+06:00 | Observed impact on: daemonset/astronomy-shop/otel-collector-agent | Checks: revision 2 of daemonset/otel-collector-agent was made before the symptoms began (supports); daemonset/otel-collector-agent shows symptoms of its own (supports)",
+     "o7": "None of these explanations fits the evidence."
+    },
+    "instructions": {
+     "question": "Which explanation best accounts for all the observed symptoms in `evidence`?",
+     "how_to_decide": [
+      "Prefer the explanation whose chain is supported by the observed facts and explains the most symptoms; an explanation contradicted by a fact is unlikely.",
+      "A component that only fails because something it calls fails is a victim, not the origin.",
+      "Choose `o7` when none of the explanations fits the evidence."
+     ]
+    }
+   }
+  },
+  "model": "typesafe/jev-1.13-20260917",
+  "latency_ms": 527,
+  "usage": {
+   "input_tokens": 4326,
+   "output_tokens": 77,
+   "cost": 0.000181692
+  },
+  "answers": {
+   "best_explanation": {
+    "type": "choice",
+    "choice": "o5",
+    "confidence": 0.4,
+    "probabilities": {
+     "o1": 0.24,
+     "o2": 0.01,
+     "o3": 0.01,
+     "o4": 0.01,
+     "o5": 0.49,
+     "o6": 0.0,
+     "o7": 0.24
+    }
+   }
+  }
+ },
+ {
+  "label": "decide:2",
+  "state": {
+   "application": {
+    "name": "OpenTelemetry Demo Astronomy Shop",
+    "description": "An online shopping platform built with a microservices architecture, showcasing OpenTelemetry instrumentation for distributed tracing across services.",
+    "namespaces": [
+     "astronomy-shop"
+    ]
+   },
+   "evidence": {
+    "deployment/accounting": {
+     "kind": "Deployment",
+     "name": "accounting",
+     "namespace": "astronomy-shop",
+     "healthy": false,
+     "signals": [
+      "spec modified 136s ago, 40s after this object was created (fields: containers[accounting].env[DB_CONNECTION_STRING]); pod template changes: pod label pod-template-hash: 5897477844 -> 67495c6c98; container accounting env DB_CONNECTION_STRING: Host=postgresql;Username=otelu;Password=otelp;Database=otel -> Host=postgresql;Username=otelu;Password=otelp_7k9m2q4x;Database=otel; 57s before the first active symptom"
+     ],
+     "template_changes": {
+      "revision": 2,
+      "changed_at": "2026-10-18T15:53:29Z",
+      "changes": [
+       "pod label pod-template-hash: 5897477844 -> 67495c6c98",
+       "container accounting env DB_CONNECTION_STRING: Host=postgresql;Username=otelu;Password=otelp;Database=otel -> Host=postgresql;Username=otelu;Password=otelp_7k9m2q4x;Database=otel"
+      ]
+     }
+    },
+    "deployment/product-catalog": {
+     "kind": "Deployment",
+     "name": "product-catalog",
+     "namespace": "astronomy-shop",
+     "healthy": false,
+     "signals": [
+      "Secret product-catalog-db-conn was rewritten at 2026-10-18T15:53:29Z, after 1 of 1 running containers of this workload started; it is read through env DB_CONNECTION_STRING, which are fixed when the container starts, so those containers still use the previous values",
+      "server deployment/postgresql rejects logins for account otelu (12 lines, still occurring); this component may present those credentials: secret/product-catalog-db-conn, which it reads through env values, was rewritten 85s before the rejections began and after its containers started; its env var DB_CONNECTION_STRING names a database connection and postgresql is the application's only database",
+      "spec modified 137s ago, 39s after this object was created (fields: template.annotations.kubectl.kubernetes.io/restartedAt, containers[product-catalog].env[DB_CONNECTION_STRING]); pod template changes: template annotation kubectl.kubernetes.io/restartedAt: 2026-10-18T21:53:22+06:00 -> 2026-10-18T21:53:25+06:00; pod label pod-template-hash: 56456cc9ff -> 577557ddb4; 58s before the first active symptom",
+      "Secret product-catalog-db-conn was created 140s ago, 36s after the workloads that read it; 61s before the first active symptom"
+     ],
+     "template_changes": {
+      "revision": 4,
+      "changed_at": "2026-10-18T15:53:25Z",
+      "changes": [
+       "template annotation kubectl.kubernetes.io/restartedAt: 2026-10-18T21:53:22+06:00 -> 2026-10-18T21:53:25+06:00",
+       "pod label pod-template-hash: 56456cc9ff -> 577557ddb4"
+      ]
+     }
+    },
+    "deployment/product-reviews": {
+     "kind": "Deployment",
+     "name": "product-reviews",
+     "namespace": "astronomy-shop",
+     "healthy": false,
+     "signals": [
+      "spec modified 133s ago, 43s after this object was created (fields: containers[product-reviews].env[DB_CONNECTION_STRING]); pod template changes: pod label pod-template-hash: 7bccd49cb7 -> 7cdd9d8df7; container product-reviews env DB_CONNECTION_STRING: host=postgresql user=otelu password=otelp dbname=otel -> host=postgresql user=otelu password=otelp_7k9m2q4x dbname=otel; 54s before the first active symptom"
+     ],
+     "template_changes": {
+      "revision": 2,
+      "changed_at": "2026-10-18T15:53:32Z",
+      "changes": [
+       "pod label pod-template-hash: 7bccd49cb7 -> 7cdd9d8df7",
+       "container product-reviews env DB_CONNECTION_STRING: host=postgresql user=otelu password=otelp dbname=otel -> host=postgresql user=otelu password=otelp_7k9m2q4x dbname=otel"
+      ]
+     }
+    },
+    "daemonset/otel-collector-agent": {
+     "kind": "DaemonSet",
+     "name": "otel-collector-agent",
+     "namespace": "astronomy-shop",
+     "healthy": false,
+     "signals": [
+      "spec modified 159s ago, 17s after this object was created (fields: template.annotations.kubectl.kubernetes.io/restartedAt); pod template changes: template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-18T21:53:06+06:00; 80s before the first active symptom"
+     ],
+     "template_changes": {
+      "revision": 2,
+      "changed_at": "2026-10-18T15:53:06Z",
+      "changes": [
+       "template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-18T21:53:06+06:00"
+      ]
+     }
+    },
+    "deployment/postgresql": {
+     "kind": "Deployment",
+     "name": "postgresql",
+     "namespace": "astronomy-shop",
+     "healthy": false,
+     "signals": [
+      "ConfigMap postgresql-init was rewritten at 2026-10-18T15:53:29Z, after 1 of 1 running containers of this workload started; it is mounted as files (volume /docker-entrypoint-initdb.d), which the kubelet updates in place, so the running process sees the new content only if it re-reads the files",
+      "rejects logins for account otelu (12 lines, still occurring); the rejected credentials come from its clients: candidates deployment/product-catalog (secret/product-catalog-db-conn, which it reads through env values, was rewritten 85s before the rejections began and after its containers started, its env var DB_CONNECTION_STRING names a database connection and postgresql is the application's only database)",
+      "ConfigMap postgresql-init was modified 136s ago, 41s after it was created (fields: data.init.sql); 57s before the first active symptom"
+     ]
+    }
+   },
+   "cluster": {
+    "symptom_onset": "2026-10-18T15:54:26+00:00",
+    "recent_changes": [
+     {
+      "object": "deployment/product-reviews",
+      "at": "2026-10-18T15:53:32Z",
+      "modified_after_creation_s": 43,
+      "fields": [
+       "containers[product-reviews].env[DB_CONNECTION_STRING]"
+      ],
+      "seconds_ago": 133,
+      "seconds_before_symptoms": 54
+     },
+     {
+      "object": "configmap/astronomy-shop/postgresql-init",
+      "at": "2026-10-18T15:53:29Z",
+      "modified_after_creation_s": 41,
+      "fields": [
+       "data.init.sql"
+      ],
+      "seconds_ago": 136,
+      "seconds_before_symptoms": 57
+     },
+     {
+      "object": "deployment/accounting",
+      "at": "2026-10-18T15:53:29Z",
+      "modified_after_creation_s": 40,
+      "fields": [
+       "containers[accounting].env[DB_CONNECTION_STRING]"
+      ],
+      "seconds_ago": 136,
+      "seconds_before_symptoms": 57
+     },
+     {
+      "object": "deployment/product-catalog",
+      "at": "2026-10-18T15:53:28Z",
+      "modified_after_creation_s": 39,
+      "fields": [
+       "template.annotations.kubectl.kubernetes.io/restartedAt",
+       "containers[product-catalog].env[DB_CONNECTION_STRING]"
+      ],
+      "seconds_ago": 137,
+      "seconds_before_symptoms": 58
+     },
+     {
+      "object": "secret/astronomy-shop/product-catalog-db-conn",
+      "at": "2026-10-18T15:53:25Z",
+      "created_after_targets_s": 36,
+      "seconds_ago": 140,
+      "seconds_before_symptoms": 61
+     },
+     {
+      "object": "daemonset/otel-collector-agent",
+      "at": "2026-10-18T15:53:06Z",
+      "modified_after_creation_s": 17,
+      "fields": [
+       "template.annotations.kubectl.kubernetes.io/restartedAt"
+      ],
+      "seconds_ago": 159,
+      "seconds_before_symptoms": 80,
+      "role": "observability"
+     }
+    ],
+    "findings": [
+     {
+      "kind": "ConfigMap",
+      "name": "postgresql-init",
+      "namespace": "astronomy-shop",
+      "signal": "ConfigMap postgresql-init was modified 136s ago, 41s after it was created (fields: data.init.sql); 57s before the first active symptom",
+      "components": [
+       "deployment/postgresql"
+      ]
+     },
+     {
+      "kind": "Secret",
+      "name": "product-catalog-db-conn",
+      "namespace": "astronomy-shop",
+      "signal": "Secret product-catalog-db-conn was created 140s ago, 36s after the workloads that read it; 61s before the first active symptom",
+      "components": [
+       "deployment/product-catalog"
+      ]
+     }
+    ]
+   }
+  },
+  "questions": {
+   "best_explanation": {
+    "type": "choice",
+    "criteria": {
+     "o1": "Origin: deployment/astronomy-shop/product-catalog. The pod template change 'template annotation kubectl.kubernetes.io/restartedAt: 2026-10-18T21:53:22+06:00 -> 2026-10-18T21:53:25+06:00' in revision 4 of deployment/product-catalog breaks deployment/product-catalog. | Details: template annotation kubectl.kubernetes.io/restartedAt: 2026-10-18T21:53:22+06:00 -> 2026-10-18T21:53:25+06:00 | Observed impact on: deployment/astronomy-shop/product-catalog | Checks: revision 4 of deployment/product-catalog was made before the symptoms began (supports); deployment/product-catalog shows symptoms of its own (supports)",
+     "o2": "Origin: deployment/astronomy-shop/accounting. The pod template change 'container accounting env DB_CONNECTION_STRING: Host=postgresql;Username=otelu;Password=otelp;Database=otel -> Host=postgresql;Username=otelu;Password=otelp_7k9m2q4x;Database=otel' in revision 2 of deployment/accounting breaks deployment/accounting. | Details: container accounting env DB_CONNECTION_STRING: Host=postgresql;Username=otelu;Password=otelp;Database=otel -> Host=postgresql;Username=otelu;Password=otelp_7k9m2q4x;Database=otel | Observed impact on: deployment/astronomy-shop/accounting | Checks: revision 2 of deployment/accounting was made before the symptoms began (supports); deployment/accounting shows symptoms of its own (supports)",
+     "o3": "Origin: configmap/astronomy-shop/postgresql-init. configmap postgresql-init was changed recently and breaks deployment/postgresql, which it acts on. | Details: configmap postgresql-init fields written: data.init.sql; ConfigMap postgresql-init was rewritten at 2026-10-18T15:53:29Z, after 1 of 1 running containers of this workload started; it is mounted as files (volume /docker-entrypoint-initdb.d), which the kubelet updates in place, so the running process sees the new content only if it re-reads the files; ConfigMap postgresql-init was modified 136s ago, 41s after it was created (fields: data.init.sql); 57s before the first active symptom | Observed impact on: deployment/astronomy-shop/postgresql | Checks: configmap/astronomy-shop/postgresql-init was made before the symptoms began (supports); deployment/postgresql shows symptoms of its own (supports)",
+     "o4": "Origin: secret/astronomy-shop/product-catalog-db-conn. secret product-catalog-db-conn was created recently and breaks deployment/product-catalog, which it acts on. | Details: Secret product-catalog-db-conn was rewritten at 2026-10-18T15:53:29Z, after 1 of 1 running containers of this workload started; it is read through env DB_CONNECTION_STRING, which are fixed when the container starts, so those containers still use the previous values; Secret product-catalog-db-conn was created 140s ago, 36s after the workloads that read it; 61s before the first active symptom | Observed impact on: deployment/astronomy-shop/product-catalog | Checks: secret/astronomy-shop/product-catalog-db-conn was made before the symptoms began (supports); deployment/product-catalog shows symptoms of its own (supports)",
+     "o5": "None of these explanations fits the evidence.",
+     "o6": "Origin: deployment/astronomy-shop/product-reviews. The pod template change 'container product-reviews env DB_CONNECTION_STRING: host=postgresql user=otelu password=otelp dbname=otel -> host=postgresql user=otelu password=otelp_7k9m2q4x dbname=otel' in revision 2 of deployment/product-reviews breaks deployment/product-reviews. | Details: container product-reviews env DB_CONNECTION_STRING: host=postgresql user=otelu password=otelp dbname=otel -> host=postgresql user=otelu password=otelp_7k9m2q4x dbname=otel | Observed impact on: deployment/astronomy-shop/product-reviews | Checks: revision 2 of deployment/product-reviews was made before the symptoms began (supports); deployment/product-reviews shows symptoms of its own (supports)",
+     "o7": "Origin: daemonset/astronomy-shop/otel-collector-agent. The pod template change 'template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-18T21:53:06+06:00' in revision 2 of daemonset/otel-collector-agent breaks daemonset/otel-collector-agent. | Details: template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-18T21:53:06+06:00 | Observed impact on: daemonset/astronomy-shop/otel-collector-agent | Checks: revision 2 of daemonset/otel-collector-agent was made before the symptoms began (supports); daemonset/otel-collector-agent shows symptoms of its own (supports)"
+    },
+    "instructions": {
+     "question": "Which explanation best accounts for all the observed symptoms in `evidence`?",
+     "how_to_decide": [
+      "Prefer the explanation whose chain is supported by the observed facts and explains the most symptoms; an explanation contradicted by a fact is unlikely.",
+      "A component that only fails because something it calls fails is a victim, not the origin.",
+      "Choose `o5` when none of the explanations fits the evidence."
+     ]
+    }
+   }
+  },
+  "model": "typesafe/jev-1.13-20260917",
+  "latency_ms": 1097,
+  "usage": {
+   "input_tokens": 4326,
+   "output_tokens": 77,
+   "cost": 0.000181692
+  },
+  "answers": {
+   "best_explanation": {
+    "type": "choice",
+    "choice": "o3",
+    "confidence": 0.35,
+    "probabilities": {
+     "o1": 0.01,
+     "o2": 0.01,
+     "o3": 0.44,
+     "o4": 0.39,
+     "o5": 0.14,
+     "o6": 0.01,
+     "o7": 0.0
+    }
+   }
+  }
+ },
+ {
+  "label": "decide:1",
+  "state": {
+   "application": {
+    "name": "OpenTelemetry Demo Astronomy Shop",
+    "description": "An online shopping platform built with a microservices architecture, showcasing OpenTelemetry instrumentation for distributed tracing across services.",
+    "namespaces": [
+     "astronomy-shop"
+    ]
+   },
+   "evidence": {
+    "deployment/accounting": {
+     "kind": "Deployment",
+     "name": "accounting",
+     "namespace": "astronomy-shop",
+     "healthy": false,
+     "signals": [
+      "spec modified 136s ago, 40s after this object was created (fields: containers[accounting].env[DB_CONNECTION_STRING]); pod template changes: pod label pod-template-hash: 5897477844 -> 67495c6c98; container accounting env DB_CONNECTION_STRING: Host=postgresql;Username=otelu;Password=otelp;Database=otel -> Host=postgresql;Username=otelu;Password=otelp_7k9m2q4x;Database=otel; 57s before the first active symptom"
+     ],
+     "template_changes": {
+      "revision": 2,
+      "changed_at": "2026-10-18T15:53:29Z",
+      "changes": [
+       "pod label pod-template-hash: 5897477844 -> 67495c6c98",
+       "container accounting env DB_CONNECTION_STRING: Host=postgresql;Username=otelu;Password=otelp;Database=otel -> Host=postgresql;Username=otelu;Password=otelp_7k9m2q4x;Database=otel"
+      ]
+     },
+     "detail": {
+      "component": "deployment/accounting",
+      "namespace": "astronomy-shop",
+      "workload": {
+       "created": "2026-10-18T15:52:49Z",
+       "last_spec_write": "2026-10-18T15:53:29Z",
+       "spec_writers": [
+        {
+         "manager": "helm",
+         "op": "Apply",
+         "time": "2026-10-18T15:52:49Z"
+        },
+        {
+         "manager": "kubectl-set",
+         "op": "Update",
+         "time": "2026-10-18T15:53:29Z"
+        }
+       ],
+       "replicas": 1,
+       "strategy": {
+        "rollingUpdate": {
+         "maxSurge": "25%",
+         "maxUnavailable": "25%"
+        },
+        "type": "RollingUpdate"
+       },
+       "service_account": "astronomy-shop",
+       "dns_policy": "ClusterFirst",
+       "restart_policy": "Always",
+       "init_containers": [
+        {
+         "name": "wait-for-kafka",
+         "image": "busybox:latest",
+         "command": [
+          "sh",
+          "-c",
+          "until nc -z -v -w30 kafka 9092; do echo waiting for kafka; sleep 2; done;"
+         ]
+        }
+       ],
+       "containers": [
+        {
+         "name": "accounting",
+         "image": "ghcr.io/open-telemetry/demo:nightly-20939609681-accounting@sha256:51e6720438c13d0a4fefd129b01e2422b176fdb18a9ea71ef08fd84e717e82f4",
+         "env": [
+          {
+           "name": "OTEL_SERVICE_NAME",
+           "from": "field:metadata.labels['app.kubernetes.io/component']"
+          },
+          {
+           "name": "OTEL_COLLECTOR_NAME",
+           "value": "otel-collector"
+          },
+          {
+           "name": "OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE",
+           "value": "cumulative"
+          },
+          {
+           "name": "KAFKA_ADDR",
+           "value": "kafka:9092"
+          },
+          {
+           "name": "OTEL_EXPORTER_OTLP_ENDPOINT",
+           "value": "http://$(OTEL_COLLECTOR_NAME):4318"
+          },
+          {
+           "name": "DB_CONNECTION_STRING",
+           "value": "Host=postgresql;Username=otelu;Password=otelp_7k9m2q4x;Database=otel"
+          },
+          {
+           "name": "OTEL_DOTNET_AUTO_TRACES_ENTITYFRAMEWORKCORE_INSTRUMENTATION_ENABLED",
+           "value": "false"
+          }
+         ],
+         "resources": {
+          "limits": {
+           "memory": "120Mi"
+          }
+         }
+        }
+       ],
+       "template_labels": {
+        "app.kubernetes.io/component": "accounting",
+        "app.kubernetes.io/name": "accounting",
+        "app.kubernetes.io/version": "2.2.0",
+        "opentelemetry.io/name": "accounting"
+       }
+      },
+      "pods": [
+       {
+        "name": "accounting-67495c6c98-gb6th",
+        "node": "kind-worker3",
+        "phase": "Running",
+        "started": "2026-10-18T15:53:29Z",
+        "ready_since": "2026-10-18T15:53:32Z",
+        "conditions": [
+         "PodReadyToStartContainers=True",
+         "Initialized=True",
+         "Ready=True",
+         "ContainersReady=True",
+         "PodScheduled=True"
+        ],
+        "containers": [
+         {
+          "name": "wait-for-kafka",
+          "ready": true,
+          "restarts": 0,
+          "state": {
+           "terminated": {
+            "containerID": "containerd://95e8b7a48424c29f7d9fe2b1a712baca077317e1dd25f07480bc3a20f8185ab3",
+            "exitCode": 0,
+            "finishedAt": "2026-10-18T15:53:30Z",
+            "reason": "Completed",
+            "startedAt": "2026-10-18T15:53:30Z"
+           }
+          }
+         },
+         {
+          "name": "accounting",
+          "ready": true,
+          "restarts": 0,
+          "state": {
+           "running": {
+            "startedAt": "2026-10-18T15:53:31Z"
+           }
+          }
+         }
+        ]
+       }
+      ],
+      "events": [
+       {
+        "type": "Normal",
+        "reason": "Pulled",
+        "count": 1,
+        "object": "pod/accounting-67495c6c98-gb6th",
+        "last": "2026-10-18T15:53:31Z",
+        "message": "Container image \"ghcr.io/open-telemetry/demo:nightly-20939609681-accounting@sha256:51e6720438c13d0a4fefd129b01e2422b176fdb18a9ea71ef08fd84e717e82f4\" already present on machine"
+       },
+       {
+        "type": "Normal",
+        "reason": "Created",
+        "count": 1,
+        "object": "pod/accounting-67495c6c98-gb6th",
+        "last": "2026-10-18T15:53:31Z",
+        "message": "Created container: accounting"
+       },
+       {
+        "type": "Normal",
+        "reason": "Started",
+        "count": 1,
+        "object": "pod/accounting-67495c6c98-gb6th",
+        "last": "2026-10-18T15:53:31Z",
+        "message": "Started container accounting"
+       },
+       {
+        "type": "Normal",
+        "reason": "Pulling",
+        "count": 1,
+        "object": "pod/accounting-67495c6c98-gb6th",
+        "last": "2026-10-18T15:53:30Z",
+        "message": "Pulling image \"busybox:latest\""
+       },
+       {
+        "type": "Normal",
+        "reason": "Pulled",
+        "count": 1,
+        "object": "pod/accounting-67495c6c98-gb6th",
+        "last": "2026-10-18T15:53:30Z",
+        "message": "Successfully pulled image \"busybox:latest\" in 634ms (634ms including waiting). Image size: 2236767 bytes."
+       },
+       {
+        "type": "Normal",
+        "reason": "Created",
+        "count": 1,
+        "object": "pod/accounting-67495c6c98-gb6th",
+        "last": "2026-10-18T15:53:30Z",
+        "message": "Created container: wait-for-kafka"
+       },
+       {
+        "type": "Normal",
+        "reason": "Started",
+        "count": 1,
+        "object": "pod/accounting-67495c6c98-gb6th",
+        "last": "2026-10-18T15:53:30Z",
+        "message": "Started container wait-for-kafka"
+       },
+       {
+        "type": "Normal",
+        "reason": "SuccessfulCreate",
+        "count": 1,
+        "object": "replicaset/accounting-67495c6c98",
+        "last": "2026-10-18T15:53:29Z",
+        "message": "Created pod: accounting-67495c6c98-gb6th"
+       },
+       {
+        "type": "Normal",
+        "reason": "Scheduled",
+        "count": 1,
+        "object": "pod/accounting-67495c6c98-gb6th",
+        "last": "2026-10-18T15:53:29.633415Z",
+        "message": "Successfully assigned astronomy-shop/accounting-67495c6c98-gb6th to kind-worker3"
+       }
+      ],
+      "logs": {
+       "total_lines": 70,
+       "error_lines": 0,
+       "error_lines_still_occurring": 0,
+       "error_lines_stopped": 0,
+       "telemetry_export_error_lines": 0,
+       "tail": [
+        "2026-10-18T15:53:32.152718690Z [OTEL_COLLECTOR_SERVICE_PORT_OTLP, 4317]",
+        "2026-10-18T15:53:32.152719478Z [OTEL_COLLECTOR_SERVICE_PORT_OTLP_HTTP, 4318]",
+        "2026-10-18T15:53:32.152722170Z [OTEL_COLLECTOR_SERVICE_PORT_ZIPKIN, 9411]",
+        "2026-10-18T15:53:32.152723087Z [OTEL_DOTNET_AUTO_HOME, /app]",
+        "2026-10-18T15:53:32.152723898Z [OTEL_DOTNET_AUTO_RULE_ENGINE_ENABLED, false]",
+        "2026-10-18T15:53:32.152724934Z [OTEL_DOTNET_AUTO_TRACES_ADDITIONAL_SOURCES, Accounting.Consumer]",
+        "2026-10-18T15:53:32.152725825Z [OTEL_DOTNET_AUTO_TRACES_ENTITYFRAMEWORKCORE_INSTRUMENTATION_ENABLED, false]",
+        "2026-10-18T15:53:32.152726533Z [OTEL_EXPORTER_OTLP_ENDPOINT, http://otel-collector:4318]",
+        "2026-10-18T15:53:32.152727240Z [OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE, cumulative]",
+        "2026-10-18T15:53:32.152730386Z [OTEL_SERVICE_NAME, accounting]",
+        "2026-10-18T15:53:32.349104323Z info: Accounting.Consumer[0]",
+        "2026-10-18T15:53:32.349122163Z Connecting to Kafka: kafka:9092"
+       ]
+      },
+      "template_changes": {
+       "revision": 2,
+       "changed_at": "2026-10-18T15:53:29Z",
+       "changes": [
+        "pod label pod-template-hash: 5897477844 -> 67495c6c98",
+        "container accounting env DB_CONNECTION_STRING: Host=postgresql;Username=otelu;Password=otelp;Database=otel -> Host=postgresql;Username=otelu;Password=otelp_7k9m2q4x;Database=otel"
+       ]
+      },
+      "calls_services": [
+       "astronomy-shop/kafka",
+       "astronomy-shop/otel-collector"
+      ],
+      "rbac": {
+       "service_account": "astronomy-shop/astronomy-shop",
+       "can_i": [
+        "selfsubjectreviews.authentication.k8s.io [] [] [create]",
+        "selfsubjectaccessreviews.authorization.k8s.io [] [] [create]",
+        "selfsubjectrulesreviews.authorization.k8s.io [] [] [create]",
+        "[/.well-known/openid-configuration/] [] [get]",
+        "[/.well-known/openid-configuration] [] [get]",
+        "[/api/*] [] [get]",
+        "[/api] [] [get]",
+        "[/apis/*] [] [get]",
+        "[/apis] [] [get]",
+        "[/healthz] [] [get]",
+        "[/healthz] [] [get]",
+        "[/livez] [] [get]",
+        "[/livez] [] [get]"
+       ]
+      },
+      "input_candidates": [
+       {
+        "container": "accounting",
+        "env": "OTEL_COLLECTOR_NAME",
+        "value": "otel-collector"
+       },
+       {
+        "container": "accounting",
+        "env": "OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE",
+        "value": "cumulative"
+       }
+      ],
+      "calls": {
+       "daemonset/otel-collector-agent": {
+        "kind": "DaemonSet",
+        "pods_ready": "3/3",
+        "restarts": 0,
+        "own_evidence_kinds": [
+         "change"
+        ],
+        "own_signals": [
+         "spec modified 159s ago, 17s after this object was created (fields: template.annotations.kubectl.kubernetes.io/restartedAt); pod template changes: template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-18T21:53:06+06:00; 80s before the first active symptom"
+        ],
+        "own_error_log_lines": 8,
+        "last_spec_change": "2026-10-18T15:53:06Z",
+        "looks_healthy_on_its_own": false
+       },
+       "deployment/kafka": {
+        "kind": "Deployment",
+        "pods_ready": "1/1",
+        "restarts": 0,
+        "looks_healthy_on_its_own": true
+       },
+       "deployment/postgresql": {
+        "kind": "Deployment",
+        "pods_ready": "1/1",
+        "restarts": 0,
+        "own_evidence_kinds": [
+         "change",
+         "configuration",
+         "symptoms"
+        ],
+        "own_signals": [
+         "ConfigMap postgresql-init was rewritten at 2026-10-18T15:53:29Z, after 1 of 1 running containers of this workload started; it is mounted as files (volume /docker-entrypoint-initdb.d), which the kubelet updates in place, so the running process sees the new content only if it re-reads the files",
+         "ConfigMap postgresql-init was modified 136s ago, 41s after it was created (fields: data.init.sql); 57s before the first active symptom"
+        ],
+        "own_error_log_lines": 14,
+        "looks_healthy_on_its_own": false
+       }
+      }
+     }
+    },
+    "deployment/product-catalog": {
+     "kind": "Deployment",
+     "name": "product-catalog",
+     "namespace": "astronomy-shop",
+     "healthy": false,
+     "signals": [
+      "Secret product-catalog-db-conn was rewritten at 2026-10-18T15:53:29Z, after 1 of 1 running containers of this workload started; it is read through env DB_CONNECTION_STRING, which are fixed when the container starts, so those containers still use the previous values",
+      "server deployment/postgresql rejects logins for account otelu (12 lines, still occurring); this component may present those credentials: secret/product-catalog-db-conn, which it reads through env values, was rewritten 85s before the rejections began and after its containers started; its env var DB_CONNECTION_STRING names a database connection and postgresql is the application's only database",
+      "spec modified 137s ago, 39s after this object was created (fields: template.annotations.kubectl.kubernetes.io/restartedAt, containers[product-catalog].env[DB_CONNECTION_STRING]); pod template changes: template annotation kubectl.kubernetes.io/restartedAt: 2026-10-18T21:53:22+06:00 -> 2026-10-18T21:53:25+06:00; pod label pod-template-hash: 56456cc9ff -> 577557ddb4; 58s before the first active symptom",
+      "Secret product-catalog-db-conn was created 140s ago, 36s after the workloads that read it; 61s before the first active symptom"
+     ],
+     "template_changes": {
+      "revision": 4,
+      "changed_at": "2026-10-18T15:53:25Z",
+      "changes": [
+       "template annotation kubectl.kubernetes.io/restartedAt: 2026-10-18T21:53:22+06:00 -> 2026-10-18T21:53:25+06:00",
+       "pod label pod-template-hash: 56456cc9ff -> 577557ddb4"
+      ]
+     },
+     "detail": {
+      "component": "deployment/product-catalog",
+      "namespace": "astronomy-shop",
+      "workload": {
+       "created": "2026-10-18T15:52:49Z",
+       "last_spec_write": "2026-10-18T15:53:28Z",
+       "spec_writers": [
+        {
+         "manager": "helm",
+         "op": "Apply",
+         "time": "2026-10-18T15:52:49Z"
+        },
+        {
+         "manager": "kubectl-rollout",
+         "op": "Update",
+         "time": "2026-10-18T15:53:25Z"
+        },
+        {
+         "manager": "kubectl-set",
+         "op": "Update",
+         "time": "2026-10-18T15:53:25Z"
+        },
+        {
+         "manager": "OpenAPI-Generator",
+         "op": "Update",
+         "time": "2026-10-18T15:53:28Z"
+        }
+       ],
+       "replicas": 1,
+       "strategy": {
+        "rollingUpdate": {
+         "maxSurge": "25%",
+         "maxUnavailable": "25%"
+        },
+        "type": "RollingUpdate"
+       },
+       "service_account": "astronomy-shop",
+       "dns_policy": "ClusterFirst",
+       "restart_policy": "Always",
+       "init_containers": [
+        {
+         "name": "wait-for-postgresql",
+         "image": "busybox:latest",
+         "command": [
+          "sh",
+          "-c",
+          "until nc -z -v -w30 postgresql 5432; do echo waiting for postgresql; sleep 2; done;"
+         ]
+        }
+       ],
+       "containers": [
+        {
+         "name": "product-catalog",
+         "image": "ghcr.io/open-telemetry/demo:2.2.0-product-catalog",
+         "env": [
+          {
+           "name": "OTEL_SERVICE_NAME",
+           "from": "field:metadata.labels['app.kubernetes.io/component']"
+          },
+          {
+           "name": "OTEL_COLLECTOR_NAME",
+           "value": "otel-collector"
+          },
+          {
+           "name": "OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE",
+           "value": "cumulative"
+          },
+          {
+           "name": "PRODUCT_CATALOG_PORT",
+           "value": "8080"
+          },
+          {
+           "name": "FLAGD_HOST",
+           "value": "flagd"
+          },
+          {
+           "name": "FLAGD_PORT",
+           "value": "8013"
+          },
+          {
+           "name": "GOMEMLIMIT",
+           "value": "16MiB"
+          },
+          {
+           "name": "DB_CONNECTION_STRING",
+           "from": "secret:product-catalog-db-conn.DB_CONNECTION_STRING"
+          },
+          {
+           "name": "OTEL_SEMCONV_STABILITY_OPT_IN",
+           "value": "database"
+          },
+          {
+           "name": "OTEL_EXPORTER_OTLP_ENDPOINT",
+           "value": "http://$(OTEL_COLLECTOR_NAME):4317"
+          }
+         ],
+         "ports": [
+          {
+           "port": 8080,
+           "name": "service"
+          }
+         ],
+         "resources": {
+          "limits": {
+           "memory": "64Mi"
+          }
+         }
+        }
+       ],
+       "template_labels": {
+        "app.kubernetes.io/component": "product-catalog",
+        "app.kubernetes.io/name": "product-catalog",
+        "app.kubernetes.io/version": "2.2.0",
+        "opentelemetry.io/name": "product-catalog"
+       }
+      },
+      "pods": [
+       {
+        "name": "product-catalog-577557ddb4-dvnh9",
+        "node": "kind-worker",
+        "phase": "Running",
+        "started": "2026-10-18T15:53:25Z",
+        "ready_since": "2026-10-18T15:53:28Z",
+        "conditions": [
+         "PodReadyToStartContainers=True",
+         "Initialized=True",
+         "Ready=True",
+         "ContainersReady=True",
+         "PodScheduled=True"
+        ],
+        "containers": [
+         {
+          "name": "wait-for-postgresql",
+          "ready": true,
+          "restarts": 0,
+          "state": {
+           "terminated": {
+            "containerID": "containerd://0406c48b5ac43d3960dd93d27c6bcbaab225fd26d530c8341c3753d693268fd5",
+            "exitCode": 0,
+            "finishedAt": "2026-10-18T15:53:26Z",
+            "reason": "Completed",
+            "startedAt": "2026-10-18T15:53:26Z"
+           }
+          }
+         },
+         {
+          "name": "product-catalog",
+          "ready": true,
+          "restarts": 0,
+          "state": {
+           "running": {
+            "startedAt": "2026-10-18T15:53:27Z"
+           }
+          }
+         }
+        ]
+       }
+      ],
+      "events": [
+       {
+        "type": "Normal",
+        "reason": "Pulled",
+        "count": 1,
+        "object": "pod/product-catalog-577557ddb4-dvnh9",
+        "last": "2026-10-18T15:53:27Z",
+        "message": "Container image \"ghcr.io/open-telemetry/demo:2.2.0-product-catalog\" already present on machine"
+       },
+       {
+        "type": "Normal",
+        "reason": "Created",
+        "count": 1,
+        "object": "pod/product-catalog-577557ddb4-dvnh9",
+        "last": "2026-10-18T15:53:27Z",
+        "message": "Created container: product-catalog"
+       },
+       {
+        "type": "Normal",
+        "reason": "Started",
+        "count": 1,
+        "object": "pod/product-catalog-577557ddb4-dvnh9",
+        "last": "2026-10-18T15:53:27Z",
+        "message": "Started container product-catalog"
+       },
+       {
+        "type": "Normal",
+        "reason": "Pulling",
+        "count": 1,
+        "object": "pod/product-catalog-577557ddb4-dvnh9",
+        "last": "2026-10-18T15:53:26Z",
+        "message": "Pulling image \"busybox:latest\""
+       },
+       {
+        "type": "Normal",
+        "reason": "Pulled",
+        "count": 1,
+        "object": "pod/product-catalog-577557ddb4-dvnh9",
+        "last": "2026-10-18T15:53:26Z",
+        "message": "Successfully pulled image \"busybox:latest\" in 631ms (631ms including waiting). Image size: 2236767 bytes."
+       },
+       {
+        "type": "Normal",
+        "reason": "Created",
+        "count": 1,
+        "object": "pod/product-catalog-577557ddb4-dvnh9",
+        "last": "2026-10-18T15:53:26Z",
+        "message": "Created container: wait-for-postgresql"
+       },
+       {
+        "type": "Normal",
+        "reason": "Started",
+        "count": 1,
+        "object": "pod/product-catalog-577557ddb4-dvnh9",
+        "last": "2026-10-18T15:53:26Z",
+        "message": "Started container wait-for-postgresql"
+       },
+       {
+        "type": "Normal",
+        "reason": "SuccessfulCreate",
+        "count": 1,
+        "object": "replicaset/product-catalog-577557ddb4",
+        "last": "2026-10-18T15:53:25Z",
+        "message": "Created pod: product-catalog-577557ddb4-dvnh9"
+       },
+       {
+        "type": "Normal",
+        "reason": "Scheduled",
+        "count": 1,
+        "object": "pod/product-catalog-577557ddb4-dvnh9",
+        "last": "2026-10-18T15:53:25.643860Z",
+        "message": "Successfully assigned astronomy-shop/product-catalog-577557ddb4-dvnh9 to kind-worker"
+       }
+      ],
+      "logs": {
+       "total_lines": 1,
+       "error_lines": 0,
+       "error_lines_still_occurring": 0,
+       "error_lines_stopped": 0,
+       "telemetry_export_error_lines": 0,
+       "tail": [
+        "2026-10-18T15:53:26.954047084Z postgresql (10.96.69.163:5432) open"
+       ]
+      },
+      "template_changes": {
+       "revision": 4,
+       "changed_at": "2026-10-18T15:53:25Z",
+       "changes": [
+        "template annotation kubectl.kubernetes.io/restartedAt: 2026-10-18T21:53:22+06:00 -> 2026-10-18T21:53:25+06:00",
+        "pod label pod-template-hash: 56456cc9ff -> 577557ddb4"
+       ]
+      },
+      "calls_services": [
+       "astronomy-shop/flagd",
+       "astronomy-shop/otel-collector"
+      ],
+      "clients": [
+       "deployment/checkout",
+       "deployment/frontend",
+       "deployment/product-reviews",
+       "deployment/recommendation"
+      ],
+      "secrets": {
+       "secret/product-catalog-db-conn": {
+        "keys": [
+         "DB_CONNECTION_STRING"
+        ],
+        "last_update": "2026-10-18T15:53:29Z"
+       }
+      },
+      "rbac": {
+       "service_account": "astronomy-shop/astronomy-shop",
+       "can_i": [
+        "selfsubjectreviews.authentication.k8s.io [] [] [create]",
+        "selfsubjectaccessreviews.authorization.k8s.io [] [] [create]",
+        "selfsubjectrulesreviews.authorization.k8s.io [] [] [create]",
+        "[/.well-known/openid-configuration/] [] [get]",
+        "[/.well-known/openid-configuration] [] [get]",
+        "[/api/*] [] [get]",
+        "[/api] [] [get]",
+        "[/apis/*] [] [get]",
+        "[/apis] [] [get]",
+        "[/healthz] [] [get]",
+        "[/healthz] [] [get]",
+        "[/livez] [] [get]",
+        "[/livez] [] [get]"
+       ]
+      },
+      "input_candidates": [
+       {
+        "container": "product-catalog",
+        "env": "OTEL_COLLECTOR_NAME",
+        "value": "otel-collector"
+       },
+       {
+        "container": "product-catalog",
+        "env": "OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE",
+        "value": "cumulative"
+       },
+       {
+        "container": "product-catalog",
+        "env": "FLAGD_HOST",
+        "value": "flagd"
+       },
+       {
+        "container": "product-catalog",
+        "env": "OTEL_SEMCONV_STABILITY_OPT_IN",
+        "value": "database"
+       }
+      ],
+      "calls": {
+       "daemonset/otel-collector-agent": {
+        "kind": "DaemonSet",
+        "pods_ready": "3/3",
+        "restarts": 0,
+        "own_evidence_kinds": [
+         "change"
+        ],
+        "own_signals": [
+         "spec modified 159s ago, 17s after this object was created (fields: template.annotations.kubectl.kubernetes.io/restartedAt); pod template changes: template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-18T21:53:06+06:00; 80s before the first active symptom"
+        ],
+        "own_error_log_lines": 8,
+        "last_spec_change": "2026-10-18T15:53:06Z",
+        "looks_healthy_on_its_own": false
+       },
+       "deployment/flagd": {
+        "kind": "Deployment",
+        "pods_ready": "1/1",
+        "restarts": 0,
+        "looks_healthy_on_its_own": true
+       }
+      }
+     }
+    },
+    "deployment/product-reviews": {
+     "kind": "Deployment",
+     "name": "product-reviews",
+     "namespace": "astronomy-shop",
+     "healthy": false,
+     "signals": [
+      "spec modified 133s ago, 43s after this object was created (fields: containers[product-reviews].env[DB_CONNECTION_STRING]); pod template changes: pod label pod-template-hash: 7bccd49cb7 -> 7cdd9d8df7; container product-reviews env DB_CONNECTION_STRING: host=postgresql user=otelu password=otelp dbname=otel -> host=postgresql user=otelu password=otelp_7k9m2q4x dbname=otel; 54s before the first active symptom"
+     ],
+     "template_changes": {
+      "revision": 2,
+      "changed_at": "2026-10-18T15:53:32Z",
+      "changes": [
+       "pod label pod-template-hash: 7bccd49cb7 -> 7cdd9d8df7",
+       "container product-reviews env DB_CONNECTION_STRING: host=postgresql user=otelu password=otelp dbname=otel -> host=postgresql user=otelu password=otelp_7k9m2q4x dbname=otel"
+      ]
+     }
+    },
+    "daemonset/otel-collector-agent": {
+     "kind": "DaemonSet",
+     "name": "otel-collector-agent",
+     "namespace": "astronomy-shop",
+     "healthy": false,
+     "signals": [
+      "spec modified 159s ago, 17s after this object was created (fields: template.annotations.kubectl.kubernetes.io/restartedAt); pod template changes: template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-18T21:53:06+06:00; 80s before the first active symptom"
+     ],
+     "template_changes": {
+      "revision": 2,
+      "changed_at": "2026-10-18T15:53:06Z",
+      "changes": [
+       "template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-18T21:53:06+06:00"
+      ]
+     }
+    },
+    "deployment/postgresql": {
+     "kind": "Deployment",
+     "name": "postgresql",
+     "namespace": "astronomy-shop",
+     "healthy": false,
+     "signals": [
+      "ConfigMap postgresql-init was rewritten at 2026-10-18T15:53:29Z, after 1 of 1 running containers of this workload started; it is mounted as files (volume /docker-entrypoint-initdb.d), which the kubelet updates in place, so the running process sees the new content only if it re-reads the files",
+      "rejects logins for account otelu (12 lines, still occurring); the rejected credentials come from its clients: candidates deployment/product-catalog (secret/product-catalog-db-conn, which it reads through env values, was rewritten 85s before the rejections began and after its containers started, its env var DB_CONNECTION_STRING names a database connection and postgresql is the application's only database)",
+      "ConfigMap postgresql-init was modified 136s ago, 41s after it was created (fields: data.init.sql); 57s before the first active symptom"
+     ]
+    }
+   },
+   "cluster": {
+    "symptom_onset": "2026-10-18T15:54:26+00:00",
+    "recent_changes": [
+     {
+      "object": "deployment/product-reviews",
+      "at": "2026-10-18T15:53:32Z",
+      "modified_after_creation_s": 43,
+      "fields": [
+       "containers[product-reviews].env[DB_CONNECTION_STRING]"
+      ],
+      "seconds_ago": 133,
+      "seconds_before_symptoms": 54
+     },
+     {
+      "object": "configmap/astronomy-shop/postgresql-init",
+      "at": "2026-10-18T15:53:29Z",
+      "modified_after_creation_s": 41,
+      "fields": [
+       "data.init.sql"
+      ],
+      "seconds_ago": 136,
+      "seconds_before_symptoms": 57
+     },
+     {
+      "object": "deployment/accounting",
+      "at": "2026-10-18T15:53:29Z",
+      "modified_after_creation_s": 40,
+      "fields": [
+       "containers[accounting].env[DB_CONNECTION_STRING]"
+      ],
+      "seconds_ago": 136,
+      "seconds_before_symptoms": 57
+     },
+     {
+      "object": "deployment/product-catalog",
+      "at": "2026-10-18T15:53:28Z",
+      "modified_after_creation_s": 39,
+      "fields": [
+       "template.annotations.kubectl.kubernetes.io/restartedAt",
+       "containers[product-catalog].env[DB_CONNECTION_STRING]"
+      ],
+      "seconds_ago": 137,
+      "seconds_before_symptoms": 58
+     },
+     {
+      "object": "secret/astronomy-shop/product-catalog-db-conn",
+      "at": "2026-10-18T15:53:25Z",
+      "created_after_targets_s": 36,
+      "seconds_ago": 140,
+      "seconds_before_symptoms": 61
+     },
+     {
+      "object": "daemonset/otel-collector-agent",
+      "at": "2026-10-18T15:53:06Z",
+      "modified_after_creation_s": 17,
+      "fields": [
+       "template.annotations.kubectl.kubernetes.io/restartedAt"
+      ],
+      "seconds_ago": 159,
+      "seconds_before_symptoms": 80,
+      "role": "observability"
+     }
+    ],
+    "findings": [
+     {
+      "kind": "ConfigMap",
+      "name": "postgresql-init",
+      "namespace": "astronomy-shop",
+      "signal": "ConfigMap postgresql-init was modified 136s ago, 41s after it was created (fields: data.init.sql); 57s before the first active symptom",
+      "components": [
+       "deployment/postgresql"
+      ]
+     },
+     {
+      "kind": "Secret",
+      "name": "product-catalog-db-conn",
+      "namespace": "astronomy-shop",
+      "signal": "Secret product-catalog-db-conn was created 140s ago, 36s after the workloads that read it; 61s before the first active symptom",
+      "components": [
+       "deployment/product-catalog"
+      ]
+     }
+    ]
+   }
+  },
+  "questions": {
+   "best_explanation": {
+    "type": "choice",
+    "criteria": {
+     "o1": "None of these explanations fits the evidence.",
+     "o2": "Origin: daemonset/astronomy-shop/otel-collector-agent. The pod template change 'template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-18T21:53:06+06:00' in revision 2 of daemonset/otel-collector-agent breaks daemonset/otel-collector-agent. | Details: template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-18T21:53:06+06:00 | Observed impact on: daemonset/astronomy-shop/otel-collector-agent | Checks: revision 2 of daemonset/otel-collector-agent was made before the symptoms began (supports); daemonset/otel-collector-agent shows symptoms of its own (supports)",
+     "o3": "Origin: deployment/astronomy-shop/accounting. The pod template change 'container accounting env DB_CONNECTION_STRING: Host=postgresql;Username=otelu;Password=otelp;Database=otel -> Host=postgresql;Username=otelu;Password=otelp_7k9m2q4x;Database=otel' in revision 2 of deployment/accounting breaks deployment/accounting. | Details: container accounting env DB_CONNECTION_STRING: Host=postgresql;Username=otelu;Password=otelp;Database=otel -> Host=postgresql;Username=otelu;Password=otelp_7k9m2q4x;Database=otel | Observed impact on: deployment/astronomy-shop/accounting | Checks: revision 2 of deployment/accounting was made before the symptoms began (supports); deployment/accounting shows symptoms of its own (supports)",
+     "o4": "Origin: secret/astronomy-shop/product-catalog-db-conn. secret product-catalog-db-conn was created recently and breaks deployment/product-catalog, which it acts on. | Details: Secret product-catalog-db-conn was rewritten at 2026-10-18T15:53:29Z, after 1 of 1 running containers of this workload started; it is read through env DB_CONNECTION_STRING, which are fixed when the container starts, so those containers still use the previous values; Secret product-catalog-db-conn was created 140s ago, 36s after the workloads that read it; 61s before the first active symptom | Observed impact on: deployment/astronomy-shop/product-catalog | Checks: secret/astronomy-shop/product-catalog-db-conn was made before the symptoms began (supports); deployment/product-catalog shows symptoms of its own (supports)",
+     "o5": "Origin: deployment/astronomy-shop/product-reviews. The pod template change 'container product-reviews env DB_CONNECTION_STRING: host=postgresql user=otelu password=otelp dbname=otel -> host=postgresql user=otelu password=otelp_7k9m2q4x dbname=otel' in revision 2 of deployment/product-reviews breaks deployment/product-reviews. | Details: container product-reviews env DB_CONNECTION_STRING: host=postgresql user=otelu password=otelp dbname=otel -> host=postgresql user=otelu password=otelp_7k9m2q4x dbname=otel | Observed impact on: deployment/astronomy-shop/product-reviews | Checks: revision 2 of deployment/product-reviews was made before the symptoms began (supports); deployment/product-reviews shows symptoms of its own (supports)",
+     "o6": "Origin: deployment/astronomy-shop/product-catalog. The pod template change 'template annotation kubectl.kubernetes.io/restartedAt: 2026-10-18T21:53:22+06:00 -> 2026-10-18T21:53:25+06:00' in revision 4 of deployment/product-catalog breaks deployment/product-catalog. | Details: template annotation kubectl.kubernetes.io/restartedAt: 2026-10-18T21:53:22+06:00 -> 2026-10-18T21:53:25+06:00 | Observed impact on: deployment/astronomy-shop/product-catalog | Checks: revision 4 of deployment/product-catalog was made before the symptoms began (supports); deployment/product-catalog shows symptoms of its own (supports)",
+     "o7": "Origin: configmap/astronomy-shop/postgresql-init. configmap postgresql-init was changed recently and breaks deployment/postgresql, which it acts on. | Details: configmap postgresql-init fields written: data.init.sql; ConfigMap postgresql-init was rewritten at 2026-10-18T15:53:29Z, after 1 of 1 running containers of this workload started; it is mounted as files (volume /docker-entrypoint-initdb.d), which the kubelet updates in place, so the running process sees the new content only if it re-reads the files; ConfigMap postgresql-init was modified 136s ago, 41s after it was created (fields: data.init.sql); 57s before the first active symptom | Observed impact on: deployment/astronomy-shop/postgresql | Checks: configmap/astronomy-shop/postgresql-init was made before the symptoms began (supports); deployment/postgresql shows symptoms of its own (supports)"
+    },
+    "instructions": {
+     "question": "Which explanation best accounts for all the observed symptoms in `evidence`?",
+     "how_to_decide": [
+      "Prefer the explanation whose chain is supported by the observed facts and explains the most symptoms; an explanation contradicted by a fact is unlikely.",
+      "A component that only fails because something it calls fails is a victim, not the origin.",
+      "Choose `o1` when none of the explanations fits the evidence."
+     ]
+    }
+   }
+  },
+  "model": "typesafe/jev-1.13-20260917",
+  "latency_ms": 580,
+  "usage": {
+   "input_tokens": 11423,
+   "output_tokens": 77,
+   "cost": 0.000479766
+  },
+  "answers": {
+   "best_explanation": {
+    "type": "choice",
+    "choice": "o7",
+    "confidence": 0.54,
+    "probabilities": {
+     "o1": 0.07,
+     "o2": 0.01,
+     "o3": 0.01,
+     "o4": 0.3,
+     "o5": 0.0,
+     "o6": 0.0,
+     "o7": 0.61
+    }
+   }
+  }
+ },
+ {
+  "label": "decide:2",
+  "state": {
+   "application": {
+    "name": "OpenTelemetry Demo Astronomy Shop",
+    "description": "An online shopping platform built with a microservices architecture, showcasing OpenTelemetry instrumentation for distributed tracing across services.",
+    "namespaces": [
+     "astronomy-shop"
+    ]
+   },
+   "evidence": {
+    "deployment/accounting": {
+     "kind": "Deployment",
+     "name": "accounting",
+     "namespace": "astronomy-shop",
+     "healthy": false,
+     "signals": [
+      "spec modified 136s ago, 40s after this object was created (fields: containers[accounting].env[DB_CONNECTION_STRING]); pod template changes: pod label pod-template-hash: 5897477844 -> 67495c6c98; container accounting env DB_CONNECTION_STRING: Host=postgresql;Username=otelu;Password=otelp;Database=otel -> Host=postgresql;Username=otelu;Password=otelp_7k9m2q4x;Database=otel; 57s before the first active symptom"
+     ],
+     "template_changes": {
+      "revision": 2,
+      "changed_at": "2026-10-18T15:53:29Z",
+      "changes": [
+       "pod label pod-template-hash: 5897477844 -> 67495c6c98",
+       "container accounting env DB_CONNECTION_STRING: Host=postgresql;Username=otelu;Password=otelp;Database=otel -> Host=postgresql;Username=otelu;Password=otelp_7k9m2q4x;Database=otel"
+      ]
+     },
+     "detail": {
+      "component": "deployment/accounting",
+      "namespace": "astronomy-shop",
+      "workload": {
+       "created": "2026-10-18T15:52:49Z",
+       "last_spec_write": "2026-10-18T15:53:29Z",
+       "spec_writers": [
+        {
+         "manager": "helm",
+         "op": "Apply",
+         "time": "2026-10-18T15:52:49Z"
+        },
+        {
+         "manager": "kubectl-set",
+         "op": "Update",
+         "time": "2026-10-18T15:53:29Z"
+        }
+       ],
+       "replicas": 1,
+       "strategy": {
+        "rollingUpdate": {
+         "maxSurge": "25%",
+         "maxUnavailable": "25%"
+        },
+        "type": "RollingUpdate"
+       },
+       "service_account": "astronomy-shop",
+       "dns_policy": "ClusterFirst",
+       "restart_policy": "Always",
+       "init_containers": [
+        {
+         "name": "wait-for-kafka",
+         "image": "busybox:latest",
+         "command": [
+          "sh",
+          "-c",
+          "until nc -z -v -w30 kafka 9092; do echo waiting for kafka; sleep 2; done;"
+         ]
+        }
+       ],
+       "containers": [
+        {
+         "name": "accounting",
+         "image": "ghcr.io/open-telemetry/demo:nightly-20939609681-accounting@sha256:51e6720438c13d0a4fefd129b01e2422b176fdb18a9ea71ef08fd84e717e82f4",
+         "env": [
+          {
+           "name": "OTEL_SERVICE_NAME",
+           "from": "field:metadata.labels['app.kubernetes.io/component']"
+          },
+          {
+           "name": "OTEL_COLLECTOR_NAME",
+           "value": "otel-collector"
+          },
+          {
+           "name": "OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE",
+           "value": "cumulative"
+          },
+          {
+           "name": "KAFKA_ADDR",
+           "value": "kafka:9092"
+          },
+          {
+           "name": "OTEL_EXPORTER_OTLP_ENDPOINT",
+           "value": "http://$(OTEL_COLLECTOR_NAME):4318"
+          },
+          {
+           "name": "DB_CONNECTION_STRING",
+           "value": "Host=postgresql;Username=otelu;Password=otelp_7k9m2q4x;Database=otel"
+          },
+          {
+           "name": "OTEL_DOTNET_AUTO_TRACES_ENTITYFRAMEWORKCORE_INSTRUMENTATION_ENABLED",
+           "value": "false"
+          }
+         ],
+         "resources": {
+          "limits": {
+           "memory": "120Mi"
+          }
+         }
+        }
+       ],
+       "template_labels": {
+        "app.kubernetes.io/component": "accounting",
+        "app.kubernetes.io/name": "accounting",
+        "app.kubernetes.io/version": "2.2.0",
+        "opentelemetry.io/name": "accounting"
+       }
+      },
+      "pods": [
+       {
+        "name": "accounting-67495c6c98-gb6th",
+        "node": "kind-worker3",
+        "phase": "Running",
+        "started": "2026-10-18T15:53:29Z",
+        "ready_since": "2026-10-18T15:53:32Z",
+        "conditions": [
+         "PodReadyToStartContainers=True",
+         "Initialized=True",
+         "Ready=True",
+         "ContainersReady=True",
+         "PodScheduled=True"
+        ],
+        "containers": [
+         {
+          "name": "wait-for-kafka",
+          "ready": true,
+          "restarts": 0,
+          "state": {
+           "terminated": {
+            "containerID": "containerd://95e8b7a48424c29f7d9fe2b1a712baca077317e1dd25f07480bc3a20f8185ab3",
+            "exitCode": 0,
+            "finishedAt": "2026-10-18T15:53:30Z",
+            "reason": "Completed",
+            "startedAt": "2026-10-18T15:53:30Z"
+           }
+          }
+         },
+         {
+          "name": "accounting",
+          "ready": true,
+          "restarts": 0,
+          "state": {
+           "running": {
+            "startedAt": "2026-10-18T15:53:31Z"
+           }
+          }
+         }
+        ]
+       }
+      ],
+      "events": [
+       {
+        "type": "Normal",
+        "reason": "Pulled",
+        "count": 1,
+        "object": "pod/accounting-67495c6c98-gb6th",
+        "last": "2026-10-18T15:53:31Z",
+        "message": "Container image \"ghcr.io/open-telemetry/demo:nightly-20939609681-accounting@sha256:51e6720438c13d0a4fefd129b01e2422b176fdb18a9ea71ef08fd84e717e82f4\" already present on machine"
+       },
+       {
+        "type": "Normal",
+        "reason": "Created",
+        "count": 1,
+        "object": "pod/accounting-67495c6c98-gb6th",
+        "last": "2026-10-18T15:53:31Z",
+        "message": "Created container: accounting"
+       },
+       {
+        "type": "Normal",
+        "reason": "Started",
+        "count": 1,
+        "object": "pod/accounting-67495c6c98-gb6th",
+        "last": "2026-10-18T15:53:31Z",
+        "message": "Started container accounting"
+       },
+       {
+        "type": "Normal",
+        "reason": "Pulling",
+        "count": 1,
+        "object": "pod/accounting-67495c6c98-gb6th",
+        "last": "2026-10-18T15:53:30Z",
+        "message": "Pulling image \"busybox:latest\""
+       },
+       {
+        "type": "Normal",
+        "reason": "Pulled",
+        "count": 1,
+        "object": "pod/accounting-67495c6c98-gb6th",
+        "last": "2026-10-18T15:53:30Z",
+        "message": "Successfully pulled image \"busybox:latest\" in 634ms (634ms including waiting). Image size: 2236767 bytes."
+       },
+       {
+        "type": "Normal",
+        "reason": "Created",
+        "count": 1,
+        "object": "pod/accounting-67495c6c98-gb6th",
+        "last": "2026-10-18T15:53:30Z",
+        "message": "Created container: wait-for-kafka"
+       },
+       {
+        "type": "Normal",
+        "reason": "Started",
+        "count": 1,
+        "object": "pod/accounting-67495c6c98-gb6th",
+        "last": "2026-10-18T15:53:30Z",
+        "message": "Started container wait-for-kafka"
+       },
+       {
+        "type": "Normal",
+        "reason": "SuccessfulCreate",
+        "count": 1,
+        "object": "replicaset/accounting-67495c6c98",
+        "last": "2026-10-18T15:53:29Z",
+        "message": "Created pod: accounting-67495c6c98-gb6th"
+       },
+       {
+        "type": "Normal",
+        "reason": "Scheduled",
+        "count": 1,
+        "object": "pod/accounting-67495c6c98-gb6th",
+        "last": "2026-10-18T15:53:29.633415Z",
+        "message": "Successfully assigned astronomy-shop/accounting-67495c6c98-gb6th to kind-worker3"
+       }
+      ],
+      "logs": {
+       "total_lines": 70,
+       "error_lines": 0,
+       "error_lines_still_occurring": 0,
+       "error_lines_stopped": 0,
+       "telemetry_export_error_lines": 0,
+       "tail": [
+        "2026-10-18T15:53:32.152718690Z [OTEL_COLLECTOR_SERVICE_PORT_OTLP, 4317]",
+        "2026-10-18T15:53:32.152719478Z [OTEL_COLLECTOR_SERVICE_PORT_OTLP_HTTP, 4318]",
+        "2026-10-18T15:53:32.152722170Z [OTEL_COLLECTOR_SERVICE_PORT_ZIPKIN, 9411]",
+        "2026-10-18T15:53:32.152723087Z [OTEL_DOTNET_AUTO_HOME, /app]",
+        "2026-10-18T15:53:32.152723898Z [OTEL_DOTNET_AUTO_RULE_ENGINE_ENABLED, false]",
+        "2026-10-18T15:53:32.152724934Z [OTEL_DOTNET_AUTO_TRACES_ADDITIONAL_SOURCES, Accounting.Consumer]",
+        "2026-10-18T15:53:32.152725825Z [OTEL_DOTNET_AUTO_TRACES_ENTITYFRAMEWORKCORE_INSTRUMENTATION_ENABLED, false]",
+        "2026-10-18T15:53:32.152726533Z [OTEL_EXPORTER_OTLP_ENDPOINT, http://otel-collector:4318]",
+        "2026-10-18T15:53:32.152727240Z [OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE, cumulative]",
+        "2026-10-18T15:53:32.152730386Z [OTEL_SERVICE_NAME, accounting]",
+        "2026-10-18T15:53:32.349104323Z info: Accounting.Consumer[0]",
+        "2026-10-18T15:53:32.349122163Z Connecting to Kafka: kafka:9092"
+       ]
+      },
+      "template_changes": {
+       "revision": 2,
+       "changed_at": "2026-10-18T15:53:29Z",
+       "changes": [
+        "pod label pod-template-hash: 5897477844 -> 67495c6c98",
+        "container accounting env DB_CONNECTION_STRING: Host=postgresql;Username=otelu;Password=otelp;Database=otel -> Host=postgresql;Username=otelu;Password=otelp_7k9m2q4x;Database=otel"
+       ]
+      },
+      "calls_services": [
+       "astronomy-shop/kafka",
+       "astronomy-shop/otel-collector"
+      ],
+      "rbac": {
+       "service_account": "astronomy-shop/astronomy-shop",
+       "can_i": [
+        "selfsubjectreviews.authentication.k8s.io [] [] [create]",
+        "selfsubjectaccessreviews.authorization.k8s.io [] [] [create]",
+        "selfsubjectrulesreviews.authorization.k8s.io [] [] [create]",
+        "[/.well-known/openid-configuration/] [] [get]",
+        "[/.well-known/openid-configuration] [] [get]",
+        "[/api/*] [] [get]",
+        "[/api] [] [get]",
+        "[/apis/*] [] [get]",
+        "[/apis] [] [get]",
+        "[/healthz] [] [get]",
+        "[/healthz] [] [get]",
+        "[/livez] [] [get]",
+        "[/livez] [] [get]"
+       ]
+      },
+      "input_candidates": [
+       {
+        "container": "accounting",
+        "env": "OTEL_COLLECTOR_NAME",
+        "value": "otel-collector"
+       },
+       {
+        "container": "accounting",
+        "env": "OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE",
+        "value": "cumulative"
+       }
+      ],
+      "calls": {
+       "daemonset/otel-collector-agent": {
+        "kind": "DaemonSet",
+        "pods_ready": "3/3",
+        "restarts": 0,
+        "own_evidence_kinds": [
+         "change"
+        ],
+        "own_signals": [
+         "spec modified 159s ago, 17s after this object was created (fields: template.annotations.kubectl.kubernetes.io/restartedAt); pod template changes: template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-18T21:53:06+06:00; 80s before the first active symptom"
+        ],
+        "own_error_log_lines": 8,
+        "last_spec_change": "2026-10-18T15:53:06Z",
+        "looks_healthy_on_its_own": false
+       },
+       "deployment/kafka": {
+        "kind": "Deployment",
+        "pods_ready": "1/1",
+        "restarts": 0,
+        "looks_healthy_on_its_own": true
+       },
+       "deployment/postgresql": {
+        "kind": "Deployment",
+        "pods_ready": "1/1",
+        "restarts": 0,
+        "own_evidence_kinds": [
+         "change",
+         "configuration",
+         "symptoms"
+        ],
+        "own_signals": [
+         "ConfigMap postgresql-init was rewritten at 2026-10-18T15:53:29Z, after 1 of 1 running containers of this workload started; it is mounted as files (volume /docker-entrypoint-initdb.d), which the kubelet updates in place, so the running process sees the new content only if it re-reads the files",
+         "ConfigMap postgresql-init was modified 136s ago, 41s after it was created (fields: data.init.sql); 57s before the first active symptom"
+        ],
+        "own_error_log_lines": 14,
+        "looks_healthy_on_its_own": false
+       }
+      }
+     }
+    },
+    "deployment/product-catalog": {
+     "kind": "Deployment",
+     "name": "product-catalog",
+     "namespace": "astronomy-shop",
+     "healthy": false,
+     "signals": [
+      "Secret product-catalog-db-conn was rewritten at 2026-10-18T15:53:29Z, after 1 of 1 running containers of this workload started; it is read through env DB_CONNECTION_STRING, which are fixed when the container starts, so those containers still use the previous values",
+      "server deployment/postgresql rejects logins for account otelu (12 lines, still occurring); this component may present those credentials: secret/product-catalog-db-conn, which it reads through env values, was rewritten 85s before the rejections began and after its containers started; its env var DB_CONNECTION_STRING names a database connection and postgresql is the application's only database",
+      "spec modified 137s ago, 39s after this object was created (fields: template.annotations.kubectl.kubernetes.io/restartedAt, containers[product-catalog].env[DB_CONNECTION_STRING]); pod template changes: template annotation kubectl.kubernetes.io/restartedAt: 2026-10-18T21:53:22+06:00 -> 2026-10-18T21:53:25+06:00; pod label pod-template-hash: 56456cc9ff -> 577557ddb4; 58s before the first active symptom",
+      "Secret product-catalog-db-conn was created 140s ago, 36s after the workloads that read it; 61s before the first active symptom"
+     ],
+     "template_changes": {
+      "revision": 4,
+      "changed_at": "2026-10-18T15:53:25Z",
+      "changes": [
+       "template annotation kubectl.kubernetes.io/restartedAt: 2026-10-18T21:53:22+06:00 -> 2026-10-18T21:53:25+06:00",
+       "pod label pod-template-hash: 56456cc9ff -> 577557ddb4"
+      ]
+     },
+     "detail": {
+      "component": "deployment/product-catalog",
+      "namespace": "astronomy-shop",
+      "workload": {
+       "created": "2026-10-18T15:52:49Z",
+       "last_spec_write": "2026-10-18T15:53:28Z",
+       "spec_writers": [
+        {
+         "manager": "helm",
+         "op": "Apply",
+         "time": "2026-10-18T15:52:49Z"
+        },
+        {
+         "manager": "kubectl-rollout",
+         "op": "Update",
+         "time": "2026-10-18T15:53:25Z"
+        },
+        {
+         "manager": "kubectl-set",
+         "op": "Update",
+         "time": "2026-10-18T15:53:25Z"
+        },
+        {
+         "manager": "OpenAPI-Generator",
+         "op": "Update",
+         "time": "2026-10-18T15:53:28Z"
+        }
+       ],
+       "replicas": 1,
+       "strategy": {
+        "rollingUpdate": {
+         "maxSurge": "25%",
+         "maxUnavailable": "25%"
+        },
+        "type": "RollingUpdate"
+       },
+       "service_account": "astronomy-shop",
+       "dns_policy": "ClusterFirst",
+       "restart_policy": "Always",
+       "init_containers": [
+        {
+         "name": "wait-for-postgresql",
+         "image": "busybox:latest",
+         "command": [
+          "sh",
+          "-c",
+          "until nc -z -v -w30 postgresql 5432; do echo waiting for postgresql; sleep 2; done;"
+         ]
+        }
+       ],
+       "containers": [
+        {
+         "name": "product-catalog",
+         "image": "ghcr.io/open-telemetry/demo:2.2.0-product-catalog",
+         "env": [
+          {
+           "name": "OTEL_SERVICE_NAME",
+           "from": "field:metadata.labels['app.kubernetes.io/component']"
+          },
+          {
+           "name": "OTEL_COLLECTOR_NAME",
+           "value": "otel-collector"
+          },
+          {
+           "name": "OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE",
+           "value": "cumulative"
+          },
+          {
+           "name": "PRODUCT_CATALOG_PORT",
+           "value": "8080"
+          },
+          {
+           "name": "FLAGD_HOST",
+           "value": "flagd"
+          },
+          {
+           "name": "FLAGD_PORT",
+           "value": "8013"
+          },
+          {
+           "name": "GOMEMLIMIT",
+           "value": "16MiB"
+          },
+          {
+           "name": "DB_CONNECTION_STRING",
+           "from": "secret:product-catalog-db-conn.DB_CONNECTION_STRING"
+          },
+          {
+           "name": "OTEL_SEMCONV_STABILITY_OPT_IN",
+           "value": "database"
+          },
+          {
+           "name": "OTEL_EXPORTER_OTLP_ENDPOINT",
+           "value": "http://$(OTEL_COLLECTOR_NAME):4317"
+          }
+         ],
+         "ports": [
+          {
+           "port": 8080,
+           "name": "service"
+          }
+         ],
+         "resources": {
+          "limits": {
+           "memory": "64Mi"
+          }
+         }
+        }
+       ],
+       "template_labels": {
+        "app.kubernetes.io/component": "product-catalog",
+        "app.kubernetes.io/name": "product-catalog",
+        "app.kubernetes.io/version": "2.2.0",
+        "opentelemetry.io/name": "product-catalog"
+       }
+      },
+      "pods": [
+       {
+        "name": "product-catalog-577557ddb4-dvnh9",
+        "node": "kind-worker",
+        "phase": "Running",
+        "started": "2026-10-18T15:53:25Z",
+        "ready_since": "2026-10-18T15:53:28Z",
+        "conditions": [
+         "PodReadyToStartContainers=True",
+         "Initialized=True",
+         "Ready=True",
+         "ContainersReady=True",
+         "PodScheduled=True"
+        ],
+        "containers": [
+         {
+          "name": "wait-for-postgresql",
+          "ready": true,
+          "restarts": 0,
+          "state": {
+           "terminated": {
+            "containerID": "containerd://0406c48b5ac43d3960dd93d27c6bcbaab225fd26d530c8341c3753d693268fd5",
+            "exitCode": 0,
+            "finishedAt": "2026-10-18T15:53:26Z",
+            "reason": "Completed",
+            "startedAt": "2026-10-18T15:53:26Z"
+           }
+          }
+         },
+         {
+          "name": "product-catalog",
+          "ready": true,
+          "restarts": 0,
+          "state": {
+           "running": {
+            "startedAt": "2026-10-18T15:53:27Z"
+           }
+          }
+         }
+        ]
+       }
+      ],
+      "events": [
+       {
+        "type": "Normal",
+        "reason": "Pulled",
+        "count": 1,
+        "object": "pod/product-catalog-577557ddb4-dvnh9",
+        "last": "2026-10-18T15:53:27Z",
+        "message": "Container image \"ghcr.io/open-telemetry/demo:2.2.0-product-catalog\" already present on machine"
+       },
+       {
+        "type": "Normal",
+        "reason": "Created",
+        "count": 1,
+        "object": "pod/product-catalog-577557ddb4-dvnh9",
+        "last": "2026-10-18T15:53:27Z",
+        "message": "Created container: product-catalog"
+       },
+       {
+        "type": "Normal",
+        "reason": "Started",
+        "count": 1,
+        "object": "pod/product-catalog-577557ddb4-dvnh9",
+        "last": "2026-10-18T15:53:27Z",
+        "message": "Started container product-catalog"
+       },
+       {
+        "type": "Normal",
+        "reason": "Pulling",
+        "count": 1,
+        "object": "pod/product-catalog-577557ddb4-dvnh9",
+        "last": "2026-10-18T15:53:26Z",
+        "message": "Pulling image \"busybox:latest\""
+       },
+       {
+        "type": "Normal",
+        "reason": "Pulled",
+        "count": 1,
+        "object": "pod/product-catalog-577557ddb4-dvnh9",
+        "last": "2026-10-18T15:53:26Z",
+        "message": "Successfully pulled image \"busybox:latest\" in 631ms (631ms including waiting). Image size: 2236767 bytes."
+       },
+       {
+        "type": "Normal",
+        "reason": "Created",
+        "count": 1,
+        "object": "pod/product-catalog-577557ddb4-dvnh9",
+        "last": "2026-10-18T15:53:26Z",
+        "message": "Created container: wait-for-postgresql"
+       },
+       {
+        "type": "Normal",
+        "reason": "Started",
+        "count": 1,
+        "object": "pod/product-catalog-577557ddb4-dvnh9",
+        "last": "2026-10-18T15:53:26Z",
+        "message": "Started container wait-for-postgresql"
+       },
+       {
+        "type": "Normal",
+        "reason": "SuccessfulCreate",
+        "count": 1,
+        "object": "replicaset/product-catalog-577557ddb4",
+        "last": "2026-10-18T15:53:25Z",
+        "message": "Created pod: product-catalog-577557ddb4-dvnh9"
+       },
+       {
+        "type": "Normal",
+        "reason": "Scheduled",
+        "count": 1,
+        "object": "pod/product-catalog-577557ddb4-dvnh9",
+        "last": "2026-10-18T15:53:25.643860Z",
+        "message": "Successfully assigned astronomy-shop/product-catalog-577557ddb4-dvnh9 to kind-worker"
+       }
+      ],
+      "logs": {
+       "total_lines": 1,
+       "error_lines": 0,
+       "error_lines_still_occurring": 0,
+       "error_lines_stopped": 0,
+       "telemetry_export_error_lines": 0,
+       "tail": [
+        "2026-10-18T15:53:26.954047084Z postgresql (10.96.69.163:5432) open"
+       ]
+      },
+      "template_changes": {
+       "revision": 4,
+       "changed_at": "2026-10-18T15:53:25Z",
+       "changes": [
+        "template annotation kubectl.kubernetes.io/restartedAt: 2026-10-18T21:53:22+06:00 -> 2026-10-18T21:53:25+06:00",
+        "pod label pod-template-hash: 56456cc9ff -> 577557ddb4"
+       ]
+      },
+      "calls_services": [
+       "astronomy-shop/flagd",
+       "astronomy-shop/otel-collector"
+      ],
+      "clients": [
+       "deployment/checkout",
+       "deployment/frontend",
+       "deployment/product-reviews",
+       "deployment/recommendation"
+      ],
+      "secrets": {
+       "secret/product-catalog-db-conn": {
+        "keys": [
+         "DB_CONNECTION_STRING"
+        ],
+        "last_update": "2026-10-18T15:53:29Z"
+       }
+      },
+      "rbac": {
+       "service_account": "astronomy-shop/astronomy-shop",
+       "can_i": [
+        "selfsubjectreviews.authentication.k8s.io [] [] [create]",
+        "selfsubjectaccessreviews.authorization.k8s.io [] [] [create]",
+        "selfsubjectrulesreviews.authorization.k8s.io [] [] [create]",
+        "[/.well-known/openid-configuration/] [] [get]",
+        "[/.well-known/openid-configuration] [] [get]",
+        "[/api/*] [] [get]",
+        "[/api] [] [get]",
+        "[/apis/*] [] [get]",
+        "[/apis] [] [get]",
+        "[/healthz] [] [get]",
+        "[/healthz] [] [get]",
+        "[/livez] [] [get]",
+        "[/livez] [] [get]"
+       ]
+      },
+      "input_candidates": [
+       {
+        "container": "product-catalog",
+        "env": "OTEL_COLLECTOR_NAME",
+        "value": "otel-collector"
+       },
+       {
+        "container": "product-catalog",
+        "env": "OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE",
+        "value": "cumulative"
+       },
+       {
+        "container": "product-catalog",
+        "env": "FLAGD_HOST",
+        "value": "flagd"
+       },
+       {
+        "container": "product-catalog",
+        "env": "OTEL_SEMCONV_STABILITY_OPT_IN",
+        "value": "database"
+       }
+      ],
+      "calls": {
+       "daemonset/otel-collector-agent": {
+        "kind": "DaemonSet",
+        "pods_ready": "3/3",
+        "restarts": 0,
+        "own_evidence_kinds": [
+         "change"
+        ],
+        "own_signals": [
+         "spec modified 159s ago, 17s after this object was created (fields: template.annotations.kubectl.kubernetes.io/restartedAt); pod template changes: template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-18T21:53:06+06:00; 80s before the first active symptom"
+        ],
+        "own_error_log_lines": 8,
+        "last_spec_change": "2026-10-18T15:53:06Z",
+        "looks_healthy_on_its_own": false
+       },
+       "deployment/flagd": {
+        "kind": "Deployment",
+        "pods_ready": "1/1",
+        "restarts": 0,
+        "looks_healthy_on_its_own": true
+       }
+      }
+     }
+    },
+    "deployment/product-reviews": {
+     "kind": "Deployment",
+     "name": "product-reviews",
+     "namespace": "astronomy-shop",
+     "healthy": false,
+     "signals": [
+      "spec modified 133s ago, 43s after this object was created (fields: containers[product-reviews].env[DB_CONNECTION_STRING]); pod template changes: pod label pod-template-hash: 7bccd49cb7 -> 7cdd9d8df7; container product-reviews env DB_CONNECTION_STRING: host=postgresql user=otelu password=otelp dbname=otel -> host=postgresql user=otelu password=otelp_7k9m2q4x dbname=otel; 54s before the first active symptom"
+     ],
+     "template_changes": {
+      "revision": 2,
+      "changed_at": "2026-10-18T15:53:32Z",
+      "changes": [
+       "pod label pod-template-hash: 7bccd49cb7 -> 7cdd9d8df7",
+       "container product-reviews env DB_CONNECTION_STRING: host=postgresql user=otelu password=otelp dbname=otel -> host=postgresql user=otelu password=otelp_7k9m2q4x dbname=otel"
+      ]
+     }
+    },
+    "daemonset/otel-collector-agent": {
+     "kind": "DaemonSet",
+     "name": "otel-collector-agent",
+     "namespace": "astronomy-shop",
+     "healthy": false,
+     "signals": [
+      "spec modified 159s ago, 17s after this object was created (fields: template.annotations.kubectl.kubernetes.io/restartedAt); pod template changes: template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-18T21:53:06+06:00; 80s before the first active symptom"
+     ],
+     "template_changes": {
+      "revision": 2,
+      "changed_at": "2026-10-18T15:53:06Z",
+      "changes": [
+       "template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-18T21:53:06+06:00"
+      ]
+     }
+    },
+    "deployment/postgresql": {
+     "kind": "Deployment",
+     "name": "postgresql",
+     "namespace": "astronomy-shop",
+     "healthy": false,
+     "signals": [
+      "ConfigMap postgresql-init was rewritten at 2026-10-18T15:53:29Z, after 1 of 1 running containers of this workload started; it is mounted as files (volume /docker-entrypoint-initdb.d), which the kubelet updates in place, so the running process sees the new content only if it re-reads the files",
+      "rejects logins for account otelu (12 lines, still occurring); the rejected credentials come from its clients: candidates deployment/product-catalog (secret/product-catalog-db-conn, which it reads through env values, was rewritten 85s before the rejections began and after its containers started, its env var DB_CONNECTION_STRING names a database connection and postgresql is the application's only database)",
+      "ConfigMap postgresql-init was modified 136s ago, 41s after it was created (fields: data.init.sql); 57s before the first active symptom"
+     ]
+    }
+   },
+   "cluster": {
+    "symptom_onset": "2026-10-18T15:54:26+00:00",
+    "recent_changes": [
+     {
+      "object": "deployment/product-reviews",
+      "at": "2026-10-18T15:53:32Z",
+      "modified_after_creation_s": 43,
+      "fields": [
+       "containers[product-reviews].env[DB_CONNECTION_STRING]"
+      ],
+      "seconds_ago": 133,
+      "seconds_before_symptoms": 54
+     },
+     {
+      "object": "configmap/astronomy-shop/postgresql-init",
+      "at": "2026-10-18T15:53:29Z",
+      "modified_after_creation_s": 41,
+      "fields": [
+       "data.init.sql"
+      ],
+      "seconds_ago": 136,
+      "seconds_before_symptoms": 57
+     },
+     {
+      "object": "deployment/accounting",
+      "at": "2026-10-18T15:53:29Z",
+      "modified_after_creation_s": 40,
+      "fields": [
+       "containers[accounting].env[DB_CONNECTION_STRING]"
+      ],
+      "seconds_ago": 136,
+      "seconds_before_symptoms": 57
+     },
+     {
+      "object": "deployment/product-catalog",
+      "at": "2026-10-18T15:53:28Z",
+      "modified_after_creation_s": 39,
+      "fields": [
+       "template.annotations.kubectl.kubernetes.io/restartedAt",
+       "containers[product-catalog].env[DB_CONNECTION_STRING]"
+      ],
+      "seconds_ago": 137,
+      "seconds_before_symptoms": 58
+     },
+     {
+      "object": "secret/astronomy-shop/product-catalog-db-conn",
+      "at": "2026-10-18T15:53:25Z",
+      "created_after_targets_s": 36,
+      "seconds_ago": 140,
+      "seconds_before_symptoms": 61
+     },
+     {
+      "object": "daemonset/otel-collector-agent",
+      "at": "2026-10-18T15:53:06Z",
+      "modified_after_creation_s": 17,
+      "fields": [
+       "template.annotations.kubectl.kubernetes.io/restartedAt"
+      ],
+      "seconds_ago": 159,
+      "seconds_before_symptoms": 80,
+      "role": "observability"
+     }
+    ],
+    "findings": [
+     {
+      "kind": "ConfigMap",
+      "name": "postgresql-init",
+      "namespace": "astronomy-shop",
+      "signal": "ConfigMap postgresql-init was modified 136s ago, 41s after it was created (fields: data.init.sql); 57s before the first active symptom",
+      "components": [
+       "deployment/postgresql"
+      ]
+     },
+     {
+      "kind": "Secret",
+      "name": "product-catalog-db-conn",
+      "namespace": "astronomy-shop",
+      "signal": "Secret product-catalog-db-conn was created 140s ago, 36s after the workloads that read it; 61s before the first active symptom",
+      "components": [
+       "deployment/product-catalog"
+      ]
+     }
+    ]
+   }
+  },
+  "questions": {
+   "best_explanation": {
+    "type": "choice",
+    "criteria": {
+     "o1": "Origin: deployment/astronomy-shop/product-reviews. The pod template change 'container product-reviews env DB_CONNECTION_STRING: host=postgresql user=otelu password=otelp dbname=otel -> host=postgresql user=otelu password=otelp_7k9m2q4x dbname=otel' in revision 2 of deployment/product-reviews breaks deployment/product-reviews. | Details: container product-reviews env DB_CONNECTION_STRING: host=postgresql user=otelu password=otelp dbname=otel -> host=postgresql user=otelu password=otelp_7k9m2q4x dbname=otel | Observed impact on: deployment/astronomy-shop/product-reviews | Checks: revision 2 of deployment/product-reviews was made before the symptoms began (supports); deployment/product-reviews shows symptoms of its own (supports)",
+     "o2": "Origin: deployment/astronomy-shop/accounting. The pod template change 'container accounting env DB_CONNECTION_STRING: Host=postgresql;Username=otelu;Password=otelp;Database=otel -> Host=postgresql;Username=otelu;Password=otelp_7k9m2q4x;Database=otel' in revision 2 of deployment/accounting breaks deployment/accounting. | Details: container accounting env DB_CONNECTION_STRING: Host=postgresql;Username=otelu;Password=otelp;Database=otel -> Host=postgresql;Username=otelu;Password=otelp_7k9m2q4x;Database=otel | Observed impact on: deployment/astronomy-shop/accounting | Checks: revision 2 of deployment/accounting was made before the symptoms began (supports); deployment/accounting shows symptoms of its own (supports)",
+     "o3": "Origin: daemonset/astronomy-shop/otel-collector-agent. The pod template change 'template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-18T21:53:06+06:00' in revision 2 of daemonset/otel-collector-agent breaks daemonset/otel-collector-agent. | Details: template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-18T21:53:06+06:00 | Observed impact on: daemonset/astronomy-shop/otel-collector-agent | Checks: revision 2 of daemonset/otel-collector-agent was made before the symptoms began (supports); daemonset/otel-collector-agent shows symptoms of its own (supports)",
+     "o4": "Origin: deployment/astronomy-shop/product-catalog. The pod template change 'template annotation kubectl.kubernetes.io/restartedAt: 2026-10-18T21:53:22+06:00 -> 2026-10-18T21:53:25+06:00' in revision 4 of deployment/product-catalog breaks deployment/product-catalog. | Details: template annotation kubectl.kubernetes.io/restartedAt: 2026-10-18T21:53:22+06:00 -> 2026-10-18T21:53:25+06:00 | Observed impact on: deployment/astronomy-shop/product-catalog | Checks: revision 4 of deployment/product-catalog was made before the symptoms began (supports); deployment/product-catalog shows symptoms of its own (supports)",
+     "o5": "None of these explanations fits the evidence.",
+     "o6": "Origin: secret/astronomy-shop/product-catalog-db-conn. secret product-catalog-db-conn was created recently and breaks deployment/product-catalog, which it acts on. | Details: Secret product-catalog-db-conn was rewritten at 2026-10-18T15:53:29Z, after 1 of 1 running containers of this workload started; it is read through env DB_CONNECTION_STRING, which are fixed when the container starts, so those containers still use the previous values; Secret product-catalog-db-conn was created 140s ago, 36s after the workloads that read it; 61s before the first active symptom | Observed impact on: deployment/astronomy-shop/product-catalog | Checks: secret/astronomy-shop/product-catalog-db-conn was made before the symptoms began (supports); deployment/product-catalog shows symptoms of its own (supports)",
+     "o7": "Origin: configmap/astronomy-shop/postgresql-init. configmap postgresql-init was changed recently and breaks deployment/postgresql, which it acts on. | Details: configmap postgresql-init fields written: data.init.sql; ConfigMap postgresql-init was rewritten at 2026-10-18T15:53:29Z, after 1 of 1 running containers of this workload started; it is mounted as files (volume /docker-entrypoint-initdb.d), which the kubelet updates in place, so the running process sees the new content only if it re-reads the files; ConfigMap postgresql-init was modified 136s ago, 41s after it was created (fields: data.init.sql); 57s before the first active symptom | Observed impact on: deployment/astronomy-shop/postgresql | Checks: configmap/astronomy-shop/postgresql-init was made before the symptoms began (supports); deployment/postgresql shows symptoms of its own (supports)"
+    },
+    "instructions": {
+     "question": "Which explanation best accounts for all the observed symptoms in `evidence`?",
+     "how_to_decide": [
+      "Prefer the explanation whose chain is supported by the observed facts and explains the most symptoms; an explanation contradicted by a fact is unlikely.",
+      "A component that only fails because something it calls fails is a victim, not the origin.",
+      "Choose `o5` when none of the explanations fits the evidence."
+     ]
+    }
+   }
+  },
+  "model": "typesafe/jev-1.13-20260917",
+  "latency_ms": 581,
+  "usage": {
+   "input_tokens": 11423,
+   "output_tokens": 77,
+   "cost": 0.000479766
+  },
+  "answers": {
+   "best_explanation": {
+    "type": "choice",
+    "choice": "o7",
+    "confidence": 0.51,
+    "probabilities": {
+     "o1": 0.01,
+     "o2": 0.01,
+     "o3": 0.01,
+     "o4": 0.01,
+     "o5": 0.13,
+     "o6": 0.25,
+     "o7": 0.58
+    }
+   }
+  }
+ }
+]

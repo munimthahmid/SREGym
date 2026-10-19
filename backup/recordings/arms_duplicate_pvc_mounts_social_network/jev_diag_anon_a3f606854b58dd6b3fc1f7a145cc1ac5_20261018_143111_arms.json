@@ -1,0 +1,213 @@
+{
+ "problem_id": "jev_diag_anon_a3f606854b58dd6b3fc1f7a145cc1ac5_20261018_143111",
+ "submit_arm": 0,
+ "order": [
+  0,
+  2,
+  1,
+  3
+ ],
+ "arms": [
+  {
+   "arm": 0,
+   "kind": "v2",
+   "model": "openrouter/typesafe/jev-1.13",
+   "position": 0,
+   "seconds": 2.3,
+   "requests": 2,
+   "input_tokens": 1836,
+   "cost_usd": 7.7e-05,
+   "error": null,
+   "investigation": {
+    "rounds": [
+     {
+      "candidates": [
+       "partial:deployment/social-graph-service",
+       "acts-on:configmap/kube-system/coredns:ConfigMap coredns was modified 892s ago, 20204s after it was"
+      ],
+      "probabilities": {
+       "partial:deployment/social-graph-service": 0.05,
+       "acts-on:configmap/kube-system/coredns:ConfigMap coredns was modified 892s ago, 20204s after it was": 0.905,
+       "none_of_these": 0.045
+      },
+      "picks": [
+       "acts-on:configmap/kube-system/coredns:ConfigMap coredns was modified 892s ago, 20204s after it was",
+       "acts-on:configmap/kube-system/coredns:ConfigMap coredns was modified 892s ago, 20204s after it was"
+      ],
+      "route": "accept"
+     }
+    ],
+    "explanations": 2,
+    "winner": "acts-on:configmap/kube-system/coredns:ConfigMap coredns was modified 892s ago, 20204s after it was",
+    "pattern": "acts-on",
+    "uncertain": false
+   },
+   "text": "Root cause: configmap `coredns` in namespace `kube-system`.\nMechanism: configmap coredns acts on the application: ConfigMap coredns was modified 892s ago, 20204s after it was created (fields: data.Corefile); 824s before the first active symptom.\nConcrete details: ConfigMap coredns was modified 892s ago, 20204s after it was created (fields: data.Corefile); 824s before the first active symptom.\nEvidence:\n- ConfigMap coredns was modified 892s ago, 20204s after it was created (fields: data.Corefile); 824s before the first active symptom"
+  },
+  {
+   "arm": 1,
+   "kind": "v2",
+   "model": "openrouter/openai/gpt-6-luna-decisions",
+   "position": 2,
+   "seconds": 5.1,
+   "requests": 4,
+   "input_tokens": 8406,
+   "cost_usd": 0.000841,
+   "error": null,
+   "investigation": {
+    "rounds": [
+     {
+      "candidates": [
+       "partial:deployment/social-graph-service",
+       "acts-on:configmap/kube-system/coredns:ConfigMap coredns was modified 892s ago, 20204s after it was"
+      ],
+      "probabilities": {
+       "partial:deployment/social-graph-service": 0.5650000000000001,
+       "acts-on:configmap/kube-system/coredns:ConfigMap coredns was modified 892s ago, 20204s after it was": 0.35,
+       "none_of_these": 0.085
+      },
+      "picks": [
+       "partial:deployment/social-graph-service",
+       "acts-on:configmap/kube-system/coredns:ConfigMap coredns was modified 892s ago, 20204s after it was"
+      ],
+      "route": "check"
+     },
+     {
+      "candidates": [
+       "partial:deployment/social-graph-service",
+       "acts-on:configmap/kube-system/coredns:ConfigMap coredns was modified 892s ago, 20204s after it was"
+      ],
+      "probabilities": {
+       "partial:deployment/social-graph-service": 0.84,
+       "acts-on:configmap/kube-system/coredns:ConfigMap coredns was modified 892s ago, 20204s after it was": 0.02,
+       "none_of_these": 0.14
+      },
+      "picks": [
+       "partial:deployment/social-graph-service",
+       "partial:deployment/social-graph-service"
+      ],
+      "route": "accept"
+     }
+    ],
+    "explanations": 2,
+    "winner": "partial:deployment/social-graph-service",
+    "pattern": "partial",
+    "uncertain": false
+   },
+   "text": "Root cause: deployment `social-graph-service` in namespace `social-network`.\nMechanism: not established from the collected evidence.\nObserved impact: deployment `social-graph-service` in namespace `social-network`."
+  },
+  {
+   "arm": 2,
+   "kind": "v1",
+   "model": "openrouter/typesafe/jev-1.13",
+   "position": 1,
+   "seconds": 4.0,
+   "requests": 2,
+   "input_tokens": 27175,
+   "cost_usd": 0.001141,
+   "error": null,
+   "investigation": {
+    "steps": [
+     {
+      "step": 1,
+      "node": "investigate",
+      "component": "deployment/jaeger",
+      "verdict": "origin",
+      "origin_p": 0.96,
+      "victim_p": 0.0,
+      "next": "none",
+      "next_p": 0.79,
+      "category": "scheduling_constraint",
+      "spec_checks": [],
+      "blocked_input": null,
+      "key_evidence": "PVC jaeger-pvc is ReadWriteOnce (attachable to one node at a time) but 2 replicas of this Deployment mount it and its required pod anti-affinity places replicas on different nodes; replicas scheduled on another node cannot attach it"
+     }
+    ],
+    "concluded": "deployment/jaeger",
+    "fallback": null,
+    "triage_top": [
+     [
+      "deployment/jaeger",
+      0.58
+     ],
+     [
+      "other",
+      0.35
+     ],
+     [
+      "deployment/social-graph-service",
+      0.06
+     ],
+     [
+      "deployment/user-timeline-mongodb",
+      0.01
+     ],
+     [
+      "deployment/compose-post-service",
+      0.0
+     ]
+    ]
+   },
+   "text": "Root cause component: Deployment `jaeger` in namespace `social-network`.\nMechanism: PVC jaeger-pvc is ReadWriteOnce (attachable to one node at a time) but 2 replicas of this Deployment mount it and its required pod anti-affinity places replicas on different nodes; replicas scheduled on another node cannot attach it.\nFault type: scheduling constraint (no node satisfies the pod's placement constraints).\nAbnormal state observed on this component:\n- only 1 of 2 desired replicas are ready\n- pod jaeger-9fd7cdb7c-8gtbm: pod phase Pending\n- pod jaeger-9fd7cdb7c-8gtbm: pod unschedulable: 0/4 nodes are available: 1 node(s) didn't match pod anti-affinity rules, 1 node(s) had untolerated taint {node-role.kubernetes.io/control-plane: }, 2 node(s) h\u2026\n- warning events: FailedScheduling x3\n- firing alert PendingPodsDetected\n- firing alert PodSchedulingFailure\n- pod jaeger-9fd7cdb7c-8gtbm is still in pod phase Pending after another 49s\nNotable spec settings:\n- Available=False (MinimumReplicasUnavailable)\n- container jaeger: image docker.io/jaegertracing/all-in-one:1.57\nWarning events:\n- FailedScheduling x2 on pod/jaeger-9fd7cdb7c-8gtbm: 0/4 nodes are available: 1 node(s) didn't match pod anti-affinity rules, 1 node(s) had untolerated taint {node-role.kubernetes.io/control-plane: }, 2 node(s) didn't find available persistent volumes to bind. preemption: 0/4 nodes are avail\u2026\n- FailedScheduling x1 on pod/jaeger-9fd7cdb7c-8gtbm: 0/4 nodes are available: 1 node(s) didn't match pod anti-affinity rules, 1 node(s) had untolerated taint {node-role.kubernetes.io/control-plane: }, 2 node(s) didn't find available persistent volumes to bind. preemption: 0/4 nodes are avail\u2026\nFiring alerts on this component: PendingPodsDetected, PodSchedulingFailure.\nClassification: Jev (typesafe/jev-1.13-20260917) confirmed this origin at investigation step 1 with probability 0.96 (triage probability 0.58)."
+  },
+  {
+   "arm": 3,
+   "kind": "v1",
+   "model": "openrouter/openai/gpt-6-luna-decisions",
+   "position": 3,
+   "seconds": 3.8,
+   "requests": 2,
+   "input_tokens": 18945,
+   "cost_usd": 0.001895,
+   "error": null,
+   "investigation": {
+    "steps": [
+     {
+      "step": 1,
+      "node": "investigate",
+      "component": "deployment/jaeger",
+      "verdict": "origin",
+      "origin_p": 0.93,
+      "victim_p": 0.05,
+      "next": "none",
+      "next_p": 0.95,
+      "category": "scheduling_constraint",
+      "spec_checks": [],
+      "blocked_input": null,
+      "key_evidence": "PVC jaeger-pvc is ReadWriteOnce (attachable to one node at a time) but 2 replicas of this Deployment mount it and its required pod anti-affinity places replicas on different nodes; replicas scheduled on another node cannot attach it"
+     }
+    ],
+    "concluded": "deployment/jaeger",
+    "fallback": null,
+    "triage_top": [
+     [
+      "deployment/jaeger",
+      0.75
+     ],
+     [
+      "other",
+      0.15
+     ],
+     [
+      "deployment/social-graph-service",
+      0.03
+     ],
+     [
+      "deployment/compose-post-service",
+      0.01
+     ],
+     [
+      "deployment/media-frontend",
+      0.01
+     ]
+    ]
+   },
+   "text": "Root cause component: Deployment `jaeger` in namespace `social-network`.\nMechanism: PVC jaeger-pvc is ReadWriteOnce (attachable to one node at a time) but 2 replicas of this Deployment mount it and its required pod anti-affinity places replicas on different nodes; replicas scheduled on another node cannot attach it.\nFault type: scheduling constraint (no node satisfies the pod's placement constraints).\nAbnormal state observed on this component:\n- only 1 of 2 desired replicas are ready\n- pod jaeger-9fd7cdb7c-8gtbm: pod phase Pending\n- pod jaeger-9fd7cdb7c-8gtbm: pod unschedulable: 0/4 nodes are available: 1 node(s) didn't match pod anti-affinity rules, 1 node(s) had untolerated taint {node-role.kubernetes.io/control-plane: }, 2 node(s) h\u2026\n- warning events: FailedScheduling x3\n- firing alert PendingPodsDetected\n- firing alert PodSchedulingFailure\n- pod jaeger-9fd7cdb7c-8gtbm is still in pod phase Pending after another 49s\nNotable spec settings:\n- Available=False (MinimumReplicasUnavailable)\n- container jaeger: image docker.io/jaegertracing/all-in-one:1.57\nWarning events:\n- FailedScheduling x2 on pod/jaeger-9fd7cdb7c-8gtbm: 0/4 nodes are available: 1 node(s) didn't match pod anti-affinity rules, 1 node(s) had untolerated taint {node-role.kubernetes.io/control-plane: }, 2 node(s) didn't find available persistent volumes to bind. preemption: 0/4 nodes are avail\u2026\n- FailedScheduling x1 on pod/jaeger-9fd7cdb7c-8gtbm: 0/4 nodes are available: 1 node(s) didn't match pod anti-affinity rules, 1 node(s) had untolerated taint {node-role.kubernetes.io/control-plane: }, 2 node(s) didn't find available persistent volumes to bind. preemption: 0/4 nodes are avail\u2026\nFiring alerts on this component: PendingPodsDetected, PodSchedulingFailure.\nClassification: Jev (openai/gpt-6-luna-decisions-20261006) confirmed this origin at investigation step 1 with probability 0.93 (triage probability 0.75)."
+  }
+ ],
+ "submission": {
+  "status": "200",
+  "message": "Submission received",
+  "stage": "diagnosis"
+ }
+}

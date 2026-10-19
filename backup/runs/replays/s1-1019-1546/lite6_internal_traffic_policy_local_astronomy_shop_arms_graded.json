@@ -1,0 +1,544 @@
+{
+ "problem_id": "internal_traffic_policy_local_astronomy_shop",
+ "source": "lite6_internal_traffic_policy_local_astronomy_shop",
+ "replay": true,
+ "arms": [
+  {
+   "arm": 0,
+   "kind": "v1",
+   "model": "typesafe/jev-1.13",
+   "position": 0,
+   "seconds": 1.3,
+   "requests": 2,
+   "input_tokens": 35741,
+   "error": null,
+   "component": "deployment/recommendation",
+   "investigation": {
+    "steps": [
+     {
+      "step": 1,
+      "node": "investigate",
+      "component": "deployment/recommendation",
+      "verdict": "origin",
+      "origin_p": 1.0,
+      "victim_p": 0.0,
+      "next": "none",
+      "next_p": 0.7,
+      "category": "traffic_policy",
+      "spec_checks": [
+       "service recommendation has internalTrafficPolicy=Local and ready endpoints only on kind-worker; client deployment/frontend on kind-worker2, where it has no local endpoint"
+      ],
+      "blocked_input": null,
+      "key_evidence": "service recommendation has internalTrafficPolicy=Local: only endpoints on the client's own node receive traffic"
+     }
+    ],
+    "concluded": "deployment/recommendation",
+    "fallback": null,
+    "triage_top": [
+     [
+      "deployment/recommendation",
+      0.98
+     ],
+     [
+      "deployment/frontend",
+      0.02
+     ],
+     [
+      "deployment/accounting",
+      0.0
+     ],
+     [
+      "deployment/ad",
+      0.0
+     ],
+     [
+      "deployment/cart",
+      0.0
+     ]
+    ]
+   },
+   "text": "Root cause component: Deployment `recommendation` in namespace `astronomy-shop`.\nMechanism: service recommendation has internalTrafficPolicy=Local: only endpoints on the client's own node receive traffic.\nFault object: Service `recommendation`: Service recommendation was modified 141s ago, 69s after it was created (fields: spec.internalTrafficPolicy).\nFault type: traffic policy (a Service traffic policy leaves some clients without a reachable endpoint).\nConfiguration mismatches found by code:\n- service recommendation has internalTrafficPolicy=Local and ready endpoints only on kind-worker; client deployment/frontend on kind-worker2, where it has no local endpoint\nAbnormal state observed on this component:\n- service recommendation (internalTrafficPolicy=Local) has ready endpoints only on kind-worker; client deployment/frontend runs on kind-worker2, where calls to recommendation find no local endpoint\n- Service recommendation was modified 141s ago, 69s after it was created (fields: spec.internalTrafficPolicy)\n- spec modified 181s ago, 29s after this object was created (fields: nodeSelector); pod template changes: pod label pod-template-hash: 5bb649dccb -> 74758c88; pod nodeSelector: null -> {\"kubernetes.io/hostname\": \"kind-worker\"}\nImpact on other components:\n- client deployment/frontend on kind-worker2 gets no endpoint of Service recommendation\nNotable spec settings:\n- nodeSelector set: {'kubernetes.io/hostname': 'kind-worker'}\n- container recommendation: image ghcr.io/open-telemetry/demo:2.2.0-recommendation, limits {'memory': '500Mi'}\nClassification: Jev (typesafe/jev-1.13-20260917) confirmed this origin at investigation step 1 with probability 1.00 (triage probability 0.98).",
+   "grade": {
+    "judgment": "True",
+    "reasoning": "Verdict: True (composite=1.00). D1 Fault Localization: 1.00 | D2 Fault Characterization: 1.00 | D3 Scope Precision: 1.00. Weakest dimension: Fault Localization (1.00). Checklist details: [{\"id\": \"D1-Q1\", \"answer\": \"Yes\", \"evidence\": \"Despite the Deployment heading, the diagnosis explicitly identifies 'Fault object: Service recommendation' and names namespace astronomy-shop.\", \"confidence\": \"Medium\"}, {\"id\": \"D1-Q2\", \"answer\": \"Yes\", \"evidence\": \"The recommendation Service policy is identified as the cause; frontend is explicitly listed under 'Impact on other components.'\", \"confidence\": \"High\"}, {\"id\": \"D1-Q3\", \"answer\": \"Yes\", \"evidence\": \"The explicit fault object is Service recommendation; no separate healthy service is blamed, although the Deployment heading introduces ambiguity.\", \"confidence\": \"Medium\"}, {\"id\": \"D2-Q1\", \"answer\": \"Yes\", \"evidence\": \"The diagnosis states internalTrafficPolicy=Local restricts traffic to endpoints on the client's own node.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q2\", \"answer\": \"Yes\", \"evidence\": \"It explicitly identifies spec.internalTrafficPolicy and its Local value, with ready endpoints on kind-worker and frontend on kind-worker2.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q3\", \"answer\": \"Yes\", \"evidence\": \"It classifies the fault as a Service traffic policy leaving some clients without a reachable endpoint.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q1\", \"answer\": \"Yes\", \"evidence\": \"Causal attribution stays with recommendation's Service policy and endpoint placement; frontend is described as an affected client.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q2\", \"answer\": \"Yes\", \"evidence\": \"The diagnosis includes the recommendation Service, recommendation Deployment placement, and affected frontend client on a different worker node.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q3\", \"answer\": \"Yes\", \"evidence\": \"It states frontend on kind-worker2 has no local recommendation endpoint, consistent with the ground-truth cross-node connectivity failure.\", \"confidence\": \"High\"}]",
+    "success": true,
+    "accuracy": 100.0,
+    "composite_score": 1.0,
+    "dimensions": {
+     "D1": {
+      "name": "Fault Localization",
+      "score": 1.0
+     },
+     "D2": {
+      "name": "Fault Characterization",
+      "score": 1.0
+     },
+     "D3": {
+      "name": "Scope Precision",
+      "score": 1.0
+     }
+    },
+    "checklist": [
+     {
+      "id": "D1-Q1",
+      "answer": "Yes",
+      "evidence": "Despite the Deployment heading, the diagnosis explicitly identifies 'Fault object: Service recommendation' and names namespace astronomy-shop.",
+      "confidence": "Medium"
+     },
+     {
+      "id": "D1-Q2",
+      "answer": "Yes",
+      "evidence": "The recommendation Service policy is identified as the cause; frontend is explicitly listed under 'Impact on other components.'",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q3",
+      "answer": "Yes",
+      "evidence": "The explicit fault object is Service recommendation; no separate healthy service is blamed, although the Deployment heading introduces ambiguity.",
+      "confidence": "Medium"
+     },
+     {
+      "id": "D2-Q1",
+      "answer": "Yes",
+      "evidence": "The diagnosis states internalTrafficPolicy=Local restricts traffic to endpoints on the client's own node.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q2",
+      "answer": "Yes",
+      "evidence": "It explicitly identifies spec.internalTrafficPolicy and its Local value, with ready endpoints on kind-worker and frontend on kind-worker2.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q3",
+      "answer": "Yes",
+      "evidence": "It classifies the fault as a Service traffic policy leaving some clients without a reachable endpoint.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q1",
+      "answer": "Yes",
+      "evidence": "Causal attribution stays with recommendation's Service policy and endpoint placement; frontend is described as an affected client.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q2",
+      "answer": "Yes",
+      "evidence": "The diagnosis includes the recommendation Service, recommendation Deployment placement, and affected frontend client on a different worker node.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q3",
+      "answer": "Yes",
+      "evidence": "It states frontend on kind-worker2 has no local recommendation endpoint, consistent with the ground-truth cross-node connectivity failure.",
+      "confidence": "High"
+     }
+    ]
+   }
+  },
+  {
+   "arm": 1,
+   "kind": "v1",
+   "model": "openai/gpt-6-luna-decisions",
+   "position": 1,
+   "seconds": 1.2,
+   "requests": 2,
+   "input_tokens": 23831,
+   "error": null,
+   "component": "deployment/recommendation",
+   "investigation": {
+    "steps": [
+     {
+      "step": 1,
+      "node": "investigate",
+      "component": "deployment/recommendation",
+      "verdict": "origin",
+      "origin_p": 1.0,
+      "victim_p": 0.0,
+      "next": "none",
+      "next_p": 0.53,
+      "category": "traffic_policy",
+      "spec_checks": [
+       "service recommendation has internalTrafficPolicy=Local and ready endpoints only on kind-worker; client deployment/frontend on kind-worker2, where it has no local endpoint"
+      ],
+      "blocked_input": null,
+      "key_evidence": "service recommendation has internalTrafficPolicy=Local: only endpoints on the client's own node receive traffic"
+     }
+    ],
+    "concluded": "deployment/recommendation",
+    "fallback": null,
+    "triage_top": [
+     [
+      "deployment/recommendation",
+      0.99
+     ],
+     [
+      "deployment/frontend",
+      0.01
+     ],
+     [
+      "deployment/accounting",
+      0.0
+     ],
+     [
+      "deployment/ad",
+      0.0
+     ],
+     [
+      "deployment/cart",
+      0.0
+     ]
+    ]
+   },
+   "text": "Root cause component: Deployment `recommendation` in namespace `astronomy-shop`.\nMechanism: service recommendation has internalTrafficPolicy=Local: only endpoints on the client's own node receive traffic.\nFault object: Service `recommendation`: Service recommendation was modified 141s ago, 69s after it was created (fields: spec.internalTrafficPolicy).\nFault type: traffic policy (a Service traffic policy leaves some clients without a reachable endpoint).\nConfiguration mismatches found by code:\n- service recommendation has internalTrafficPolicy=Local and ready endpoints only on kind-worker; client deployment/frontend on kind-worker2, where it has no local endpoint\nAbnormal state observed on this component:\n- service recommendation (internalTrafficPolicy=Local) has ready endpoints only on kind-worker; client deployment/frontend runs on kind-worker2, where calls to recommendation find no local endpoint\n- Service recommendation was modified 141s ago, 69s after it was created (fields: spec.internalTrafficPolicy)\n- spec modified 181s ago, 29s after this object was created (fields: nodeSelector); pod template changes: pod label pod-template-hash: 5bb649dccb -> 74758c88; pod nodeSelector: null -> {\"kubernetes.io/hostname\": \"kind-worker\"}\nImpact on other components:\n- client deployment/frontend on kind-worker2 gets no endpoint of Service recommendation\nNotable spec settings:\n- nodeSelector set: {'kubernetes.io/hostname': 'kind-worker'}\n- container recommendation: image ghcr.io/open-telemetry/demo:2.2.0-recommendation, limits {'memory': '500Mi'}\nClassification: Jev (openai/gpt-6-luna-decisions-20261006) confirmed this origin at investigation step 1 with probability 1.00 (triage probability 0.99).",
+   "grade": {
+    "judgment": "True",
+    "reasoning": "Verdict: True (composite=0.89). D1 Fault Localization: 0.67 | D2 Fault Characterization: 1.00 | D3 Scope Precision: 1.00. Weakest dimension: Fault Localization (0.67). Checklist details: [{\"id\": \"D1-Q1\", \"answer\": \"Yes\", \"evidence\": \"Explicitly identifies \\u201cFault object: Service recommendation\\u201d in astronomy-shop, matching the target despite the inconsistent Deployment headline.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q2\", \"answer\": \"Yes\", \"evidence\": \"Attributes unreachable endpoints to recommendation's Service policy and lists frontend separately under \\u201cImpact on other components.\\u201d\", \"confidence\": \"High\"}, {\"id\": \"D1-Q3\", \"answer\": \"No\", \"evidence\": \"The headline names \\u201cRoot cause component: Deployment recommendation,\\u201d incorrectly assigning origin to the Deployment despite later correctly identifying the Service.\", \"confidence\": \"Medium\"}, {\"id\": \"D2-Q1\", \"answer\": \"Yes\", \"evidence\": \"States that internalTrafficPolicy=Local routes traffic only to endpoints on the client's own node.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q2\", \"answer\": \"Yes\", \"evidence\": \"Names spec.internalTrafficPolicy and its Local value, with ready endpoints on kind-worker and frontend on kind-worker2.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q3\", \"answer\": \"Yes\", \"evidence\": \"Classifies the fault as a Service traffic policy leaving clients without reachable endpoints, consistent with ground truth.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q1\", \"answer\": \"Yes\", \"evidence\": \"Scopes the causal explanation to recommendation's Service policy and pod placement; frontend is described as an affected caller.\", \"confidence\": \"Medium\"}, {\"id\": \"D3-Q2\", \"answer\": \"Yes\", \"evidence\": \"Mentions the recommendation Service, recommendation Deployment and endpoint placement, and the affected frontend deployment.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q3\", \"answer\": \"Yes\", \"evidence\": \"Reports that frontend on kind-worker2 has no local recommendation endpoint because ready endpoints exist only on kind-worker, consistent with cross-node unreachability.\", \"confidence\": \"High\"}]",
+    "success": true,
+    "accuracy": 89.0,
+    "composite_score": 0.89,
+    "dimensions": {
+     "D1": {
+      "name": "Fault Localization",
+      "score": 0.67
+     },
+     "D2": {
+      "name": "Fault Characterization",
+      "score": 1.0
+     },
+     "D3": {
+      "name": "Scope Precision",
+      "score": 1.0
+     }
+    },
+    "checklist": [
+     {
+      "id": "D1-Q1",
+      "answer": "Yes",
+      "evidence": "Explicitly identifies \u201cFault object: Service recommendation\u201d in astronomy-shop, matching the target despite the inconsistent Deployment headline.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q2",
+      "answer": "Yes",
+      "evidence": "Attributes unreachable endpoints to recommendation's Service policy and lists frontend separately under \u201cImpact on other components.\u201d",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q3",
+      "answer": "No",
+      "evidence": "The headline names \u201cRoot cause component: Deployment recommendation,\u201d incorrectly assigning origin to the Deployment despite later correctly identifying the Service.",
+      "confidence": "Medium"
+     },
+     {
+      "id": "D2-Q1",
+      "answer": "Yes",
+      "evidence": "States that internalTrafficPolicy=Local routes traffic only to endpoints on the client's own node.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q2",
+      "answer": "Yes",
+      "evidence": "Names spec.internalTrafficPolicy and its Local value, with ready endpoints on kind-worker and frontend on kind-worker2.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q3",
+      "answer": "Yes",
+      "evidence": "Classifies the fault as a Service traffic policy leaving clients without reachable endpoints, consistent with ground truth.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q1",
+      "answer": "Yes",
+      "evidence": "Scopes the causal explanation to recommendation's Service policy and pod placement; frontend is described as an affected caller.",
+      "confidence": "Medium"
+     },
+     {
+      "id": "D3-Q2",
+      "answer": "Yes",
+      "evidence": "Mentions the recommendation Service, recommendation Deployment and endpoint placement, and the affected frontend deployment.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q3",
+      "answer": "Yes",
+      "evidence": "Reports that frontend on kind-worker2 has no local recommendation endpoint because ready endpoints exist only on kind-worker, consistent with cross-node unreachability.",
+      "confidence": "High"
+     }
+    ]
+   }
+  },
+  {
+   "arm": 2,
+   "kind": "v2",
+   "model": "typesafe/jev-1.13",
+   "position": 2,
+   "seconds": 1.3,
+   "requests": 2,
+   "input_tokens": 35367,
+   "error": null,
+   "component": "deployment/recommendation",
+   "investigation": {
+    "steps": [
+     {
+      "step": 1,
+      "node": "investigate",
+      "component": "deployment/recommendation",
+      "verdict": "origin",
+      "origin_p": 1.0,
+      "victim_p": 0.0,
+      "next": "none",
+      "next_p": 0.75,
+      "category": "traffic_policy",
+      "spec_checks": [
+       "service recommendation has internalTrafficPolicy=Local and ready endpoints only on kind-worker; client deployment/frontend on kind-worker2, where it has no local endpoint"
+      ],
+      "blocked_input": null,
+      "key_evidence": "service recommendation has internalTrafficPolicy=Local: only endpoints on the client's own node receive traffic"
+     }
+    ],
+    "concluded": "deployment/recommendation",
+    "fallback": null,
+    "triage_top": [
+     [
+      "deployment/recommendation",
+      0.98
+     ],
+     [
+      "deployment/frontend",
+      0.01
+     ],
+     [
+      "other",
+      0.01
+     ],
+     [
+      "deployment/accounting",
+      0.0
+     ],
+     [
+      "deployment/ad",
+      0.0
+     ]
+    ]
+   },
+   "text": "Root cause: Service `recommendation` in namespace `astronomy-shop` (selecting Deployment `recommendation` in namespace `astronomy-shop`): service recommendation has internalTrafficPolicy=Local: only endpoints on the client's own node receive traffic.\nMechanism: Service recommendation was modified 141s ago, 69s after it was created (fields: spec.internalTrafficPolicy).\nDetails: pod nodeSelector: null -> {\"kubernetes.io/hostname\": \"kind-worker\"}; service recommendation has internalTrafficPolicy=Local and ready endpoints only on kind-worker; client deployment/frontend on kind-worker2, where it has no local endpoint.\nEffect: service recommendation (internalTrafficPolicy=Local) has ready endpoints only on kind-worker; client deployment/frontend runs on kind-worker2, where calls to recommendation find no local endpoint.",
+   "grade": {
+    "judgment": "True",
+    "reasoning": "Verdict: True (composite=1.00). D1 Fault Localization: 1.00 | D2 Fault Characterization: 1.00 | D3 Scope Precision: 1.00. Weakest dimension: Fault Localization (1.00). Checklist details: [{\"id\": \"D1-Q1\", \"answer\": \"Yes\", \"evidence\": \"The diagnosis explicitly names Service recommendation in namespace astronomy-shop as the root cause, matching the fault specification.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q2\", \"answer\": \"Yes\", \"evidence\": \"It identifies recommendation's Service policy as the cause and frontend as the client affected by having no local endpoint.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q3\", \"answer\": \"Yes\", \"evidence\": \"The diagnosis attributes the fault to Service recommendation, rather than blaming frontend or another healthy component.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q1\", \"answer\": \"Yes\", \"evidence\": \"It states internalTrafficPolicy=Local permits traffic only to endpoints on the client's own node, matching the ground-truth mechanism.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q2\", \"answer\": \"Yes\", \"evidence\": \"The diagnosis names spec.internalTrafficPolicy and its faulty value Local.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q3\", \"answer\": \"Yes\", \"evidence\": \"It consistently attributes the fault to Local traffic policy combined with endpoint placement on a different node from frontend.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q1\", \"answer\": \"Yes\", \"evidence\": \"The diagnosis confines causal attribution to recommendation's Service policy and pod placement, identifying frontend as an affected caller.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q2\", \"answer\": \"Yes\", \"evidence\": \"It mentions the recommendation Service, recommendation Deployment and ready endpoints, and frontend running on another worker node.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q3\", \"answer\": \"Yes\", \"evidence\": \"It states frontend calls find no local endpoint because ready recommendation endpoints exist only on another node, consistent with the stated routing failure.\", \"confidence\": \"High\"}]",
+    "success": true,
+    "accuracy": 100.0,
+    "composite_score": 1.0,
+    "dimensions": {
+     "D1": {
+      "name": "Fault Localization",
+      "score": 1.0
+     },
+     "D2": {
+      "name": "Fault Characterization",
+      "score": 1.0
+     },
+     "D3": {
+      "name": "Scope Precision",
+      "score": 1.0
+     }
+    },
+    "checklist": [
+     {
+      "id": "D1-Q1",
+      "answer": "Yes",
+      "evidence": "The diagnosis explicitly names Service recommendation in namespace astronomy-shop as the root cause, matching the fault specification.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q2",
+      "answer": "Yes",
+      "evidence": "It identifies recommendation's Service policy as the cause and frontend as the client affected by having no local endpoint.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q3",
+      "answer": "Yes",
+      "evidence": "The diagnosis attributes the fault to Service recommendation, rather than blaming frontend or another healthy component.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q1",
+      "answer": "Yes",
+      "evidence": "It states internalTrafficPolicy=Local permits traffic only to endpoints on the client's own node, matching the ground-truth mechanism.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q2",
+      "answer": "Yes",
+      "evidence": "The diagnosis names spec.internalTrafficPolicy and its faulty value Local.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q3",
+      "answer": "Yes",
+      "evidence": "It consistently attributes the fault to Local traffic policy combined with endpoint placement on a different node from frontend.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q1",
+      "answer": "Yes",
+      "evidence": "The diagnosis confines causal attribution to recommendation's Service policy and pod placement, identifying frontend as an affected caller.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q2",
+      "answer": "Yes",
+      "evidence": "It mentions the recommendation Service, recommendation Deployment and ready endpoints, and frontend running on another worker node.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q3",
+      "answer": "Yes",
+      "evidence": "It states frontend calls find no local endpoint because ready recommendation endpoints exist only on another node, consistent with the stated routing failure.",
+      "confidence": "High"
+     }
+    ]
+   }
+  },
+  {
+   "arm": 3,
+   "kind": "v2",
+   "model": "openai/gpt-6-luna-decisions",
+   "position": 3,
+   "seconds": 1.2,
+   "requests": 2,
+   "input_tokens": 23570,
+   "error": null,
+   "component": "deployment/recommendation",
+   "investigation": {
+    "steps": [
+     {
+      "step": 1,
+      "node": "investigate",
+      "component": "deployment/recommendation",
+      "verdict": "origin",
+      "origin_p": 0.97,
+      "victim_p": 0.02,
+      "next": "none",
+      "next_p": 0.43,
+      "category": "traffic_policy",
+      "spec_checks": [
+       "service recommendation has internalTrafficPolicy=Local and ready endpoints only on kind-worker; client deployment/frontend on kind-worker2, where it has no local endpoint"
+      ],
+      "blocked_input": null,
+      "key_evidence": "service recommendation has internalTrafficPolicy=Local: only endpoints on the client's own node receive traffic"
+     }
+    ],
+    "concluded": "deployment/recommendation",
+    "fallback": null,
+    "triage_top": [
+     [
+      "deployment/recommendation",
+      0.99
+     ],
+     [
+      "deployment/frontend",
+      0.01
+     ],
+     [
+      "deployment/accounting",
+      0.0
+     ],
+     [
+      "deployment/ad",
+      0.0
+     ],
+     [
+      "deployment/cart",
+      0.0
+     ]
+    ]
+   },
+   "text": "Root cause: Service `recommendation` in namespace `astronomy-shop` (selecting Deployment `recommendation` in namespace `astronomy-shop`): service recommendation has internalTrafficPolicy=Local: only endpoints on the client's own node receive traffic.\nMechanism: Service recommendation was modified 141s ago, 69s after it was created (fields: spec.internalTrafficPolicy).\nDetails: pod nodeSelector: null -> {\"kubernetes.io/hostname\": \"kind-worker\"}; service recommendation has internalTrafficPolicy=Local and ready endpoints only on kind-worker; client deployment/frontend on kind-worker2, where it has no local endpoint.\nEffect: service recommendation (internalTrafficPolicy=Local) has ready endpoints only on kind-worker; client deployment/frontend runs on kind-worker2, where calls to recommendation find no local endpoint.",
+   "grade": {
+    "judgment": "True",
+    "reasoning": "Verdict: True (composite=1.00). D1 Fault Localization: 1.00 | D2 Fault Characterization: 1.00 | D3 Scope Precision: 1.00. Weakest dimension: Fault Localization (1.00). Checklist details: [{\"id\": \"D1-Q1\", \"answer\": \"Yes\", \"evidence\": \"Explicitly identifies Service recommendation in namespace astronomy-shop as the root cause, matching the fault specification.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q2\", \"answer\": \"Yes\", \"evidence\": \"Identifies recommendation's Service policy as the origin and frontend as the client affected by having no local endpoint.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q3\", \"answer\": \"Yes\", \"evidence\": \"Blames the recommendation Service's internalTrafficPolicy setting, rather than a different healthy component.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q1\", \"answer\": \"Yes\", \"evidence\": \"States internalTrafficPolicy=Local routes traffic only to endpoints on the client's own node, matching the ground-truth mechanism.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q2\", \"answer\": \"Yes\", \"evidence\": \"Names the mutated field spec.internalTrafficPolicy and its problematic value Local.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q3\", \"answer\": \"Yes\", \"evidence\": \"Attributes the fault to Local traffic policy combined with endpoint placement on a different node from frontend.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q1\", \"answer\": \"Yes\", \"evidence\": \"Scopes the fault to recommendation's Service policy and pod placement; describes frontend as an affected caller.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q2\", \"answer\": \"Yes\", \"evidence\": \"Includes the recommendation Service, recommendation Deployment and pod placement, and frontend as the affected client.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q3\", \"answer\": \"Yes\", \"evidence\": \"States frontend calls find no local endpoint because ready recommendation endpoints exist only on another node, consistent with the stated connectivity failure.\", \"confidence\": \"High\"}]",
+    "success": true,
+    "accuracy": 100.0,
+    "composite_score": 1.0,
+    "dimensions": {
+     "D1": {
+      "name": "Fault Localization",
+      "score": 1.0
+     },
+     "D2": {
+      "name": "Fault Characterization",
+      "score": 1.0
+     },
+     "D3": {
+      "name": "Scope Precision",
+      "score": 1.0
+     }
+    },
+    "checklist": [
+     {
+      "id": "D1-Q1",
+      "answer": "Yes",
+      "evidence": "Explicitly identifies Service recommendation in namespace astronomy-shop as the root cause, matching the fault specification.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q2",
+      "answer": "Yes",
+      "evidence": "Identifies recommendation's Service policy as the origin and frontend as the client affected by having no local endpoint.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q3",
+      "answer": "Yes",
+      "evidence": "Blames the recommendation Service's internalTrafficPolicy setting, rather than a different healthy component.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q1",
+      "answer": "Yes",
+      "evidence": "States internalTrafficPolicy=Local routes traffic only to endpoints on the client's own node, matching the ground-truth mechanism.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q2",
+      "answer": "Yes",
+      "evidence": "Names the mutated field spec.internalTrafficPolicy and its problematic value Local.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q3",
+      "answer": "Yes",
+      "evidence": "Attributes the fault to Local traffic policy combined with endpoint placement on a different node from frontend.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q1",
+      "answer": "Yes",
+      "evidence": "Scopes the fault to recommendation's Service policy and pod placement; describes frontend as an affected caller.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q2",
+      "answer": "Yes",
+      "evidence": "Includes the recommendation Service, recommendation Deployment and pod placement, and frontend as the affected client.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q3",
+      "answer": "Yes",
+      "evidence": "States frontend calls find no local endpoint because ready recommendation endpoints exist only on another node, consistent with the stated connectivity failure.",
+      "confidence": "High"
+     }
+    ]
+   }
+  }
+ ],
+ "judge": {
+  "model": "gpt-6-astra",
+  "backend": "codex",
+  "effort": "high"
+ }
+}

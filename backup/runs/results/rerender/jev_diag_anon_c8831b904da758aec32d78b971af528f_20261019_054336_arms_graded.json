@@ -1,0 +1,274 @@
+{
+ "problem_id": "jev_diag_anon_c8831b904da758aec32d78b971af528f_20261019_054336",
+ "submit_arm": 0,
+ "order": [
+  2,
+  0,
+  3,
+  1
+ ],
+ "arms": [
+  {
+   "arm": 0,
+   "kind": "v2",
+   "model": "openrouter/typesafe/jev-1.13",
+   "position": 1,
+   "seconds": 9.5,
+   "requests": 4,
+   "input_tokens": 50062,
+   "cost_usd": 0.002103,
+   "error": null,
+   "investigation": {
+    "rounds": [
+     {
+      "candidates": [
+       "change:configmap/kube-system/coredns",
+       "dependency:deployment/user-service",
+       "amplify:deployment/compose-post-service->deployment/user-service",
+       "partial:deployment/user-service",
+       "partial:deployment/nginx-thrift",
+       "partial:deployment/compose-post-service"
+      ],
+      "probabilities": {
+       "change:configmap/kube-system/coredns": 0.995,
+       "dependency:deployment/user-service": 0.0,
+       "amplify:deployment/compose-post-service->deployment/user-service": 0.0,
+       "partial:deployment/user-service": 0.0,
+       "partial:deployment/nginx-thrift": 0.0,
+       "partial:deployment/compose-post-service": 0.0,
+       "none_of_these": 0.005
+      },
+      "picks": [
+       "change:configmap/kube-system/coredns",
+       "change:configmap/kube-system/coredns"
+      ],
+      "route": "accept"
+     }
+    ],
+    "explanations": 6,
+    "winner": "change:configmap/kube-system/coredns",
+    "pattern": "acts-on",
+    "key_fact": "dependency deployment/user-service is abnormal on its own: CoreDNS rule in kube-system/coredns overrides name resolution for this component's Service user-service: template ANY ANY user-service.social-network.svc.cluster.local { \u23ce match \"^user-service.social-network.svc.cluster.local\\.$\" \u23ce rcode NXDOMAIN \u23ce fallthrough \u23ce }",
+    "key_fact_probability": 1.0,
+    "fault_type": "dns_resolution",
+    "fault_object": null,
+    "uncertain": false
+   },
+   "text": "Root cause: configmap `coredns` in namespace `kube-system`.\nMechanism: dependency deployment/user-service is abnormal on its own: CoreDNS rule in kube-system/coredns overrides name resolution for this component's Service user-service: template ANY ANY user-service.social-network.svc.cluster.local { \u23ce match \"^user-service.social-network.svc.cluster.local\\.$\" \u23ce rcode NXDOMAIN \u23ce fallthrough \u23ce }.\nHow it fails: configmap coredns was changed recently and breaks deployment/user-service, which it acts on.\nConcrete details: configmap coredns fields written: data.Corefile; rule overrides name resolution for Service social-network/user-service (deployment/user-service): template ANY ANY user-service.social-network.svc.cluster.local { \u23ce match \"^user-service.social-network.svc.cluster.local\\.$\" \u23ce rcode NXDOMAIN \u23ce fallthrough \u23ce }; ConfigMap coredns was modified 135s ago, 75707s after it was created (fields: data.Corefile); 120s before the first active symptom.\nObserved impact: deployment `compose-post-service` in namespace `social-network`, deployment `user-service` in namespace `social-network`.\nFault type: dns resolution (name resolution fails or returns wrong answers).\nEvidence:\n- configmap coredns fields written: data.Corefile\n- rule overrides name resolution for Service social-network/user-service (deployment/user-service): template ANY ANY user-service.social-network.svc.cluster.local { \u23ce match \"^user-service.social-network.svc.cluster.local\\.$\" \u23ce rcode NXDOMAIN \u23ce fallthrough \u23ce }; ConfigMap coredns was modified 135s ago, 75707s after it was created (fields: data.Corefile); 120s before the first active symptom\n- deployment/user-service: CoreDNS rule in kube-system/coredns overrides name resolution for this component's Service user-service: template ANY ANY user-service.social-network.svc.cluster.local { \u23ce match \"^user-service.social-network.svc.cluster.local\\.$\" \u23ce rcode NXDOMAIN \u23ce fallthrough \u23ce }",
+   "text_before_rerender": "Root cause: configmap `coredns` in namespace `kube-system`.\nMechanism: configmap coredns was changed recently and breaks deployment/user-service, which it acts on.\nConcrete details: configmap coredns fields written: data.Corefile; rule overrides name resolution for Service social-network/user-service (deployment/user-service): template ANY ANY user-service.social-network.svc.cluster.local { \u23ce match \"^user-service.social-network.svc.cluster.local\\.$\" \u23ce rcode NXDOMAIN \u23ce fallthrough \u23ce }; ConfigMap coredns was modified 135s ago, 75707s after it was created (fields: data.Corefile); 120s before the first active symptom.\nObserved impact: deployment `compose-post-service` in namespace `social-network`, deployment `user-service` in namespace `social-network`.\nKey evidence: dependency deployment/user-service is abnormal on its own: CoreDNS rule in kube-system/coredns overrides name resolution for this component's Service user-service: template ANY ANY user-service.social-network.svc.cluster.local { \u23ce match \"^user-service.social-network.svc.cluster.local\\.$\" \u23ce rcode NXDOMAIN \u23ce fallthrough \u23ce }.\nFault type: dns resolution (name resolution fails or returns wrong answers).\nEvidence:\n- configmap coredns fields written: data.Corefile\n- rule overrides name resolution for Service social-network/user-service (deployment/user-service): template ANY ANY user-service.social-network.svc.cluster.local { \u23ce match \"^user-service.social-network.svc.cluster.local\\.$\" \u23ce rcode NXDOMAIN \u23ce fallthrough \u23ce }; ConfigMap coredns was modified 135s ago, 75707s after it was created (fields: data.Corefile); 120s before the first active symptom\n- deployment/user-service: CoreDNS rule in kube-system/coredns overrides name resolution for this component's Service user-service: template ANY ANY user-service.social-network.svc.cluster.local { \u23ce match \"^user-service.social-network.svc.cluster.local\\.$\" \u23ce rcode NXDOMAIN \u23ce fallthrough \u23ce }",
+   "grade": {
+    "judgment": "True",
+    "reasoning": "Verdict: True (composite=0.89). D1 Fault Localization: 1.00 | D2 Fault Characterization: 1.00 | D3 Scope Precision: 0.67. Weakest dimension: Scope Precision (0.67). Checklist details: [{\"id\": \"D1-Q1\", \"answer\": \"Yes\", \"evidence\": \"Explicitly identifies the root cause as configmap coredns in namespace kube-system, matching the fault specification.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q2\", \"answer\": \"Yes\", \"evidence\": \"Attributes the failure to a CoreDNS ConfigMap change and identifies user-service and compose-post-service as impacted deployments.\", \"confidence\": \"Medium\"}, {\"id\": \"D1-Q3\", \"answer\": \"Yes\", \"evidence\": \"Names kube-system/coredns as the fault origin; describes its DNS rule as causing the user-service failure.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q1\", \"answer\": \"Yes\", \"evidence\": \"Identifies a CoreDNS template returning NXDOMAIN for user-service.social-network.svc.cluster.local.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q2\", \"answer\": \"Yes\", \"evidence\": \"Specifies data.Corefile, the targeted service FQDN, template ANY ANY, and rcode NXDOMAIN.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q3\", \"answer\": \"Yes\", \"evidence\": \"Explicitly classifies the fault as DNS resolution failure, consistent with the injected NXDOMAIN template.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q1\", \"answer\": \"No\", \"evidence\": \"Claims deployment/user-service is 'abnormal on its own,' overstating a deployment fault where ground truth identifies failed DNS resolution and potentially healthy pods.\", \"confidence\": \"Medium\"}, {\"id\": \"D3-Q2\", \"answer\": \"Yes\", \"evidence\": \"Mentions CoreDNS, the user-service endpoint, and an affected dependent service, compose-post-service; ground truth names no additional specific dependencies.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q3\", \"answer\": \"Yes\", \"evidence\": \"Describes failed name resolution for user-service and impact on compose-post-service, consistent with DNS failure affecting dependent flows.\", \"confidence\": \"High\"}]",
+    "success": true,
+    "accuracy": 89.0,
+    "composite_score": 0.89,
+    "dimensions": {
+     "D1": {
+      "name": "Fault Localization",
+      "score": 1.0
+     },
+     "D2": {
+      "name": "Fault Characterization",
+      "score": 1.0
+     },
+     "D3": {
+      "name": "Scope Precision",
+      "score": 0.67
+     }
+    },
+    "checklist": [
+     {
+      "id": "D1-Q1",
+      "answer": "Yes",
+      "evidence": "Explicitly identifies the root cause as configmap coredns in namespace kube-system, matching the fault specification.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q2",
+      "answer": "Yes",
+      "evidence": "Attributes the failure to a CoreDNS ConfigMap change and identifies user-service and compose-post-service as impacted deployments.",
+      "confidence": "Medium"
+     },
+     {
+      "id": "D1-Q3",
+      "answer": "Yes",
+      "evidence": "Names kube-system/coredns as the fault origin; describes its DNS rule as causing the user-service failure.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q1",
+      "answer": "Yes",
+      "evidence": "Identifies a CoreDNS template returning NXDOMAIN for user-service.social-network.svc.cluster.local.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q2",
+      "answer": "Yes",
+      "evidence": "Specifies data.Corefile, the targeted service FQDN, template ANY ANY, and rcode NXDOMAIN.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q3",
+      "answer": "Yes",
+      "evidence": "Explicitly classifies the fault as DNS resolution failure, consistent with the injected NXDOMAIN template.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q1",
+      "answer": "No",
+      "evidence": "Claims deployment/user-service is 'abnormal on its own,' overstating a deployment fault where ground truth identifies failed DNS resolution and potentially healthy pods.",
+      "confidence": "Medium"
+     },
+     {
+      "id": "D3-Q2",
+      "answer": "Yes",
+      "evidence": "Mentions CoreDNS, the user-service endpoint, and an affected dependent service, compose-post-service; ground truth names no additional specific dependencies.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q3",
+      "answer": "Yes",
+      "evidence": "Describes failed name resolution for user-service and impact on compose-post-service, consistent with DNS failure affecting dependent flows.",
+      "confidence": "High"
+     }
+    ]
+   }
+  },
+  {
+   "arm": 1,
+   "kind": "v2",
+   "model": "openrouter/openai/gpt-6-luna-decisions",
+   "position": 3,
+   "seconds": 8.3,
+   "requests": 4,
+   "input_tokens": 36574,
+   "cost_usd": 0.003657,
+   "error": null,
+   "investigation": {
+    "rounds": [
+     {
+      "candidates": [
+       "change:configmap/kube-system/coredns",
+       "dependency:deployment/user-service",
+       "amplify:deployment/compose-post-service->deployment/user-service",
+       "partial:deployment/user-service",
+       "partial:deployment/nginx-thrift",
+       "partial:deployment/compose-post-service"
+      ],
+      "probabilities": {
+       "change:configmap/kube-system/coredns": 0.99,
+       "dependency:deployment/user-service": 0.005,
+       "amplify:deployment/compose-post-service->deployment/user-service": 0.0,
+       "partial:deployment/user-service": 0.0,
+       "partial:deployment/nginx-thrift": 0.0,
+       "partial:deployment/compose-post-service": 0.005,
+       "none_of_these": 0.0
+      },
+      "picks": [
+       "change:configmap/kube-system/coredns",
+       "change:configmap/kube-system/coredns"
+      ],
+      "route": "accept"
+     }
+    ],
+    "explanations": 6,
+    "winner": "change:configmap/kube-system/coredns",
+    "pattern": "acts-on",
+    "key_fact": "dependency deployment/user-service is abnormal on its own: CoreDNS rule in kube-system/coredns overrides name resolution for this component's Service user-service: template ANY ANY user-service.social-network.svc.cluster.local { \u23ce match \"^user-service.social-network.svc.cluster.local\\.$\" \u23ce rcode NXDOMAIN \u23ce fallthrough \u23ce }",
+    "key_fact_probability": 0.99,
+    "fault_type": "dns_resolution",
+    "fault_object": null,
+    "uncertain": false
+   },
+   "text": "Root cause: configmap `coredns` in namespace `kube-system`.\nMechanism: dependency deployment/user-service is abnormal on its own: CoreDNS rule in kube-system/coredns overrides name resolution for this component's Service user-service: template ANY ANY user-service.social-network.svc.cluster.local { \u23ce match \"^user-service.social-network.svc.cluster.local\\.$\" \u23ce rcode NXDOMAIN \u23ce fallthrough \u23ce }.\nHow it fails: configmap coredns was changed recently and breaks deployment/user-service, which it acts on.\nConcrete details: configmap coredns fields written: data.Corefile; rule overrides name resolution for Service social-network/user-service (deployment/user-service): template ANY ANY user-service.social-network.svc.cluster.local { \u23ce match \"^user-service.social-network.svc.cluster.local\\.$\" \u23ce rcode NXDOMAIN \u23ce fallthrough \u23ce }; ConfigMap coredns was modified 135s ago, 75707s after it was created (fields: data.Corefile); 120s before the first active symptom.\nObserved impact: deployment `compose-post-service` in namespace `social-network`, deployment `user-service` in namespace `social-network`.\nFault type: dns resolution (name resolution fails or returns wrong answers).\nEvidence:\n- configmap coredns fields written: data.Corefile\n- rule overrides name resolution for Service social-network/user-service (deployment/user-service): template ANY ANY user-service.social-network.svc.cluster.local { \u23ce match \"^user-service.social-network.svc.cluster.local\\.$\" \u23ce rcode NXDOMAIN \u23ce fallthrough \u23ce }; ConfigMap coredns was modified 135s ago, 75707s after it was created (fields: data.Corefile); 120s before the first active symptom\n- deployment/user-service: CoreDNS rule in kube-system/coredns overrides name resolution for this component's Service user-service: template ANY ANY user-service.social-network.svc.cluster.local { \u23ce match \"^user-service.social-network.svc.cluster.local\\.$\" \u23ce rcode NXDOMAIN \u23ce fallthrough \u23ce }",
+   "text_before_rerender": "Root cause: configmap `coredns` in namespace `kube-system`.\nMechanism: configmap coredns was changed recently and breaks deployment/user-service, which it acts on.\nConcrete details: configmap coredns fields written: data.Corefile; rule overrides name resolution for Service social-network/user-service (deployment/user-service): template ANY ANY user-service.social-network.svc.cluster.local { \u23ce match \"^user-service.social-network.svc.cluster.local\\.$\" \u23ce rcode NXDOMAIN \u23ce fallthrough \u23ce }; ConfigMap coredns was modified 135s ago, 75707s after it was created (fields: data.Corefile); 120s before the first active symptom.\nObserved impact: deployment `compose-post-service` in namespace `social-network`, deployment `user-service` in namespace `social-network`.\nKey evidence: dependency deployment/user-service is abnormal on its own: CoreDNS rule in kube-system/coredns overrides name resolution for this component's Service user-service: template ANY ANY user-service.social-network.svc.cluster.local { \u23ce match \"^user-service.social-network.svc.cluster.local\\.$\" \u23ce rcode NXDOMAIN \u23ce fallthrough \u23ce }.\nFault type: dns resolution (name resolution fails or returns wrong answers).\nEvidence:\n- configmap coredns fields written: data.Corefile\n- rule overrides name resolution for Service social-network/user-service (deployment/user-service): template ANY ANY user-service.social-network.svc.cluster.local { \u23ce match \"^user-service.social-network.svc.cluster.local\\.$\" \u23ce rcode NXDOMAIN \u23ce fallthrough \u23ce }; ConfigMap coredns was modified 135s ago, 75707s after it was created (fields: data.Corefile); 120s before the first active symptom\n- deployment/user-service: CoreDNS rule in kube-system/coredns overrides name resolution for this component's Service user-service: template ANY ANY user-service.social-network.svc.cluster.local { \u23ce match \"^user-service.social-network.svc.cluster.local\\.$\" \u23ce rcode NXDOMAIN \u23ce fallthrough \u23ce }",
+   "grade": {
+    "judgment": "True",
+    "reasoning": "Verdict: True (composite=0.89). D1 Fault Localization: 1.00 | D2 Fault Characterization: 1.00 | D3 Scope Precision: 0.67. Weakest dimension: Scope Precision (0.67). Checklist details: [{\"id\": \"D1-Q1\", \"answer\": \"Yes\", \"evidence\": \"Explicitly identifies configmap coredns in namespace kube-system as the root cause, matching the fault specification.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q2\", \"answer\": \"Yes\", \"evidence\": \"Identifies CoreDNS configuration as the cause and lists user-service and compose-post-service separately as observed impacts.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q3\", \"answer\": \"Yes\", \"evidence\": \"The stated fault origin is kube-system/coredns; user-service is described as affected by its DNS rule.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q1\", \"answer\": \"Yes\", \"evidence\": \"Describes a CoreDNS template returning NXDOMAIN for user-service.social-network.svc.cluster.local, matching the injected mechanism.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q2\", \"answer\": \"Yes\", \"evidence\": \"Names data.Corefile, the exact user-service DNS name, and the template directive rcode NXDOMAIN.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q3\", \"answer\": \"Yes\", \"evidence\": \"Explicitly classifies the fault as DNS resolution failure and attributes it to the CoreDNS override.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q1\", \"answer\": \"No\", \"evidence\": \"Claims deployment/user-service is 'abnormal on its own' and 'breaks'; ground truth establishes failed DNS lookups, not an independently faulty deployment.\", \"confidence\": \"Medium\"}, {\"id\": \"D3-Q2\", \"answer\": \"Yes\", \"evidence\": \"Mentions coredns, the user-service endpoint, and compose-post-service as an affected dependent workload.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q3\", \"answer\": \"Yes\", \"evidence\": \"Describes failed name resolution caused by NXDOMAIN for the target service, consistent with the ground-truth impact mechanism.\", \"confidence\": \"High\"}]",
+    "success": true,
+    "accuracy": 89.0,
+    "composite_score": 0.89,
+    "dimensions": {
+     "D1": {
+      "name": "Fault Localization",
+      "score": 1.0
+     },
+     "D2": {
+      "name": "Fault Characterization",
+      "score": 1.0
+     },
+     "D3": {
+      "name": "Scope Precision",
+      "score": 0.67
+     }
+    },
+    "checklist": [
+     {
+      "id": "D1-Q1",
+      "answer": "Yes",
+      "evidence": "Explicitly identifies configmap coredns in namespace kube-system as the root cause, matching the fault specification.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q2",
+      "answer": "Yes",
+      "evidence": "Identifies CoreDNS configuration as the cause and lists user-service and compose-post-service separately as observed impacts.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q3",
+      "answer": "Yes",
+      "evidence": "The stated fault origin is kube-system/coredns; user-service is described as affected by its DNS rule.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q1",
+      "answer": "Yes",
+      "evidence": "Describes a CoreDNS template returning NXDOMAIN for user-service.social-network.svc.cluster.local, matching the injected mechanism.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q2",
+      "answer": "Yes",
+      "evidence": "Names data.Corefile, the exact user-service DNS name, and the template directive rcode NXDOMAIN.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q3",
+      "answer": "Yes",
+      "evidence": "Explicitly classifies the fault as DNS resolution failure and attributes it to the CoreDNS override.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q1",
+      "answer": "No",
+      "evidence": "Claims deployment/user-service is 'abnormal on its own' and 'breaks'; ground truth establishes failed DNS lookups, not an independently faulty deployment.",
+      "confidence": "Medium"
+     },
+     {
+      "id": "D3-Q2",
+      "answer": "Yes",
+      "evidence": "Mentions coredns, the user-service endpoint, and compose-post-service as an affected dependent workload.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q3",
+      "answer": "Yes",
+      "evidence": "Describes failed name resolution caused by NXDOMAIN for the target service, consistent with the ground-truth impact mechanism.",
+      "confidence": "High"
+     }
+    ]
+   }
+  }
+ ],
+ "submission": {
+  "status": "200",
+  "message": "Submission received",
+  "stage": "diagnosis"
+ },
+ "judge": {
+  "model": "gpt-6-astra",
+  "backend": "codex",
+  "effort": "high"
+ }
+}

@@ -1,0 +1,514 @@
+{
+ "problem_id": "jev_diag_anon_f8e788c2860e0b6e187f5998157fb009_20261018_170935",
+ "submit_arm": 0,
+ "order": [
+  2,
+  3,
+  1,
+  0
+ ],
+ "arms": [
+  {
+   "arm": 0,
+   "kind": "v2",
+   "model": "openrouter/typesafe/jev-1.13",
+   "position": 3,
+   "seconds": 1.0,
+   "requests": 2,
+   "input_tokens": 2760,
+   "cost_usd": 0.000116,
+   "error": null,
+   "investigation": {
+    "rounds": [
+     {
+      "candidates": [
+       "own-setting:deployment/jaeger",
+       "partial:deployment/social-graph-service",
+       "acts-on:configmap/kube-system/coredns:ConfigMap coredns was modified 834s ago, 29766s after it was"
+      ],
+      "probabilities": {
+       "own-setting:deployment/jaeger": 0.775,
+       "partial:deployment/social-graph-service": 0.0,
+       "acts-on:configmap/kube-system/coredns:ConfigMap coredns was modified 834s ago, 29766s after it was": 0.17,
+       "none_of_these": 0.055
+      },
+      "picks": [
+       "own-setting:deployment/jaeger",
+       "own-setting:deployment/jaeger"
+      ],
+      "route": "accept"
+     }
+    ],
+    "explanations": 3,
+    "winner": "own-setting:deployment/jaeger",
+    "pattern": "own-setting",
+    "uncertain": false
+   },
+   "text": "Root cause: deployment `jaeger` in namespace `social-network`.\nMechanism: deployment/social-network/jaeger has a wrong setting of its own: PVC jaeger-pvc is ReadWriteOnce (attachable to one node at a time) but 2 replicas of this Deployment mount it and its required pod anti-affinity places replicas on different nodes; replicas scheduled on another node cannot attach it\nConcrete details: PVC jaeger-pvc is ReadWriteOnce (attachable to one node at a time) but 2 replicas of this Deployment mount it and its required pod anti-affinity places replicas on different nodes; replicas scheduled on another node cannot attach it.\nObserved impact: deployment `jaeger` in namespace `social-network`.\nEvidence:\n- PVC jaeger-pvc is ReadWriteOnce (attachable to one node at a time) but 2 replicas of this Deployment mount it and its required pod anti-affinity places replicas on different nodes; replicas scheduled on another node cannot attach it\n- only 1 of 2 desired replicas are ready\n- pod jaeger-9fd7cdb7c-nf62l: pod phase Pending\n- pod jaeger-9fd7cdb7c-nf62l: pod unschedulable: 0/4 nodes are available: 1 node(s) didn't match pod anti-affinity rules, 1 node(s) had untolerated taint {node-role.kubernetes.io/control-plane: }, 2 node(s) h\u2026\n- deployment/jaeger: only 1 of 2 desired replicas are ready",
+   "grade": {
+    "judgment": "True",
+    "reasoning": "Verdict: True (composite=1.00). D1 Fault Localization: 1.00 | D2 Fault Characterization: 1.00 | D3 Scope Precision: 1.00. Weakest dimension: Fault Localization (1.00). Checklist details: [{\"id\": \"D1-Q1\", \"answer\": \"Yes\", \"evidence\": \"Explicitly identifies deployment jaeger in namespace social-network as the root cause, matching the fault specification.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q2\", \"answer\": \"Yes\", \"evidence\": \"Attributes the fault to jaeger's deployment settings and presents the Pending pod as an observed consequence.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q3\", \"answer\": \"Yes\", \"evidence\": \"Names the specified jaeger deployment as the fault origin without blaming a different component.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q1\", \"answer\": \"Yes\", \"evidence\": \"Describes replicas sharing one ReadWriteOnce PVC while required pod anti-affinity places them on different nodes, preventing shared storage access.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q2\", \"answer\": \"Yes\", \"evidence\": \"Specifies two replicas mounting jaeger-pvc, its ReadWriteOnce access mode, and required anti-affinity separating replicas across nodes.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q3\", \"answer\": \"Yes\", \"evidence\": \"Attributes failure to incompatible shared-storage and replica-placement settings, consistent with the ground-truth mechanism.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q1\", \"answer\": \"Yes\", \"evidence\": \"Limits causal attribution to jaeger's replica count, shared PVC, and required anti-affinity; no unrelated component is blamed.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q2\", \"answer\": \"Yes\", \"evidence\": \"Includes the jaeger deployment, its replicas, shared ReadWriteOnce PVC, and required anti-affinity separating replicas across nodes.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q3\", \"answer\": \"Yes\", \"evidence\": \"Reports only one of two desired replicas ready and a jaeger pod Pending, matching the partially Ready deployment described in ground truth.\", \"confidence\": \"High\"}]",
+    "success": true,
+    "accuracy": 100.0,
+    "composite_score": 1.0,
+    "dimensions": {
+     "D1": {
+      "name": "Fault Localization",
+      "score": 1.0
+     },
+     "D2": {
+      "name": "Fault Characterization",
+      "score": 1.0
+     },
+     "D3": {
+      "name": "Scope Precision",
+      "score": 1.0
+     }
+    },
+    "checklist": [
+     {
+      "id": "D1-Q1",
+      "answer": "Yes",
+      "evidence": "Explicitly identifies deployment jaeger in namespace social-network as the root cause, matching the fault specification.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q2",
+      "answer": "Yes",
+      "evidence": "Attributes the fault to jaeger's deployment settings and presents the Pending pod as an observed consequence.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q3",
+      "answer": "Yes",
+      "evidence": "Names the specified jaeger deployment as the fault origin without blaming a different component.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q1",
+      "answer": "Yes",
+      "evidence": "Describes replicas sharing one ReadWriteOnce PVC while required pod anti-affinity places them on different nodes, preventing shared storage access.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q2",
+      "answer": "Yes",
+      "evidence": "Specifies two replicas mounting jaeger-pvc, its ReadWriteOnce access mode, and required anti-affinity separating replicas across nodes.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q3",
+      "answer": "Yes",
+      "evidence": "Attributes failure to incompatible shared-storage and replica-placement settings, consistent with the ground-truth mechanism.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q1",
+      "answer": "Yes",
+      "evidence": "Limits causal attribution to jaeger's replica count, shared PVC, and required anti-affinity; no unrelated component is blamed.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q2",
+      "answer": "Yes",
+      "evidence": "Includes the jaeger deployment, its replicas, shared ReadWriteOnce PVC, and required anti-affinity separating replicas across nodes.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q3",
+      "answer": "Yes",
+      "evidence": "Reports only one of two desired replicas ready and a jaeger pod Pending, matching the partially Ready deployment described in ground truth.",
+      "confidence": "High"
+     }
+    ]
+   }
+  },
+  {
+   "arm": 1,
+   "kind": "v2",
+   "model": "openrouter/openai/gpt-6-luna-decisions",
+   "position": 2,
+   "seconds": 1.2,
+   "requests": 2,
+   "input_tokens": 1882,
+   "cost_usd": 0.000188,
+   "error": null,
+   "investigation": {
+    "rounds": [
+     {
+      "candidates": [
+       "own-setting:deployment/jaeger",
+       "partial:deployment/social-graph-service",
+       "acts-on:configmap/kube-system/coredns:ConfigMap coredns was modified 834s ago, 29766s after it was"
+      ],
+      "probabilities": {
+       "own-setting:deployment/jaeger": 0.8899999999999999,
+       "partial:deployment/social-graph-service": 0.06999999999999999,
+       "acts-on:configmap/kube-system/coredns:ConfigMap coredns was modified 834s ago, 29766s after it was": 0.015,
+       "none_of_these": 0.025
+      },
+      "picks": [
+       "own-setting:deployment/jaeger",
+       "own-setting:deployment/jaeger"
+      ],
+      "route": "accept"
+     }
+    ],
+    "explanations": 3,
+    "winner": "own-setting:deployment/jaeger",
+    "pattern": "own-setting",
+    "uncertain": false
+   },
+   "text": "Root cause: deployment `jaeger` in namespace `social-network`.\nMechanism: deployment/social-network/jaeger has a wrong setting of its own: PVC jaeger-pvc is ReadWriteOnce (attachable to one node at a time) but 2 replicas of this Deployment mount it and its required pod anti-affinity places replicas on different nodes; replicas scheduled on another node cannot attach it\nConcrete details: PVC jaeger-pvc is ReadWriteOnce (attachable to one node at a time) but 2 replicas of this Deployment mount it and its required pod anti-affinity places replicas on different nodes; replicas scheduled on another node cannot attach it.\nObserved impact: deployment `jaeger` in namespace `social-network`.\nEvidence:\n- PVC jaeger-pvc is ReadWriteOnce (attachable to one node at a time) but 2 replicas of this Deployment mount it and its required pod anti-affinity places replicas on different nodes; replicas scheduled on another node cannot attach it\n- only 1 of 2 desired replicas are ready\n- pod jaeger-9fd7cdb7c-nf62l: pod phase Pending\n- pod jaeger-9fd7cdb7c-nf62l: pod unschedulable: 0/4 nodes are available: 1 node(s) didn't match pod anti-affinity rules, 1 node(s) had untolerated taint {node-role.kubernetes.io/control-plane: }, 2 node(s) h\u2026\n- deployment/jaeger: only 1 of 2 desired replicas are ready",
+   "grade": {
+    "judgment": "True",
+    "reasoning": "Verdict: True (composite=1.00). D1 Fault Localization: 1.00 | D2 Fault Characterization: 1.00 | D3 Scope Precision: 1.00. Weakest dimension: Fault Localization (1.00). Checklist details: [{\"id\": \"D1-Q1\", \"answer\": \"Yes\", \"evidence\": \"Explicitly identifies deployment jaeger in namespace social-network as the root cause.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q2\", \"answer\": \"Yes\", \"evidence\": \"Attributes the fault to jaeger's deployment settings and presents the Pending pod as a resulting symptom.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q3\", \"answer\": \"Yes\", \"evidence\": \"Names the ground-truth deployment jaeger as the fault origin without blaming a different component.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q1\", \"answer\": \"Yes\", \"evidence\": \"Describes multiple replicas sharing one ReadWriteOnce PVC while required pod anti-affinity places replicas on different nodes.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q2\", \"answer\": \"Yes\", \"evidence\": \"Specifies two replicas mounting jaeger-pvc, ReadWriteOnce access, and required anti-affinity separating replicas across nodes.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q3\", \"answer\": \"Yes\", \"evidence\": \"Attributes the failure to the shared PVC's single-node restriction combined with replica separation, consistent with the ground-truth configuration conflict.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q1\", \"answer\": \"Yes\", \"evidence\": \"Limits causal attribution to jaeger's replicas, shared PVC, and required anti-affinity; no unrelated component is blamed.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q2\", \"answer\": \"Yes\", \"evidence\": \"Includes deployment jaeger, its replicas, their shared ReadWriteOnce PVC, required anti-affinity, and the affected Pending pod.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q3\", \"answer\": \"Yes\", \"evidence\": \"Reports only one of two desired replicas ready and a jaeger pod Pending, matching the partially Ready deployment.\", \"confidence\": \"High\"}]",
+    "success": true,
+    "accuracy": 100.0,
+    "composite_score": 1.0,
+    "dimensions": {
+     "D1": {
+      "name": "Fault Localization",
+      "score": 1.0
+     },
+     "D2": {
+      "name": "Fault Characterization",
+      "score": 1.0
+     },
+     "D3": {
+      "name": "Scope Precision",
+      "score": 1.0
+     }
+    },
+    "checklist": [
+     {
+      "id": "D1-Q1",
+      "answer": "Yes",
+      "evidence": "Explicitly identifies deployment jaeger in namespace social-network as the root cause.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q2",
+      "answer": "Yes",
+      "evidence": "Attributes the fault to jaeger's deployment settings and presents the Pending pod as a resulting symptom.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q3",
+      "answer": "Yes",
+      "evidence": "Names the ground-truth deployment jaeger as the fault origin without blaming a different component.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q1",
+      "answer": "Yes",
+      "evidence": "Describes multiple replicas sharing one ReadWriteOnce PVC while required pod anti-affinity places replicas on different nodes.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q2",
+      "answer": "Yes",
+      "evidence": "Specifies two replicas mounting jaeger-pvc, ReadWriteOnce access, and required anti-affinity separating replicas across nodes.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q3",
+      "answer": "Yes",
+      "evidence": "Attributes the failure to the shared PVC's single-node restriction combined with replica separation, consistent with the ground-truth configuration conflict.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q1",
+      "answer": "Yes",
+      "evidence": "Limits causal attribution to jaeger's replicas, shared PVC, and required anti-affinity; no unrelated component is blamed.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q2",
+      "answer": "Yes",
+      "evidence": "Includes deployment jaeger, its replicas, their shared ReadWriteOnce PVC, required anti-affinity, and the affected Pending pod.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q3",
+      "answer": "Yes",
+      "evidence": "Reports only one of two desired replicas ready and a jaeger pod Pending, matching the partially Ready deployment.",
+      "confidence": "High"
+     }
+    ]
+   }
+  },
+  {
+   "arm": 2,
+   "kind": "v1",
+   "model": "openrouter/typesafe/jev-1.13",
+   "position": 0,
+   "seconds": 3.4,
+   "requests": 2,
+   "input_tokens": 27374,
+   "cost_usd": 0.00115,
+   "error": null,
+   "investigation": {
+    "steps": [
+     {
+      "step": 1,
+      "node": "investigate",
+      "component": "deployment/jaeger",
+      "verdict": "origin",
+      "origin_p": 0.97,
+      "victim_p": 0.0,
+      "next": "none",
+      "next_p": 0.75,
+      "category": "scheduling_constraint",
+      "spec_checks": [],
+      "blocked_input": null,
+      "key_evidence": "PVC jaeger-pvc is ReadWriteOnce (attachable to one node at a time) but 2 replicas of this Deployment mount it and its required pod anti-affinity places replicas on different nodes; replicas scheduled on another node cannot attach it"
+     }
+    ],
+    "concluded": "deployment/jaeger",
+    "fallback": null,
+    "triage_top": [
+     [
+      "deployment/jaeger",
+      0.61
+     ],
+     [
+      "other",
+      0.29
+     ],
+     [
+      "deployment/user-timeline-mongodb",
+      0.05
+     ],
+     [
+      "deployment/social-graph-service",
+      0.04
+     ],
+     [
+      "deployment/user-mongodb",
+      0.01
+     ]
+    ]
+   },
+   "text": "Root cause component: Deployment `jaeger` in namespace `social-network`.\nMechanism: PVC jaeger-pvc is ReadWriteOnce (attachable to one node at a time) but 2 replicas of this Deployment mount it and its required pod anti-affinity places replicas on different nodes; replicas scheduled on another node cannot attach it.\nFault type: scheduling constraint (no node satisfies the pod's placement constraints).\nAbnormal state observed on this component:\n- only 1 of 2 desired replicas are ready\n- pod jaeger-9fd7cdb7c-nf62l: pod phase Pending\n- pod jaeger-9fd7cdb7c-nf62l: pod unschedulable: 0/4 nodes are available: 1 node(s) didn't match pod anti-affinity rules, 1 node(s) had untolerated taint {node-role.kubernetes.io/control-plane: }, 2 node(s) h\u2026\n- warning events: FailedScheduling x3\n- firing alert PendingPodsDetected\n- firing alert PodSchedulingFailure\n- pod jaeger-9fd7cdb7c-nf62l is still in pod phase Pending after another 49s\nNotable spec settings:\n- Available=False (MinimumReplicasUnavailable)\n- container jaeger: image docker.io/jaegertracing/all-in-one:1.57\nWarning events:\n- FailedScheduling x2 on pod/jaeger-9fd7cdb7c-nf62l: 0/4 nodes are available: 1 node(s) didn't match pod anti-affinity rules, 1 node(s) had untolerated taint {node-role.kubernetes.io/control-plane: }, 2 node(s) didn't find available persistent volumes to bind. preemption: 0/4 nodes are avail\u2026\n- FailedScheduling x1 on pod/jaeger-9fd7cdb7c-nf62l: 0/4 nodes are available: 1 node(s) didn't match pod anti-affinity rules, 1 node(s) had untolerated taint {node-role.kubernetes.io/control-plane: }, 2 node(s) didn't find available persistent volumes to bind. preemption: 0/4 nodes are avail\u2026\nFiring alerts on this component: PendingPodsDetected, PodSchedulingFailure.\nClassification: Jev (typesafe/jev-1.13-20260917) confirmed this origin at investigation step 1 with probability 0.97 (triage probability 0.61).",
+   "grade": {
+    "judgment": "True",
+    "reasoning": "Verdict: True (composite=1.00). D1 Fault Localization: 1.00 | D2 Fault Characterization: 1.00 | D3 Scope Precision: 1.00. Weakest dimension: Fault Localization (1.00). Checklist details: [{\"id\": \"D1-Q1\", \"answer\": \"Yes\", \"evidence\": \"Explicitly identifies Deployment jaeger in namespace social-network as the root cause component.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q2\", \"answer\": \"Yes\", \"evidence\": \"Identifies the jaeger Deployment as the origin and its Pending pod as an observed symptom.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q3\", \"answer\": \"Yes\", \"evidence\": \"Names the ground-truth target, Deployment jaeger, without identifying another component as the fault origin.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q1\", \"answer\": \"Yes\", \"evidence\": \"Describes replicas sharing one ReadWriteOnce PVC while required pod anti-affinity separates them onto different nodes.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q2\", \"answer\": \"Yes\", \"evidence\": \"Specifies two replicas mounting jaeger-pvc, ReadWriteOnce access, and required pod anti-affinity placing replicas on different nodes.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q3\", \"answer\": \"Yes\", \"evidence\": \"Classifies the fault as a scheduling constraint and links it to incompatible shared-storage and replica-placement requirements.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q1\", \"answer\": \"Yes\", \"evidence\": \"Attributes the fault to jaeger's shared PVC and required anti-affinity; no unrelated workload is blamed.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q2\", \"answer\": \"Yes\", \"evidence\": \"Includes the jaeger Deployment, its replicas, the shared ReadWriteOnce PVC, and required anti-affinity.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q3\", \"answer\": \"Yes\", \"evidence\": \"Reports only one of two desired replicas ready and another pod remaining Pending, matching the partially Ready deployment.\", \"confidence\": \"High\"}]",
+    "success": true,
+    "accuracy": 100.0,
+    "composite_score": 1.0,
+    "dimensions": {
+     "D1": {
+      "name": "Fault Localization",
+      "score": 1.0
+     },
+     "D2": {
+      "name": "Fault Characterization",
+      "score": 1.0
+     },
+     "D3": {
+      "name": "Scope Precision",
+      "score": 1.0
+     }
+    },
+    "checklist": [
+     {
+      "id": "D1-Q1",
+      "answer": "Yes",
+      "evidence": "Explicitly identifies Deployment jaeger in namespace social-network as the root cause component.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q2",
+      "answer": "Yes",
+      "evidence": "Identifies the jaeger Deployment as the origin and its Pending pod as an observed symptom.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q3",
+      "answer": "Yes",
+      "evidence": "Names the ground-truth target, Deployment jaeger, without identifying another component as the fault origin.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q1",
+      "answer": "Yes",
+      "evidence": "Describes replicas sharing one ReadWriteOnce PVC while required pod anti-affinity separates them onto different nodes.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q2",
+      "answer": "Yes",
+      "evidence": "Specifies two replicas mounting jaeger-pvc, ReadWriteOnce access, and required pod anti-affinity placing replicas on different nodes.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q3",
+      "answer": "Yes",
+      "evidence": "Classifies the fault as a scheduling constraint and links it to incompatible shared-storage and replica-placement requirements.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q1",
+      "answer": "Yes",
+      "evidence": "Attributes the fault to jaeger's shared PVC and required anti-affinity; no unrelated workload is blamed.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q2",
+      "answer": "Yes",
+      "evidence": "Includes the jaeger Deployment, its replicas, the shared ReadWriteOnce PVC, and required anti-affinity.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q3",
+      "answer": "Yes",
+      "evidence": "Reports only one of two desired replicas ready and another pod remaining Pending, matching the partially Ready deployment.",
+      "confidence": "High"
+     }
+    ]
+   }
+  },
+  {
+   "arm": 3,
+   "kind": "v1",
+   "model": "openrouter/openai/gpt-6-luna-decisions",
+   "position": 1,
+   "seconds": 3.1,
+   "requests": 2,
+   "input_tokens": 19102,
+   "cost_usd": 0.00191,
+   "error": null,
+   "investigation": {
+    "steps": [
+     {
+      "step": 1,
+      "node": "investigate",
+      "component": "deployment/jaeger",
+      "verdict": "origin",
+      "origin_p": 0.95,
+      "victim_p": 0.04,
+      "next": "none",
+      "next_p": 0.82,
+      "category": "scheduling_constraint",
+      "spec_checks": [],
+      "blocked_input": null,
+      "key_evidence": "PVC jaeger-pvc is ReadWriteOnce (attachable to one node at a time) but 2 replicas of this Deployment mount it and its required pod anti-affinity places replicas on different nodes; replicas scheduled on another node cannot attach it"
+     }
+    ],
+    "concluded": "deployment/jaeger",
+    "fallback": null,
+    "triage_top": [
+     [
+      "deployment/jaeger",
+      0.78
+     ],
+     [
+      "other",
+      0.14
+     ],
+     [
+      "deployment/compose-post-service",
+      0.02
+     ],
+     [
+      "deployment/home-timeline-service",
+      0.01
+     ],
+     [
+      "deployment/nginx-thrift",
+      0.01
+     ]
+    ]
+   },
+   "text": "Root cause component: Deployment `jaeger` in namespace `social-network`.\nMechanism: PVC jaeger-pvc is ReadWriteOnce (attachable to one node at a time) but 2 replicas of this Deployment mount it and its required pod anti-affinity places replicas on different nodes; replicas scheduled on another node cannot attach it.\nFault type: scheduling constraint (no node satisfies the pod's placement constraints).\nAbnormal state observed on this component:\n- only 1 of 2 desired replicas are ready\n- pod jaeger-9fd7cdb7c-nf62l: pod phase Pending\n- pod jaeger-9fd7cdb7c-nf62l: pod unschedulable: 0/4 nodes are available: 1 node(s) didn't match pod anti-affinity rules, 1 node(s) had untolerated taint {node-role.kubernetes.io/control-plane: }, 2 node(s) h\u2026\n- warning events: FailedScheduling x3\n- firing alert PendingPodsDetected\n- firing alert PodSchedulingFailure\n- pod jaeger-9fd7cdb7c-nf62l is still in pod phase Pending after another 49s\nNotable spec settings:\n- Available=False (MinimumReplicasUnavailable)\n- container jaeger: image docker.io/jaegertracing/all-in-one:1.57\nWarning events:\n- FailedScheduling x2 on pod/jaeger-9fd7cdb7c-nf62l: 0/4 nodes are available: 1 node(s) didn't match pod anti-affinity rules, 1 node(s) had untolerated taint {node-role.kubernetes.io/control-plane: }, 2 node(s) didn't find available persistent volumes to bind. preemption: 0/4 nodes are avail\u2026\n- FailedScheduling x1 on pod/jaeger-9fd7cdb7c-nf62l: 0/4 nodes are available: 1 node(s) didn't match pod anti-affinity rules, 1 node(s) had untolerated taint {node-role.kubernetes.io/control-plane: }, 2 node(s) didn't find available persistent volumes to bind. preemption: 0/4 nodes are avail\u2026\nFiring alerts on this component: PendingPodsDetected, PodSchedulingFailure.\nClassification: Jev (openai/gpt-6-luna-decisions-20261006) confirmed this origin at investigation step 1 with probability 0.95 (triage probability 0.78).",
+   "grade": {
+    "judgment": "True",
+    "reasoning": "Verdict: True (composite=1.00). D1 Fault Localization: 1.00 | D2 Fault Characterization: 1.00 | D3 Scope Precision: 1.00. Weakest dimension: Fault Localization (1.00). Checklist details: [{\"id\": \"D1-Q1\", \"answer\": \"Yes\", \"evidence\": \"Explicitly identifies Deployment jaeger in namespace social-network as the root cause component.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q2\", \"answer\": \"Yes\", \"evidence\": \"Identifies the jaeger Deployment as the origin and its Pending pod as an observed symptom.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q3\", \"answer\": \"Yes\", \"evidence\": \"Blames the specified jaeger Deployment; no different component is identified as the fault origin.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q1\", \"answer\": \"Yes\", \"evidence\": \"Describes replicas sharing one ReadWriteOnce PVC while required anti-affinity places them on different nodes, matching the storage and placement conflict.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q2\", \"answer\": \"Yes\", \"evidence\": \"Specifies two replicas mounting jaeger-pvc, ReadWriteOnce access, and required pod anti-affinity separating replicas across nodes.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q3\", \"answer\": \"Yes\", \"evidence\": \"Classifies the fault as a scheduling constraint and explains the incompatible shared-storage and required anti-affinity settings.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q1\", \"answer\": \"Yes\", \"evidence\": \"Attributes the cause to jaeger's replica placement and shared PVC; other node constraints appear only in quoted scheduling events.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q2\", \"answer\": \"Yes\", \"evidence\": \"Includes the jaeger Deployment, its replicas, shared ReadWriteOnce PVC, and required anti-affinity, covering the ground-truth contributors.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q3\", \"answer\": \"Yes\", \"evidence\": \"Reports only one of two desired replicas ready and another pod Pending, matching the partially Ready deployment.\", \"confidence\": \"High\"}]",
+    "success": true,
+    "accuracy": 100.0,
+    "composite_score": 1.0,
+    "dimensions": {
+     "D1": {
+      "name": "Fault Localization",
+      "score": 1.0
+     },
+     "D2": {
+      "name": "Fault Characterization",
+      "score": 1.0
+     },
+     "D3": {
+      "name": "Scope Precision",
+      "score": 1.0
+     }
+    },
+    "checklist": [
+     {
+      "id": "D1-Q1",
+      "answer": "Yes",
+      "evidence": "Explicitly identifies Deployment jaeger in namespace social-network as the root cause component.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q2",
+      "answer": "Yes",
+      "evidence": "Identifies the jaeger Deployment as the origin and its Pending pod as an observed symptom.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q3",
+      "answer": "Yes",
+      "evidence": "Blames the specified jaeger Deployment; no different component is identified as the fault origin.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q1",
+      "answer": "Yes",
+      "evidence": "Describes replicas sharing one ReadWriteOnce PVC while required anti-affinity places them on different nodes, matching the storage and placement conflict.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q2",
+      "answer": "Yes",
+      "evidence": "Specifies two replicas mounting jaeger-pvc, ReadWriteOnce access, and required pod anti-affinity separating replicas across nodes.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q3",
+      "answer": "Yes",
+      "evidence": "Classifies the fault as a scheduling constraint and explains the incompatible shared-storage and required anti-affinity settings.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q1",
+      "answer": "Yes",
+      "evidence": "Attributes the cause to jaeger's replica placement and shared PVC; other node constraints appear only in quoted scheduling events.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q2",
+      "answer": "Yes",
+      "evidence": "Includes the jaeger Deployment, its replicas, shared ReadWriteOnce PVC, and required anti-affinity, covering the ground-truth contributors.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q3",
+      "answer": "Yes",
+      "evidence": "Reports only one of two desired replicas ready and another pod Pending, matching the partially Ready deployment.",
+      "confidence": "High"
+     }
+    ]
+   }
+  }
+ ],
+ "submission": {
+  "status": "200",
+  "message": "Submission received",
+  "stage": "diagnosis"
+ },
+ "judge": {
+  "model": "gpt-6-astra",
+  "backend": "codex",
+  "effort": "high"
+ }
+}

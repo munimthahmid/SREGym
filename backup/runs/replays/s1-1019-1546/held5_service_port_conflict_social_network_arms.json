@@ -1,0 +1,231 @@
+{
+ "problem_id": "service_port_conflict_social_network",
+ "source": "held5_service_port_conflict_social_network",
+ "replay": true,
+ "arms": [
+  {
+   "arm": 0,
+   "kind": "v1",
+   "model": "typesafe/jev-1.13",
+   "position": 0,
+   "seconds": 1.3,
+   "requests": 2,
+   "input_tokens": 28863,
+   "error": null,
+   "component": "deployment/media-service",
+   "investigation": {
+    "steps": [
+     {
+      "step": 1,
+      "node": "investigate",
+      "component": "deployment/media-service",
+      "verdict": "origin",
+      "origin_p": 0.88,
+      "victim_p": 0.01,
+      "next": "none",
+      "next_p": 0.85,
+      "category": "scheduling_constraint",
+      "spec_checks": [
+       "service media-service has no ready endpoints"
+      ],
+      "blocked_input": null,
+      "key_evidence": "event FailedScheduling x1 on pod/media-service-57864b696c-22rp6: 0/4 nodes are available: 1 node(s) had untolerated taint {node-role.kubernetes.io/control-plane: }, 3 node(s) didn't have free ports for the requested pod ports. preemption: 0/4 nodes are available: 1 Preemption is not helpful for scheduling, 3 No preemption victims found for incoming pod."
+     }
+    ],
+    "concluded": "deployment/media-service",
+    "fallback": null,
+    "triage_top": [
+     [
+      "deployment/media-service",
+      0.93
+     ],
+     [
+      "other",
+      0.05
+     ],
+     [
+      "deployment/jaeger",
+      0.01
+     ],
+     [
+      "deployment/compose-post-service",
+      0.0
+     ],
+     [
+      "deployment/home-timeline-redis",
+      0.0
+     ]
+    ]
+   },
+   "text": "Root cause component: Deployment `media-service` in namespace `social-network`.\nMechanism: event FailedScheduling x1 on pod/media-service-57864b696c-22rp6: 0/4 nodes are available: 1 node(s) had untolerated taint {node-role.kubernetes.io/control-plane: }, 3 node(s) didn't have free ports for the requested pod ports. preemption: 0/4 nodes are available: 1 Preemption is not helpful for scheduling, 3 No preemption victims found for incoming pod..\nFault type: scheduling constraint (no node satisfies the pod's placement constraints).\nAbnormal state observed on this component:\n- only 0 of 1 desired replicas are ready\n- pod media-service-57864b696c-22rp6: pod phase Pending\n- pod media-service-57864b696c-22rp6: pod unschedulable: 0/4 nodes are available: 1 node(s) had untolerated taint {node-role.kubernetes.io/control-plane: }, 3 node(s) didn't have free ports for the requested pod port\u2026\n- warning events: FailedScheduling x1\n- service media-service selects this component but has 0 ready endpoints\n- pod media-service-57864b696c-22rp6 is still in pod phase Pending after another 0s\nImpact on other components:\n- deployment/compose-post-service fails when calling this component (connectivity or timeout x6, still occurring)\nNotable spec settings:\n- Available=False (MinimumReplicasUnavailable)\n- container media-service: image ghcr.io/sregym/social-network:sha-d2c036bc3d1138f5a0bdaffd3d87f37522c3461a@sha256:70287c4756f9187613e49409291927c342724e3974f93709b21595ed1cdf1d69\nWarning events:\n- FailedScheduling x1 on pod/media-service-57864b696c-22rp6: 0/4 nodes are available: 1 node(s) had untolerated taint {node-role.kubernetes.io/control-plane: }, 3 node(s) didn't have free ports for the requested pod ports. preemption: 0/4 nodes are available: 1 Preemption is not helpful for scheduli\u2026\nClassification: Jev (typesafe/jev-1.13-20260917) confirmed this origin at investigation step 1 with probability 0.88 (triage probability 0.93)."
+  },
+  {
+   "arm": 1,
+   "kind": "v1",
+   "model": "openai/gpt-6-luna-decisions",
+   "position": 1,
+   "seconds": 1.3,
+   "requests": 2,
+   "input_tokens": 20106,
+   "error": null,
+   "component": "deployment/media-service",
+   "investigation": {
+    "steps": [
+     {
+      "step": 1,
+      "node": "investigate",
+      "component": "deployment/media-service",
+      "verdict": "origin",
+      "origin_p": 0.97,
+      "victim_p": 0.02,
+      "next": "deployment/compose-post-service",
+      "next_p": 0.61,
+      "category": "scheduling_constraint",
+      "spec_checks": [
+       "service media-service has no ready endpoints"
+      ],
+      "blocked_input": null,
+      "key_evidence": "pod media-service-57864b696c-22rp6: pod unschedulable: 0/4 nodes are available: 1 node(s) had untolerated taint {node-role.kubernetes.io/control-plane: }, 3 node(s) didn't have free ports for the requested pod port\u2026"
+     }
+    ],
+    "concluded": "deployment/media-service",
+    "fallback": null,
+    "triage_top": [
+     [
+      "deployment/media-service",
+      0.99
+     ],
+     [
+      "deployment/nginx-thrift",
+      0.01
+     ],
+     [
+      "deployment/compose-post-service",
+      0.0
+     ],
+     [
+      "deployment/home-timeline-redis",
+      0.0
+     ],
+     [
+      "deployment/home-timeline-service",
+      0.0
+     ]
+    ]
+   },
+   "text": "Root cause component: Deployment `media-service` in namespace `social-network`.\nMechanism: pod media-service-57864b696c-22rp6: pod unschedulable: 0/4 nodes are available: 1 node(s) had untolerated taint {node-role.kubernetes.io/control-plane: }, 3 node(s) didn't have free ports for the requested pod port\u2026.\nFault type: scheduling constraint (no node satisfies the pod's placement constraints).\nAbnormal state observed on this component:\n- only 0 of 1 desired replicas are ready\n- pod media-service-57864b696c-22rp6: pod phase Pending\n- warning events: FailedScheduling x1\n- service media-service selects this component but has 0 ready endpoints\n- pod media-service-57864b696c-22rp6 is still in pod phase Pending after another 0s\nImpact on other components:\n- deployment/compose-post-service fails when calling this component (connectivity or timeout x6, still occurring)\nNotable spec settings:\n- Available=False (MinimumReplicasUnavailable)\n- container media-service: image ghcr.io/sregym/social-network:sha-d2c036bc3d1138f5a0bdaffd3d87f37522c3461a@sha256:70287c4756f9187613e49409291927c342724e3974f93709b21595ed1cdf1d69\nWarning events:\n- FailedScheduling x1 on pod/media-service-57864b696c-22rp6: 0/4 nodes are available: 1 node(s) had untolerated taint {node-role.kubernetes.io/control-plane: }, 3 node(s) didn't have free ports for the requested pod ports. preemption: 0/4 nodes are available: 1 Preemption is not helpful for scheduli\u2026\nClassification: Jev (openai/gpt-6-luna-decisions-20261006) confirmed this origin at investigation step 1 with probability 0.97 (triage probability 0.99)."
+  },
+  {
+   "arm": 2,
+   "kind": "v2",
+   "model": "typesafe/jev-1.13",
+   "position": 2,
+   "seconds": 1.2,
+   "requests": 2,
+   "input_tokens": 28870,
+   "error": null,
+   "component": "deployment/media-service",
+   "investigation": {
+    "steps": [
+     {
+      "step": 1,
+      "node": "investigate",
+      "component": "deployment/media-service",
+      "verdict": "origin",
+      "origin_p": 0.89,
+      "victim_p": 0.01,
+      "next": "none",
+      "next_p": 0.82,
+      "category": "scheduling_constraint",
+      "spec_checks": [
+       "service media-service has no ready endpoints"
+      ],
+      "blocked_input": null,
+      "key_evidence": "event FailedScheduling x1 on pod/media-service-57864b696c-22rp6: 0/4 nodes are available: 1 node(s) had untolerated taint {node-role.kubernetes.io/control-plane: }, 3 node(s) didn't have free ports for the requested pod ports. preemption: 0/4 nodes are available: 1 Preemption is not helpful for scheduling, 3 No preemption victims found for incoming pod."
+     }
+    ],
+    "concluded": "deployment/media-service",
+    "fallback": null,
+    "triage_top": [
+     [
+      "deployment/media-service",
+      0.92
+     ],
+     [
+      "other",
+      0.08
+     ],
+     [
+      "deployment/compose-post-service",
+      0.0
+     ],
+     [
+      "deployment/home-timeline-redis",
+      0.0
+     ],
+     [
+      "deployment/home-timeline-service",
+      0.0
+     ]
+    ]
+   },
+   "text": "Root cause: Service `media-service` (Deployment `media-service`) in namespace `social-network`: event FailedScheduling x1 on pod/media-service-57864b696c-22rp6: 0/4 nodes are available: 1 node(s) had untolerated taint {node-role.kubernetes.io/control-plane: }, 3 node(s) didn't have free ports for the requested pod ports. preemption: 0/4 nodes are available: 1 Preemption is not helpful for scheduling, 3 No preemption victims found for incoming pod.\nMechanism: event FailedScheduling x1 on pod/media-service-57864b696c-22rp6: 0/4 nodes are available: 1 node(s) had untolerated taint {node-role.kubernetes.io/control-plane: }, 3 node(s) didn't have free ports for the requested pod ports. preemption: 0/4 nodes are available: 1 Preemption is not helpful for scheduling, 3 No preemption victims found for incoming pod.\nDetails: service media-service has no ready endpoints.\nEffect: only 0 of 1 desired replicas are ready; pod media-service-57864b696c-22rp6: pod phase Pending; its callers see connectivity or timeout (6 lines).\nAffected (symptoms only, not causes): Deployment `compose-post-service` in namespace `social-network`: connectivity or timeout calling it (6 lines, still occurring)."
+  },
+  {
+   "arm": 3,
+   "kind": "v2",
+   "model": "openai/gpt-6-luna-decisions",
+   "position": 3,
+   "seconds": 1.2,
+   "requests": 2,
+   "input_tokens": 20113,
+   "error": null,
+   "component": "deployment/media-service",
+   "investigation": {
+    "steps": [
+     {
+      "step": 1,
+      "node": "investigate",
+      "component": "deployment/media-service",
+      "verdict": "origin",
+      "origin_p": 0.96,
+      "victim_p": 0.02,
+      "next": "deployment/compose-post-service",
+      "next_p": 0.74,
+      "category": "scheduling_constraint",
+      "spec_checks": [
+       "service media-service has no ready endpoints"
+      ],
+      "blocked_input": null,
+      "key_evidence": "pod media-service-57864b696c-22rp6: pod unschedulable: 0/4 nodes are available: 1 node(s) had untolerated taint {node-role.kubernetes.io/control-plane: }, 3 node(s) didn't have free ports for the requested pod port\u2026"
+     }
+    ],
+    "concluded": "deployment/media-service",
+    "fallback": null,
+    "triage_top": [
+     [
+      "deployment/media-service",
+      0.99
+     ],
+     [
+      "deployment/nginx-thrift",
+      0.01
+     ],
+     [
+      "deployment/compose-post-service",
+      0.0
+     ],
+     [
+      "deployment/home-timeline-redis",
+      0.0
+     ],
+     [
+      "deployment/home-timeline-service",
+      0.0
+     ]
+    ]
+   },
+   "text": "Root cause: Service `media-service` (Deployment `media-service`) in namespace `social-network`: pod media-service-57864b696c-22rp6: pod unschedulable: 0/4 nodes are available: 1 node(s) had untolerated taint {node-role.kubernetes.io/control-plane: }, 3 node(s) didn't have free ports for the requested pod port\u2026.\nMechanism: pod media-service-57864b696c-22rp6: pod unschedulable: 0/4 nodes are available: 1 node(s) had untolerated taint {node-role.kubernetes.io/control-plane: }, 3 node(s) didn't have free ports for the requested pod port\u2026.\nDetails: service media-service has no ready endpoints.\nEffect: only 0 of 1 desired replicas are ready; pod media-service-57864b696c-22rp6: pod phase Pending; its callers see connectivity or timeout (6 lines).\nAffected (symptoms only, not causes): Deployment `compose-post-service` in namespace `social-network`: connectivity or timeout calling it (6 lines, still occurring)."
+  }
+ ]
+}

@@ -1,0 +1,119 @@
+{
+ "problem_id": "search_rate_retry_collapse_hotel_reservation",
+ "source": "lite5_search_rate_retry_collapse_hotel_reservation",
+ "replay": true,
+ "arms": [
+  {
+   "arm": 0,
+   "kind": "v2",
+   "model": "typesafe/jev-1.13",
+   "position": 0,
+   "seconds": 2.5,
+   "requests": 2,
+   "input_tokens": 26490,
+   "error": null,
+   "model_failed": false,
+   "component": "deployment/rate",
+   "investigation": {
+    "steps": [
+     {
+      "step": 1,
+      "node": "investigate",
+      "component": "deployment/rate",
+      "verdict": "origin",
+      "origin_p": 0.82,
+      "victim_p": 0.05,
+      "next": "deployment/consul",
+      "next_p": 0.41,
+      "category": "data_or_traffic",
+      "spec_checks": [],
+      "blocked_input": null,
+      "key_evidence": "calls from search to rate time out (68 lines, still occurring) while rate shows no failure of its own; search's call settings for it: RATE_RPC_TIMEOUT_MS=750, RATE_RPC_MAX_ATTEMPTS=3, RATE_RPC_INITIAL_BACKOFF_MS=50, RATE_RPC_BACKOFF_MULTIPLIER=2.0; rate's capacity settings: RATE_BACKEND_QPS_LIMIT=20, RATE_QUEUE_CAPACITY=256; search retries a timed-out call (RATE_RPC_MAX_ATTEMPTS=3), adding requests to rate, which caps its throughput (RATE_BACKEND_QPS_LIMIT=20)"
+     }
+    ],
+    "concluded": "deployment/rate",
+    "fallback": null,
+    "triage_top": [
+     [
+      "deployment/rate",
+      0.97
+     ],
+     [
+      "deployment/consul",
+      0.02
+     ],
+     [
+      "deployment/search",
+      0.01
+     ],
+     [
+      "deployment/frontend",
+      0.0
+     ],
+     [
+      "deployment/geo",
+      0.0
+     ]
+    ],
+    "second": null
+   },
+   "text": "Root cause: the call path from Deployment `search` to Deployment `rate` in namespace `hotel-reservation`: calls from search to rate time out (68 lines, still occurring) while rate shows no failure of its own; search's call settings for it: RATE_RPC_TIMEOUT_MS=750, RATE_RPC_MAX_ATTEMPTS=3, RATE_RPC_INITIAL_BACKOFF_MS=50, RATE_RPC_BACKOFF_MULTIPLIER=2.0; rate's capacity settings: RATE_BACKEND_QPS_LIMIT=20, RATE_QUEUE_CAPACITY=256; search retries a timed-out call (RATE_RPC_MAX_ATTEMPTS=3), adding requests to rate, which caps its throughput (RATE_BACKEND_QPS_LIMIT=20).\nMechanism: search logs \"WRN services/search/server.go:252 > downstream request failed dependency=rate grpc_code=DeadlineExceeded\".\nEffect: its callers see connectivity or timeout (68 lines).\nAffected (symptoms only, not causes): Deployment `search` in namespace `hotel-reservation`: connectivity or timeout calling it (68 lines, still occurring)."
+  },
+  {
+   "arm": 1,
+   "kind": "v2",
+   "model": "openai/gpt-6-luna-decisions",
+   "position": 1,
+   "seconds": 3.0,
+   "requests": 3,
+   "input_tokens": 30066,
+   "error": null,
+   "model_failed": false,
+   "component": "deployment/rate",
+   "investigation": {
+    "steps": [
+     {
+      "step": 1,
+      "node": "investigate",
+      "component": "deployment/rate",
+      "verdict": "origin",
+      "origin_p": 0.78,
+      "victim_p": 0.14,
+      "next": "deployment/search",
+      "next_p": 0.91,
+      "category": "data_or_traffic",
+      "spec_checks": [],
+      "blocked_input": null,
+      "key_evidence": "calls from search to rate time out (68 lines, still occurring) while rate shows no failure of its own; search's call settings for it: RATE_RPC_TIMEOUT_MS=750, RATE_RPC_MAX_ATTEMPTS=3, RATE_RPC_INITIAL_BACKOFF_MS=50, RATE_RPC_BACKOFF_MULTIPLIER=2.0; rate's capacity settings: RATE_BACKEND_QPS_LIMIT=20, RATE_QUEUE_CAPACITY=256; search retries a timed-out call (RATE_RPC_MAX_ATTEMPTS=3), adding requests to rate, which caps its throughput (RATE_BACKEND_QPS_LIMIT=20)"
+     }
+    ],
+    "concluded": "deployment/rate",
+    "fallback": null,
+    "triage_top": [
+     [
+      "deployment/rate",
+      0.91
+     ],
+     [
+      "deployment/search",
+      0.055
+     ],
+     [
+      "deployment/user",
+      0.01
+     ],
+     [
+      "deployment/consul",
+      0.005
+     ],
+     [
+      "deployment/mongodb-rate",
+      0.005
+     ]
+    ],
+    "second": null
+   },
+   "text": "Root cause: the call path from Deployment `search` to Deployment `rate` in namespace `hotel-reservation`: calls from search to rate time out (68 lines, still occurring) while rate shows no failure of its own; search's call settings for it: RATE_RPC_TIMEOUT_MS=750, RATE_RPC_MAX_ATTEMPTS=3, RATE_RPC_INITIAL_BACKOFF_MS=50, RATE_RPC_BACKOFF_MULTIPLIER=2.0; rate's capacity settings: RATE_BACKEND_QPS_LIMIT=20, RATE_QUEUE_CAPACITY=256; search retries a timed-out call (RATE_RPC_MAX_ATTEMPTS=3), adding requests to rate, which caps its throughput (RATE_BACKEND_QPS_LIMIT=20).\nMechanism: search logs \"WRN services/search/server.go:252 > downstream request failed dependency=rate grpc_code=DeadlineExceeded\".\nEffect: its callers see connectivity or timeout (68 lines).\nAffected (symptoms only, not causes): Deployment `search` in namespace `hotel-reservation`: connectivity or timeout calling it (68 lines, still occurring)."
+  }
+ ]
+}

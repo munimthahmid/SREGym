@@ -1,0 +1,217 @@
+{
+ "problem_id": "jev_diag_anon_91cd98066b23474c333db0c21200e39f_20261019_060805",
+ "submit_arm": 0,
+ "order": [
+  0,
+  1,
+  3,
+  2
+ ],
+ "arms": [
+  {
+   "arm": 0,
+   "kind": "v2",
+   "model": "openrouter/typesafe/jev-1.13",
+   "position": 0,
+   "seconds": 6.2,
+   "requests": 4,
+   "input_tokens": 35184,
+   "cost_usd": 0.001478,
+   "error": null,
+   "investigation": {
+    "rounds": [
+     {
+      "candidates": [
+       "change:deployment/custom-service:template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-19T12:07:58+06:00",
+       "own-setting:deployment/custom-service",
+       "partial:deployment/custom-service",
+       "partial:deployment/social-graph-service",
+       "acts-on:configmap/kube-system/coredns:ConfigMap coredns was modified 1421s ago, 75891s after it wa"
+      ],
+      "probabilities": {
+       "change:deployment/custom-service:template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-19T12:07:58+06:00": 0.02,
+       "own-setting:deployment/custom-service": 0.6799999999999999,
+       "partial:deployment/custom-service": 0.015,
+       "partial:deployment/social-graph-service": 0.01,
+       "acts-on:configmap/kube-system/coredns:ConfigMap coredns was modified 1421s ago, 75891s after it wa": 0.07,
+       "none_of_these": 0.20500000000000002
+      },
+      "picks": [
+       "own-setting:deployment/custom-service",
+       "own-setting:deployment/custom-service"
+      ],
+      "route": "accept"
+     }
+    ],
+    "explanations": 5,
+    "winner": "own-setting:deployment/custom-service",
+    "pattern": "own-setting",
+    "key_fact": "container hang-init command: /bin/sh -c sleep infinity",
+    "key_fact_probability": 0.94,
+    "fault_type": "config_value",
+    "fault_object": null,
+    "uncertain": false
+   },
+   "text": "Root cause: deployment `custom-service` in namespace `social-network`.\nMechanism: deployment/social-network/custom-service has a wrong setting of its own: rolling update allows maxUnavailable=100% and maxSurge=0% for 3 replicas: all pods may go down at once; no replacement pod is started before the old ones stop; init container hang-init has been running for 130s; the pod's main containers cannot start until it exits\nConcrete details: rolling update allows maxUnavailable=100% and maxSurge=0% for 3 replicas: all pods may go down at once; no replacement pod is started before the old ones stop; init container hang-init has been running for 130s; the pod's main containers cannot start until it exits.\nObserved impact: deployment `custom-service` in namespace `social-network`.\nKey evidence: container hang-init command: /bin/sh -c sleep infinity.\nFault type: config value (a wrong, missing, or shadowed value in this component's own configuration).\nEvidence:\n- rolling update allows maxUnavailable=100% and maxSurge=0% for 3 replicas: all pods may go down at once; no replacement pod is started before the old ones stop\n- init container hang-init has been running for 130s; the pod's main containers cannot start until it exits\n- only 0 of 3 desired replicas are ready\n- pod custom-service-7795466db6-jdddh: pod phase Pending\n- deployment/custom-service: rolling update allows maxUnavailable=100% and maxSurge=0% for 3 replicas: all pods may go down at once; no replacement pod is started before the old ones stop"
+  },
+  {
+   "arm": 1,
+   "kind": "v2",
+   "model": "openrouter/openai/gpt-6-luna-decisions",
+   "position": 1,
+   "seconds": 5.4,
+   "requests": 4,
+   "input_tokens": 23312,
+   "cost_usd": 0.002331,
+   "error": null,
+   "investigation": {
+    "rounds": [
+     {
+      "candidates": [
+       "change:deployment/custom-service:template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-19T12:07:58+06:00",
+       "own-setting:deployment/custom-service",
+       "partial:deployment/custom-service",
+       "partial:deployment/social-graph-service",
+       "acts-on:configmap/kube-system/coredns:ConfigMap coredns was modified 1421s ago, 75891s after it wa"
+      ],
+      "probabilities": {
+       "change:deployment/custom-service:template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-19T12:07:58+06:00": 0.12000000000000001,
+       "own-setting:deployment/custom-service": 0.5900000000000001,
+       "partial:deployment/custom-service": 0.13,
+       "partial:deployment/social-graph-service": 0.04,
+       "acts-on:configmap/kube-system/coredns:ConfigMap coredns was modified 1421s ago, 75891s after it wa": 0.03,
+       "none_of_these": 0.09000000000000001
+      },
+      "picks": [
+       "own-setting:deployment/custom-service",
+       "own-setting:deployment/custom-service"
+      ],
+      "route": "check"
+     }
+    ],
+    "explanations": 5,
+    "winner": "own-setting:deployment/custom-service",
+    "pattern": "own-setting",
+    "key_fact": "container hang-init command: /bin/sh -c sleep infinity",
+    "key_fact_probability": 0.795,
+    "fault_type": "rollout_or_replica_config",
+    "fault_object": null,
+    "uncertain": true
+   },
+   "text": "Root cause: deployment `custom-service` in namespace `social-network`.\nMechanism: deployment/social-network/custom-service has a wrong setting of its own: rolling update allows maxUnavailable=100% and maxSurge=0% for 3 replicas: all pods may go down at once; no replacement pod is started before the old ones stop; init container hang-init has been running for 130s; the pod's main containers cannot start until it exits\nConcrete details: rolling update allows maxUnavailable=100% and maxSurge=0% for 3 replicas: all pods may go down at once; no replacement pod is started before the old ones stop; init container hang-init has been running for 130s; the pod's main containers cannot start until it exits.\nObserved impact: deployment `custom-service` in namespace `social-network`.\nKey evidence: container hang-init command: /bin/sh -c sleep infinity.\nFault type: rollout or replica config (replica or rollout settings stop the workload from running).\nEvidence:\n- rolling update allows maxUnavailable=100% and maxSurge=0% for 3 replicas: all pods may go down at once; no replacement pod is started before the old ones stop\n- init container hang-init has been running for 130s; the pod's main containers cannot start until it exits\n- only 0 of 3 desired replicas are ready\n- pod custom-service-7795466db6-jdddh: pod phase Pending\n- deployment/custom-service: rolling update allows maxUnavailable=100% and maxSurge=0% for 3 replicas: all pods may go down at once; no replacement pod is started before the old ones stop\nConfidence: low; the investigation budget ended before the leading explanation was confirmed."
+  },
+  {
+   "arm": 2,
+   "kind": "v1",
+   "model": "openrouter/typesafe/jev-1.13",
+   "position": 3,
+   "seconds": 2.7,
+   "requests": 2,
+   "input_tokens": 29180,
+   "cost_usd": 0.001226,
+   "error": null,
+   "investigation": {
+    "steps": [
+     {
+      "step": 1,
+      "node": "investigate",
+      "component": "deployment/custom-service",
+      "verdict": "origin",
+      "origin_p": 1.0,
+      "victim_p": 0.0,
+      "next": "none",
+      "next_p": 0.97,
+      "category": "config_value",
+      "spec_checks": [],
+      "blocked_input": null,
+      "key_evidence": "container hang-init command: /bin/sh -c sleep infinity"
+     }
+    ],
+    "concluded": "deployment/custom-service",
+    "fallback": null,
+    "triage_top": [
+     [
+      "deployment/custom-service",
+      0.8
+     ],
+     [
+      "other",
+      0.2
+     ],
+     [
+      "deployment/compose-post-service",
+      0.0
+     ],
+     [
+      "deployment/home-timeline-redis",
+      0.0
+     ],
+     [
+      "deployment/home-timeline-service",
+      0.0
+     ]
+    ]
+   },
+   "text": "Root cause component: Deployment `custom-service` in namespace `social-network`.\nMechanism: container hang-init command: /bin/sh -c sleep infinity.\nFault type: config value (a wrong, missing, or shadowed value in this component's own configuration).\nAbnormal state observed on this component:\n- rolling update allows maxUnavailable=100% and maxSurge=0% for 3 replicas: all pods may go down at once; no replacement pod is started before the old ones stop\n- only 0 of 3 desired replicas are ready\n- pod custom-service-7795466db6-jdddh: pod phase Pending\n- pod custom-service-7795466db6-jdddh: init container hang-init has been running for 130s; the pod's main containers cannot start until it exits\n- pod custom-service-7795466db6-jkxf9: pod phase Pending\n- pod custom-service-7795466db6-jkxf9: init container hang-init has been running for 130s; the pod's main containers cannot start until it exits\n- pod custom-service-7795466db6-sqhpj: pod phase Pending\n- pod custom-service-7795466db6-sqhpj: init container hang-init has been running for 130s; the pod's main containers cannot start until it exits\n- firing alert PodStatusError\n- firing alert PendingPodsDetected\n- firing alert KubePodNotReady\n- pod custom-service-7795466db6-jdddh is still in pod phase Pending after another 50s\n- container hang-init: image busybox:1.36\n- container custom-service-main: image python:3.9-slim\nFiring alerts on this component: PodStatusError, PendingPodsDetected, KubePodNotReady.\nClassification: Jev (typesafe/jev-1.13-20260917) confirmed this origin at investigation step 1 with probability 1.00 (triage probability 0.80)."
+  },
+  {
+   "arm": 3,
+   "kind": "v1",
+   "model": "openrouter/openai/gpt-6-luna-decisions",
+   "position": 2,
+   "seconds": 2.9,
+   "requests": 2,
+   "input_tokens": 19865,
+   "cost_usd": 0.001986,
+   "error": null,
+   "investigation": {
+    "steps": [
+     {
+      "step": 1,
+      "node": "investigate",
+      "component": "deployment/custom-service",
+      "verdict": "origin",
+      "origin_p": 0.97,
+      "victim_p": 0.02,
+      "next": "none",
+      "next_p": 0.93,
+      "category": "rollout_or_replica_config",
+      "spec_checks": [],
+      "blocked_input": null,
+      "key_evidence": "container hang-init command: /bin/sh -c sleep infinity"
+     }
+    ],
+    "concluded": "deployment/custom-service",
+    "fallback": null,
+    "triage_top": [
+     [
+      "deployment/custom-service",
+      0.99
+     ],
+     [
+      "deployment/home-timeline-redis",
+      0.01
+     ],
+     [
+      "deployment/compose-post-service",
+      0.0
+     ],
+     [
+      "deployment/home-timeline-service",
+      0.0
+     ],
+     [
+      "deployment/jaeger",
+      0.0
+     ]
+    ]
+   },
+   "text": "Root cause component: Deployment `custom-service` in namespace `social-network`.\nMechanism: container hang-init command: /bin/sh -c sleep infinity.\nFault type: rollout or replica config (replica or rollout settings stop the workload from running).\nAbnormal state observed on this component:\n- rolling update allows maxUnavailable=100% and maxSurge=0% for 3 replicas: all pods may go down at once; no replacement pod is started before the old ones stop\n- only 0 of 3 desired replicas are ready\n- pod custom-service-7795466db6-jdddh: pod phase Pending\n- pod custom-service-7795466db6-jdddh: init container hang-init has been running for 130s; the pod's main containers cannot start until it exits\n- pod custom-service-7795466db6-jkxf9: pod phase Pending\n- pod custom-service-7795466db6-jkxf9: init container hang-init has been running for 130s; the pod's main containers cannot start until it exits\n- pod custom-service-7795466db6-sqhpj: pod phase Pending\n- pod custom-service-7795466db6-sqhpj: init container hang-init has been running for 130s; the pod's main containers cannot start until it exits\n- firing alert PodStatusError\n- firing alert PendingPodsDetected\n- firing alert KubePodNotReady\n- pod custom-service-7795466db6-jdddh is still in pod phase Pending after another 50s\n- container hang-init: image busybox:1.36\n- container custom-service-main: image python:3.9-slim\nFiring alerts on this component: PodStatusError, PendingPodsDetected, KubePodNotReady.\nClassification: Jev (openai/gpt-6-luna-decisions-20261006) confirmed this origin at investigation step 1 with probability 0.97 (triage probability 0.99)."
+  }
+ ],
+ "submission": {
+  "status": "200",
+  "message": "Submission received",
+  "stage": "diagnosis"
+ }
+}

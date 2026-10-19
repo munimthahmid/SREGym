@@ -1,0 +1,249 @@
+{
+ "problem_id": "valkey_auth_disruption",
+ "source": "lite6_valkey_auth_disruption",
+ "replay": true,
+ "arms": [
+  {
+   "arm": 0,
+   "kind": "v2",
+   "model": "typesafe/jev-1.13",
+   "position": 0,
+   "seconds": 9.5,
+   "requests": 10,
+   "input_tokens": 115229,
+   "error": null,
+   "model_failed": false,
+   "component": "deployment/valkey-cart",
+   "investigation": {
+    "steps": [
+     {
+      "step": 1,
+      "node": "investigate",
+      "component": "deployment/cart",
+      "verdict": "victim",
+      "origin_p": 0.03,
+      "victim_p": 0.96,
+      "next": "deployment/valkey-cart",
+      "next_p": 0.99,
+      "category": "config_value",
+      "spec_checks": [
+       "service cart has no ready endpoints"
+      ],
+      "blocked_input": null,
+      "key_evidence": "log x1 (ongoing, last seen 0s ago): cart: Unhandled exception. System.ApplicationException: Wasn't able to connect to redis"
+     },
+     {
+      "step": 2,
+      "node": "investigate",
+      "component": "deployment/valkey-cart",
+      "verdict": "unrelated",
+      "origin_p": 0.1,
+      "victim_p": 0.19,
+      "next": "none",
+      "next_p": 0.95,
+      "category": "config_value",
+      "spec_checks": [],
+      "blocked_input": null,
+      "key_evidence": "errors logged by 1 other component(s) (deployment/cart) name this component (connectivity or timeout, 1 lines, still occurring), e.g. 'Unhandled exception. System.ApplicationException: Wasn't able to connect to redis'"
+     },
+     {
+      "step": 3,
+      "node": "investigate",
+      "component": "deployment/checkout",
+      "verdict": "victim",
+      "origin_p": 0.02,
+      "victim_p": 0.62,
+      "next": "deployment/frontend",
+      "next_p": 0.68,
+      "category": "resource_limits",
+      "spec_checks": [],
+      "blocked_input": null,
+      "key_evidence": "container checkout image ghcr.io/open-telemetry/demo:2.2.0-checkout resources {'limits': {'memory': '20Mi'}}"
+     },
+     {
+      "step": 4,
+      "node": "investigate",
+      "component": "deployment/frontend",
+      "verdict": "victim",
+      "origin_p": 0.01,
+      "victim_p": 0.99,
+      "next": "deployment/ad",
+      "next_p": 0.37,
+      "category": "config_value",
+      "spec_checks": [],
+      "blocked_input": null,
+      "key_evidence": "log x30 (ongoing, last seen 0s ago): frontend: Error: 14 UNAVAILABLE: No connection established. Last error: connect ECONNREFUSED 10.96.160.94:8080 (2026-10-19T06:52:41.494Z)"
+     },
+     {
+      "step": 5,
+      "node": "investigate",
+      "component": "deployment/ad",
+      "verdict": "unrelated",
+      "origin_p": 0.0,
+      "victim_p": 0.0,
+      "next": "deployment/flagd",
+      "next_p": 0.76,
+      "category": "other",
+      "spec_checks": [],
+      "blocked_input": null,
+      "key_evidence": null
+     },
+     {
+      "step": 6,
+      "node": "investigate",
+      "component": "daemonset/otel-collector-agent",
+      "verdict": "unrelated",
+      "origin_p": 0.06,
+      "victim_p": 0.11,
+      "next": "none",
+      "next_p": 0.78,
+      "category": "config_value",
+      "spec_checks": [],
+      "blocked_input": null,
+      "key_evidence": "container opentelemetry-collector env GOMEMLIMIT=160MiB"
+     },
+     {
+      "step": 7,
+      "node": "investigate",
+      "component": "deployment/flagd",
+      "verdict": "unrelated",
+      "origin_p": 0.07,
+      "victim_p": 0.0,
+      "next": "none",
+      "next_p": 0.7,
+      "category": "other",
+      "spec_checks": [],
+      "blocked_input": null,
+      "key_evidence": null
+     }
+    ],
+    "concluded": "deployment/valkey-cart",
+    "fallback": "end of a victim chain: deployment/cart fails calling deployment/valkey-cart",
+    "triage_top": [
+     [
+      "deployment/cart",
+      0.53
+     ],
+     [
+      "daemonset/otel-collector-agent",
+      0.275
+     ],
+     [
+      "deployment/valkey-cart",
+      0.19
+     ],
+     [
+      "other",
+      0.005
+     ],
+     [
+      "deployment/accounting",
+      0.0
+     ]
+    ],
+    "second": null
+   },
+   "text": "Root cause: Service `valkey-cart` (Deployment `valkey-cart`) in namespace `astronomy-shop`: deployment/cart: log x1 (ongoing, last seen 0s ago): cart: Unhandled exception. System.ApplicationException: Wasn't able to connect to redis.\nEffect: its callers see connectivity or timeout (1 lines).\nAffected (symptoms only, not causes): Deployment `cart` in namespace `astronomy-shop`: connectivity or timeout calling it (1 lines, still occurring)."
+  },
+  {
+   "arm": 1,
+   "kind": "v2",
+   "model": "openai/gpt-6-luna-decisions",
+   "position": 1,
+   "seconds": 6.2,
+   "requests": 6,
+   "input_tokens": 61719,
+   "error": null,
+   "model_failed": false,
+   "component": "deployment/cart",
+   "investigation": {
+    "steps": [
+     {
+      "step": 1,
+      "node": "investigate",
+      "component": "deployment/cart",
+      "verdict": "origin",
+      "origin_p": 0.52,
+      "victim_p": 0.44,
+      "next": "deployment/valkey-cart",
+      "next_p": 1.0,
+      "category": "config_value",
+      "spec_checks": [
+       "service cart has no ready endpoints"
+      ],
+      "blocked_input": null,
+      "key_evidence": "container cart env VALKEY_ADDR=valkey-cart:6379"
+     },
+     {
+      "step": 2,
+      "node": "investigate",
+      "component": "deployment/valkey-cart",
+      "verdict": "origin",
+      "origin_p": 0.4,
+      "victim_p": 0.27,
+      "next": "none",
+      "next_p": 0.55,
+      "category": "other",
+      "spec_checks": [],
+      "blocked_input": null,
+      "key_evidence": "container valkey-cart image valkey/valkey:9.0.1-alpine3.23 resources {'limits': {'memory': '64Mi'}}"
+     },
+     {
+      "step": 3,
+      "node": "investigate",
+      "component": "deployment/checkout",
+      "verdict": "victim",
+      "origin_p": 0.04,
+      "victim_p": 0.54,
+      "next": "none",
+      "next_p": 0.71,
+      "category": "other",
+      "spec_checks": [],
+      "blocked_input": null,
+      "key_evidence": "container checkout env CART_ADDR=cart:8080"
+     },
+     {
+      "step": 4,
+      "node": "investigate",
+      "component": "daemonset/otel-collector-agent",
+      "verdict": "unrelated",
+      "origin_p": 0.27,
+      "victim_p": 0.16,
+      "next": "none",
+      "next_p": 0.49,
+      "category": "config_value",
+      "spec_checks": [],
+      "blocked_input": null,
+      "key_evidence": "container opentelemetry-collector env GOMEMLIMIT=160MiB"
+     }
+    ],
+    "concluded": "deployment/cart",
+    "fallback": "most likely origin among investigated components",
+    "triage_top": [
+     [
+      "deployment/cart",
+      0.765
+     ],
+     [
+      "deployment/valkey-cart",
+      0.15
+     ],
+     [
+      "daemonset/otel-collector-agent",
+      0.055
+     ],
+     [
+      "other",
+      0.015
+     ],
+     [
+      "deployment/accounting",
+      0.01
+     ]
+    ],
+    "second": null
+   },
+   "text": "Root cause: Service `cart` (Deployment `cart`) in namespace `astronomy-shop`: container cart env VALKEY_ADDR=valkey-cart:6379.\nMechanism: the component logs \"fail: cart.cartstore.ValkeyCartStore[0]\".\nDetails: service cart has no ready endpoints.\nEffect: only 0 of 1 desired replicas are ready; pod cart-74587775fc-wjh8t: container cart waiting in CrashLoopBackOff; its callers see connectivity or timeout (12 lines).\nObserved: pod cart-74587775fc-wjh8t: container cart restarted 4 times; warning events: BackOff x9; service cart selects this component but has 0 ready endpoints; pod cart-74587775fc-wjh8t: container cart restarted 1 more time(s) in the last 0s; warning event BackOff on pod/cart-74587775fc-wjh8t repeated 3 more time(s) in the last 0s.\nAffected (symptoms only, not causes): Deployment `frontend` in namespace `astronomy-shop`: connectivity or timeout calling it (12 lines, still occurring)."
+  }
+ ]
+}

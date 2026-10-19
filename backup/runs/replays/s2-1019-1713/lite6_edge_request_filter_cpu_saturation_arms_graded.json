@@ -1,0 +1,542 @@
+{
+ "problem_id": "edge_request_filter_cpu_saturation",
+ "source": "lite6_edge_request_filter_cpu_saturation",
+ "replay": true,
+ "arms": [
+  {
+   "arm": 0,
+   "kind": "v1",
+   "model": "typesafe/jev-1.13",
+   "position": 0,
+   "seconds": 1.3,
+   "requests": 2,
+   "input_tokens": 36927,
+   "error": null,
+   "model_failed": false,
+   "component": "deployment/frontend-proxy",
+   "investigation": {
+    "steps": [
+     {
+      "step": 1,
+      "node": "investigate",
+      "component": "deployment/frontend-proxy",
+      "verdict": "origin",
+      "origin_p": 0.98,
+      "victim_p": 0.01,
+      "next": "none",
+      "next_p": 0.95,
+      "category": "config_value",
+      "spec_checks": [],
+      "blocked_input": null,
+      "key_evidence": "pod template changed in revision 2: container frontend-proxy limits.cpu: unset -> 100m"
+     }
+    ],
+    "concluded": "deployment/frontend-proxy",
+    "fallback": null,
+    "triage_top": [
+     [
+      "deployment/frontend-proxy",
+      0.97
+     ],
+     [
+      "other",
+      0.02
+     ],
+     [
+      "deployment/image-provider",
+      0.01
+     ],
+     [
+      "deployment/accounting",
+      0.0
+     ],
+     [
+      "deployment/ad",
+      0.0
+     ]
+    ]
+   },
+   "text": "Root cause component: Deployment `frontend-proxy` in namespace `astronomy-shop`.\nMechanism: pod template changed in revision 2: container frontend-proxy limits.cpu: unset -> 100m.\nFault type: config value (a wrong, missing, or shadowed value in this component's own configuration).\nAbnormal state observed on this component:\n- container frontend-proxy cpu usage 100m is at its limit 100m (throttling likely)\n- spec modified 78s ago, 61s after this object was created (fields: template.annotations.edge.platform/change-ticket, template.annotations.edge.platform/filter-profile, containers[frontend-proxy].args, containers[frontend-proxy].command); pod template changes: template annotation edge.platform/change-ticket added: EDGE-1847; template annotation edge.platform/filter-profile added: managed-rules-v2; pod label pod-template-hash: 579d54f6f5 -> 6c9669bb69\n- container frontend-proxy: image ghcr.io/open-telemetry/demo:2.2.0-frontend-proxy, limits {'cpu': '100m', 'memory': '65Mi'}\nClassification: Jev (typesafe/jev-1.13-20260917) confirmed this origin at investigation step 1 with probability 0.98 (triage probability 0.97).",
+   "grade": {
+    "judgment": "False",
+    "reasoning": "Verdict: False (composite=0.67). D1 Fault Localization: 1.00 | D2 Fault Characterization: 0.00 | D3 Scope Precision: 1.00. Weakest dimension: Fault Characterization (0.00). Checklist details: [{\"id\": \"D1-Q1\", \"answer\": \"Yes\", \"evidence\": \"Names Deployment frontend-proxy in namespace astronomy-shop, matching the ground-truth fault origin.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q2\", \"answer\": \"Yes\", \"evidence\": \"Identifies frontend-proxy as the origin and does not attribute the fault to downstream HTTP paths or other victims.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q3\", \"answer\": \"Yes\", \"evidence\": \"Blames only frontend-proxy, the component identified by the ground truth.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q1\", \"answer\": \"No\", \"evidence\": \"Attributes the fault to a CPU limit changing from unset to 100m, rather than catastrophic backtracking in a vulnerable WAF regex.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q2\", \"answer\": \"No\", \"evidence\": \"Reports CPU limits and filter-profile metadata but omits the injected regex ^([a-zA-Z]+)*$ and triggering waf query values.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q3\", \"answer\": \"No\", \"evidence\": \"Specifically diagnoses a CPU resource-limit misconfiguration, conflicting with the ground-truth request-filter regex vulnerability.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q1\", \"answer\": \"Yes\", \"evidence\": \"Does not blame any component beyond frontend-proxy.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q2\", \"answer\": \"Yes\", \"evidence\": \"Includes frontend-proxy, the only specific component identified as contributing to or affected by the fault in the ground truth.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q3\", \"answer\": \"Yes\", \"evidence\": \"Reports frontend-proxy CPU usage at its limit, consistent with the ground-truth CPU saturation symptom, although HTTP timeouts are omitted.\", \"confidence\": \"High\"}]",
+    "success": false,
+    "accuracy": 67.0,
+    "composite_score": 0.67,
+    "dimensions": {
+     "D1": {
+      "name": "Fault Localization",
+      "score": 1.0
+     },
+     "D2": {
+      "name": "Fault Characterization",
+      "score": 0.0
+     },
+     "D3": {
+      "name": "Scope Precision",
+      "score": 1.0
+     }
+    },
+    "checklist": [
+     {
+      "id": "D1-Q1",
+      "answer": "Yes",
+      "evidence": "Names Deployment frontend-proxy in namespace astronomy-shop, matching the ground-truth fault origin.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q2",
+      "answer": "Yes",
+      "evidence": "Identifies frontend-proxy as the origin and does not attribute the fault to downstream HTTP paths or other victims.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q3",
+      "answer": "Yes",
+      "evidence": "Blames only frontend-proxy, the component identified by the ground truth.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q1",
+      "answer": "No",
+      "evidence": "Attributes the fault to a CPU limit changing from unset to 100m, rather than catastrophic backtracking in a vulnerable WAF regex.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q2",
+      "answer": "No",
+      "evidence": "Reports CPU limits and filter-profile metadata but omits the injected regex ^([a-zA-Z]+)*$ and triggering waf query values.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q3",
+      "answer": "No",
+      "evidence": "Specifically diagnoses a CPU resource-limit misconfiguration, conflicting with the ground-truth request-filter regex vulnerability.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q1",
+      "answer": "Yes",
+      "evidence": "Does not blame any component beyond frontend-proxy.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q2",
+      "answer": "Yes",
+      "evidence": "Includes frontend-proxy, the only specific component identified as contributing to or affected by the fault in the ground truth.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q3",
+      "answer": "Yes",
+      "evidence": "Reports frontend-proxy CPU usage at its limit, consistent with the ground-truth CPU saturation symptom, although HTTP timeouts are omitted.",
+      "confidence": "High"
+     }
+    ]
+   }
+  },
+  {
+   "arm": 1,
+   "kind": "v1",
+   "model": "openai/gpt-6-luna-decisions",
+   "position": 1,
+   "seconds": 2.0,
+   "requests": 2,
+   "input_tokens": 25476,
+   "error": null,
+   "model_failed": false,
+   "component": "deployment/frontend-proxy",
+   "investigation": {
+    "steps": [
+     {
+      "step": 1,
+      "node": "investigate",
+      "component": "deployment/frontend-proxy",
+      "verdict": "origin",
+      "origin_p": 0.97,
+      "victim_p": 0.02,
+      "next": "none",
+      "next_p": 0.43,
+      "category": "config_value",
+      "spec_checks": [],
+      "blocked_input": null,
+      "key_evidence": "pod template changed in revision 2: container frontend-proxy env WAF_RULE_REGEX added: ^([a-zA-Z]+)*$"
+     }
+    ],
+    "concluded": "deployment/frontend-proxy",
+    "fallback": null,
+    "triage_top": [
+     [
+      "deployment/frontend-proxy",
+      1.0
+     ],
+     [
+      "deployment/accounting",
+      0.0
+     ],
+     [
+      "deployment/ad",
+      0.0
+     ],
+     [
+      "deployment/cart",
+      0.0
+     ],
+     [
+      "deployment/checkout",
+      0.0
+     ]
+    ]
+   },
+   "text": "Root cause component: Deployment `frontend-proxy` in namespace `astronomy-shop`.\nMechanism: pod template changed in revision 2: container frontend-proxy env WAF_RULE_REGEX added: ^([a-zA-Z]+)*$.\nFault type: config value (a wrong, missing, or shadowed value in this component's own configuration).\nAbnormal state observed on this component:\n- container frontend-proxy cpu usage 100m is at its limit 100m (throttling likely)\n- spec modified 78s ago, 61s after this object was created (fields: template.annotations.edge.platform/change-ticket, template.annotations.edge.platform/filter-profile, containers[frontend-proxy].args, containers[frontend-proxy].command); pod template changes: template annotation edge.platform/change-ticket added: EDGE-1847; template annotation edge.platform/filter-profile added: managed-rules-v2; pod label pod-template-hash: 579d54f6f5 -> 6c9669bb69\n- container frontend-proxy: image ghcr.io/open-telemetry/demo:2.2.0-frontend-proxy, limits {'cpu': '100m', 'memory': '65Mi'}\nClassification: Jev (openai/gpt-6-luna-decisions-20261006) confirmed this origin at investigation step 1 with probability 0.97 (triage probability 1.00).",
+   "grade": {
+    "judgment": "True",
+    "reasoning": "Verdict: True (composite=1.00). D1 Fault Localization: 1.00 | D2 Fault Characterization: 1.00 | D3 Scope Precision: 1.00. Weakest dimension: Fault Localization (1.00). Checklist details: [{\"id\": \"D1-Q1\", \"answer\": \"Yes\", \"evidence\": \"Diagnosis identifies Deployment frontend-proxy in namespace astronomy-shop, matching the ground-truth fault origin.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q2\", \"answer\": \"Yes\", \"evidence\": \"Diagnosis explicitly names frontend-proxy as the root cause component and does not attribute the origin to a secondary failure point.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q3\", \"answer\": \"Yes\", \"evidence\": \"The blamed component is frontend-proxy, matching ground truth; no healthy component is identified as the origin.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q1\", \"answer\": \"Yes\", \"evidence\": \"Diagnosis identifies the addition of WAF_RULE_REGEX with ^([a-zA-Z]+)*$, matching the faulty request-filter rule update.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q2\", \"answer\": \"Yes\", \"evidence\": \"Diagnosis supplies the configuration key WAF_RULE_REGEX and exact vulnerable value ^([a-zA-Z]+)*$.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q3\", \"answer\": \"Yes\", \"evidence\": \"Diagnosis classifies the fault as a wrong configuration value and identifies the vulnerable regex; this is consistent with ground truth.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q1\", \"answer\": \"Yes\", \"evidence\": \"Diagnosis attributes the fault solely to frontend-proxy and blames no additional components.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q2\", \"answer\": \"Yes\", \"evidence\": \"Diagnosis includes frontend-proxy, the only specific component identified in ground truth as contributing to or affected by the fault.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q3\", \"answer\": \"Yes\", \"evidence\": \"Diagnosis reports frontend-proxy CPU usage at its 100m limit, consistent with ground-truth CPU saturation.\", \"confidence\": \"High\"}]",
+    "success": true,
+    "accuracy": 100.0,
+    "composite_score": 1.0,
+    "dimensions": {
+     "D1": {
+      "name": "Fault Localization",
+      "score": 1.0
+     },
+     "D2": {
+      "name": "Fault Characterization",
+      "score": 1.0
+     },
+     "D3": {
+      "name": "Scope Precision",
+      "score": 1.0
+     }
+    },
+    "checklist": [
+     {
+      "id": "D1-Q1",
+      "answer": "Yes",
+      "evidence": "Diagnosis identifies Deployment frontend-proxy in namespace astronomy-shop, matching the ground-truth fault origin.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q2",
+      "answer": "Yes",
+      "evidence": "Diagnosis explicitly names frontend-proxy as the root cause component and does not attribute the origin to a secondary failure point.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q3",
+      "answer": "Yes",
+      "evidence": "The blamed component is frontend-proxy, matching ground truth; no healthy component is identified as the origin.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q1",
+      "answer": "Yes",
+      "evidence": "Diagnosis identifies the addition of WAF_RULE_REGEX with ^([a-zA-Z]+)*$, matching the faulty request-filter rule update.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q2",
+      "answer": "Yes",
+      "evidence": "Diagnosis supplies the configuration key WAF_RULE_REGEX and exact vulnerable value ^([a-zA-Z]+)*$.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q3",
+      "answer": "Yes",
+      "evidence": "Diagnosis classifies the fault as a wrong configuration value and identifies the vulnerable regex; this is consistent with ground truth.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q1",
+      "answer": "Yes",
+      "evidence": "Diagnosis attributes the fault solely to frontend-proxy and blames no additional components.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q2",
+      "answer": "Yes",
+      "evidence": "Diagnosis includes frontend-proxy, the only specific component identified in ground truth as contributing to or affected by the fault.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q3",
+      "answer": "Yes",
+      "evidence": "Diagnosis reports frontend-proxy CPU usage at its 100m limit, consistent with ground-truth CPU saturation.",
+      "confidence": "High"
+     }
+    ]
+   }
+  },
+  {
+   "arm": 2,
+   "kind": "v2",
+   "model": "typesafe/jev-1.13",
+   "position": 2,
+   "seconds": 1.3,
+   "requests": 2,
+   "input_tokens": 36553,
+   "error": null,
+   "model_failed": false,
+   "component": "deployment/frontend-proxy",
+   "investigation": {
+    "steps": [
+     {
+      "step": 1,
+      "node": "investigate",
+      "component": "deployment/frontend-proxy",
+      "verdict": "origin",
+      "origin_p": 0.99,
+      "victim_p": 0.0,
+      "next": "none",
+      "next_p": 0.92,
+      "category": "config_value",
+      "spec_checks": [],
+      "blocked_input": null,
+      "key_evidence": "pod template changed in revision 2: container frontend-proxy limits.cpu: unset -> 100m"
+     }
+    ],
+    "concluded": "deployment/frontend-proxy",
+    "fallback": null,
+    "triage_top": [
+     [
+      "deployment/frontend-proxy",
+      0.98
+     ],
+     [
+      "deployment/frontend",
+      0.01
+     ],
+     [
+      "deployment/image-provider",
+      0.01
+     ],
+     [
+      "deployment/accounting",
+      0.0
+     ],
+     [
+      "deployment/ad",
+      0.0
+     ]
+    ],
+    "second": null
+   },
+   "text": "Root cause: Deployment `frontend-proxy` in namespace `astronomy-shop`: pod template changed in revision 2: container frontend-proxy limits.cpu: unset -> 100m.\nMechanism: spec modified 78s ago, 61s after this object was created (fields: template.annotations.edge.platform/change-ticket, template.annotations.edge.platform/filter-profile, containers[frontend-proxy].args, containers[frontend-proxy].command); pod template changes: template annotation edge.platform/change-ticket added: EDGE-1847; template annotation edge.platform/filter-profile added: managed-rules-v2; container frontend-proxy command: [\"/bin/sh\", \"-c\", \"envsubst < envoy.tmpl.yaml | sed '/type: STRICT_DNS/a\\\\      dns_lookup_family: V4_PREFERRED' > envo\u2026 -> [\"/usr/bin/perl\", \"-e\"].\nDetails: template annotation edge.platform/change-ticket added: EDGE-1847; template annotation edge.platform/filter-profile added: managed-rules-v2; container frontend-proxy command: [\"/bin/sh\", \"-c\", \"envsubst < envoy.tmpl.yaml | sed '/type: STRICT_DNS/a\\\\      dns_lookup_family: V4_PREFERRED' > envo\u2026 -> [\"/usr/bin/perl\", \"-e\"]; container frontend-proxy args: null -> [\"use IO::Socket::INET;\\nuse IO::Select;\\n\\nmy $rule = $ENV{WAF_RULE_REGEX} || q{^([a-zA-Z]+)*$};\\nmy $port = $ENV{ENVOY_PORT} || 8080;\\nmy $upstream_host = $ENV{FRONTEND_HOST} || \\\"frontend\\\";\\nmy $upstream_port = $ENV{FRONTEND_PORT} || 8080;\\nmy $server = IO::Socket::INET->new(\\n    LocalAddr => \\\"0.0.0.0\\\",\\n    LocalPort => $port,\\n    Proto => \\\"tcp\\\",\\n    Listen => 128,\\n    ReuseAddr => 1\\n) or die \\\"listen failed: $!\\\";\\n\\nprint \\\"edge request filter listening on $port\\\\n\\\";\\nwhile (my\u2026.\nEffect: container frontend-proxy cpu usage 100m is at its limit 100m (throttling likely).",
+   "grade": {
+    "judgment": "True",
+    "reasoning": "Verdict: True (composite=0.78). D1 Fault Localization: 1.00 | D2 Fault Characterization: 0.33 | D3 Scope Precision: 1.00. Weakest dimension: Fault Characterization (0.33). Checklist details: [{\"id\": \"D1-Q1\", \"answer\": \"Yes\", \"evidence\": \"Names deployment frontend-proxy in namespace astronomy-shop, matching the ground-truth fault origin.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q2\", \"answer\": \"Yes\", \"evidence\": \"Locates the root cause in frontend-proxy rather than any downstream service.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q3\", \"answer\": \"Yes\", \"evidence\": \"Blames frontend-proxy, the component identified in the fault specification.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q1\", \"answer\": \"No\", \"evidence\": \"Identifies a CPU limit change to 100m as the root cause; does not explain catastrophic regex backtracking triggered by waf query values.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q2\", \"answer\": \"Yes\", \"evidence\": \"Includes WAF_RULE_REGEX and the exact vulnerable regex ^([a-zA-Z]+)*$ in the changed container arguments.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q3\", \"answer\": \"No\", \"evidence\": \"Attributes the fault to limits.cpu changing from unset to 100m rather than the vulnerable request-filter rule.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q1\", \"answer\": \"Yes\", \"evidence\": \"Attributes the fault only to frontend-proxy; does not blame additional components.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q2\", \"answer\": \"Yes\", \"evidence\": \"Includes frontend-proxy, the only specific component identified as contributing to or affected by the ground-truth fault.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q3\", \"answer\": \"Yes\", \"evidence\": \"Reports frontend-proxy CPU usage at its limit, consistent with CPU saturation, although HTTP timeouts are not mentioned.\", \"confidence\": \"Medium\"}]",
+    "success": true,
+    "accuracy": 78.0,
+    "composite_score": 0.78,
+    "dimensions": {
+     "D1": {
+      "name": "Fault Localization",
+      "score": 1.0
+     },
+     "D2": {
+      "name": "Fault Characterization",
+      "score": 0.33
+     },
+     "D3": {
+      "name": "Scope Precision",
+      "score": 1.0
+     }
+    },
+    "checklist": [
+     {
+      "id": "D1-Q1",
+      "answer": "Yes",
+      "evidence": "Names deployment frontend-proxy in namespace astronomy-shop, matching the ground-truth fault origin.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q2",
+      "answer": "Yes",
+      "evidence": "Locates the root cause in frontend-proxy rather than any downstream service.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q3",
+      "answer": "Yes",
+      "evidence": "Blames frontend-proxy, the component identified in the fault specification.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q1",
+      "answer": "No",
+      "evidence": "Identifies a CPU limit change to 100m as the root cause; does not explain catastrophic regex backtracking triggered by waf query values.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q2",
+      "answer": "Yes",
+      "evidence": "Includes WAF_RULE_REGEX and the exact vulnerable regex ^([a-zA-Z]+)*$ in the changed container arguments.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q3",
+      "answer": "No",
+      "evidence": "Attributes the fault to limits.cpu changing from unset to 100m rather than the vulnerable request-filter rule.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q1",
+      "answer": "Yes",
+      "evidence": "Attributes the fault only to frontend-proxy; does not blame additional components.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q2",
+      "answer": "Yes",
+      "evidence": "Includes frontend-proxy, the only specific component identified as contributing to or affected by the ground-truth fault.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q3",
+      "answer": "Yes",
+      "evidence": "Reports frontend-proxy CPU usage at its limit, consistent with CPU saturation, although HTTP timeouts are not mentioned.",
+      "confidence": "Medium"
+     }
+    ]
+   }
+  },
+  {
+   "arm": 3,
+   "kind": "v2",
+   "model": "openai/gpt-6-luna-decisions",
+   "position": 3,
+   "seconds": 2.3,
+   "requests": 2,
+   "input_tokens": 25258,
+   "error": null,
+   "model_failed": false,
+   "component": "deployment/frontend-proxy",
+   "investigation": {
+    "steps": [
+     {
+      "step": 1,
+      "node": "investigate",
+      "component": "deployment/frontend-proxy",
+      "verdict": "origin",
+      "origin_p": 0.98,
+      "victim_p": 0.01,
+      "next": "none",
+      "next_p": 0.41,
+      "category": "config_value",
+      "spec_checks": [],
+      "blocked_input": null,
+      "key_evidence": "pod template changed in revision 2: container frontend-proxy args: null -> [\"use IO::Socket::INET;\\nuse IO::Select;\\n\\nmy $rule = $ENV{WAF_RULE_REGEX} || q{^([a-zA-Z]+)*$};\\nmy $port = $ENV{ENVOY_PORT} || 8080;\\nmy $upstream_host = $ENV{FRONTEND_HOST} || \\\"frontend\\\";\\nmy $upstream_port = $ENV{FRONTEND_PORT} || 8080;\\nmy $server = IO::Socket::INET->new(\\n    LocalAddr => \\\"0.0.0.0\\\",\\n    LocalPort => $port,\\n    Proto => \\\"tcp\\\",\\n    Listen => 128,\\n    ReuseAddr => 1\\n) or die \\\"listen failed: $!\\\";\\n\\nprint \\\"edge request filter listening on $port\\\\n\\\";\\nwhile (my\u2026"
+     }
+    ],
+    "concluded": "deployment/frontend-proxy",
+    "fallback": null,
+    "triage_top": [
+     [
+      "deployment/frontend-proxy",
+      1.0
+     ],
+     [
+      "deployment/accounting",
+      0.0
+     ],
+     [
+      "deployment/ad",
+      0.0
+     ],
+     [
+      "deployment/cart",
+      0.0
+     ],
+     [
+      "deployment/checkout",
+      0.0
+     ]
+    ],
+    "second": null
+   },
+   "text": "Root cause: Deployment `frontend-proxy` in namespace `astronomy-shop`: pod template changed in revision 2: container frontend-proxy args: null -> [\"use IO::Socket::INET;\\nuse IO::Select;\\n\\nmy $rule = $ENV{WAF_RULE_REGEX} || q{^([a-zA-Z]+)*$};\\nmy $port = $ENV{ENVOY_PORT} || 8080;\\nmy $upstream_host = $ENV{FRONTEND_HOST} || \\\"frontend\\\";\\nmy $upstream_port = $ENV{FRONTEND_PORT} || 8080;\\nmy $server = IO::Socket::INET->new(\\n    LocalAddr => \\\"0.0.0.0\\\",\\n    LocalPort => $port,\\n    Proto => \\\"tcp\\\",\\n    Listen => 128,\\n    ReuseAddr => 1\\n) or die \\\"listen failed: $!\\\";\\n\\nprint \\\"edge request filter listening on $port\\\\n\\\";\\nwhile (my\u2026.\nMechanism: spec modified 78s ago, 61s after this object was created (fields: template.annotations.edge.platform/change-ticket, template.annotations.edge.platform/filter-profile, containers[frontend-proxy].args, containers[frontend-proxy].command); pod template changes: template annotation edge.platform/change-ticket added: EDGE-1847; template annotation edge.platform/filter-profile added: managed-rules-v2; container frontend-proxy command: [\"/bin/sh\", \"-c\", \"envsubst < envoy.tmpl.yaml | sed '/type: STRICT_DNS/a\\\\      dns_lookup_family: V4_PREFERRED' > envo\u2026 -> [\"/usr/bin/perl\", \"-e\"].\nDetails: template annotation edge.platform/change-ticket added: EDGE-1847; template annotation edge.platform/filter-profile added: managed-rules-v2; container frontend-proxy command: [\"/bin/sh\", \"-c\", \"envsubst < envoy.tmpl.yaml | sed '/type: STRICT_DNS/a\\\\      dns_lookup_family: V4_PREFERRED' > envo\u2026 -> [\"/usr/bin/perl\", \"-e\"]; container frontend-proxy args: null -> [\"use IO::Socket::INET;\\nuse IO::Select;\\n\\nmy $rule = $ENV{WAF_RULE_REGEX} || q{^([a-zA-Z]+)*$};\\nmy $port = $ENV{ENVOY_PORT} || 8080;\\nmy $upstream_host = $ENV{FRONTEND_HOST} || \\\"frontend\\\";\\nmy $upstream_port = $ENV{FRONTEND_PORT} || 8080;\\nmy $server = IO::Socket::INET->new(\\n    LocalAddr => \\\"0.0.0.0\\\",\\n    LocalPort => $port,\\n    Proto => \\\"tcp\\\",\\n    Listen => 128,\\n    ReuseAddr => 1\\n) or die \\\"listen failed: $!\\\";\\n\\nprint \\\"edge request filter listening on $port\\\\n\\\";\\nwhile (my\u2026.\nEffect: container frontend-proxy cpu usage 100m is at its limit 100m (throttling likely).",
+   "grade": {
+    "judgment": "True",
+    "reasoning": "Verdict: True (composite=0.89). D1 Fault Localization: 1.00 | D2 Fault Characterization: 0.67 | D3 Scope Precision: 1.00. Weakest dimension: Fault Characterization (0.67). Checklist details: [{\"id\": \"D1-Q1\", \"answer\": \"Yes\", \"evidence\": \"Names Deployment `frontend-proxy` in namespace `astronomy-shop` as the root cause, matching the ground truth.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q2\", \"answer\": \"Yes\", \"evidence\": \"Attributes the fault to changes in `frontend-proxy` itself, rather than a downstream service.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q3\", \"answer\": \"Yes\", \"evidence\": \"Identifies only `frontend-proxy` as the fault origin; no healthy component is blamed.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q1\", \"answer\": \"No\", \"evidence\": \"Reports the rule-containing pod template change but does not identify catastrophic backtracking triggered by long near-matching `waf` query values.\", \"confidence\": \"Medium\"}, {\"id\": \"D2-Q2\", \"answer\": \"Yes\", \"evidence\": \"Includes the exact injected regex `^([a-zA-Z]+)*$` in the changed container arguments and the `WAF_RULE_REGEX` key.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q3\", \"answer\": \"Yes\", \"evidence\": \"Attributes the fault to an edge request-filter deployment change containing the matching regex; it asserts no conflicting fault type.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q1\", \"answer\": \"Yes\", \"evidence\": \"Blames only the `frontend-proxy` deployment and its container configuration.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q2\", \"answer\": \"Yes\", \"evidence\": \"Includes `frontend-proxy`, the only specific component identified in the ground truth as contributing to or affected by the fault.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q3\", \"answer\": \"Yes\", \"evidence\": \"Reports frontend-proxy CPU usage at its 100m limit, consistent with ground-truth CPU saturation, although HTTP timeouts are omitted.\", \"confidence\": \"High\"}]",
+    "success": true,
+    "accuracy": 89.0,
+    "composite_score": 0.89,
+    "dimensions": {
+     "D1": {
+      "name": "Fault Localization",
+      "score": 1.0
+     },
+     "D2": {
+      "name": "Fault Characterization",
+      "score": 0.67
+     },
+     "D3": {
+      "name": "Scope Precision",
+      "score": 1.0
+     }
+    },
+    "checklist": [
+     {
+      "id": "D1-Q1",
+      "answer": "Yes",
+      "evidence": "Names Deployment `frontend-proxy` in namespace `astronomy-shop` as the root cause, matching the ground truth.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q2",
+      "answer": "Yes",
+      "evidence": "Attributes the fault to changes in `frontend-proxy` itself, rather than a downstream service.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q3",
+      "answer": "Yes",
+      "evidence": "Identifies only `frontend-proxy` as the fault origin; no healthy component is blamed.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q1",
+      "answer": "No",
+      "evidence": "Reports the rule-containing pod template change but does not identify catastrophic backtracking triggered by long near-matching `waf` query values.",
+      "confidence": "Medium"
+     },
+     {
+      "id": "D2-Q2",
+      "answer": "Yes",
+      "evidence": "Includes the exact injected regex `^([a-zA-Z]+)*$` in the changed container arguments and the `WAF_RULE_REGEX` key.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q3",
+      "answer": "Yes",
+      "evidence": "Attributes the fault to an edge request-filter deployment change containing the matching regex; it asserts no conflicting fault type.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q1",
+      "answer": "Yes",
+      "evidence": "Blames only the `frontend-proxy` deployment and its container configuration.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q2",
+      "answer": "Yes",
+      "evidence": "Includes `frontend-proxy`, the only specific component identified in the ground truth as contributing to or affected by the fault.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q3",
+      "answer": "Yes",
+      "evidence": "Reports frontend-proxy CPU usage at its 100m limit, consistent with ground-truth CPU saturation, although HTTP timeouts are omitted.",
+      "confidence": "High"
+     }
+    ]
+   }
+  }
+ ],
+ "judge": {
+  "model": "gpt-6-astra",
+  "backend": "codex",
+  "effort": "high"
+ }
+}

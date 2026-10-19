@@ -1,0 +1,2142 @@
+[
+ {
+  "label": "decide:1",
+  "state": {
+   "application": {
+    "name": "OpenTelemetry Demo Astronomy Shop",
+    "description": "An online shopping platform built with a microservices architecture, showcasing OpenTelemetry instrumentation for distributed tracing across services.",
+    "namespaces": [
+     "astronomy-shop"
+    ]
+   },
+   "evidence": {
+    "daemonset/otel-collector-agent": {
+     "kind": "DaemonSet",
+     "name": "otel-collector-agent",
+     "namespace": "astronomy-shop",
+     "healthy": false,
+     "signals": [
+      "spec modified 166s ago, 18s after this object was created (fields: template.annotations.kubectl.kubernetes.io/restartedAt); pod template changes: template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-18T23:37:50+06:00; 113s before the first active symptom"
+     ],
+     "template_changes": {
+      "revision": 2,
+      "changed_at": "2026-10-18T17:37:50Z",
+      "changes": [
+       "template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-18T23:37:50+06:00"
+      ]
+     }
+    },
+    "deployment/order-stream": {
+     "kind": "Deployment",
+     "name": "order-stream",
+     "namespace": "astronomy-shop",
+     "healthy": false,
+     "signals": [
+      "created 147s ago, 37s after the workloads it calls; 94s before the first active symptom"
+     ]
+    },
+    "deployment/orders-validator": {
+     "kind": "Deployment",
+     "name": "orders-validator",
+     "namespace": "astronomy-shop",
+     "healthy": false,
+     "signals": [
+      "created 131s ago, 53s after the workloads it calls; 78s before the first active symptom"
+     ]
+    },
+    "deployment/accounting": {
+     "kind": "Deployment",
+     "name": "accounting",
+     "namespace": "astronomy-shop",
+     "healthy": false,
+     "signals": [
+      "container accounting memory usage 111Mi is near its limit 120Mi"
+     ]
+    }
+   },
+   "cluster": {
+    "symptom_onset": "2026-10-18T17:39:43+00:00",
+    "recent_changes": [
+     {
+      "object": "deployment/orders-validator",
+      "at": "2026-10-18T17:38:25Z",
+      "created_after_targets_s": 53,
+      "seconds_ago": 131,
+      "seconds_before_symptoms": 78
+     },
+     {
+      "object": "deployment/order-stream",
+      "at": "2026-10-18T17:38:09Z",
+      "created_after_targets_s": 37,
+      "seconds_ago": 147,
+      "seconds_before_symptoms": 94
+     },
+     {
+      "object": "daemonset/otel-collector-agent",
+      "at": "2026-10-18T17:37:50Z",
+      "modified_after_creation_s": 18,
+      "fields": [
+       "template.annotations.kubectl.kubernetes.io/restartedAt"
+      ],
+      "seconds_ago": 166,
+      "seconds_before_symptoms": 113,
+      "role": "observability"
+     },
+     {
+      "object": "configmap/kube-system/coredns",
+      "at": "2026-10-18T16:57:47Z",
+      "modified_after_creation_s": 29766,
+      "fields": [
+       "data.Corefile"
+      ],
+      "seconds_ago": 2569,
+      "seconds_before_symptoms": 2516
+     }
+    ],
+    "findings": [
+     {
+      "kind": "ConfigMap",
+      "name": "coredns",
+      "namespace": "kube-system",
+      "signal": "ConfigMap coredns was modified 2569s ago, 29766s after it was created (fields: data.Corefile); 2516s before the first active symptom"
+     }
+    ]
+   }
+  },
+  "questions": {
+   "best_explanation": {
+    "type": "choice",
+    "criteria": {
+     "o1": "Origin: deployment/astronomy-shop/accounting. The fault is in this component; the mechanism is not established. | Observed impact on: deployment/astronomy-shop/accounting",
+     "o2": "Origin: deployment/astronomy-shop/orders-validator. deployment orders-validator was created recently and breaks deployment/orders-validator, which it acts on. | Observed impact on: deployment/astronomy-shop/orders-validator | Checks: deployment/astronomy-shop/orders-validator was made before the symptoms began (supports); deployment/orders-validator shows symptoms of its own (supports)",
+     "o3": "Origin: deployment/astronomy-shop/order-stream. deployment order-stream was created recently and breaks deployment/order-stream, which it acts on. | Observed impact on: deployment/astronomy-shop/order-stream | Checks: deployment/astronomy-shop/order-stream was made before the symptoms began (supports); deployment/order-stream shows symptoms of its own (supports)",
+     "o4": "Origin: daemonset/astronomy-shop/otel-collector-agent. The pod template change 'template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-18T23:37:50+06:00' in revision 2 of daemonset/otel-collector-agent breaks daemonset/otel-collector-agent. | Details: template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-18T23:37:50+06:00 | Observed impact on: daemonset/astronomy-shop/otel-collector-agent | Checks: revision 2 of daemonset/otel-collector-agent was made before the symptoms began (supports); daemonset/otel-collector-agent shows symptoms of its own (supports)",
+     "o5": "Origin: deployment/astronomy-shop/order-stream. The fault is in this component; the mechanism is not established. | Observed impact on: deployment/astronomy-shop/order-stream",
+     "o6": "Origin: daemonset/astronomy-shop/otel-collector-agent. daemonset otel-collector-agent was changed recently and breaks daemonset/otel-collector-agent, which it acts on. | Details: daemonset otel-collector-agent fields written: template.annotations.kubectl.kubernetes.io/restartedAt | Observed impact on: daemonset/astronomy-shop/otel-collector-agent | Checks: daemonset/astronomy-shop/otel-collector-agent was made before the symptoms began (supports); daemonset/otel-collector-agent shows symptoms of its own (supports)",
+     "o7": "None of these explanations fits the evidence."
+    },
+    "instructions": {
+     "question": "Which explanation best accounts for all the observed symptoms in `evidence`?",
+     "how_to_decide": [
+      "Prefer the explanation whose chain is supported by the observed facts and explains the most symptoms; an explanation contradicted by a fact is unlikely.",
+      "A component that only fails because something it calls fails is a victim, not the origin.",
+      "Choose `o7` when none of the explanations fits the evidence."
+     ]
+    }
+   }
+  },
+  "model": "typesafe/jev-1.13-20260917",
+  "latency_ms": 562,
+  "usage": {
+   "input_tokens": 2040,
+   "output_tokens": 77,
+   "cost": 8.568e-05
+  },
+  "answers": {
+   "best_explanation": {
+    "type": "choice",
+    "choice": "o4",
+    "confidence": 0.22,
+    "probabilities": {
+     "o1": 0.16,
+     "o2": 0.04,
+     "o3": 0.04,
+     "o4": 0.33,
+     "o5": 0.01,
+     "o6": 0.14,
+     "o7": 0.28
+    }
+   }
+  }
+ },
+ {
+  "label": "decide:2",
+  "state": {
+   "application": {
+    "name": "OpenTelemetry Demo Astronomy Shop",
+    "description": "An online shopping platform built with a microservices architecture, showcasing OpenTelemetry instrumentation for distributed tracing across services.",
+    "namespaces": [
+     "astronomy-shop"
+    ]
+   },
+   "evidence": {
+    "daemonset/otel-collector-agent": {
+     "kind": "DaemonSet",
+     "name": "otel-collector-agent",
+     "namespace": "astronomy-shop",
+     "healthy": false,
+     "signals": [
+      "spec modified 166s ago, 18s after this object was created (fields: template.annotations.kubectl.kubernetes.io/restartedAt); pod template changes: template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-18T23:37:50+06:00; 113s before the first active symptom"
+     ],
+     "template_changes": {
+      "revision": 2,
+      "changed_at": "2026-10-18T17:37:50Z",
+      "changes": [
+       "template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-18T23:37:50+06:00"
+      ]
+     }
+    },
+    "deployment/order-stream": {
+     "kind": "Deployment",
+     "name": "order-stream",
+     "namespace": "astronomy-shop",
+     "healthy": false,
+     "signals": [
+      "created 147s ago, 37s after the workloads it calls; 94s before the first active symptom"
+     ]
+    },
+    "deployment/orders-validator": {
+     "kind": "Deployment",
+     "name": "orders-validator",
+     "namespace": "astronomy-shop",
+     "healthy": false,
+     "signals": [
+      "created 131s ago, 53s after the workloads it calls; 78s before the first active symptom"
+     ]
+    },
+    "deployment/accounting": {
+     "kind": "Deployment",
+     "name": "accounting",
+     "namespace": "astronomy-shop",
+     "healthy": false,
+     "signals": [
+      "container accounting memory usage 111Mi is near its limit 120Mi"
+     ]
+    }
+   },
+   "cluster": {
+    "symptom_onset": "2026-10-18T17:39:43+00:00",
+    "recent_changes": [
+     {
+      "object": "deployment/orders-validator",
+      "at": "2026-10-18T17:38:25Z",
+      "created_after_targets_s": 53,
+      "seconds_ago": 131,
+      "seconds_before_symptoms": 78
+     },
+     {
+      "object": "deployment/order-stream",
+      "at": "2026-10-18T17:38:09Z",
+      "created_after_targets_s": 37,
+      "seconds_ago": 147,
+      "seconds_before_symptoms": 94
+     },
+     {
+      "object": "daemonset/otel-collector-agent",
+      "at": "2026-10-18T17:37:50Z",
+      "modified_after_creation_s": 18,
+      "fields": [
+       "template.annotations.kubectl.kubernetes.io/restartedAt"
+      ],
+      "seconds_ago": 166,
+      "seconds_before_symptoms": 113,
+      "role": "observability"
+     },
+     {
+      "object": "configmap/kube-system/coredns",
+      "at": "2026-10-18T16:57:47Z",
+      "modified_after_creation_s": 29766,
+      "fields": [
+       "data.Corefile"
+      ],
+      "seconds_ago": 2569,
+      "seconds_before_symptoms": 2516
+     }
+    ],
+    "findings": [
+     {
+      "kind": "ConfigMap",
+      "name": "coredns",
+      "namespace": "kube-system",
+      "signal": "ConfigMap coredns was modified 2569s ago, 29766s after it was created (fields: data.Corefile); 2516s before the first active symptom"
+     }
+    ]
+   }
+  },
+  "questions": {
+   "best_explanation": {
+    "type": "choice",
+    "criteria": {
+     "o1": "Origin: deployment/astronomy-shop/order-stream. deployment order-stream was created recently and breaks deployment/order-stream, which it acts on. | Observed impact on: deployment/astronomy-shop/order-stream | Checks: deployment/astronomy-shop/order-stream was made before the symptoms began (supports); deployment/order-stream shows symptoms of its own (supports)",
+     "o2": "Origin: daemonset/astronomy-shop/otel-collector-agent. The pod template change 'template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-18T23:37:50+06:00' in revision 2 of daemonset/otel-collector-agent breaks daemonset/otel-collector-agent. | Details: template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-18T23:37:50+06:00 | Observed impact on: daemonset/astronomy-shop/otel-collector-agent | Checks: revision 2 of daemonset/otel-collector-agent was made before the symptoms began (supports); daemonset/otel-collector-agent shows symptoms of its own (supports)",
+     "o3": "Origin: deployment/astronomy-shop/accounting. The fault is in this component; the mechanism is not established. | Observed impact on: deployment/astronomy-shop/accounting",
+     "o4": "Origin: deployment/astronomy-shop/order-stream. The fault is in this component; the mechanism is not established. | Observed impact on: deployment/astronomy-shop/order-stream",
+     "o5": "None of these explanations fits the evidence.",
+     "o6": "Origin: deployment/astronomy-shop/orders-validator. deployment orders-validator was created recently and breaks deployment/orders-validator, which it acts on. | Observed impact on: deployment/astronomy-shop/orders-validator | Checks: deployment/astronomy-shop/orders-validator was made before the symptoms began (supports); deployment/orders-validator shows symptoms of its own (supports)",
+     "o7": "Origin: daemonset/astronomy-shop/otel-collector-agent. daemonset otel-collector-agent was changed recently and breaks daemonset/otel-collector-agent, which it acts on. | Details: daemonset otel-collector-agent fields written: template.annotations.kubectl.kubernetes.io/restartedAt | Observed impact on: daemonset/astronomy-shop/otel-collector-agent | Checks: daemonset/astronomy-shop/otel-collector-agent was made before the symptoms began (supports); daemonset/otel-collector-agent shows symptoms of its own (supports)"
+    },
+    "instructions": {
+     "question": "Which explanation best accounts for all the observed symptoms in `evidence`?",
+     "how_to_decide": [
+      "Prefer the explanation whose chain is supported by the observed facts and explains the most symptoms; an explanation contradicted by a fact is unlikely.",
+      "A component that only fails because something it calls fails is a victim, not the origin.",
+      "Choose `o5` when none of the explanations fits the evidence."
+     ]
+    }
+   }
+  },
+  "model": "typesafe/jev-1.13-20260917",
+  "latency_ms": 545,
+  "usage": {
+   "input_tokens": 2040,
+   "output_tokens": 77,
+   "cost": 8.568e-05
+  },
+  "answers": {
+   "best_explanation": {
+    "type": "choice",
+    "choice": "o5",
+    "confidence": 0.23,
+    "probabilities": {
+     "o1": 0.03,
+     "o2": 0.26,
+     "o3": 0.15,
+     "o4": 0.02,
+     "o5": 0.34,
+     "o6": 0.05,
+     "o7": 0.15
+    }
+   }
+  }
+ },
+ {
+  "label": "decide:1",
+  "state": {
+   "application": {
+    "name": "OpenTelemetry Demo Astronomy Shop",
+    "description": "An online shopping platform built with a microservices architecture, showcasing OpenTelemetry instrumentation for distributed tracing across services.",
+    "namespaces": [
+     "astronomy-shop"
+    ]
+   },
+   "evidence": {
+    "deployment/orders-validator": {
+     "kind": "Deployment",
+     "name": "orders-validator",
+     "namespace": "astronomy-shop",
+     "healthy": false,
+     "signals": [
+      "created 131s ago, 53s after the workloads it calls; 78s before the first active symptom"
+     ],
+     "detail": {
+      "component": "deployment/orders-validator",
+      "namespace": "astronomy-shop",
+      "workload": {
+       "created": "2026-10-18T17:38:25Z",
+       "last_spec_write": "2026-10-18T17:38:25Z",
+       "spec_writers": [
+        {
+         "manager": "OpenAPI-Generator",
+         "op": "Update",
+         "time": "2026-10-18T17:38:25Z"
+        }
+       ],
+       "replicas": 1,
+       "strategy": {
+        "rollingUpdate": {
+         "maxSurge": "25%",
+         "maxUnavailable": "25%"
+        },
+        "type": "RollingUpdate"
+       },
+       "dns_policy": "ClusterFirst",
+       "restart_policy": "Always",
+       "containers": [
+        {
+         "name": "orders-validator",
+         "image": "ghcr.io/sregym/kafka-client:2.5.3-py3.12",
+         "command": [
+          "python",
+          "/scripts/consumer.py"
+         ],
+         "env": [
+          {
+           "name": "KAFKA_BOOTSTRAP",
+           "value": "kafka:9092"
+          },
+          {
+           "name": "ORDERS_TOPIC",
+           "value": "orders-fulfillment"
+          },
+          {
+           "name": "OUTPUT_TOPIC",
+           "value": "orders-processed"
+          },
+          {
+           "name": "CONSUMER_GROUP",
+           "value": "orders-validator"
+          }
+         ],
+         "volume_mounts": [
+          {
+           "name": "scripts",
+           "path": "/scripts"
+          }
+         ]
+        }
+       ],
+       "volumes": [
+        {
+         "name": "scripts",
+         "configMap": {
+          "defaultMode": 420,
+          "name": "orders-pipeline-scripts"
+         }
+        }
+       ],
+       "template_labels": {
+        "app": "orders-validator"
+       }
+      },
+      "pods": [
+       {
+        "name": "orders-validator-6d49bfb98d-2jwmt",
+        "node": "kind-worker",
+        "phase": "Running",
+        "started": "2026-10-18T17:38:25Z",
+        "ready_since": "2026-10-18T17:38:25Z",
+        "conditions": [
+         "PodReadyToStartContainers=True",
+         "Initialized=True",
+         "Ready=True",
+         "ContainersReady=True",
+         "PodScheduled=True"
+        ],
+        "containers": [
+         {
+          "name": "orders-validator",
+          "ready": true,
+          "restarts": 0,
+          "state": {
+           "running": {
+            "startedAt": "2026-10-18T17:38:25Z"
+           }
+          }
+         }
+        ]
+       }
+      ],
+      "events": [
+       {
+        "type": "Normal",
+        "reason": "Pulled",
+        "count": 1,
+        "object": "pod/orders-validator-6d49bfb98d-2jwmt",
+        "last": "2026-10-18T17:38:25Z",
+        "message": "Container image \"ghcr.io/sregym/kafka-client:2.5.3-py3.12\" already present on machine"
+       },
+       {
+        "type": "Normal",
+        "reason": "Created",
+        "count": 1,
+        "object": "pod/orders-validator-6d49bfb98d-2jwmt",
+        "last": "2026-10-18T17:38:25Z",
+        "message": "Created container: orders-validator"
+       },
+       {
+        "type": "Normal",
+        "reason": "Started",
+        "count": 1,
+        "object": "pod/orders-validator-6d49bfb98d-2jwmt",
+        "last": "2026-10-18T17:38:25Z",
+        "message": "Started container orders-validator"
+       },
+       {
+        "type": "Normal",
+        "reason": "SuccessfulCreate",
+        "count": 1,
+        "object": "replicaset/orders-validator-6d49bfb98d",
+        "last": "2026-10-18T17:38:25Z",
+        "message": "Created pod: orders-validator-6d49bfb98d-2jwmt"
+       },
+       {
+        "type": "Normal",
+        "reason": "Scheduled",
+        "count": 1,
+        "object": "pod/orders-validator-6d49bfb98d-2jwmt",
+        "last": "2026-10-18T17:38:25.068183Z",
+        "message": "Successfully assigned astronomy-shop/orders-validator-6d49bfb98d-2jwmt to kind-worker"
+       }
+      ],
+      "logs": {
+       "total_lines": 33,
+       "error_lines": 11,
+       "error_lines_still_occurring": 4,
+       "error_lines_stopped": 7,
+       "telemetry_export_error_lines": 0,
+       "error_samples": [
+        {
+         "count": 1,
+         "line": "orders-validator: 2026-10-18 17:39:56,823 ERROR partition remains paused at offset=20",
+         "first_seen_seconds_ago": 52,
+         "last_seen_seconds_ago": 52,
+         "state": "ongoing"
+        },
+        {
+         "count": 1,
+         "line": "orders-validator: 2026-10-18 17:40:11,825 ERROR partition remains paused at offset=20",
+         "first_seen_seconds_ago": 37,
+         "last_seen_seconds_ago": 37,
+         "state": "ongoing"
+        },
+        {
+         "count": 1,
+         "line": "orders-validator: 2026-10-18 17:40:26,827 ERROR partition remains paused at offset=20",
+         "first_seen_seconds_ago": 22,
+         "last_seen_seconds_ago": 22,
+         "state": "ongoing"
+        },
+        {
+         "count": 1,
+         "line": "orders-validator: 2026-10-18 17:40:41,828 ERROR partition remains paused at offset=20",
+         "first_seen_seconds_ago": 7,
+         "last_seen_seconds_ago": 7,
+         "state": "ongoing"
+        },
+        {
+         "count": 1,
+         "line": "orders-validator: 2026-10-18 17:38:26,812 ERROR record validation failed at offset=20: Expecting value: line 1 column 35 (char 34)",
+         "first_seen_seconds_ago": 142,
+         "last_seen_seconds_ago": 142,
+         "state": "stopped"
+        },
+        {
+         "count": 1,
+         "line": "orders-validator: 2026-10-18 17:38:26,812 ERROR partition processing paused at offset=20",
+         "first_seen_seconds_ago": 142,
+         "last_seen_seconds_ago": 142,
+         "state": "stopped"
+        },
+        {
+         "count": 1,
+         "line": "orders-validator: 2026-10-18 17:38:41,814 ERROR partition remains paused at offset=20",
+         "first_seen_seconds_ago": 127,
+         "last_seen_seconds_ago": 127,
+         "state": "stopped"
+        },
+        {
+         "count": 1,
+         "line": "orders-validator: 2026-10-18 17:38:56,815 ERROR partition remains paused at offset=20",
+         "first_seen_seconds_ago": 112,
+         "last_seen_seconds_ago": 112,
+         "state": "stopped"
+        },
+        {
+         "count": 1,
+         "line": "orders-validator: 2026-10-18 17:39:11,817 ERROR partition remains paused at offset=20",
+         "first_seen_seconds_ago": 97,
+         "last_seen_seconds_ago": 97,
+         "state": "stopped"
+        },
+        {
+         "count": 1,
+         "line": "orders-validator: 2026-10-18 17:39:26,819 ERROR partition remains paused at offset=20",
+         "first_seen_seconds_ago": 82,
+         "last_seen_seconds_ago": 82,
+         "state": "stopped"
+        },
+        {
+         "count": 1,
+         "line": "orders-validator: 2026-10-18 17:39:41,821 ERROR partition remains paused at offset=20",
+         "first_seen_seconds_ago": 67,
+         "last_seen_seconds_ago": 67,
+         "state": "stopped"
+        }
+       ],
+       "repeated_failures": [
+        {
+         "line": "2026-10-18 17:40:41,828 ERROR partition remains paused at offset=20",
+         "count": 9,
+         "span_seconds": 120,
+         "constant_tokens": [
+          "2026-10-18",
+          "offset=20"
+         ]
+        }
+       ],
+       "tail": [
+        "2026-10-18T17:38:26.812765855Z 2026-10-18 17:38:26,812 INFO processed order_id=ORD-100019 committed_offset=20",
+        "2026-10-18T17:38:26.812803098Z 2026-10-18 17:38:26,812 ERROR record validation failed at offset=20: Expecting value: line 1 column 35 (char 34)",
+        "2026-10-18T17:38:26.812811377Z 2026-10-18 17:38:26,812 ERROR partition processing paused at offset=20",
+        "2026-10-18T17:38:41.814475465Z 2026-10-18 17:38:41,814 ERROR partition remains paused at offset=20",
+        "2026-10-18T17:38:56.816119556Z 2026-10-18 17:38:56,815 ERROR partition remains paused at offset=20",
+        "2026-10-18T17:39:11.817765657Z 2026-10-18 17:39:11,817 ERROR partition remains paused at offset=20",
+        "2026-10-18T17:39:26.820098558Z 2026-10-18 17:39:26,819 ERROR partition remains paused at offset=20",
+        "2026-10-18T17:39:41.821754714Z 2026-10-18 17:39:41,821 ERROR partition remains paused at offset=20",
+        "2026-10-18T17:39:56.823669657Z 2026-10-18 17:39:56,823 ERROR partition remains paused at offset=20",
+        "2026-10-18T17:40:11.825516214Z 2026-10-18 17:40:11,825 ERROR partition remains paused at offset=20",
+        "2026-10-18T17:40:26.827487505Z 2026-10-18 17:40:26,827 ERROR partition remains paused at offset=20",
+        "2026-10-18T17:40:41.829236039Z 2026-10-18 17:40:41,828 ERROR partition remains paused at offset=20"
+       ]
+      },
+      "calls_services": [
+       "astronomy-shop/kafka"
+      ],
+      "configmaps": {
+       "orders-pipeline-scripts": {
+        "last_update": "2026-10-18T17:38:09Z",
+        "keys": [
+         "consumer.py",
+         "producer.py"
+        ],
+        "data": {
+         "consumer.py": "\u23ce import json \u23ce import logging \u23ce import os \u23ce import signal \u23ce import time \u23ce \u23ce from confluent_kafka import Consumer, Producer \u23ce \u23ce logging.basicConfig(level=logging.INFO, format=\"%(asctime)s %(levelname)s %(message)s\") \u23ce log = logging.getLogger(\"orders-validator\") \u23ce \u23ce BOOTSTRAP = os.environ.get(\"KAFKA_BOOTSTRAP\", \"kafka:9092\") \u23ce TOPIC = os.environ.get(\"ORDERS_TOPIC\", \"orders-fulfillment\") \u23ce OUTPUT_T\u2026",
+         "producer.py": "\u23ce import json \u23ce import logging \u23ce import os \u23ce import time \u23ce import uuid \u23ce \u23ce from confluent_kafka import Producer \u23ce \u23ce logging.basicConfig(level=logging.INFO, format=\"%(asctime)s %(levelname)s %(message)s\") \u23ce log = logging.getLogger(\"order-stream\") \u23ce \u23ce BOOTSTRAP = os.environ.get(\"KAFKA_BOOTSTRAP\", \"kafka:9092\") \u23ce TOPIC = os.environ.get(\"ORDERS_TOPIC\", \"orders-fulfillment\") \u23ce INTERVAL = float(os.envi\u2026"
+        }
+       }
+      },
+      "input_candidates": [
+       {
+        "container": "orders-validator",
+        "env": "ORDERS_TOPIC",
+        "value": "orders-fulfillment"
+       },
+       {
+        "container": "orders-validator",
+        "env": "OUTPUT_TOPIC",
+        "value": "orders-processed"
+       },
+       {
+        "container": "orders-validator",
+        "env": "CONSUMER_GROUP",
+        "value": "orders-validator"
+       }
+      ],
+      "calls": {
+       "deployment/kafka": {
+        "kind": "Deployment",
+        "pods_ready": "1/1",
+        "restarts": 0,
+        "looks_healthy_on_its_own": true
+       }
+      }
+     }
+    },
+    "daemonset/otel-collector-agent": {
+     "kind": "DaemonSet",
+     "name": "otel-collector-agent",
+     "namespace": "astronomy-shop",
+     "healthy": false,
+     "signals": [
+      "spec modified 166s ago, 18s after this object was created (fields: template.annotations.kubectl.kubernetes.io/restartedAt); pod template changes: template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-18T23:37:50+06:00; 113s before the first active symptom"
+     ],
+     "template_changes": {
+      "revision": 2,
+      "changed_at": "2026-10-18T17:37:50Z",
+      "changes": [
+       "template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-18T23:37:50+06:00"
+      ]
+     },
+     "detail": {
+      "component": "daemonset/otel-collector-agent",
+      "namespace": "astronomy-shop",
+      "workload": {
+       "created": "2026-10-18T17:37:32Z",
+       "last_spec_write": "2026-10-18T17:37:50Z",
+       "spec_writers": [
+        {
+         "manager": "helm",
+         "op": "Apply",
+         "time": "2026-10-18T17:37:32Z"
+        },
+        {
+         "manager": "kubectl-rollout",
+         "op": "Update",
+         "time": "2026-10-18T17:37:50Z"
+        }
+       ],
+       "strategy": {
+        "rollingUpdate": {
+         "maxSurge": 0,
+         "maxUnavailable": 1
+        },
+        "type": "RollingUpdate"
+       },
+       "service_account": "otel-collector",
+       "dns_policy": "ClusterFirst",
+       "restart_policy": "Always",
+       "containers": [
+        {
+         "name": "opentelemetry-collector",
+         "image": "otel/opentelemetry-collector-contrib:0.142.0",
+         "args": [
+          "--config=/conf/relay.yaml"
+         ],
+         "env": [
+          {
+           "name": "MY_POD_IP",
+           "from": "field:status.podIP"
+          },
+          {
+           "name": "K8S_NODE_NAME",
+           "from": "field:spec.nodeName"
+          },
+          {
+           "name": "K8S_NODE_IP",
+           "from": "field:status.hostIP"
+          },
+          {
+           "name": "GOMEMLIMIT",
+           "value": "160MiB"
+          }
+         ],
+         "ports": [
+          {
+           "port": 6831,
+           "name": "jaeger-compact"
+          },
+          {
+           "port": 14250,
+           "name": "jaeger-grpc"
+          },
+          {
+           "port": 14268,
+           "name": "jaeger-thrift"
+          },
+          {
+           "port": 8888,
+           "name": "metrics"
+          },
+          {
+           "port": 4317,
+           "name": "otlp"
+          },
+          {
+           "port": 4318,
+           "name": "otlp-http"
+          },
+          {
+           "port": 9411,
+           "name": "zipkin"
+          }
+         ],
+         "resources": {
+          "limits": {
+           "memory": "200Mi"
+          }
+         },
+         "probes": {
+          "readiness": {
+           "failureThreshold": 3,
+           "httpGet": {
+            "path": "/",
+            "port": 13133,
+            "scheme": "HTTP"
+           },
+           "periodSeconds": 10,
+           "successThreshold": 1,
+           "timeoutSeconds": 1
+          },
+          "liveness": {
+           "failureThreshold": 3,
+           "httpGet": {
+            "path": "/",
+            "port": 13133,
+            "scheme": "HTTP"
+           },
+           "periodSeconds": 10,
+           "successThreshold": 1,
+           "timeoutSeconds": 1
+          }
+         },
+         "volume_mounts": [
+          {
+           "name": "opentelemetry-collector-configmap",
+           "path": "/conf"
+          },
+          {
+           "name": "hostfs",
+           "path": "/hostfs"
+          }
+         ]
+        }
+       ],
+       "volumes": [
+        {
+         "name": "opentelemetry-collector-configmap",
+         "configMap": {
+          "defaultMode": 420,
+          "items": [
+           {
+            "key": "relay",
+            "path": "relay.yaml"
+           }
+          ],
+          "name": "otel-collector-agent"
+         }
+        },
+        {
+         "name": "hostfs",
+         "hostPath": {
+          "path": "/",
+          "type": ""
+         }
+        }
+       ],
+       "template_labels": {
+        "app.kubernetes.io/instance": "astronomy-shop",
+        "app.kubernetes.io/name": "opentelemetry-collector",
+        "component": "agent-collector"
+       }
+      },
+      "pods": [
+       {
+        "name": "otel-collector-agent-jwpck",
+        "node": "kind-worker",
+        "phase": "Running",
+        "started": "2026-10-18T17:37:50Z",
+        "ready_since": "2026-10-18T17:37:51Z",
+        "conditions": [
+         "PodReadyToStartContainers=True",
+         "Initialized=True",
+         "Ready=True",
+         "ContainersReady=True",
+         "PodScheduled=True"
+        ],
+        "containers": [
+         {
+          "name": "opentelemetry-collector",
+          "ready": true,
+          "restarts": 0,
+          "state": {
+           "running": {
+            "startedAt": "2026-10-18T17:37:51Z"
+           }
+          }
+         }
+        ]
+       },
+       {
+        "name": "otel-collector-agent-k9fk8",
+        "node": "kind-worker2",
+        "phase": "Running",
+        "started": "2026-10-18T17:37:52Z",
+        "ready_since": "2026-10-18T17:37:53Z",
+        "conditions": [
+         "PodReadyToStartContainers=True",
+         "Initialized=True",
+         "Ready=True",
+         "ContainersReady=True",
+         "PodScheduled=True"
+        ],
+        "containers": [
+         {
+          "name": "opentelemetry-collector",
+          "ready": true,
+          "restarts": 0,
+          "state": {
+           "running": {
+            "startedAt": "2026-10-18T17:37:53Z"
+           }
+          }
+         }
+        ]
+       },
+       {
+        "name": "otel-collector-agent-z96j5",
+        "node": "kind-worker3",
+        "phase": "Running",
+        "started": "2026-10-18T17:37:54Z",
+        "ready_since": "2026-10-18T17:37:56Z",
+        "conditions": [
+         "PodReadyToStartContainers=True",
+         "Initialized=True",
+         "Ready=True",
+         "ContainersReady=True",
+         "PodScheduled=True"
+        ],
+        "containers": [
+         {
+          "name": "opentelemetry-collector",
+          "ready": true,
+          "restarts": 0,
+          "state": {
+           "running": {
+            "startedAt": "2026-10-18T17:37:55Z"
+           }
+          }
+         }
+        ]
+       }
+      ],
+      "events": [
+       {
+        "type": "Normal",
+        "reason": "Created",
+        "count": 1,
+        "object": "pod/otel-collector-agent-z96j5",
+        "last": "2026-10-18T17:37:55Z",
+        "message": "Created container: opentelemetry-collector"
+       },
+       {
+        "type": "Normal",
+        "reason": "Started",
+        "count": 1,
+        "object": "pod/otel-collector-agent-z96j5",
+        "last": "2026-10-18T17:37:55Z",
+        "message": "Started container opentelemetry-collector"
+       },
+       {
+        "type": "Normal",
+        "reason": "Pulled",
+        "count": 1,
+        "object": "pod/otel-collector-agent-z96j5",
+        "last": "2026-10-18T17:37:54Z",
+        "message": "Container image \"otel/opentelemetry-collector-contrib:0.142.0\" already present on machine"
+       },
+       {
+        "type": "Normal",
+        "reason": "SuccessfulCreate",
+        "count": 1,
+        "object": "daemonset/otel-collector-agent",
+        "last": "2026-10-18T17:37:54Z",
+        "message": "Created pod: otel-collector-agent-z96j5"
+       },
+       {
+        "type": "Normal",
+        "reason": "Scheduled",
+        "count": 1,
+        "object": "pod/otel-collector-agent-z96j5",
+        "last": "2026-10-18T17:37:54.318393Z",
+        "message": "Successfully assigned astronomy-shop/otel-collector-agent-z96j5 to kind-worker3"
+       },
+       {
+        "type": "Normal",
+        "reason": "Pulled",
+        "count": 1,
+        "object": "pod/otel-collector-agent-k9fk8",
+        "last": "2026-10-18T17:37:53Z",
+        "message": "Container image \"otel/opentelemetry-collector-contrib:0.142.0\" already present on machine"
+       },
+       {
+        "type": "Normal",
+        "reason": "Created",
+        "count": 1,
+        "object": "pod/otel-collector-agent-k9fk8",
+        "last": "2026-10-18T17:37:53Z",
+        "message": "Created container: opentelemetry-collector"
+       },
+       {
+        "type": "Normal",
+        "reason": "Started",
+        "count": 1,
+        "object": "pod/otel-collector-agent-k9fk8",
+        "last": "2026-10-18T17:37:53Z",
+        "message": "Started container opentelemetry-collector"
+       },
+       {
+        "type": "Normal",
+        "reason": "Killing",
+        "count": 1,
+        "object": "pod/otel-collector-agent-qghjh",
+        "last": "2026-10-18T17:37:53Z",
+        "message": "Stopping container opentelemetry-collector"
+       },
+       {
+        "type": "Normal",
+        "reason": "SuccessfulDelete",
+        "count": 1,
+        "object": "daemonset/otel-collector-agent",
+        "last": "2026-10-18T17:37:53Z",
+        "message": "Deleted pod: otel-collector-agent-qghjh"
+       },
+       {
+        "type": "Normal",
+        "reason": "SuccessfulCreate",
+        "count": 1,
+        "object": "daemonset/otel-collector-agent",
+        "last": "2026-10-18T17:37:52Z",
+        "message": "Created pod: otel-collector-agent-k9fk8"
+       },
+       {
+        "type": "Normal",
+        "reason": "Scheduled",
+        "count": 1,
+        "object": "pod/otel-collector-agent-k9fk8",
+        "last": "2026-10-18T17:37:52.614110Z",
+        "message": "Successfully assigned astronomy-shop/otel-collector-agent-k9fk8 to kind-worker2"
+       },
+       {
+        "type": "Normal",
+        "reason": "Killing",
+        "count": 1,
+        "object": "pod/otel-collector-agent-c7nvm",
+        "last": "2026-10-18T17:37:51Z",
+        "message": "Stopping container opentelemetry-collector"
+       },
+       {
+        "type": "Normal",
+        "reason": "Pulled",
+        "count": 1,
+        "object": "pod/otel-collector-agent-jwpck",
+        "last": "2026-10-18T17:37:51Z",
+        "message": "Container image \"otel/opentelemetry-collector-contrib:0.142.0\" already present on machine"
+       },
+       {
+        "type": "Normal",
+        "reason": "Created",
+        "count": 1,
+        "object": "pod/otel-collector-agent-jwpck",
+        "last": "2026-10-18T17:37:51Z",
+        "message": "Created container: opentelemetry-collector"
+       }
+      ],
+      "logs": {
+       "total_lines": 600,
+       "error_lines": 0,
+       "error_lines_still_occurring": 0,
+       "error_lines_stopped": 0,
+       "telemetry_export_error_lines": 39,
+       "telemetry_error_samples": [
+        {
+         "count": 1,
+         "line": "opentelemetry-collector: 2026-10-18T17:39:52.488Z error kubeletstatsreceiver@v0.142.0/scraper.go:106 call to /stats/summary endpoint failed {\"resource\": {\"service.instance.id\": \"2dd79973-efaf-4d84-88cf-429637407ddd\", \"service.name\": \"otelc\u2026",
+         "first_seen_seconds_ago": 57,
+         "last_seen_seconds_ago": 57,
+         "state": "ongoing"
+        },
+        {
+         "count": 1,
+         "line": "opentelemetry-collector: 2026-10-18T17:39:52.488Z error scraperhelper@v0.142.0/obs_metrics.go:61 Error scraping metrics {\"resource\": {\"service.instance.id\": \"2dd79973-efaf-4d84-88cf-429637407ddd\", \"service.name\": \"otelcol-contrib\", \"servic\u2026",
+         "first_seen_seconds_ago": 57,
+         "last_seen_seconds_ago": 57,
+         "state": "ongoing"
+        },
+        {
+         "count": 1,
+         "line": "opentelemetry-collector: 2026-10-18T17:39:52.655Z info Metrics {\"resource\": {\"service.instance.id\": \"2dd79973-efaf-4d84-88cf-429637407ddd\", \"service.name\": \"otelcol-contrib\", \"service.version\": \"0.142.0\"}, \"otelcol.component.id\": \"debug\", \u2026",
+         "first_seen_seconds_ago": 57,
+         "last_seen_seconds_ago": 57,
+         "state": "ongoing"
+        }
+       ],
+       "tail": [
+        "2026-10-18T17:40:44.459967297Z 2026-10-18T17:40:44.459Z info Metrics {\"resource\": {\"service.instance.id\": \"afb7a9d8-0021-4064-ab02-38cdc592d9c4\", \"service.name\": \"otelcol-contrib\", \"service.version\":\u2026",
+        "2026-10-18T17:40:45.061289991Z 2026-10-18T17:40:45.061Z info Logs {\"resource\": {\"service.instance.id\": \"afb7a9d8-0021-4064-ab02-38cdc592d9c4\", \"service.name\": \"otelcol-contrib\", \"service.version\": \"0\u2026",
+        "2026-10-18T17:40:45.073634584Z 2026-10-18T17:40:45.073Z info Traces {\"resource\": {\"service.instance.id\": \"afb7a9d8-0021-4064-ab02-38cdc592d9c4\", \"service.name\": \"otelcol-contrib\", \"service.version\": \u2026",
+        "2026-10-18T17:40:45.461848778Z 2026-10-18T17:40:45.461Z info Logs {\"resource\": {\"service.instance.id\": \"afb7a9d8-0021-4064-ab02-38cdc592d9c4\", \"service.name\": \"otelcol-contrib\", \"service.version\": \"0\u2026",
+        "2026-10-18T17:40:45.461871913Z 2026-10-18T17:40:45.461Z info Metrics {\"resource\": {\"service.instance.id\": \"afb7a9d8-0021-4064-ab02-38cdc592d9c4\", \"service.name\": \"otelcol-contrib\", \"service.version\":\u2026",
+        "2026-10-18T17:40:45.674760038Z 2026-10-18T17:40:45.674Z info Traces {\"resource\": {\"service.instance.id\": \"afb7a9d8-0021-4064-ab02-38cdc592d9c4\", \"service.name\": \"otelcol-contrib\", \"service.version\": \u2026",
+        "2026-10-18T17:40:46.865798173Z 2026-10-18T17:40:46.865Z info Metrics {\"resource\": {\"service.instance.id\": \"afb7a9d8-0021-4064-ab02-38cdc592d9c4\", \"service.name\": \"otelcol-contrib\", \"service.version\":\u2026",
+        "2026-10-18T17:40:46.865855070Z 2026-10-18T17:40:46.865Z info Logs {\"resource\": {\"service.instance.id\": \"afb7a9d8-0021-4064-ab02-38cdc592d9c4\", \"service.name\": \"otelcol-contrib\", \"service.version\": \"0\u2026",
+        "2026-10-18T17:40:46.878133756Z 2026-10-18T17:40:46.878Z info Traces {\"resource\": {\"service.instance.id\": \"afb7a9d8-0021-4064-ab02-38cdc592d9c4\", \"service.name\": \"otelcol-contrib\", \"service.version\": \u2026",
+        "2026-10-18T17:40:47.868569649Z 2026-10-18T17:40:47.868Z info Metrics {\"resource\": {\"service.instance.id\": \"afb7a9d8-0021-4064-ab02-38cdc592d9c4\", \"service.name\": \"otelcol-contrib\", \"service.version\":\u2026",
+        "2026-10-18T17:40:50.086608112Z 2026-10-18T17:40:50.086Z info Traces {\"resource\": {\"service.instance.id\": \"afb7a9d8-0021-4064-ab02-38cdc592d9c4\", \"service.name\": \"otelcol-contrib\", \"service.version\": \u2026",
+        "2026-10-18T17:40:50.274684862Z 2026-10-18T17:40:50.274Z info Logs {\"resource\": {\"service.instance.id\": \"afb7a9d8-0021-4064-ab02-38cdc592d9c4\", \"service.name\": \"otelcol-contrib\", \"service.version\": \"0\u2026"
+       ]
+      },
+      "template_changes": {
+       "revision": 2,
+       "changed_at": "2026-10-18T17:37:50Z",
+       "changes": [
+        "template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-18T23:37:50+06:00"
+       ]
+      },
+      "clients": [
+       "deployment/accounting",
+       "deployment/ad",
+       "deployment/cart",
+       "deployment/checkout",
+       "deployment/currency",
+       "deployment/email",
+       "deployment/flagd",
+       "deployment/fraud-detection",
+       "deployment/frontend",
+       "deployment/frontend-proxy",
+       "deployment/image-provider",
+       "deployment/kafka",
+       "deployment/llm",
+       "deployment/payment",
+       "deployment/product-catalog",
+       "deployment/product-reviews",
+       "deployment/quote",
+       "deployment/recommendation",
+       "deployment/shipping"
+      ],
+      "configmaps": {
+       "otel-collector-agent": {
+        "last_update": "2026-10-18T17:37:32Z",
+        "keys": [
+         "relay"
+        ],
+        "data": {
+         "relay": "connectors: \u23ce spanmetrics: {} \u23ce exporters: \u23ce debug: {} \u23ce opensearch: \u23ce http: \u23ce endpoint: http://opensearch:9200 \u23ce tls: \u23ce insecure: true \u23ce logs_index: otel-logs \u23ce logs_index_time_format: yyyy-MM-dd \u23ce otlp/jaeger: \u23ce endpoint: jaeger:4317 \u23ce sending_queue: \u23ce batch: null \u23ce tls: \u23ce insecure: true \u23ce otlphttp/prometheus: \u23ce endpoint: http://prometheus:9090/api/v1/otlp \u23ce sending_queue: \u23ce batch: null \u23ce tls: \u2026"
+        }
+       }
+      },
+      "rbac": {
+       "service_account": "astronomy-shop/otel-collector",
+       "bindings": [
+        "ClusterRoleBinding/otel-collector -> ClusterRole/otel-collector"
+       ],
+       "can_i": [
+        "selfsubjectreviews.authentication.k8s.io [] [] [create]",
+        "selfsubjectaccessreviews.authorization.k8s.io [] [] [create]",
+        "selfsubjectrulesreviews.authorization.k8s.io [] [] [create]",
+        "leases.coordination.k8s.io [] [] [get list watch create update patch delete]",
+        "events [] [] [get list watch]",
+        "namespaces/status [] [] [get list watch]",
+        "nodes/spec [] [] [get list watch]",
+        "nodes [] [] [get list watch]",
+        "pods/status [] [] [get list watch]",
+        "replicationcontrollers/status [] [] [get list watch]",
+        "replicationcontrollers [] [] [get list watch]",
+        "resourcequotas [] [] [get list watch]",
+        "services [] [] [get list watch]"
+       ],
+       "roles": [
+        {
+         "kind": "ClusterRole",
+         "name": "otel-collector",
+         "bindings": [
+          "ClusterRoleBinding/otel-collector"
+         ],
+         "service_accounts": [
+          "astronomy-shop/otel-collector"
+         ],
+         "components": [
+          "daemonset/otel-collector-agent"
+         ],
+         "rules": [
+          "leases [coordination.k8s.io]: get,list,watch,create,update,patch,delete",
+          "pods,namespaces [core]: get,watch,list",
+          "replicasets [apps]: get,list,watch",
+          "replicasets [extensions]: get,list,watch",
+          "events,namespaces,namespaces/status,nodes,nodes/spec,pods,pods/status,replicationcontrollers,replicationcontrollers/status,resourcequotas,services [core]: get,list,watch",
+          "daemonsets,deployments,replicasets,statefulsets [apps]: get,list,watch",
+          "daemonsets,deployments,replicasets [extensions]: get,list,watch",
+          "jobs,cronjobs [batch]: get,list,watch"
+         ],
+         "created": "2026-10-18T17:37:32Z",
+         "modified": "2026-10-18T17:37:32Z"
+        }
+       ]
+      }
+     }
+    },
+    "deployment/order-stream": {
+     "kind": "Deployment",
+     "name": "order-stream",
+     "namespace": "astronomy-shop",
+     "healthy": false,
+     "signals": [
+      "created 147s ago, 37s after the workloads it calls; 94s before the first active symptom"
+     ]
+    }
+   },
+   "cluster": {
+    "symptom_onset": "2026-10-18T17:39:43+00:00",
+    "recent_changes": [
+     {
+      "object": "deployment/orders-validator",
+      "at": "2026-10-18T17:38:25Z",
+      "created_after_targets_s": 53,
+      "seconds_ago": 131,
+      "seconds_before_symptoms": 78
+     },
+     {
+      "object": "deployment/order-stream",
+      "at": "2026-10-18T17:38:09Z",
+      "created_after_targets_s": 37,
+      "seconds_ago": 147,
+      "seconds_before_symptoms": 94
+     },
+     {
+      "object": "daemonset/otel-collector-agent",
+      "at": "2026-10-18T17:37:50Z",
+      "modified_after_creation_s": 18,
+      "fields": [
+       "template.annotations.kubectl.kubernetes.io/restartedAt"
+      ],
+      "seconds_ago": 166,
+      "seconds_before_symptoms": 113,
+      "role": "observability"
+     },
+     {
+      "object": "configmap/kube-system/coredns",
+      "at": "2026-10-18T16:57:47Z",
+      "modified_after_creation_s": 29766,
+      "fields": [
+       "data.Corefile"
+      ],
+      "seconds_ago": 2569,
+      "seconds_before_symptoms": 2516
+     }
+    ],
+    "findings": [
+     {
+      "kind": "ConfigMap",
+      "name": "coredns",
+      "namespace": "kube-system",
+      "signal": "ConfigMap coredns was modified 2569s ago, 29766s after it was created (fields: data.Corefile); 2516s before the first active symptom"
+     }
+    ]
+   }
+  },
+  "questions": {
+   "best_explanation": {
+    "type": "choice",
+    "criteria": {
+     "o1": "None of these explanations fits the evidence.",
+     "o2": "Origin: daemonset/astronomy-shop/otel-collector-agent. The pod template change 'template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-18T23:37:50+06:00' in revision 2 of daemonset/otel-collector-agent breaks daemonset/otel-collector-agent. | Details: template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-18T23:37:50+06:00 | Observed impact on: daemonset/astronomy-shop/otel-collector-agent | Checks: revision 2 of daemonset/otel-collector-agent was made before the symptoms began (supports); daemonset/otel-collector-agent shows symptoms of its own (supports)",
+     "o3": "Origin: input/astronomy-shop/orders-fulfillment. One bad item in orders-fulfillment, which deployment/orders-validator reads, fails again and again and blocks the items behind it. | Details: deployment/orders-validator reads ORDERS_TOPIC=orders-fulfillment; 2026-10-18 17:40:41,828 ERROR partition remains paused at offset=20 | Observed impact on: deployment/astronomy-shop/orders-validator | Checks: deployment/orders-validator fails repeatedly on the same item (supports)",
+     "o4": "Origin: deployment/astronomy-shop/orders-validator. deployment orders-validator was created recently and breaks deployment/orders-validator, which it acts on. | Observed impact on: deployment/astronomy-shop/orders-validator | Checks: deployment/astronomy-shop/orders-validator was made before the symptoms began (supports); deployment/orders-validator shows symptoms of its own (supports)",
+     "o5": "Origin: input/astronomy-shop/orders-validator. One bad item in orders-validator, which deployment/orders-validator reads, fails again and again and blocks the items behind it. | Details: deployment/orders-validator reads CONSUMER_GROUP=orders-validator; 2026-10-18 17:40:41,828 ERROR partition remains paused at offset=20 | Observed impact on: deployment/astronomy-shop/orders-validator | Checks: deployment/orders-validator fails repeatedly on the same item (supports)",
+     "o6": "Origin: input/astronomy-shop/orders-processed. One bad item in orders-processed, which deployment/orders-validator reads, fails again and again and blocks the items behind it. | Details: deployment/orders-validator reads OUTPUT_TOPIC=orders-processed; 2026-10-18 17:40:41,828 ERROR partition remains paused at offset=20 | Observed impact on: deployment/astronomy-shop/orders-validator | Checks: deployment/orders-validator fails repeatedly on the same item (supports)",
+     "o7": "Origin: deployment/astronomy-shop/order-stream. deployment order-stream was created recently and breaks deployment/order-stream, which it acts on. | Observed impact on: deployment/astronomy-shop/order-stream | Checks: deployment/astronomy-shop/order-stream was made before the symptoms began (supports); deployment/order-stream shows symptoms of its own (supports)"
+    },
+    "instructions": {
+     "question": "Which explanation best accounts for all the observed symptoms in `evidence`?",
+     "how_to_decide": [
+      "Prefer the explanation whose chain is supported by the observed facts and explains the most symptoms; an explanation contradicted by a fact is unlikely.",
+      "A component that only fails because something it calls fails is a victim, not the origin.",
+      "Choose `o1` when none of the explanations fits the evidence."
+     ]
+    }
+   }
+  },
+  "model": "typesafe/jev-1.13-20260917",
+  "latency_ms": 662,
+  "usage": {
+   "input_tokens": 11844,
+   "output_tokens": 77,
+   "cost": 0.000497448
+  },
+  "answers": {
+   "best_explanation": {
+    "type": "choice",
+    "choice": "o3",
+    "confidence": 0.84,
+    "probabilities": {
+     "o1": 0.06,
+     "o2": 0.06,
+     "o3": 0.86,
+     "o4": 0.01,
+     "o5": 0.01,
+     "o6": 0.0,
+     "o7": 0.0
+    }
+   }
+  }
+ },
+ {
+  "label": "decide:2",
+  "state": {
+   "application": {
+    "name": "OpenTelemetry Demo Astronomy Shop",
+    "description": "An online shopping platform built with a microservices architecture, showcasing OpenTelemetry instrumentation for distributed tracing across services.",
+    "namespaces": [
+     "astronomy-shop"
+    ]
+   },
+   "evidence": {
+    "deployment/orders-validator": {
+     "kind": "Deployment",
+     "name": "orders-validator",
+     "namespace": "astronomy-shop",
+     "healthy": false,
+     "signals": [
+      "created 131s ago, 53s after the workloads it calls; 78s before the first active symptom"
+     ],
+     "detail": {
+      "component": "deployment/orders-validator",
+      "namespace": "astronomy-shop",
+      "workload": {
+       "created": "2026-10-18T17:38:25Z",
+       "last_spec_write": "2026-10-18T17:38:25Z",
+       "spec_writers": [
+        {
+         "manager": "OpenAPI-Generator",
+         "op": "Update",
+         "time": "2026-10-18T17:38:25Z"
+        }
+       ],
+       "replicas": 1,
+       "strategy": {
+        "rollingUpdate": {
+         "maxSurge": "25%",
+         "maxUnavailable": "25%"
+        },
+        "type": "RollingUpdate"
+       },
+       "dns_policy": "ClusterFirst",
+       "restart_policy": "Always",
+       "containers": [
+        {
+         "name": "orders-validator",
+         "image": "ghcr.io/sregym/kafka-client:2.5.3-py3.12",
+         "command": [
+          "python",
+          "/scripts/consumer.py"
+         ],
+         "env": [
+          {
+           "name": "KAFKA_BOOTSTRAP",
+           "value": "kafka:9092"
+          },
+          {
+           "name": "ORDERS_TOPIC",
+           "value": "orders-fulfillment"
+          },
+          {
+           "name": "OUTPUT_TOPIC",
+           "value": "orders-processed"
+          },
+          {
+           "name": "CONSUMER_GROUP",
+           "value": "orders-validator"
+          }
+         ],
+         "volume_mounts": [
+          {
+           "name": "scripts",
+           "path": "/scripts"
+          }
+         ]
+        }
+       ],
+       "volumes": [
+        {
+         "name": "scripts",
+         "configMap": {
+          "defaultMode": 420,
+          "name": "orders-pipeline-scripts"
+         }
+        }
+       ],
+       "template_labels": {
+        "app": "orders-validator"
+       }
+      },
+      "pods": [
+       {
+        "name": "orders-validator-6d49bfb98d-2jwmt",
+        "node": "kind-worker",
+        "phase": "Running",
+        "started": "2026-10-18T17:38:25Z",
+        "ready_since": "2026-10-18T17:38:25Z",
+        "conditions": [
+         "PodReadyToStartContainers=True",
+         "Initialized=True",
+         "Ready=True",
+         "ContainersReady=True",
+         "PodScheduled=True"
+        ],
+        "containers": [
+         {
+          "name": "orders-validator",
+          "ready": true,
+          "restarts": 0,
+          "state": {
+           "running": {
+            "startedAt": "2026-10-18T17:38:25Z"
+           }
+          }
+         }
+        ]
+       }
+      ],
+      "events": [
+       {
+        "type": "Normal",
+        "reason": "Pulled",
+        "count": 1,
+        "object": "pod/orders-validator-6d49bfb98d-2jwmt",
+        "last": "2026-10-18T17:38:25Z",
+        "message": "Container image \"ghcr.io/sregym/kafka-client:2.5.3-py3.12\" already present on machine"
+       },
+       {
+        "type": "Normal",
+        "reason": "Created",
+        "count": 1,
+        "object": "pod/orders-validator-6d49bfb98d-2jwmt",
+        "last": "2026-10-18T17:38:25Z",
+        "message": "Created container: orders-validator"
+       },
+       {
+        "type": "Normal",
+        "reason": "Started",
+        "count": 1,
+        "object": "pod/orders-validator-6d49bfb98d-2jwmt",
+        "last": "2026-10-18T17:38:25Z",
+        "message": "Started container orders-validator"
+       },
+       {
+        "type": "Normal",
+        "reason": "SuccessfulCreate",
+        "count": 1,
+        "object": "replicaset/orders-validator-6d49bfb98d",
+        "last": "2026-10-18T17:38:25Z",
+        "message": "Created pod: orders-validator-6d49bfb98d-2jwmt"
+       },
+       {
+        "type": "Normal",
+        "reason": "Scheduled",
+        "count": 1,
+        "object": "pod/orders-validator-6d49bfb98d-2jwmt",
+        "last": "2026-10-18T17:38:25.068183Z",
+        "message": "Successfully assigned astronomy-shop/orders-validator-6d49bfb98d-2jwmt to kind-worker"
+       }
+      ],
+      "logs": {
+       "total_lines": 33,
+       "error_lines": 11,
+       "error_lines_still_occurring": 4,
+       "error_lines_stopped": 7,
+       "telemetry_export_error_lines": 0,
+       "error_samples": [
+        {
+         "count": 1,
+         "line": "orders-validator: 2026-10-18 17:39:56,823 ERROR partition remains paused at offset=20",
+         "first_seen_seconds_ago": 52,
+         "last_seen_seconds_ago": 52,
+         "state": "ongoing"
+        },
+        {
+         "count": 1,
+         "line": "orders-validator: 2026-10-18 17:40:11,825 ERROR partition remains paused at offset=20",
+         "first_seen_seconds_ago": 37,
+         "last_seen_seconds_ago": 37,
+         "state": "ongoing"
+        },
+        {
+         "count": 1,
+         "line": "orders-validator: 2026-10-18 17:40:26,827 ERROR partition remains paused at offset=20",
+         "first_seen_seconds_ago": 22,
+         "last_seen_seconds_ago": 22,
+         "state": "ongoing"
+        },
+        {
+         "count": 1,
+         "line": "orders-validator: 2026-10-18 17:40:41,828 ERROR partition remains paused at offset=20",
+         "first_seen_seconds_ago": 7,
+         "last_seen_seconds_ago": 7,
+         "state": "ongoing"
+        },
+        {
+         "count": 1,
+         "line": "orders-validator: 2026-10-18 17:38:26,812 ERROR record validation failed at offset=20: Expecting value: line 1 column 35 (char 34)",
+         "first_seen_seconds_ago": 142,
+         "last_seen_seconds_ago": 142,
+         "state": "stopped"
+        },
+        {
+         "count": 1,
+         "line": "orders-validator: 2026-10-18 17:38:26,812 ERROR partition processing paused at offset=20",
+         "first_seen_seconds_ago": 142,
+         "last_seen_seconds_ago": 142,
+         "state": "stopped"
+        },
+        {
+         "count": 1,
+         "line": "orders-validator: 2026-10-18 17:38:41,814 ERROR partition remains paused at offset=20",
+         "first_seen_seconds_ago": 127,
+         "last_seen_seconds_ago": 127,
+         "state": "stopped"
+        },
+        {
+         "count": 1,
+         "line": "orders-validator: 2026-10-18 17:38:56,815 ERROR partition remains paused at offset=20",
+         "first_seen_seconds_ago": 112,
+         "last_seen_seconds_ago": 112,
+         "state": "stopped"
+        },
+        {
+         "count": 1,
+         "line": "orders-validator: 2026-10-18 17:39:11,817 ERROR partition remains paused at offset=20",
+         "first_seen_seconds_ago": 97,
+         "last_seen_seconds_ago": 97,
+         "state": "stopped"
+        },
+        {
+         "count": 1,
+         "line": "orders-validator: 2026-10-18 17:39:26,819 ERROR partition remains paused at offset=20",
+         "first_seen_seconds_ago": 82,
+         "last_seen_seconds_ago": 82,
+         "state": "stopped"
+        },
+        {
+         "count": 1,
+         "line": "orders-validator: 2026-10-18 17:39:41,821 ERROR partition remains paused at offset=20",
+         "first_seen_seconds_ago": 67,
+         "last_seen_seconds_ago": 67,
+         "state": "stopped"
+        }
+       ],
+       "repeated_failures": [
+        {
+         "line": "2026-10-18 17:40:41,828 ERROR partition remains paused at offset=20",
+         "count": 9,
+         "span_seconds": 120,
+         "constant_tokens": [
+          "2026-10-18",
+          "offset=20"
+         ]
+        }
+       ],
+       "tail": [
+        "2026-10-18T17:38:26.812765855Z 2026-10-18 17:38:26,812 INFO processed order_id=ORD-100019 committed_offset=20",
+        "2026-10-18T17:38:26.812803098Z 2026-10-18 17:38:26,812 ERROR record validation failed at offset=20: Expecting value: line 1 column 35 (char 34)",
+        "2026-10-18T17:38:26.812811377Z 2026-10-18 17:38:26,812 ERROR partition processing paused at offset=20",
+        "2026-10-18T17:38:41.814475465Z 2026-10-18 17:38:41,814 ERROR partition remains paused at offset=20",
+        "2026-10-18T17:38:56.816119556Z 2026-10-18 17:38:56,815 ERROR partition remains paused at offset=20",
+        "2026-10-18T17:39:11.817765657Z 2026-10-18 17:39:11,817 ERROR partition remains paused at offset=20",
+        "2026-10-18T17:39:26.820098558Z 2026-10-18 17:39:26,819 ERROR partition remains paused at offset=20",
+        "2026-10-18T17:39:41.821754714Z 2026-10-18 17:39:41,821 ERROR partition remains paused at offset=20",
+        "2026-10-18T17:39:56.823669657Z 2026-10-18 17:39:56,823 ERROR partition remains paused at offset=20",
+        "2026-10-18T17:40:11.825516214Z 2026-10-18 17:40:11,825 ERROR partition remains paused at offset=20",
+        "2026-10-18T17:40:26.827487505Z 2026-10-18 17:40:26,827 ERROR partition remains paused at offset=20",
+        "2026-10-18T17:40:41.829236039Z 2026-10-18 17:40:41,828 ERROR partition remains paused at offset=20"
+       ]
+      },
+      "calls_services": [
+       "astronomy-shop/kafka"
+      ],
+      "configmaps": {
+       "orders-pipeline-scripts": {
+        "last_update": "2026-10-18T17:38:09Z",
+        "keys": [
+         "consumer.py",
+         "producer.py"
+        ],
+        "data": {
+         "consumer.py": "\u23ce import json \u23ce import logging \u23ce import os \u23ce import signal \u23ce import time \u23ce \u23ce from confluent_kafka import Consumer, Producer \u23ce \u23ce logging.basicConfig(level=logging.INFO, format=\"%(asctime)s %(levelname)s %(message)s\") \u23ce log = logging.getLogger(\"orders-validator\") \u23ce \u23ce BOOTSTRAP = os.environ.get(\"KAFKA_BOOTSTRAP\", \"kafka:9092\") \u23ce TOPIC = os.environ.get(\"ORDERS_TOPIC\", \"orders-fulfillment\") \u23ce OUTPUT_T\u2026",
+         "producer.py": "\u23ce import json \u23ce import logging \u23ce import os \u23ce import time \u23ce import uuid \u23ce \u23ce from confluent_kafka import Producer \u23ce \u23ce logging.basicConfig(level=logging.INFO, format=\"%(asctime)s %(levelname)s %(message)s\") \u23ce log = logging.getLogger(\"order-stream\") \u23ce \u23ce BOOTSTRAP = os.environ.get(\"KAFKA_BOOTSTRAP\", \"kafka:9092\") \u23ce TOPIC = os.environ.get(\"ORDERS_TOPIC\", \"orders-fulfillment\") \u23ce INTERVAL = float(os.envi\u2026"
+        }
+       }
+      },
+      "input_candidates": [
+       {
+        "container": "orders-validator",
+        "env": "ORDERS_TOPIC",
+        "value": "orders-fulfillment"
+       },
+       {
+        "container": "orders-validator",
+        "env": "OUTPUT_TOPIC",
+        "value": "orders-processed"
+       },
+       {
+        "container": "orders-validator",
+        "env": "CONSUMER_GROUP",
+        "value": "orders-validator"
+       }
+      ],
+      "calls": {
+       "deployment/kafka": {
+        "kind": "Deployment",
+        "pods_ready": "1/1",
+        "restarts": 0,
+        "looks_healthy_on_its_own": true
+       }
+      }
+     }
+    },
+    "daemonset/otel-collector-agent": {
+     "kind": "DaemonSet",
+     "name": "otel-collector-agent",
+     "namespace": "astronomy-shop",
+     "healthy": false,
+     "signals": [
+      "spec modified 166s ago, 18s after this object was created (fields: template.annotations.kubectl.kubernetes.io/restartedAt); pod template changes: template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-18T23:37:50+06:00; 113s before the first active symptom"
+     ],
+     "template_changes": {
+      "revision": 2,
+      "changed_at": "2026-10-18T17:37:50Z",
+      "changes": [
+       "template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-18T23:37:50+06:00"
+      ]
+     },
+     "detail": {
+      "component": "daemonset/otel-collector-agent",
+      "namespace": "astronomy-shop",
+      "workload": {
+       "created": "2026-10-18T17:37:32Z",
+       "last_spec_write": "2026-10-18T17:37:50Z",
+       "spec_writers": [
+        {
+         "manager": "helm",
+         "op": "Apply",
+         "time": "2026-10-18T17:37:32Z"
+        },
+        {
+         "manager": "kubectl-rollout",
+         "op": "Update",
+         "time": "2026-10-18T17:37:50Z"
+        }
+       ],
+       "strategy": {
+        "rollingUpdate": {
+         "maxSurge": 0,
+         "maxUnavailable": 1
+        },
+        "type": "RollingUpdate"
+       },
+       "service_account": "otel-collector",
+       "dns_policy": "ClusterFirst",
+       "restart_policy": "Always",
+       "containers": [
+        {
+         "name": "opentelemetry-collector",
+         "image": "otel/opentelemetry-collector-contrib:0.142.0",
+         "args": [
+          "--config=/conf/relay.yaml"
+         ],
+         "env": [
+          {
+           "name": "MY_POD_IP",
+           "from": "field:status.podIP"
+          },
+          {
+           "name": "K8S_NODE_NAME",
+           "from": "field:spec.nodeName"
+          },
+          {
+           "name": "K8S_NODE_IP",
+           "from": "field:status.hostIP"
+          },
+          {
+           "name": "GOMEMLIMIT",
+           "value": "160MiB"
+          }
+         ],
+         "ports": [
+          {
+           "port": 6831,
+           "name": "jaeger-compact"
+          },
+          {
+           "port": 14250,
+           "name": "jaeger-grpc"
+          },
+          {
+           "port": 14268,
+           "name": "jaeger-thrift"
+          },
+          {
+           "port": 8888,
+           "name": "metrics"
+          },
+          {
+           "port": 4317,
+           "name": "otlp"
+          },
+          {
+           "port": 4318,
+           "name": "otlp-http"
+          },
+          {
+           "port": 9411,
+           "name": "zipkin"
+          }
+         ],
+         "resources": {
+          "limits": {
+           "memory": "200Mi"
+          }
+         },
+         "probes": {
+          "readiness": {
+           "failureThreshold": 3,
+           "httpGet": {
+            "path": "/",
+            "port": 13133,
+            "scheme": "HTTP"
+           },
+           "periodSeconds": 10,
+           "successThreshold": 1,
+           "timeoutSeconds": 1
+          },
+          "liveness": {
+           "failureThreshold": 3,
+           "httpGet": {
+            "path": "/",
+            "port": 13133,
+            "scheme": "HTTP"
+           },
+           "periodSeconds": 10,
+           "successThreshold": 1,
+           "timeoutSeconds": 1
+          }
+         },
+         "volume_mounts": [
+          {
+           "name": "opentelemetry-collector-configmap",
+           "path": "/conf"
+          },
+          {
+           "name": "hostfs",
+           "path": "/hostfs"
+          }
+         ]
+        }
+       ],
+       "volumes": [
+        {
+         "name": "opentelemetry-collector-configmap",
+         "configMap": {
+          "defaultMode": 420,
+          "items": [
+           {
+            "key": "relay",
+            "path": "relay.yaml"
+           }
+          ],
+          "name": "otel-collector-agent"
+         }
+        },
+        {
+         "name": "hostfs",
+         "hostPath": {
+          "path": "/",
+          "type": ""
+         }
+        }
+       ],
+       "template_labels": {
+        "app.kubernetes.io/instance": "astronomy-shop",
+        "app.kubernetes.io/name": "opentelemetry-collector",
+        "component": "agent-collector"
+       }
+      },
+      "pods": [
+       {
+        "name": "otel-collector-agent-jwpck",
+        "node": "kind-worker",
+        "phase": "Running",
+        "started": "2026-10-18T17:37:50Z",
+        "ready_since": "2026-10-18T17:37:51Z",
+        "conditions": [
+         "PodReadyToStartContainers=True",
+         "Initialized=True",
+         "Ready=True",
+         "ContainersReady=True",
+         "PodScheduled=True"
+        ],
+        "containers": [
+         {
+          "name": "opentelemetry-collector",
+          "ready": true,
+          "restarts": 0,
+          "state": {
+           "running": {
+            "startedAt": "2026-10-18T17:37:51Z"
+           }
+          }
+         }
+        ]
+       },
+       {
+        "name": "otel-collector-agent-k9fk8",
+        "node": "kind-worker2",
+        "phase": "Running",
+        "started": "2026-10-18T17:37:52Z",
+        "ready_since": "2026-10-18T17:37:53Z",
+        "conditions": [
+         "PodReadyToStartContainers=True",
+         "Initialized=True",
+         "Ready=True",
+         "ContainersReady=True",
+         "PodScheduled=True"
+        ],
+        "containers": [
+         {
+          "name": "opentelemetry-collector",
+          "ready": true,
+          "restarts": 0,
+          "state": {
+           "running": {
+            "startedAt": "2026-10-18T17:37:53Z"
+           }
+          }
+         }
+        ]
+       },
+       {
+        "name": "otel-collector-agent-z96j5",
+        "node": "kind-worker3",
+        "phase": "Running",
+        "started": "2026-10-18T17:37:54Z",
+        "ready_since": "2026-10-18T17:37:56Z",
+        "conditions": [
+         "PodReadyToStartContainers=True",
+         "Initialized=True",
+         "Ready=True",
+         "ContainersReady=True",
+         "PodScheduled=True"
+        ],
+        "containers": [
+         {
+          "name": "opentelemetry-collector",
+          "ready": true,
+          "restarts": 0,
+          "state": {
+           "running": {
+            "startedAt": "2026-10-18T17:37:55Z"
+           }
+          }
+         }
+        ]
+       }
+      ],
+      "events": [
+       {
+        "type": "Normal",
+        "reason": "Created",
+        "count": 1,
+        "object": "pod/otel-collector-agent-z96j5",
+        "last": "2026-10-18T17:37:55Z",
+        "message": "Created container: opentelemetry-collector"
+       },
+       {
+        "type": "Normal",
+        "reason": "Started",
+        "count": 1,
+        "object": "pod/otel-collector-agent-z96j5",
+        "last": "2026-10-18T17:37:55Z",
+        "message": "Started container opentelemetry-collector"
+       },
+       {
+        "type": "Normal",
+        "reason": "Pulled",
+        "count": 1,
+        "object": "pod/otel-collector-agent-z96j5",
+        "last": "2026-10-18T17:37:54Z",
+        "message": "Container image \"otel/opentelemetry-collector-contrib:0.142.0\" already present on machine"
+       },
+       {
+        "type": "Normal",
+        "reason": "SuccessfulCreate",
+        "count": 1,
+        "object": "daemonset/otel-collector-agent",
+        "last": "2026-10-18T17:37:54Z",
+        "message": "Created pod: otel-collector-agent-z96j5"
+       },
+       {
+        "type": "Normal",
+        "reason": "Scheduled",
+        "count": 1,
+        "object": "pod/otel-collector-agent-z96j5",
+        "last": "2026-10-18T17:37:54.318393Z",
+        "message": "Successfully assigned astronomy-shop/otel-collector-agent-z96j5 to kind-worker3"
+       },
+       {
+        "type": "Normal",
+        "reason": "Pulled",
+        "count": 1,
+        "object": "pod/otel-collector-agent-k9fk8",
+        "last": "2026-10-18T17:37:53Z",
+        "message": "Container image \"otel/opentelemetry-collector-contrib:0.142.0\" already present on machine"
+       },
+       {
+        "type": "Normal",
+        "reason": "Created",
+        "count": 1,
+        "object": "pod/otel-collector-agent-k9fk8",
+        "last": "2026-10-18T17:37:53Z",
+        "message": "Created container: opentelemetry-collector"
+       },
+       {
+        "type": "Normal",
+        "reason": "Started",
+        "count": 1,
+        "object": "pod/otel-collector-agent-k9fk8",
+        "last": "2026-10-18T17:37:53Z",
+        "message": "Started container opentelemetry-collector"
+       },
+       {
+        "type": "Normal",
+        "reason": "Killing",
+        "count": 1,
+        "object": "pod/otel-collector-agent-qghjh",
+        "last": "2026-10-18T17:37:53Z",
+        "message": "Stopping container opentelemetry-collector"
+       },
+       {
+        "type": "Normal",
+        "reason": "SuccessfulDelete",
+        "count": 1,
+        "object": "daemonset/otel-collector-agent",
+        "last": "2026-10-18T17:37:53Z",
+        "message": "Deleted pod: otel-collector-agent-qghjh"
+       },
+       {
+        "type": "Normal",
+        "reason": "SuccessfulCreate",
+        "count": 1,
+        "object": "daemonset/otel-collector-agent",
+        "last": "2026-10-18T17:37:52Z",
+        "message": "Created pod: otel-collector-agent-k9fk8"
+       },
+       {
+        "type": "Normal",
+        "reason": "Scheduled",
+        "count": 1,
+        "object": "pod/otel-collector-agent-k9fk8",
+        "last": "2026-10-18T17:37:52.614110Z",
+        "message": "Successfully assigned astronomy-shop/otel-collector-agent-k9fk8 to kind-worker2"
+       },
+       {
+        "type": "Normal",
+        "reason": "Killing",
+        "count": 1,
+        "object": "pod/otel-collector-agent-c7nvm",
+        "last": "2026-10-18T17:37:51Z",
+        "message": "Stopping container opentelemetry-collector"
+       },
+       {
+        "type": "Normal",
+        "reason": "Pulled",
+        "count": 1,
+        "object": "pod/otel-collector-agent-jwpck",
+        "last": "2026-10-18T17:37:51Z",
+        "message": "Container image \"otel/opentelemetry-collector-contrib:0.142.0\" already present on machine"
+       },
+       {
+        "type": "Normal",
+        "reason": "Created",
+        "count": 1,
+        "object": "pod/otel-collector-agent-jwpck",
+        "last": "2026-10-18T17:37:51Z",
+        "message": "Created container: opentelemetry-collector"
+       }
+      ],
+      "logs": {
+       "total_lines": 600,
+       "error_lines": 0,
+       "error_lines_still_occurring": 0,
+       "error_lines_stopped": 0,
+       "telemetry_export_error_lines": 39,
+       "telemetry_error_samples": [
+        {
+         "count": 1,
+         "line": "opentelemetry-collector: 2026-10-18T17:39:52.488Z error kubeletstatsreceiver@v0.142.0/scraper.go:106 call to /stats/summary endpoint failed {\"resource\": {\"service.instance.id\": \"2dd79973-efaf-4d84-88cf-429637407ddd\", \"service.name\": \"otelc\u2026",
+         "first_seen_seconds_ago": 57,
+         "last_seen_seconds_ago": 57,
+         "state": "ongoing"
+        },
+        {
+         "count": 1,
+         "line": "opentelemetry-collector: 2026-10-18T17:39:52.488Z error scraperhelper@v0.142.0/obs_metrics.go:61 Error scraping metrics {\"resource\": {\"service.instance.id\": \"2dd79973-efaf-4d84-88cf-429637407ddd\", \"service.name\": \"otelcol-contrib\", \"servic\u2026",
+         "first_seen_seconds_ago": 57,
+         "last_seen_seconds_ago": 57,
+         "state": "ongoing"
+        },
+        {
+         "count": 1,
+         "line": "opentelemetry-collector: 2026-10-18T17:39:52.655Z info Metrics {\"resource\": {\"service.instance.id\": \"2dd79973-efaf-4d84-88cf-429637407ddd\", \"service.name\": \"otelcol-contrib\", \"service.version\": \"0.142.0\"}, \"otelcol.component.id\": \"debug\", \u2026",
+         "first_seen_seconds_ago": 57,
+         "last_seen_seconds_ago": 57,
+         "state": "ongoing"
+        }
+       ],
+       "tail": [
+        "2026-10-18T17:40:44.459967297Z 2026-10-18T17:40:44.459Z info Metrics {\"resource\": {\"service.instance.id\": \"afb7a9d8-0021-4064-ab02-38cdc592d9c4\", \"service.name\": \"otelcol-contrib\", \"service.version\":\u2026",
+        "2026-10-18T17:40:45.061289991Z 2026-10-18T17:40:45.061Z info Logs {\"resource\": {\"service.instance.id\": \"afb7a9d8-0021-4064-ab02-38cdc592d9c4\", \"service.name\": \"otelcol-contrib\", \"service.version\": \"0\u2026",
+        "2026-10-18T17:40:45.073634584Z 2026-10-18T17:40:45.073Z info Traces {\"resource\": {\"service.instance.id\": \"afb7a9d8-0021-4064-ab02-38cdc592d9c4\", \"service.name\": \"otelcol-contrib\", \"service.version\": \u2026",
+        "2026-10-18T17:40:45.461848778Z 2026-10-18T17:40:45.461Z info Logs {\"resource\": {\"service.instance.id\": \"afb7a9d8-0021-4064-ab02-38cdc592d9c4\", \"service.name\": \"otelcol-contrib\", \"service.version\": \"0\u2026",
+        "2026-10-18T17:40:45.461871913Z 2026-10-18T17:40:45.461Z info Metrics {\"resource\": {\"service.instance.id\": \"afb7a9d8-0021-4064-ab02-38cdc592d9c4\", \"service.name\": \"otelcol-contrib\", \"service.version\":\u2026",
+        "2026-10-18T17:40:45.674760038Z 2026-10-18T17:40:45.674Z info Traces {\"resource\": {\"service.instance.id\": \"afb7a9d8-0021-4064-ab02-38cdc592d9c4\", \"service.name\": \"otelcol-contrib\", \"service.version\": \u2026",
+        "2026-10-18T17:40:46.865798173Z 2026-10-18T17:40:46.865Z info Metrics {\"resource\": {\"service.instance.id\": \"afb7a9d8-0021-4064-ab02-38cdc592d9c4\", \"service.name\": \"otelcol-contrib\", \"service.version\":\u2026",
+        "2026-10-18T17:40:46.865855070Z 2026-10-18T17:40:46.865Z info Logs {\"resource\": {\"service.instance.id\": \"afb7a9d8-0021-4064-ab02-38cdc592d9c4\", \"service.name\": \"otelcol-contrib\", \"service.version\": \"0\u2026",
+        "2026-10-18T17:40:46.878133756Z 2026-10-18T17:40:46.878Z info Traces {\"resource\": {\"service.instance.id\": \"afb7a9d8-0021-4064-ab02-38cdc592d9c4\", \"service.name\": \"otelcol-contrib\", \"service.version\": \u2026",
+        "2026-10-18T17:40:47.868569649Z 2026-10-18T17:40:47.868Z info Metrics {\"resource\": {\"service.instance.id\": \"afb7a9d8-0021-4064-ab02-38cdc592d9c4\", \"service.name\": \"otelcol-contrib\", \"service.version\":\u2026",
+        "2026-10-18T17:40:50.086608112Z 2026-10-18T17:40:50.086Z info Traces {\"resource\": {\"service.instance.id\": \"afb7a9d8-0021-4064-ab02-38cdc592d9c4\", \"service.name\": \"otelcol-contrib\", \"service.version\": \u2026",
+        "2026-10-18T17:40:50.274684862Z 2026-10-18T17:40:50.274Z info Logs {\"resource\": {\"service.instance.id\": \"afb7a9d8-0021-4064-ab02-38cdc592d9c4\", \"service.name\": \"otelcol-contrib\", \"service.version\": \"0\u2026"
+       ]
+      },
+      "template_changes": {
+       "revision": 2,
+       "changed_at": "2026-10-18T17:37:50Z",
+       "changes": [
+        "template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-18T23:37:50+06:00"
+       ]
+      },
+      "clients": [
+       "deployment/accounting",
+       "deployment/ad",
+       "deployment/cart",
+       "deployment/checkout",
+       "deployment/currency",
+       "deployment/email",
+       "deployment/flagd",
+       "deployment/fraud-detection",
+       "deployment/frontend",
+       "deployment/frontend-proxy",
+       "deployment/image-provider",
+       "deployment/kafka",
+       "deployment/llm",
+       "deployment/payment",
+       "deployment/product-catalog",
+       "deployment/product-reviews",
+       "deployment/quote",
+       "deployment/recommendation",
+       "deployment/shipping"
+      ],
+      "configmaps": {
+       "otel-collector-agent": {
+        "last_update": "2026-10-18T17:37:32Z",
+        "keys": [
+         "relay"
+        ],
+        "data": {
+         "relay": "connectors: \u23ce spanmetrics: {} \u23ce exporters: \u23ce debug: {} \u23ce opensearch: \u23ce http: \u23ce endpoint: http://opensearch:9200 \u23ce tls: \u23ce insecure: true \u23ce logs_index: otel-logs \u23ce logs_index_time_format: yyyy-MM-dd \u23ce otlp/jaeger: \u23ce endpoint: jaeger:4317 \u23ce sending_queue: \u23ce batch: null \u23ce tls: \u23ce insecure: true \u23ce otlphttp/prometheus: \u23ce endpoint: http://prometheus:9090/api/v1/otlp \u23ce sending_queue: \u23ce batch: null \u23ce tls: \u2026"
+        }
+       }
+      },
+      "rbac": {
+       "service_account": "astronomy-shop/otel-collector",
+       "bindings": [
+        "ClusterRoleBinding/otel-collector -> ClusterRole/otel-collector"
+       ],
+       "can_i": [
+        "selfsubjectreviews.authentication.k8s.io [] [] [create]",
+        "selfsubjectaccessreviews.authorization.k8s.io [] [] [create]",
+        "selfsubjectrulesreviews.authorization.k8s.io [] [] [create]",
+        "leases.coordination.k8s.io [] [] [get list watch create update patch delete]",
+        "events [] [] [get list watch]",
+        "namespaces/status [] [] [get list watch]",
+        "nodes/spec [] [] [get list watch]",
+        "nodes [] [] [get list watch]",
+        "pods/status [] [] [get list watch]",
+        "replicationcontrollers/status [] [] [get list watch]",
+        "replicationcontrollers [] [] [get list watch]",
+        "resourcequotas [] [] [get list watch]",
+        "services [] [] [get list watch]"
+       ],
+       "roles": [
+        {
+         "kind": "ClusterRole",
+         "name": "otel-collector",
+         "bindings": [
+          "ClusterRoleBinding/otel-collector"
+         ],
+         "service_accounts": [
+          "astronomy-shop/otel-collector"
+         ],
+         "components": [
+          "daemonset/otel-collector-agent"
+         ],
+         "rules": [
+          "leases [coordination.k8s.io]: get,list,watch,create,update,patch,delete",
+          "pods,namespaces [core]: get,watch,list",
+          "replicasets [apps]: get,list,watch",
+          "replicasets [extensions]: get,list,watch",
+          "events,namespaces,namespaces/status,nodes,nodes/spec,pods,pods/status,replicationcontrollers,replicationcontrollers/status,resourcequotas,services [core]: get,list,watch",
+          "daemonsets,deployments,replicasets,statefulsets [apps]: get,list,watch",
+          "daemonsets,deployments,replicasets [extensions]: get,list,watch",
+          "jobs,cronjobs [batch]: get,list,watch"
+         ],
+         "created": "2026-10-18T17:37:32Z",
+         "modified": "2026-10-18T17:37:32Z"
+        }
+       ]
+      }
+     }
+    },
+    "deployment/order-stream": {
+     "kind": "Deployment",
+     "name": "order-stream",
+     "namespace": "astronomy-shop",
+     "healthy": false,
+     "signals": [
+      "created 147s ago, 37s after the workloads it calls; 94s before the first active symptom"
+     ]
+    }
+   },
+   "cluster": {
+    "symptom_onset": "2026-10-18T17:39:43+00:00",
+    "recent_changes": [
+     {
+      "object": "deployment/orders-validator",
+      "at": "2026-10-18T17:38:25Z",
+      "created_after_targets_s": 53,
+      "seconds_ago": 131,
+      "seconds_before_symptoms": 78
+     },
+     {
+      "object": "deployment/order-stream",
+      "at": "2026-10-18T17:38:09Z",
+      "created_after_targets_s": 37,
+      "seconds_ago": 147,
+      "seconds_before_symptoms": 94
+     },
+     {
+      "object": "daemonset/otel-collector-agent",
+      "at": "2026-10-18T17:37:50Z",
+      "modified_after_creation_s": 18,
+      "fields": [
+       "template.annotations.kubectl.kubernetes.io/restartedAt"
+      ],
+      "seconds_ago": 166,
+      "seconds_before_symptoms": 113,
+      "role": "observability"
+     },
+     {
+      "object": "configmap/kube-system/coredns",
+      "at": "2026-10-18T16:57:47Z",
+      "modified_after_creation_s": 29766,
+      "fields": [
+       "data.Corefile"
+      ],
+      "seconds_ago": 2569,
+      "seconds_before_symptoms": 2516
+     }
+    ],
+    "findings": [
+     {
+      "kind": "ConfigMap",
+      "name": "coredns",
+      "namespace": "kube-system",
+      "signal": "ConfigMap coredns was modified 2569s ago, 29766s after it was created (fields: data.Corefile); 2516s before the first active symptom"
+     }
+    ]
+   }
+  },
+  "questions": {
+   "best_explanation": {
+    "type": "choice",
+    "criteria": {
+     "o1": "Origin: input/astronomy-shop/orders-validator. One bad item in orders-validator, which deployment/orders-validator reads, fails again and again and blocks the items behind it. | Details: deployment/orders-validator reads CONSUMER_GROUP=orders-validator; 2026-10-18 17:40:41,828 ERROR partition remains paused at offset=20 | Observed impact on: deployment/astronomy-shop/orders-validator | Checks: deployment/orders-validator fails repeatedly on the same item (supports)",
+     "o2": "Origin: input/astronomy-shop/orders-fulfillment. One bad item in orders-fulfillment, which deployment/orders-validator reads, fails again and again and blocks the items behind it. | Details: deployment/orders-validator reads ORDERS_TOPIC=orders-fulfillment; 2026-10-18 17:40:41,828 ERROR partition remains paused at offset=20 | Observed impact on: deployment/astronomy-shop/orders-validator | Checks: deployment/orders-validator fails repeatedly on the same item (supports)",
+     "o3": "Origin: daemonset/astronomy-shop/otel-collector-agent. The pod template change 'template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-18T23:37:50+06:00' in revision 2 of daemonset/otel-collector-agent breaks daemonset/otel-collector-agent. | Details: template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-18T23:37:50+06:00 | Observed impact on: daemonset/astronomy-shop/otel-collector-agent | Checks: revision 2 of daemonset/otel-collector-agent was made before the symptoms began (supports); daemonset/otel-collector-agent shows symptoms of its own (supports)",
+     "o4": "Origin: input/astronomy-shop/orders-processed. One bad item in orders-processed, which deployment/orders-validator reads, fails again and again and blocks the items behind it. | Details: deployment/orders-validator reads OUTPUT_TOPIC=orders-processed; 2026-10-18 17:40:41,828 ERROR partition remains paused at offset=20 | Observed impact on: deployment/astronomy-shop/orders-validator | Checks: deployment/orders-validator fails repeatedly on the same item (supports)",
+     "o5": "None of these explanations fits the evidence.",
+     "o6": "Origin: deployment/astronomy-shop/orders-validator. deployment orders-validator was created recently and breaks deployment/orders-validator, which it acts on. | Observed impact on: deployment/astronomy-shop/orders-validator | Checks: deployment/astronomy-shop/orders-validator was made before the symptoms began (supports); deployment/orders-validator shows symptoms of its own (supports)",
+     "o7": "Origin: deployment/astronomy-shop/order-stream. deployment order-stream was created recently and breaks deployment/order-stream, which it acts on. | Observed impact on: deployment/astronomy-shop/order-stream | Checks: deployment/astronomy-shop/order-stream was made before the symptoms began (supports); deployment/order-stream shows symptoms of its own (supports)"
+    },
+    "instructions": {
+     "question": "Which explanation best accounts for all the observed symptoms in `evidence`?",
+     "how_to_decide": [
+      "Prefer the explanation whose chain is supported by the observed facts and explains the most symptoms; an explanation contradicted by a fact is unlikely.",
+      "A component that only fails because something it calls fails is a victim, not the origin.",
+      "Choose `o5` when none of the explanations fits the evidence."
+     ]
+    }
+   }
+  },
+  "model": "typesafe/jev-1.13-20260917",
+  "latency_ms": 660,
+  "usage": {
+   "input_tokens": 11844,
+   "output_tokens": 77,
+   "cost": 0.000497448
+  },
+  "answers": {
+   "best_explanation": {
+    "type": "choice",
+    "choice": "o2",
+    "confidence": 0.77,
+    "probabilities": {
+     "o1": 0.11,
+     "o2": 0.8,
+     "o3": 0.04,
+     "o4": 0.0,
+     "o5": 0.04,
+     "o6": 0.01,
+     "o7": 0.0
+    }
+   }
+  }
+ }
+]

@@ -1,0 +1,123 @@
+{
+ "problem_id": "namespace_memory_limit",
+ "source": "lite6_namespace_memory_limit",
+ "replay": true,
+ "arms": [
+  {
+   "arm": 0,
+   "kind": "v2",
+   "model": "typesafe/jev-1.13",
+   "position": 0,
+   "seconds": 1.8,
+   "requests": 2,
+   "input_tokens": 25551,
+   "error": null,
+   "model_failed": false,
+   "component": "deployment/search",
+   "investigation": {
+    "steps": [
+     {
+      "step": 1,
+      "node": "investigate",
+      "component": "deployment/search",
+      "verdict": "origin",
+      "origin_p": 0.98,
+      "victim_p": 0.01,
+      "next": "none",
+      "next_p": 0.96,
+      "category": "admission_or_namespace_policy",
+      "spec_checks": [
+       "service search has no ready endpoints"
+      ],
+      "blocked_input": null,
+      "key_evidence": "ResourceQuota memory-limit-quota requires memory on every pod and this workload's containers declare none, so the API server rejects its new pods"
+     }
+    ],
+    "concluded": "deployment/search",
+    "fallback": null,
+    "triage_top": [
+     [
+      "other",
+      0.98
+     ],
+     [
+      "deployment/search",
+      0.02
+     ],
+     [
+      "deployment/consul",
+      0.0
+     ],
+     [
+      "deployment/frontend",
+      0.0
+     ],
+     [
+      "deployment/geo",
+      0.0
+     ]
+    ],
+    "second": null
+   },
+   "text": "Root cause: ResourceQuota `memory-limit-quota` in namespace `hotel-reservation`, acting on Deployment `search` in namespace `hotel-reservation`: ResourceQuota memory-limit-quota requires memory on every pod and this workload's containers declare none, so the API server rejects its new pods.\nMechanism: rejects pods of deployment/search (missing memory); ResourceQuota memory-limit-quota was created 78s ago, 13s after the workloads in its namespace; 1s before the first active symptom.\nDetails: service search has no ready endpoints.\nEffect: only 0 of 1 desired replicas are ready; service search selects this component but has 0 ready endpoints.\nObserved: no pods exist for this workload; warning events: FailedCreate x11."
+  },
+  {
+   "arm": 1,
+   "kind": "v2",
+   "model": "openai/gpt-6-luna-decisions",
+   "position": 1,
+   "seconds": 2.0,
+   "requests": 2,
+   "input_tokens": 17064,
+   "error": null,
+   "model_failed": false,
+   "component": "deployment/search",
+   "investigation": {
+    "steps": [
+     {
+      "step": 1,
+      "node": "investigate",
+      "component": "deployment/search",
+      "verdict": "origin",
+      "origin_p": 0.96,
+      "victim_p": 0.02,
+      "next": "none",
+      "next_p": 0.77,
+      "category": "admission_or_namespace_policy",
+      "spec_checks": [
+       "service search has no ready endpoints"
+      ],
+      "blocked_input": null,
+      "key_evidence": "ResourceQuota memory-limit-quota requires memory on every pod and this workload's containers declare none, so the API server rejects its new pods"
+     }
+    ],
+    "concluded": "deployment/search",
+    "fallback": null,
+    "triage_top": [
+     [
+      "other",
+      0.97
+     ],
+     [
+      "deployment/search",
+      0.02
+     ],
+     [
+      "deployment/user",
+      0.01
+     ],
+     [
+      "deployment/consul",
+      0.0
+     ],
+     [
+      "deployment/frontend",
+      0.0
+     ]
+    ],
+    "second": null
+   },
+   "text": "Root cause: ResourceQuota `memory-limit-quota` in namespace `hotel-reservation`, acting on Deployment `search` in namespace `hotel-reservation`: ResourceQuota memory-limit-quota requires memory on every pod and this workload's containers declare none, so the API server rejects its new pods.\nMechanism: rejects pods of deployment/search (missing memory); ResourceQuota memory-limit-quota was created 78s ago, 13s after the workloads in its namespace; 1s before the first active symptom.\nDetails: service search has no ready endpoints.\nEffect: only 0 of 1 desired replicas are ready; service search selects this component but has 0 ready endpoints.\nObserved: no pods exist for this workload; warning events: FailedCreate x11."
+  }
+ ]
+}

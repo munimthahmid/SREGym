@@ -1,0 +1,225 @@
+{
+ "problem_id": "jev_diag_anon_c53668d22cf799c1cfac50b7dab70089_20261019_023747",
+ "submit_arm": 0,
+ "order": [
+  1,
+  0,
+  3,
+  2
+ ],
+ "arms": [
+  {
+   "arm": 0,
+   "kind": "v2",
+   "model": "openrouter/typesafe/jev-1.13",
+   "position": 1,
+   "seconds": 6.2,
+   "requests": 4,
+   "input_tokens": 49528,
+   "cost_usd": 0.00208,
+   "error": null,
+   "investigation": {
+    "rounds": [
+     {
+      "candidates": [
+       "change:deployment/product-catalog:container product-catalog image: ghcr.io/open-telemetry/demo:2.2.0-product-catalog -> app-image:latest",
+       "change:daemonset/otel-collector-agent:template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-19T08:37:32+06:00",
+       "change:deployment/astronomy-shop/product-catalog",
+       "change:daemonset/astronomy-shop/otel-collector-agent",
+       "partial:deployment/frontend",
+       "partial:deployment/product-catalog"
+      ],
+      "probabilities": {
+       "change:deployment/product-catalog:container product-catalog image: ghcr.io/open-telemetry/demo:2.2.0-product-catalog -> app-image:latest": 0.86,
+       "change:daemonset/otel-collector-agent:template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-19T08:37:32+06:00": 0.005,
+       "change:deployment/astronomy-shop/product-catalog": 0.11,
+       "change:daemonset/astronomy-shop/otel-collector-agent": 0.0,
+       "partial:deployment/frontend": 0.0,
+       "partial:deployment/product-catalog": 0.005,
+       "none_of_these": 0.02
+      },
+      "picks": [
+       "change:deployment/product-catalog:container product-catalog image: ghcr.io/open-telemetry/demo:2.2.0-product-catalog -> app-image:latest",
+       "change:deployment/product-catalog:container product-catalog image: ghcr.io/open-telemetry/demo:2.2.0-product-catalog -> app-image:latest"
+      ],
+      "route": "accept"
+     }
+    ],
+    "explanations": 8,
+    "winner": "change:deployment/product-catalog:container product-catalog image: ghcr.io/open-telemetry/demo:2.2.0-product-catalog -> app-image:latest",
+    "pattern": "change",
+    "key_fact": "pod template changed in revision 2: container product-catalog image: ghcr.io/open-telemetry/demo:2.2.0-product-catalog -> app-image:latest",
+    "key_fact_probability": 0.725,
+    "fault_type": "image_or_binary",
+    "fault_object": null,
+    "uncertain": false
+   },
+   "text": "Root cause: deployment `product-catalog` in namespace `astronomy-shop`.\nMechanism: The pod template change 'container product-catalog image: ghcr.io/open-telemetry/demo:2.2.0-product-catalog -> app-image:latest' in revision 2 of deployment/product-catalog breaks deployment/product-catalog.\nConcrete details: container product-catalog image: ghcr.io/open-telemetry/demo:2.2.0-product-catalog -> app-image:latest.\nObserved impact: deployment `product-catalog` in namespace `astronomy-shop`.\nKey evidence: pod template changed in revision 2: container product-catalog image: ghcr.io/open-telemetry/demo:2.2.0-product-catalog -> app-image:latest.\nFault type: image or binary (the container image or binary is wrong).\nEvidence:\n- container product-catalog image: ghcr.io/open-telemetry/demo:2.2.0-product-catalog -> app-image:latest\n- only 0 of 1 desired replicas are ready\n- pod product-catalog-68c4f8b8ff-s4cct: pod phase Pending\n- pod product-catalog-68c4f8b8ff-s4cct: container product-catalog waiting in ErrImagePull\n- deployment/product-catalog: only 0 of 1 desired replicas are ready"
+  },
+  {
+   "arm": 1,
+   "kind": "v2",
+   "model": "openrouter/openai/gpt-6-luna-decisions",
+   "position": 0,
+   "seconds": 7.7,
+   "requests": 4,
+   "input_tokens": 33594,
+   "cost_usd": 0.003359,
+   "error": null,
+   "investigation": {
+    "rounds": [
+     {
+      "candidates": [
+       "bad-input:deployment/frontend:otel-collector",
+       "bad-input:deployment/frontend:cumulative",
+       "bad-input:deployment/frontend:flagd",
+       "bad-input:deployment/frontend:kubernetes",
+       "change:deployment/product-catalog:container product-catalog image: ghcr.io/open-telemetry/demo:2.2.0-product-catalog -> app-image:latest",
+       "change:daemonset/otel-collector-agent:template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-19T08:37:32+06:00"
+      ],
+      "probabilities": {
+       "bad-input:deployment/frontend:otel-collector": 0.0,
+       "bad-input:deployment/frontend:cumulative": 0.005,
+       "bad-input:deployment/frontend:flagd": 0.005,
+       "bad-input:deployment/frontend:kubernetes": 0.0,
+       "change:deployment/product-catalog:container product-catalog image: ghcr.io/open-telemetry/demo:2.2.0-product-catalog -> app-image:latest": 0.98,
+       "change:daemonset/otel-collector-agent:template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-19T08:37:32+06:00": 0.005,
+       "none_of_these": 0.005
+      },
+      "picks": [
+       "change:deployment/product-catalog:container product-catalog image: ghcr.io/open-telemetry/demo:2.2.0-product-catalog -> app-image:latest",
+       "change:deployment/product-catalog:container product-catalog image: ghcr.io/open-telemetry/demo:2.2.0-product-catalog -> app-image:latest"
+      ],
+      "route": "accept"
+     }
+    ],
+    "explanations": 12,
+    "winner": "change:deployment/product-catalog:container product-catalog image: ghcr.io/open-telemetry/demo:2.2.0-product-catalog -> app-image:latest",
+    "pattern": "change",
+    "key_fact": "spec modified 127s ago, 33s after this object was created (fields: spec.replicas, containers[product-catalog].image); pod template changes: pod label pod-template-hash: 6bc6bd6ff4 -> 68c4f8b8ff; container product-catalog image: ghcr.io/open-telemetry/demo:2.2.0-product-catalog -> app-image:latest; 0s before the first active symptom",
+    "key_fact_probability": 0.76,
+    "fault_type": "image_or_binary",
+    "fault_object": null,
+    "uncertain": false
+   },
+   "text": "Root cause: deployment `product-catalog` in namespace `astronomy-shop`.\nMechanism: The pod template change 'container product-catalog image: ghcr.io/open-telemetry/demo:2.2.0-product-catalog -> app-image:latest' in revision 2 of deployment/product-catalog breaks deployment/product-catalog.\nConcrete details: container product-catalog image: ghcr.io/open-telemetry/demo:2.2.0-product-catalog -> app-image:latest.\nObserved impact: deployment `product-catalog` in namespace `astronomy-shop`.\nKey evidence: spec modified 127s ago, 33s after this object was created (fields: spec.replicas, containers[product-catalog].image); pod template changes: pod label pod-template-hash: 6bc6bd6ff4 -> 68c4f8b8ff; container product-catalog image: ghcr.io/open-telemetry/demo:2.2.0-product-catalog -> app-image:latest; 0s before the first active symptom.\nFault type: image or binary (the container image or binary is wrong).\nEvidence:\n- container product-catalog image: ghcr.io/open-telemetry/demo:2.2.0-product-catalog -> app-image:latest\n- only 0 of 1 desired replicas are ready\n- pod product-catalog-68c4f8b8ff-s4cct: pod phase Pending\n- pod product-catalog-68c4f8b8ff-s4cct: container product-catalog waiting in ErrImagePull\n- deployment/product-catalog: only 0 of 1 desired replicas are ready"
+  },
+  {
+   "arm": 2,
+   "kind": "v1",
+   "model": "openrouter/typesafe/jev-1.13",
+   "position": 3,
+   "seconds": 2.7,
+   "requests": 2,
+   "input_tokens": 31792,
+   "cost_usd": 0.001335,
+   "error": null,
+   "investigation": {
+    "steps": [
+     {
+      "step": 1,
+      "node": "investigate",
+      "component": "deployment/product-catalog",
+      "verdict": "origin",
+      "origin_p": 1.0,
+      "victim_p": 0.0,
+      "next": "none",
+      "next_p": 0.98,
+      "category": "image_or_binary",
+      "spec_checks": [
+       "service product-catalog has no ready endpoints"
+      ],
+      "blocked_input": null,
+      "key_evidence": "pod template changed in revision 2: container product-catalog image: ghcr.io/open-telemetry/demo:2.2.0-product-catalog -> app-image:latest"
+     }
+    ],
+    "concluded": "deployment/product-catalog",
+    "fallback": null,
+    "triage_top": [
+     [
+      "deployment/product-catalog",
+      1.0
+     ],
+     [
+      "deployment/accounting",
+      0.0
+     ],
+     [
+      "deployment/ad",
+      0.0
+     ],
+     [
+      "deployment/cart",
+      0.0
+     ],
+     [
+      "deployment/checkout",
+      0.0
+     ]
+    ]
+   },
+   "text": "Root cause component: Deployment `product-catalog` in namespace `astronomy-shop`.\nMechanism: pod template changed in revision 2: container product-catalog image: ghcr.io/open-telemetry/demo:2.2.0-product-catalog -> app-image:latest.\nFault type: image or binary (the container image or binary is wrong).\nAbnormal state observed on this component:\n- only 0 of 1 desired replicas are ready\n- pod product-catalog-68c4f8b8ff-s4cct: pod phase Pending\n- pod product-catalog-68c4f8b8ff-s4cct: container product-catalog waiting in ErrImagePull\n- warning events: Failed x14\n- service product-catalog selects this component but has 0 ready endpoints\n- firing alert PendingPodsDetected\n- firing alert KubePodNotReady\n- firing alert DeploymentNotReady\n- pod product-catalog-68c4f8b8ff-s4cct is still in pod phase Pending after another 49s\n- warning event Failed on pod/product-catalog-68c4f8b8ff-s4cct repeated 2 more time(s) in the last 49s\n- spec modified 127s ago, 33s after this object was created (fields: spec.replicas, containers[product-catalog].image); pod template changes: pod label pod-template-hash: 6bc6bd6ff4 -> 68c4f8b8ff; container product-catalog image: ghcr.io/open-telemetry/demo:2.2.0-product-catalog -> app-image:latest; 0s before the first active symptom\nNotable spec settings:\n- Available=False (MinimumReplicasUnavailable)\n- container wait-for-postgresql: image busybox:latest\n- container product-catalog: image app-image:latest, limits {'memory': '64Mi'}\nWarning events:\n- Failed x6 on pod/product-catalog-68c4f8b8ff-s4cct: Error: ImagePullBackOff\n- Failed x4 on pod/product-catalog-68c4f8b8ff-s4cct: Failed to pull image \"app-image:latest\": rpc error: code = NotFound desc = failed to pull and unpack image \"docker.io/library/app-image:latest\": failed to resolve reference \"docker.io/library/app-image:latest\": docker.io/library/app-image:\u2026\n- Failed x4 on pod/product-catalog-68c4f8b8ff-s4cct: Error: ErrImagePull\nFiring alerts on this component: PendingPodsDetected, KubePodNotReady, DeploymentNotReady.\nClassification: Jev (typesafe/jev-1.13-20260917) confirmed this origin at investigation step 1 with probability 1.00 (triage probability 1.00)."
+  },
+  {
+   "arm": 3,
+   "kind": "v1",
+   "model": "openrouter/openai/gpt-6-luna-decisions",
+   "position": 2,
+   "seconds": 2.5,
+   "requests": 2,
+   "input_tokens": 22017,
+   "cost_usd": 0.002202,
+   "error": null,
+   "investigation": {
+    "steps": [
+     {
+      "step": 1,
+      "node": "investigate",
+      "component": "deployment/product-catalog",
+      "verdict": "origin",
+      "origin_p": 0.99,
+      "victim_p": 0.01,
+      "next": "none",
+      "next_p": 0.93,
+      "category": "image_or_binary",
+      "spec_checks": [
+       "service product-catalog has no ready endpoints"
+      ],
+      "blocked_input": null,
+      "key_evidence": "pod template changed in revision 2: container product-catalog image: ghcr.io/open-telemetry/demo:2.2.0-product-catalog -> app-image:latest"
+     }
+    ],
+    "concluded": "deployment/product-catalog",
+    "fallback": null,
+    "triage_top": [
+     [
+      "deployment/product-catalog",
+      1.0
+     ],
+     [
+      "deployment/accounting",
+      0.0
+     ],
+     [
+      "deployment/ad",
+      0.0
+     ],
+     [
+      "deployment/cart",
+      0.0
+     ],
+     [
+      "deployment/checkout",
+      0.0
+     ]
+    ]
+   },
+   "text": "Root cause component: Deployment `product-catalog` in namespace `astronomy-shop`.\nMechanism: pod template changed in revision 2: container product-catalog image: ghcr.io/open-telemetry/demo:2.2.0-product-catalog -> app-image:latest.\nFault type: image or binary (the container image or binary is wrong).\nAbnormal state observed on this component:\n- only 0 of 1 desired replicas are ready\n- pod product-catalog-68c4f8b8ff-s4cct: pod phase Pending\n- pod product-catalog-68c4f8b8ff-s4cct: container product-catalog waiting in ErrImagePull\n- warning events: Failed x14\n- service product-catalog selects this component but has 0 ready endpoints\n- firing alert PendingPodsDetected\n- firing alert KubePodNotReady\n- firing alert DeploymentNotReady\n- pod product-catalog-68c4f8b8ff-s4cct is still in pod phase Pending after another 49s\n- warning event Failed on pod/product-catalog-68c4f8b8ff-s4cct repeated 2 more time(s) in the last 49s\n- spec modified 127s ago, 33s after this object was created (fields: spec.replicas, containers[product-catalog].image); pod template changes: pod label pod-template-hash: 6bc6bd6ff4 -> 68c4f8b8ff; container product-catalog image: ghcr.io/open-telemetry/demo:2.2.0-product-catalog -> app-image:latest; 0s before the first active symptom\nNotable spec settings:\n- Available=False (MinimumReplicasUnavailable)\n- container wait-for-postgresql: image busybox:latest\n- container product-catalog: image app-image:latest, limits {'memory': '64Mi'}\nWarning events:\n- Failed x6 on pod/product-catalog-68c4f8b8ff-s4cct: Error: ImagePullBackOff\n- Failed x4 on pod/product-catalog-68c4f8b8ff-s4cct: Failed to pull image \"app-image:latest\": rpc error: code = NotFound desc = failed to pull and unpack image \"docker.io/library/app-image:latest\": failed to resolve reference \"docker.io/library/app-image:latest\": docker.io/library/app-image:\u2026\n- Failed x4 on pod/product-catalog-68c4f8b8ff-s4cct: Error: ErrImagePull\nFiring alerts on this component: PendingPodsDetected, KubePodNotReady, DeploymentNotReady.\nClassification: Jev (openai/gpt-6-luna-decisions-20261006) confirmed this origin at investigation step 1 with probability 0.99 (triage probability 1.00)."
+  }
+ ],
+ "submission": {
+  "status": "200",
+  "message": "Submission received",
+  "stage": "diagnosis"
+ }
+}

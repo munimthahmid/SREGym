@@ -1,0 +1,538 @@
+{
+ "problem_id": "jev_diag_anon_a4815b26dd1806189bf6e53845c6fbac_20261019_041620",
+ "submit_arm": 0,
+ "order": [
+  1,
+  3,
+  2,
+  0
+ ],
+ "arms": [
+  {
+   "arm": 0,
+   "kind": "v2",
+   "model": "openrouter/typesafe/jev-1.13",
+   "position": 3,
+   "seconds": 8.5,
+   "requests": 4,
+   "input_tokens": 61930,
+   "cost_usd": 0.002601,
+   "error": null,
+   "investigation": {
+    "rounds": [
+     {
+      "candidates": [
+       "dependency:deployment/url-shorten-service",
+       "amplify:deployment/text-service->deployment/url-shorten-service",
+       "partial:deployment/url-shorten-service",
+       "partial:deployment/compose-post-service",
+       "partial:deployment/nginx-thrift",
+       "partial:deployment/url-shorten-mongodb"
+      ],
+      "probabilities": {
+       "dependency:deployment/url-shorten-service": 0.47,
+       "amplify:deployment/text-service->deployment/url-shorten-service": 0.02,
+       "partial:deployment/url-shorten-service": 0.06,
+       "partial:deployment/compose-post-service": 0.0,
+       "partial:deployment/nginx-thrift": 0.0,
+       "partial:deployment/url-shorten-mongodb": 0.335,
+       "none_of_these": 0.115
+      },
+      "picks": [
+       "dependency:deployment/url-shorten-service",
+       "dependency:deployment/url-shorten-service"
+      ],
+      "route": "check"
+     }
+    ],
+    "explanations": 8,
+    "winner": "dependency:deployment/url-shorten-service",
+    "pattern": "dependency",
+    "key_fact": "repeated failure x73 over 126s with unchanged tokens 2026-Oct-19, utils_mongodb.h:76:CreateIndex, url-shorten-mongodb:27017: [2026-Oct-19 04:18:40.291107] <error>: (utils_mongodb.h:76:CreateIndex) Error in createIndexes: No suitable servers found: `serverSelectionTimeoutMS` expired: [unknown connection error calling ismast\u2026",
+    "key_fact_probability": 0.36,
+    "fault_type": "config_value",
+    "fault_object": null,
+    "uncertain": true
+   },
+   "text": "Root cause: deployment `url-shorten-service` in namespace `social-network`.\nMechanism: repeated failure x73 over 126s with unchanged tokens 2026-Oct-19, utils_mongodb.h:76:CreateIndex, url-shorten-mongodb:27017: [2026-Oct-19 04:18:40.291107] <error>: (utils_mongodb.h:76:CreateIndex) Error in createIndexes: No suitable servers found: `serverSelectionTimeoutMS` expired: [unknown connection error calling ismast\u2026.\nObserved impact: deployment `url-shorten-service` in namespace `social-network`.\nFault type: config value (a wrong, missing, or shadowed value in this component's own configuration).\nEvidence:\n- firing alert ServiceEndpointDown\n- errors logged by 1 other component(s) (deployment/text-service) name this component (connectivity or timeout, 48 lines, still occurring), e.g. 'Thrift: Mon Oct 19 04:18:23 2026 TSocket::open() connect() <Host: url-shorten-service Port: 9090>: Connection refused'\n- deployment/text-service: errors logged by 1 other component(s) (deployment/compose-post-service) name this component (error mentioning the component, 33 lines, still occurring), e.g. '[2026-Oct-19 04:18:21.116027] <error>: (ComposePostHandler.h:230:_ComposeTextHelper) Failed to send compose-text to text-service'\n- deployment/url-shorten-service: firing alert ServiceEndpointDown\n- deployment `text-service` in namespace `social-network` fails as a result (observed symptoms)\nConfidence: low; the investigation budget ended before the leading explanation was confirmed.",
+   "grade": {
+    "judgment": "False",
+    "reasoning": "Verdict: False (composite=0.34). D1 Fault Localization: 0.00 | D2 Fault Characterization: 0.33 | D3 Scope Precision: 0.67. Weakest dimension: Fault Localization (0.00). Checklist details: [{\"id\": \"D1-Q1\", \"answer\": \"No\", \"evidence\": \"Diagnosis names deployment/url-shorten-service as root cause; ground truth identifies service/url-shorten-mongodb in social-network.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q2\", \"answer\": \"No\", \"evidence\": \"Diagnosis treats url-shorten-service, a database-dependent application component, as the origin instead of url-shorten-mongodb.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q3\", \"answer\": \"No\", \"evidence\": \"Diagnosis blames url-shorten-service's own configuration rather than the specified fault origin, service/url-shorten-mongodb.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q1\", \"answer\": \"No\", \"evidence\": \"Diagnosis reports server-selection timeouts and a generic configuration fault without identifying invalid certificates or failed TLS authentication.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q2\", \"answer\": \"No\", \"evidence\": \"No TLS requirement or invalid certificate configuration is identified; the MongoDB address and timeout are symptoms, not mutation details.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q3\", \"answer\": \"Yes\", \"evidence\": \"The broad classification 'config value' is compatible with invalid certificate setup, although it does not establish the specific TLS fault.\", \"confidence\": \"Medium\"}, {\"id\": \"D3-Q1\", \"answer\": \"No\", \"evidence\": \"Diagnosis attributes the fault to url-shorten-service's configuration, which ground truth does not identify as contributing to the fault.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q2\", \"answer\": \"Yes\", \"evidence\": \"Diagnosis explicitly mentions url-shorten-mongodb:27017, the only specifically named component in the ground truth, and describes application failures.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q3\", \"answer\": \"Yes\", \"evidence\": \"MongoDB connection errors, createIndexes failure, and cascading application failures are consistent with database-dependent paths failing.\", \"confidence\": \"High\"}]",
+    "success": false,
+    "accuracy": 34.0,
+    "composite_score": 0.34,
+    "dimensions": {
+     "D1": {
+      "name": "Fault Localization",
+      "score": 0.0
+     },
+     "D2": {
+      "name": "Fault Characterization",
+      "score": 0.33
+     },
+     "D3": {
+      "name": "Scope Precision",
+      "score": 0.67
+     }
+    },
+    "checklist": [
+     {
+      "id": "D1-Q1",
+      "answer": "No",
+      "evidence": "Diagnosis names deployment/url-shorten-service as root cause; ground truth identifies service/url-shorten-mongodb in social-network.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q2",
+      "answer": "No",
+      "evidence": "Diagnosis treats url-shorten-service, a database-dependent application component, as the origin instead of url-shorten-mongodb.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q3",
+      "answer": "No",
+      "evidence": "Diagnosis blames url-shorten-service's own configuration rather than the specified fault origin, service/url-shorten-mongodb.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q1",
+      "answer": "No",
+      "evidence": "Diagnosis reports server-selection timeouts and a generic configuration fault without identifying invalid certificates or failed TLS authentication.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q2",
+      "answer": "No",
+      "evidence": "No TLS requirement or invalid certificate configuration is identified; the MongoDB address and timeout are symptoms, not mutation details.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q3",
+      "answer": "Yes",
+      "evidence": "The broad classification 'config value' is compatible with invalid certificate setup, although it does not establish the specific TLS fault.",
+      "confidence": "Medium"
+     },
+     {
+      "id": "D3-Q1",
+      "answer": "No",
+      "evidence": "Diagnosis attributes the fault to url-shorten-service's configuration, which ground truth does not identify as contributing to the fault.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q2",
+      "answer": "Yes",
+      "evidence": "Diagnosis explicitly mentions url-shorten-mongodb:27017, the only specifically named component in the ground truth, and describes application failures.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q3",
+      "answer": "Yes",
+      "evidence": "MongoDB connection errors, createIndexes failure, and cascading application failures are consistent with database-dependent paths failing.",
+      "confidence": "High"
+     }
+    ]
+   }
+  },
+  {
+   "arm": 1,
+   "kind": "v2",
+   "model": "openrouter/openai/gpt-6-luna-decisions",
+   "position": 0,
+   "seconds": 9.4,
+   "requests": 4,
+   "input_tokens": 41952,
+   "cost_usd": 0.004195,
+   "error": null,
+   "investigation": {
+    "rounds": [
+     {
+      "candidates": [
+       "dependency:deployment/url-shorten-service",
+       "amplify:deployment/text-service->deployment/url-shorten-service",
+       "partial:deployment/url-shorten-service",
+       "partial:deployment/compose-post-service",
+       "partial:deployment/nginx-thrift",
+       "partial:deployment/url-shorten-mongodb"
+      ],
+      "probabilities": {
+       "dependency:deployment/url-shorten-service": 0.39,
+       "amplify:deployment/text-service->deployment/url-shorten-service": 0.005,
+       "partial:deployment/url-shorten-service": 0.065,
+       "partial:deployment/compose-post-service": 0.01,
+       "partial:deployment/nginx-thrift": 0.005,
+       "partial:deployment/url-shorten-mongodb": 0.385,
+       "none_of_these": 0.14
+      },
+      "picks": [
+       "dependency:deployment/url-shorten-service",
+       "partial:deployment/url-shorten-mongodb"
+      ],
+      "route": "check"
+     }
+    ],
+    "explanations": 8,
+    "winner": "dependency:deployment/url-shorten-service",
+    "pattern": "dependency",
+    "key_fact": "repeated failure x25 over 117s with unchanged tokens 2026-Oct-19, utils_mongodb.h:76:CreateIndex, url-shorten-mongodb:27017: [2026-Oct-19 04:18:23.389074] <error>: (utils_mongodb.h:76:CreateIndex) Error in createIndexes: No suitable servers found: `serverSelectionTimeoutMS` expired: [connection refused calling ismaster on \u2026",
+    "key_fact_probability": 0.645,
+    "fault_type": "config_value",
+    "fault_object": null,
+    "uncertain": true
+   },
+   "text": "Root cause: deployment `url-shorten-service` in namespace `social-network`.\nMechanism: repeated failure x25 over 117s with unchanged tokens 2026-Oct-19, utils_mongodb.h:76:CreateIndex, url-shorten-mongodb:27017: [2026-Oct-19 04:18:23.389074] <error>: (utils_mongodb.h:76:CreateIndex) Error in createIndexes: No suitable servers found: `serverSelectionTimeoutMS` expired: [connection refused calling ismaster on \u2026.\nObserved impact: deployment `url-shorten-service` in namespace `social-network`.\nFault type: config value (a wrong, missing, or shadowed value in this component's own configuration).\nEvidence:\n- firing alert ServiceEndpointDown\n- errors logged by 1 other component(s) (deployment/text-service) name this component (connectivity or timeout, 48 lines, still occurring), e.g. 'Thrift: Mon Oct 19 04:18:23 2026 TSocket::open() connect() <Host: url-shorten-service Port: 9090>: Connection refused'\n- deployment/text-service: errors logged by 1 other component(s) (deployment/compose-post-service) name this component (error mentioning the component, 33 lines, still occurring), e.g. '[2026-Oct-19 04:18:21.116027] <error>: (ComposePostHandler.h:230:_ComposeTextHelper) Failed to send compose-text to text-service'\n- deployment/url-shorten-service: firing alert ServiceEndpointDown\n- deployment `text-service` in namespace `social-network` fails as a result (observed symptoms)\nConfidence: low; the investigation budget ended before the leading explanation was confirmed.",
+   "grade": {
+    "judgment": "False",
+    "reasoning": "Verdict: False (composite=0.34). D1 Fault Localization: 0.00 | D2 Fault Characterization: 0.33 | D3 Scope Precision: 0.67. Weakest dimension: Fault Localization (0.00). Checklist details: [{\"id\": \"D1-Q1\", \"answer\": \"No\", \"evidence\": \"Names deployment/url-shorten-service as the root cause; ground truth identifies service/url-shorten-mongodb in the same namespace.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q2\", \"answer\": \"No\", \"evidence\": \"Attributes the origin to url-shorten-service, an application affected by the MongoDB fault, rather than url-shorten-mongodb.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q3\", \"answer\": \"No\", \"evidence\": \"Explicitly blames deployment/url-shorten-service instead of the fault specification's service/url-shorten-mongodb.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q1\", \"answer\": \"No\", \"evidence\": \"Describes connection refusals and a generic configuration value fault; does not identify invalid certificates or failed TLS authentication.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q2\", \"answer\": \"No\", \"evidence\": \"Includes MongoDB port 27017 and timeout logs, but identifies no invalid certificate configuration or TLS-related mutation.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q3\", \"answer\": \"Yes\", \"evidence\": \"The broad classification 'config value' is compatible with invalid certificate setup, although the specific configuration fault is not identified.\", \"confidence\": \"Medium\"}, {\"id\": \"D3-Q1\", \"answer\": \"No\", \"evidence\": \"Blames url-shorten-service's own configuration, although ground truth locates the contributing fault in url-shorten-mongodb.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q2\", \"answer\": \"Yes\", \"evidence\": \"Explicitly mentions url-shorten-mongodb:27017 in the database error, covering the sole specifically named ground-truth component.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q3\", \"answer\": \"Yes\", \"evidence\": \"Reports failed MongoDB createIndexes operations and cascading application failures, consistent with database-dependent paths failing, despite misidentifying the connection mechanism.\", \"confidence\": \"Medium\"}]",
+    "success": false,
+    "accuracy": 34.0,
+    "composite_score": 0.34,
+    "dimensions": {
+     "D1": {
+      "name": "Fault Localization",
+      "score": 0.0
+     },
+     "D2": {
+      "name": "Fault Characterization",
+      "score": 0.33
+     },
+     "D3": {
+      "name": "Scope Precision",
+      "score": 0.67
+     }
+    },
+    "checklist": [
+     {
+      "id": "D1-Q1",
+      "answer": "No",
+      "evidence": "Names deployment/url-shorten-service as the root cause; ground truth identifies service/url-shorten-mongodb in the same namespace.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q2",
+      "answer": "No",
+      "evidence": "Attributes the origin to url-shorten-service, an application affected by the MongoDB fault, rather than url-shorten-mongodb.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q3",
+      "answer": "No",
+      "evidence": "Explicitly blames deployment/url-shorten-service instead of the fault specification's service/url-shorten-mongodb.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q1",
+      "answer": "No",
+      "evidence": "Describes connection refusals and a generic configuration value fault; does not identify invalid certificates or failed TLS authentication.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q2",
+      "answer": "No",
+      "evidence": "Includes MongoDB port 27017 and timeout logs, but identifies no invalid certificate configuration or TLS-related mutation.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q3",
+      "answer": "Yes",
+      "evidence": "The broad classification 'config value' is compatible with invalid certificate setup, although the specific configuration fault is not identified.",
+      "confidence": "Medium"
+     },
+     {
+      "id": "D3-Q1",
+      "answer": "No",
+      "evidence": "Blames url-shorten-service's own configuration, although ground truth locates the contributing fault in url-shorten-mongodb.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q2",
+      "answer": "Yes",
+      "evidence": "Explicitly mentions url-shorten-mongodb:27017 in the database error, covering the sole specifically named ground-truth component.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q3",
+      "answer": "Yes",
+      "evidence": "Reports failed MongoDB createIndexes operations and cascading application failures, consistent with database-dependent paths failing, despite misidentifying the connection mechanism.",
+      "confidence": "Medium"
+     }
+    ]
+   }
+  },
+  {
+   "arm": 2,
+   "kind": "v1",
+   "model": "openrouter/typesafe/jev-1.13",
+   "position": 2,
+   "seconds": 2.5,
+   "requests": 2,
+   "input_tokens": 34494,
+   "cost_usd": 0.001449,
+   "error": null,
+   "investigation": {
+    "steps": [
+     {
+      "step": 1,
+      "node": "investigate",
+      "component": "deployment/url-shorten-mongodb",
+      "verdict": "origin",
+      "origin_p": 1.0,
+      "victim_p": 0.0,
+      "next": "none",
+      "next_p": 0.92,
+      "category": "config_value",
+      "spec_checks": [
+       "service url-shorten-mongodb has no ready endpoints"
+      ],
+      "blocked_input": null,
+      "key_evidence": "ConfigMap url-shorten-mongodb key mongod.conf: net: \u23ce tls: \u23ce mode: requireTLS \u23ce certificateKeyFile: /etc/tls/tls.pem \u23ce"
+     }
+    ],
+    "concluded": "deployment/url-shorten-mongodb",
+    "fallback": null,
+    "triage_top": [
+     [
+      "deployment/url-shorten-mongodb",
+      0.99
+     ],
+     [
+      "deployment/url-shorten-service",
+      0.01
+     ],
+     [
+      "deployment/compose-post-service",
+      0.0
+     ],
+     [
+      "deployment/home-timeline-redis",
+      0.0
+     ],
+     [
+      "deployment/home-timeline-service",
+      0.0
+     ]
+    ]
+   },
+   "text": "Root cause component: Deployment `url-shorten-mongodb` in namespace `social-network`.\nMechanism: ConfigMap url-shorten-mongodb key mongod.conf: net: \u23ce tls: \u23ce mode: requireTLS \u23ce certificateKeyFile: /etc/tls/tls.pem \u23ce.\nFault type: config value (a wrong, missing, or shadowed value in this component's own configuration).\nAbnormal state observed on this component:\n- only 0 of 1 desired replicas are ready\n- pod url-shorten-mongodb-6b486f55b8-2p8rk: container url-shorten-mongodb waiting in CrashLoopBackOff\n- pod url-shorten-mongodb-6b486f55b8-2p8rk: container url-shorten-mongodb restarted 4 times\n- warning events: BackOff x11\n- service url-shorten-mongodb selects this component but has 0 ready endpoints\n- firing alert DeploymentNotReady\n- firing alert KubePodNotReady\n- pod url-shorten-mongodb-6b486f55b8-2p8rk: container url-shorten-mongodb restarted 1 more time(s) in the last 49s\n- warning event BackOff on pod/url-shorten-mongodb-6b486f55b8-2p8rk repeated 4 more time(s) in the last 49s\n- 2 error-like log lines still occurring in the recent pod logs\nNotable spec settings:\n- Available=False (MinimumReplicasUnavailable)\n- container url-shorten-mongodb: image docker.io/library/mongo:4.4.6\nWarning events:\n- BackOff x11 on pod/url-shorten-mongodb-6b486f55b8-2p8rk: Back-off restarting failed container url-shorten-mongodb in pod url-shorten-mongodb-6b486f55b8-2p8rk_social-network(a7768622-ff58-4bc4-b0d3-59f4b63be3a3)\nError-like log lines still occurring:\n- x1: url-shorten-mongodb: {\"t\":{\"$date\":\"2026-10-19T04:17:55.012+00:00\"},\"s\":\"E\", \"c\":\"NETWORK\", \"id\":23248, \"ctx\":\"main\",\"msg\":\"Cannot read certificate file\",\"attr\":{\"keyFile\":\"/etc/tls/tls.pem\",\"error\":\"error:02001002:system library:fopen:No \u2026\n- x1: url-shorten-mongodb: {\"t\":{\"$date\":\"2026-10-19T04:17:55.014+00:00\"},\"s\":\"F\", \"c\":\"CONTROL\", \"id\":20574, \"ctx\":\"main\",\"msg\":\"Error during global initialization\",\"attr\":{\"error\":{\"code\":140,\"codeName\":\"InvalidSSLConfiguration\",\"errmsg\":\"Can \u2026\nLast lines of the previous (crashed) run of container url-shorten-mongodb:\n- \"c\":\"CONTROL\", \"id\":23285, \"ctx\":\"main\",\"msg\":\"Automatically disabling TLS 1.0, to force-enable TLS 1.0 specify --sslDisabledProtocols 'none'\"}\n- \"c\":\"NETWORK\", \"id\":23248, \"ctx\":\"main\",\"msg\":\"Cannot read certificate file\",\"attr\":{\"keyFile\":\"/etc/tls/tls.pem\",\"error\":\"error:02001002:system library:fopen:No such file or directory\"}}\n- \"c\":\"CONTROL\", \"id\":20574, \"ctx\":\"main\",\"msg\":\"Error during global initialization\",\"attr\":{\"error\":{\"code\":140,\"codeName\":\"InvalidSSLConfiguration\",\"errmsg\":\"Can not set up PEM key file.\"}}}\nFiring alerts on this component: DeploymentNotReady, KubePodNotReady.\nClassification: Jev (typesafe/jev-1.13-20260917) confirmed this origin at investigation step 1 with probability 1.00 (triage probability 0.99).",
+   "grade": {
+    "judgment": "True",
+    "reasoning": "Verdict: True (composite=0.78). D1 Fault Localization: 0.67 | D2 Fault Characterization: 1.00 | D3 Scope Precision: 0.67. Weakest dimension: Fault Localization (0.67). Checklist details: [{\"id\": \"D1-Q1\", \"answer\": \"No\", \"evidence\": \"The diagnosis declares Deployment url-shorten-mongodb as the origin; the authoritative fault specification targets service/url-shorten-mongodb in social-network.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q2\", \"answer\": \"Yes\", \"evidence\": \"The diagnosis locates the fault in url-shorten-mongodb's TLS configuration, rather than in database clients or application request paths.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q3\", \"answer\": \"Yes\", \"evidence\": \"The diagnosis blames the url-shorten-mongodb workload backing the named service; it does not identify an unrelated healthy component.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q1\", \"answer\": \"Yes\", \"evidence\": \"requireTLS combined with 'Cannot read certificate file' and InvalidSSLConfiguration matches the required TLS authentication with invalid certificate setup.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q2\", \"answer\": \"Yes\", \"evidence\": \"The diagnosis identifies mongod.conf, mode: requireTLS, certificateKeyFile: /etc/tls/tls.pem, and a 'No such file or directory' certificate error.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q3\", \"answer\": \"Yes\", \"evidence\": \"The configuration fault classification is supported by 'Can not set up PEM key file,' consistent with the ground-truth certificate setup failure.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q1\", \"answer\": \"Yes\", \"evidence\": \"All blamed resources belong to url-shorten-mongodb; no unrelated service or workload is attributed responsibility.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q2\", \"answer\": \"No\", \"evidence\": \"The diagnosis discusses MongoDB resources but omits the affected database clients and application requests explicitly described in the ground truth.\", \"confidence\": \"Medium\"}, {\"id\": \"D3-Q3\", \"answer\": \"Yes\", \"evidence\": \"Certificate initialization failure, CrashLoopBackOff, and zero ready service endpoints describe database unavailability consistent with the invalid certificate setup.\", \"confidence\": \"Medium\"}]",
+    "success": true,
+    "accuracy": 78.0,
+    "composite_score": 0.78,
+    "dimensions": {
+     "D1": {
+      "name": "Fault Localization",
+      "score": 0.67
+     },
+     "D2": {
+      "name": "Fault Characterization",
+      "score": 1.0
+     },
+     "D3": {
+      "name": "Scope Precision",
+      "score": 0.67
+     }
+    },
+    "checklist": [
+     {
+      "id": "D1-Q1",
+      "answer": "No",
+      "evidence": "The diagnosis declares Deployment url-shorten-mongodb as the origin; the authoritative fault specification targets service/url-shorten-mongodb in social-network.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q2",
+      "answer": "Yes",
+      "evidence": "The diagnosis locates the fault in url-shorten-mongodb's TLS configuration, rather than in database clients or application request paths.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q3",
+      "answer": "Yes",
+      "evidence": "The diagnosis blames the url-shorten-mongodb workload backing the named service; it does not identify an unrelated healthy component.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q1",
+      "answer": "Yes",
+      "evidence": "requireTLS combined with 'Cannot read certificate file' and InvalidSSLConfiguration matches the required TLS authentication with invalid certificate setup.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q2",
+      "answer": "Yes",
+      "evidence": "The diagnosis identifies mongod.conf, mode: requireTLS, certificateKeyFile: /etc/tls/tls.pem, and a 'No such file or directory' certificate error.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q3",
+      "answer": "Yes",
+      "evidence": "The configuration fault classification is supported by 'Can not set up PEM key file,' consistent with the ground-truth certificate setup failure.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q1",
+      "answer": "Yes",
+      "evidence": "All blamed resources belong to url-shorten-mongodb; no unrelated service or workload is attributed responsibility.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q2",
+      "answer": "No",
+      "evidence": "The diagnosis discusses MongoDB resources but omits the affected database clients and application requests explicitly described in the ground truth.",
+      "confidence": "Medium"
+     },
+     {
+      "id": "D3-Q3",
+      "answer": "Yes",
+      "evidence": "Certificate initialization failure, CrashLoopBackOff, and zero ready service endpoints describe database unavailability consistent with the invalid certificate setup.",
+      "confidence": "Medium"
+     }
+    ]
+   }
+  },
+  {
+   "arm": 3,
+   "kind": "v1",
+   "model": "openrouter/openai/gpt-6-luna-decisions",
+   "position": 1,
+   "seconds": 2.4,
+   "requests": 2,
+   "input_tokens": 23791,
+   "cost_usd": 0.002379,
+   "error": null,
+   "investigation": {
+    "steps": [
+     {
+      "step": 1,
+      "node": "investigate",
+      "component": "deployment/url-shorten-mongodb",
+      "verdict": "origin",
+      "origin_p": 0.98,
+      "victim_p": 0.02,
+      "next": "none",
+      "next_p": 0.91,
+      "category": "config_value",
+      "spec_checks": [
+       "service url-shorten-mongodb has no ready endpoints"
+      ],
+      "blocked_input": null,
+      "key_evidence": "ConfigMap url-shorten-mongodb key mongod.conf: net: \u23ce tls: \u23ce mode: requireTLS \u23ce certificateKeyFile: /etc/tls/tls.pem \u23ce"
+     }
+    ],
+    "concluded": "deployment/url-shorten-mongodb",
+    "fallback": null,
+    "triage_top": [
+     [
+      "deployment/url-shorten-mongodb",
+      0.95
+     ],
+     [
+      "deployment/url-shorten-service",
+      0.03
+     ],
+     [
+      "deployment/compose-post-service",
+      0.01
+     ],
+     [
+      "deployment/nginx-thrift",
+      0.01
+     ],
+     [
+      "deployment/home-timeline-redis",
+      0.0
+     ]
+    ]
+   },
+   "text": "Root cause component: Deployment `url-shorten-mongodb` in namespace `social-network`.\nMechanism: ConfigMap url-shorten-mongodb key mongod.conf: net: \u23ce tls: \u23ce mode: requireTLS \u23ce certificateKeyFile: /etc/tls/tls.pem \u23ce.\nFault type: config value (a wrong, missing, or shadowed value in this component's own configuration).\nAbnormal state observed on this component:\n- only 0 of 1 desired replicas are ready\n- pod url-shorten-mongodb-6b486f55b8-2p8rk: container url-shorten-mongodb waiting in CrashLoopBackOff\n- pod url-shorten-mongodb-6b486f55b8-2p8rk: container url-shorten-mongodb restarted 4 times\n- warning events: BackOff x11\n- service url-shorten-mongodb selects this component but has 0 ready endpoints\n- firing alert DeploymentNotReady\n- firing alert KubePodNotReady\n- pod url-shorten-mongodb-6b486f55b8-2p8rk: container url-shorten-mongodb restarted 1 more time(s) in the last 49s\n- warning event BackOff on pod/url-shorten-mongodb-6b486f55b8-2p8rk repeated 4 more time(s) in the last 49s\n- 2 error-like log lines still occurring in the recent pod logs\nNotable spec settings:\n- Available=False (MinimumReplicasUnavailable)\n- container url-shorten-mongodb: image docker.io/library/mongo:4.4.6\nWarning events:\n- BackOff x11 on pod/url-shorten-mongodb-6b486f55b8-2p8rk: Back-off restarting failed container url-shorten-mongodb in pod url-shorten-mongodb-6b486f55b8-2p8rk_social-network(a7768622-ff58-4bc4-b0d3-59f4b63be3a3)\nError-like log lines still occurring:\n- x1: url-shorten-mongodb: {\"t\":{\"$date\":\"2026-10-19T04:17:55.012+00:00\"},\"s\":\"E\", \"c\":\"NETWORK\", \"id\":23248, \"ctx\":\"main\",\"msg\":\"Cannot read certificate file\",\"attr\":{\"keyFile\":\"/etc/tls/tls.pem\",\"error\":\"error:02001002:system library:fopen:No \u2026\n- x1: url-shorten-mongodb: {\"t\":{\"$date\":\"2026-10-19T04:17:55.014+00:00\"},\"s\":\"F\", \"c\":\"CONTROL\", \"id\":20574, \"ctx\":\"main\",\"msg\":\"Error during global initialization\",\"attr\":{\"error\":{\"code\":140,\"codeName\":\"InvalidSSLConfiguration\",\"errmsg\":\"Can \u2026\nLast lines of the previous (crashed) run of container url-shorten-mongodb:\n- \"c\":\"CONTROL\", \"id\":23285, \"ctx\":\"main\",\"msg\":\"Automatically disabling TLS 1.0, to force-enable TLS 1.0 specify --sslDisabledProtocols 'none'\"}\n- \"c\":\"NETWORK\", \"id\":23248, \"ctx\":\"main\",\"msg\":\"Cannot read certificate file\",\"attr\":{\"keyFile\":\"/etc/tls/tls.pem\",\"error\":\"error:02001002:system library:fopen:No such file or directory\"}}\n- \"c\":\"CONTROL\", \"id\":20574, \"ctx\":\"main\",\"msg\":\"Error during global initialization\",\"attr\":{\"error\":{\"code\":140,\"codeName\":\"InvalidSSLConfiguration\",\"errmsg\":\"Can not set up PEM key file.\"}}}\nFiring alerts on this component: DeploymentNotReady, KubePodNotReady.\nClassification: Jev (openai/gpt-6-luna-decisions-20261006) confirmed this origin at investigation step 1 with probability 0.98 (triage probability 0.95).",
+   "grade": {
+    "judgment": "True",
+    "reasoning": "Verdict: True (composite=0.78). D1 Fault Localization: 0.67 | D2 Fault Characterization: 1.00 | D3 Scope Precision: 0.67. Weakest dimension: Fault Localization (0.67). Checklist details: [{\"id\": \"D1-Q1\", \"answer\": \"No\", \"evidence\": \"The diagnosis names Deployment url-shorten-mongodb as the origin; the fault specification targets service/url-shorten-mongodb, although the name and namespace match.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q2\", \"answer\": \"Yes\", \"evidence\": \"The diagnosis locates the fault in url-shorten-mongodb's TLS configuration rather than a downstream application.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q3\", \"answer\": \"Yes\", \"evidence\": \"Only url-shorten-mongodb is blamed; no different, healthy component is identified as the origin.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q1\", \"answer\": \"Yes\", \"evidence\": \"The diagnosis reports requireTLS with an unreadable certificate file and InvalidSSLConfiguration, matching the invalid TLS certificate setup.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q2\", \"answer\": \"Yes\", \"evidence\": \"Concrete details include mongod.conf, mode: requireTLS, certificateKeyFile: /etc/tls/tls.pem, and certificate loading failure: No such file or directory.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q3\", \"answer\": \"Yes\", \"evidence\": \"The diagnosis attributes the fault to configuration and documents failure to set up the PEM key file, consistent with invalid certificate configuration.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q1\", \"answer\": \"Yes\", \"evidence\": \"The diagnosis confines blame to url-shorten-mongodb and its own configuration.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q2\", \"answer\": \"No\", \"evidence\": \"The diagnosis covers MongoDB but does not mention the affected database clients or application requests described in the ground truth.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q3\", \"answer\": \"Yes\", \"evidence\": \"Certificate initialization failure, CrashLoopBackOff, and zero ready service endpoints describe database unavailability consistent with the invalid certificate setup.\", \"confidence\": \"Medium\"}]",
+    "success": true,
+    "accuracy": 78.0,
+    "composite_score": 0.78,
+    "dimensions": {
+     "D1": {
+      "name": "Fault Localization",
+      "score": 0.67
+     },
+     "D2": {
+      "name": "Fault Characterization",
+      "score": 1.0
+     },
+     "D3": {
+      "name": "Scope Precision",
+      "score": 0.67
+     }
+    },
+    "checklist": [
+     {
+      "id": "D1-Q1",
+      "answer": "No",
+      "evidence": "The diagnosis names Deployment url-shorten-mongodb as the origin; the fault specification targets service/url-shorten-mongodb, although the name and namespace match.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q2",
+      "answer": "Yes",
+      "evidence": "The diagnosis locates the fault in url-shorten-mongodb's TLS configuration rather than a downstream application.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q3",
+      "answer": "Yes",
+      "evidence": "Only url-shorten-mongodb is blamed; no different, healthy component is identified as the origin.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q1",
+      "answer": "Yes",
+      "evidence": "The diagnosis reports requireTLS with an unreadable certificate file and InvalidSSLConfiguration, matching the invalid TLS certificate setup.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q2",
+      "answer": "Yes",
+      "evidence": "Concrete details include mongod.conf, mode: requireTLS, certificateKeyFile: /etc/tls/tls.pem, and certificate loading failure: No such file or directory.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q3",
+      "answer": "Yes",
+      "evidence": "The diagnosis attributes the fault to configuration and documents failure to set up the PEM key file, consistent with invalid certificate configuration.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q1",
+      "answer": "Yes",
+      "evidence": "The diagnosis confines blame to url-shorten-mongodb and its own configuration.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q2",
+      "answer": "No",
+      "evidence": "The diagnosis covers MongoDB but does not mention the affected database clients or application requests described in the ground truth.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q3",
+      "answer": "Yes",
+      "evidence": "Certificate initialization failure, CrashLoopBackOff, and zero ready service endpoints describe database unavailability consistent with the invalid certificate setup.",
+      "confidence": "Medium"
+     }
+    ]
+   }
+  }
+ ],
+ "submission": {
+  "status": "200",
+  "message": "Submission received",
+  "stage": "diagnosis"
+ },
+ "judge": {
+  "model": "gpt-6-astra",
+  "backend": "codex",
+  "effort": "high"
+ }
+}

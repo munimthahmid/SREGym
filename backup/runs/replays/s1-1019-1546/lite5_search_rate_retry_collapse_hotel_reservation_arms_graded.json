@@ -1,0 +1,592 @@
+{
+ "problem_id": "search_rate_retry_collapse_hotel_reservation",
+ "source": "lite5_search_rate_retry_collapse_hotel_reservation",
+ "replay": true,
+ "arms": [
+  {
+   "arm": 0,
+   "kind": "v1",
+   "model": "typesafe/jev-1.13",
+   "position": 0,
+   "seconds": 1.9,
+   "requests": 3,
+   "input_tokens": 32064,
+   "error": null,
+   "component": "deployment/rate",
+   "investigation": {
+    "steps": [
+     {
+      "step": 1,
+      "node": "investigate",
+      "component": "deployment/rate",
+      "verdict": "origin",
+      "origin_p": 0.56,
+      "victim_p": 0.05,
+      "next": "deployment/consul",
+      "next_p": 0.68,
+      "category": "data_or_traffic",
+      "spec_checks": [],
+      "blocked_input": null,
+      "key_evidence": "container hotel-reserv-rate env RATE_BACKEND_QPS_LIMIT=20"
+     },
+     {
+      "step": 2,
+      "node": "investigate",
+      "component": "deployment/consul",
+      "verdict": "unrelated",
+      "origin_p": 0.0,
+      "victim_p": 0.0,
+      "next": "none",
+      "next_p": 0.51,
+      "category": "other",
+      "spec_checks": [],
+      "blocked_input": null,
+      "key_evidence": "log x1 (stopped, last seen 183s ago): consul: 2026-10-19T04:31:56.392Z [WARN] agent.server.raft: heartbeat timeout reached, starting election: last-leader-addr= last-leader-id="
+     }
+    ],
+    "concluded": "deployment/rate",
+    "fallback": "most likely origin among investigated components",
+    "triage_top": [
+     [
+      "deployment/rate",
+      0.99
+     ],
+     [
+      "deployment/consul",
+      0.01
+     ],
+     [
+      "deployment/frontend",
+      0.0
+     ],
+     [
+      "deployment/geo",
+      0.0
+     ],
+     [
+      "deployment/jaeger",
+      0.0
+     ]
+    ]
+   },
+   "text": "Root cause component: Deployment `rate` in namespace `hotel-reservation`.\nMechanism: container hotel-reserv-rate env RATE_BACKEND_QPS_LIMIT=20.\nFault type: data or traffic (the component's inputs or traffic pattern overwhelm or break it).\nImpact on other components:\n- deployment/search fails when calling this component (connectivity or timeout x68, still occurring)\n- container hotel-reserv-rate: image ghcr.io/sregym/hotel-reservation:sha-d2c036bc3d1138f5a0bdaffd3d87f37522c3461a@sha256:1c685e1c4c304f327952397b3a99c54dadb086607774d71f222b200ec0d2e65e, limits {'cpu': '1'}\nClassification: Jev (typesafe/jev-1.13-20260917) selected this origin as the most likely candidate after 2 investigation step(s) (origin probability 0.56, triage probability 0.99).",
+   "grade": {
+    "judgment": "False",
+    "reasoning": "Verdict: False (composite=0.34). D1 Fault Localization: 0.00 | D2 Fault Characterization: 0.00 | D3 Scope Precision: 1.00. Weakest dimension: Fault Localization (0.00). Checklist details: [{\"id\": \"D1-Q1\", \"answer\": \"No\", \"evidence\": \"Diagnosis names Deployment rate as the origin; ground truth identifies the search-to-rate RPC path.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q2\", \"answer\": \"No\", \"evidence\": \"Diagnosis treats rate as the origin and search as a victim, missing search's retry policy as part of the sustaining cause.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q3\", \"answer\": \"No\", \"evidence\": \"Diagnosis blames Deployment rate rather than the specified search-to-rate RPC path.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q1\", \"answer\": \"No\", \"evidence\": \"The stated mechanism is RATE_BACKEND_QPS_LIMIT=20; the required timeout/retry/queue feedback loop is absent.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q2\", \"answer\": \"No\", \"evidence\": \"RATE_BACKEND_QPS_LIMIT=20 is not established by ground truth; diagnosis omits three attempts, short per-attempt deadlines, and bounded queue behavior.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q3\", \"answer\": \"No\", \"evidence\": \"Diagnosis attributes the fault to overwhelming input traffic and a backend QPS limit, rather than the sustaining timeout/retry/queue feedback loop.\", \"confidence\": \"Medium\"}, {\"id\": \"D3-Q1\", \"answer\": \"Yes\", \"evidence\": \"Diagnosis implicates rate and reports impact on search; both components participate in the ground-truth failure.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q2\", \"answer\": \"Yes\", \"evidence\": \"Diagnosis explicitly mentions Deployment rate and deployment/search, covering both services involved in ground truth.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q3\", \"answer\": \"Yes\", \"evidence\": \"Diagnosis reports search failures calling rate, including timeouts that are still occurring, consistent with persistent deadline failures.\", \"confidence\": \"High\"}]",
+    "success": false,
+    "accuracy": 34.0,
+    "composite_score": 0.34,
+    "dimensions": {
+     "D1": {
+      "name": "Fault Localization",
+      "score": 0.0
+     },
+     "D2": {
+      "name": "Fault Characterization",
+      "score": 0.0
+     },
+     "D3": {
+      "name": "Scope Precision",
+      "score": 1.0
+     }
+    },
+    "checklist": [
+     {
+      "id": "D1-Q1",
+      "answer": "No",
+      "evidence": "Diagnosis names Deployment rate as the origin; ground truth identifies the search-to-rate RPC path.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q2",
+      "answer": "No",
+      "evidence": "Diagnosis treats rate as the origin and search as a victim, missing search's retry policy as part of the sustaining cause.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q3",
+      "answer": "No",
+      "evidence": "Diagnosis blames Deployment rate rather than the specified search-to-rate RPC path.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q1",
+      "answer": "No",
+      "evidence": "The stated mechanism is RATE_BACKEND_QPS_LIMIT=20; the required timeout/retry/queue feedback loop is absent.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q2",
+      "answer": "No",
+      "evidence": "RATE_BACKEND_QPS_LIMIT=20 is not established by ground truth; diagnosis omits three attempts, short per-attempt deadlines, and bounded queue behavior.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q3",
+      "answer": "No",
+      "evidence": "Diagnosis attributes the fault to overwhelming input traffic and a backend QPS limit, rather than the sustaining timeout/retry/queue feedback loop.",
+      "confidence": "Medium"
+     },
+     {
+      "id": "D3-Q1",
+      "answer": "Yes",
+      "evidence": "Diagnosis implicates rate and reports impact on search; both components participate in the ground-truth failure.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q2",
+      "answer": "Yes",
+      "evidence": "Diagnosis explicitly mentions Deployment rate and deployment/search, covering both services involved in ground truth.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q3",
+      "answer": "Yes",
+      "evidence": "Diagnosis reports search failures calling rate, including timeouts that are still occurring, consistent with persistent deadline failures.",
+      "confidence": "High"
+     }
+    ]
+   }
+  },
+  {
+   "arm": 1,
+   "kind": "v1",
+   "model": "openai/gpt-6-luna-decisions",
+   "position": 1,
+   "seconds": 1.9,
+   "requests": 3,
+   "input_tokens": 24316,
+   "error": null,
+   "component": "deployment/rate",
+   "investigation": {
+    "steps": [
+     {
+      "step": 1,
+      "node": "investigate",
+      "component": "deployment/rate",
+      "verdict": "origin",
+      "origin_p": 0.56,
+      "victim_p": 0.19,
+      "next": "deployment/search",
+      "next_p": 0.85,
+      "category": "data_or_traffic",
+      "spec_checks": [],
+      "blocked_input": null,
+      "key_evidence": "container hotel-reserv-rate env RATE_BACKEND_QPS_LIMIT=20"
+     },
+     {
+      "step": 2,
+      "node": "investigate",
+      "component": "deployment/search",
+      "verdict": "victim",
+      "origin_p": 0.01,
+      "victim_p": 0.96,
+      "next": "none",
+      "next_p": 0.53,
+      "category": "data_or_traffic",
+      "spec_checks": [],
+      "blocked_input": null,
+      "key_evidence": "container hotel-reserv-search env RATE_RPC_TIMEOUT_MS=750"
+     }
+    ],
+    "concluded": "deployment/rate",
+    "fallback": "most likely origin among investigated components",
+    "triage_top": [
+     [
+      "deployment/rate",
+      0.99
+     ],
+     [
+      "deployment/recommendation",
+      0.01
+     ],
+     [
+      "deployment/consul",
+      0.0
+     ],
+     [
+      "deployment/frontend",
+      0.0
+     ],
+     [
+      "deployment/geo",
+      0.0
+     ]
+    ]
+   },
+   "text": "Root cause component: Deployment `rate` in namespace `hotel-reservation`.\nMechanism: container hotel-reserv-rate env RATE_BACKEND_QPS_LIMIT=20.\nFault type: data or traffic (the component's inputs or traffic pattern overwhelm or break it).\nImpact on other components:\n- deployment/search fails when calling this component (connectivity or timeout x68, still occurring)\n- container hotel-reserv-rate: image ghcr.io/sregym/hotel-reservation:sha-d2c036bc3d1138f5a0bdaffd3d87f37522c3461a@sha256:1c685e1c4c304f327952397b3a99c54dadb086607774d71f222b200ec0d2e65e, limits {'cpu': '1'}\nClassification: Jev (openai/gpt-6-luna-decisions-20261006) selected this origin as the most likely candidate after 2 investigation step(s) (origin probability 0.56, triage probability 0.99).",
+   "grade": {
+    "judgment": "False",
+    "reasoning": "Verdict: False (composite=0.34). D1 Fault Localization: 0.00 | D2 Fault Characterization: 0.00 | D3 Scope Precision: 1.00. Weakest dimension: Fault Localization (0.00). Checklist details: [{\"id\": \"D1-Q1\", \"answer\": \"No\", \"evidence\": \"Names Deployment rate as the origin; ground truth identifies the search-to-rate RPC path and its timeout/retry/queue feedback loop.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q2\", \"answer\": \"No\", \"evidence\": \"Treats rate as the origin and search solely as an affected caller, missing search retries as a sustaining cause.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q3\", \"answer\": \"No\", \"evidence\": \"Blames Deployment rate rather than the specified search-to-rate RPC path.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q1\", \"answer\": \"No\", \"evidence\": \"Cites RATE_BACKEND_QPS_LIMIT=20 but does not identify the transient burst, expired calls consuming capacity, or retry amplification.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q2\", \"answer\": \"No\", \"evidence\": \"The stated QPS limit does not capture the ground-truth details: three attempts, short per-attempt deadlines, and a bounded backend queue.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q3\", \"answer\": \"No\", \"evidence\": \"Classifies the fault as overwhelming input traffic, omitting the timeout/retry/queue feedback that sustains overload after external traffic normalizes.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q1\", \"answer\": \"Yes\", \"evidence\": \"Names only rate and search, both of which contribute to the ground-truth feedback loop.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q2\", \"answer\": \"Yes\", \"evidence\": \"Explicitly mentions Deployment rate and deployment/search, covering both services involved in the ground truth.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q3\", \"answer\": \"Yes\", \"evidence\": \"Reports ongoing search-to-rate timeout failures, consistent with calls exceeding deadlines in the ground truth.\", \"confidence\": \"High\"}]",
+    "success": false,
+    "accuracy": 34.0,
+    "composite_score": 0.34,
+    "dimensions": {
+     "D1": {
+      "name": "Fault Localization",
+      "score": 0.0
+     },
+     "D2": {
+      "name": "Fault Characterization",
+      "score": 0.0
+     },
+     "D3": {
+      "name": "Scope Precision",
+      "score": 1.0
+     }
+    },
+    "checklist": [
+     {
+      "id": "D1-Q1",
+      "answer": "No",
+      "evidence": "Names Deployment rate as the origin; ground truth identifies the search-to-rate RPC path and its timeout/retry/queue feedback loop.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q2",
+      "answer": "No",
+      "evidence": "Treats rate as the origin and search solely as an affected caller, missing search retries as a sustaining cause.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q3",
+      "answer": "No",
+      "evidence": "Blames Deployment rate rather than the specified search-to-rate RPC path.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q1",
+      "answer": "No",
+      "evidence": "Cites RATE_BACKEND_QPS_LIMIT=20 but does not identify the transient burst, expired calls consuming capacity, or retry amplification.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q2",
+      "answer": "No",
+      "evidence": "The stated QPS limit does not capture the ground-truth details: three attempts, short per-attempt deadlines, and a bounded backend queue.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q3",
+      "answer": "No",
+      "evidence": "Classifies the fault as overwhelming input traffic, omitting the timeout/retry/queue feedback that sustains overload after external traffic normalizes.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q1",
+      "answer": "Yes",
+      "evidence": "Names only rate and search, both of which contribute to the ground-truth feedback loop.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q2",
+      "answer": "Yes",
+      "evidence": "Explicitly mentions Deployment rate and deployment/search, covering both services involved in the ground truth.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q3",
+      "answer": "Yes",
+      "evidence": "Reports ongoing search-to-rate timeout failures, consistent with calls exceeding deadlines in the ground truth.",
+      "confidence": "High"
+     }
+    ]
+   }
+  },
+  {
+   "arm": 2,
+   "kind": "v2",
+   "model": "typesafe/jev-1.13",
+   "position": 2,
+   "seconds": 3.0,
+   "requests": 3,
+   "input_tokens": 32084,
+   "error": null,
+   "component": "deployment/rate",
+   "investigation": {
+    "steps": [
+     {
+      "step": 1,
+      "node": "investigate",
+      "component": "deployment/rate",
+      "verdict": "origin",
+      "origin_p": 0.55,
+      "victim_p": 0.06,
+      "next": "deployment/consul",
+      "next_p": 0.6,
+      "category": "data_or_traffic",
+      "spec_checks": [],
+      "blocked_input": null,
+      "key_evidence": "container hotel-reserv-rate env RATE_BACKEND_QPS_LIMIT=20"
+     },
+     {
+      "step": 2,
+      "node": "investigate",
+      "component": "deployment/consul",
+      "verdict": "unrelated",
+      "origin_p": 0.0,
+      "victim_p": 0.0,
+      "next": "none",
+      "next_p": 0.58,
+      "category": "other",
+      "spec_checks": [],
+      "blocked_input": null,
+      "key_evidence": "log x1 (stopped, last seen 183s ago): consul: 2026-10-19T04:31:56.392Z [WARN] agent.server.raft: heartbeat timeout reached, starting election: last-leader-addr= last-leader-id="
+     }
+    ],
+    "concluded": "deployment/rate",
+    "fallback": "most likely origin among investigated components",
+    "triage_top": [
+     [
+      "deployment/rate",
+      0.99
+     ],
+     [
+      "deployment/consul",
+      0.01
+     ],
+     [
+      "deployment/frontend",
+      0.0
+     ],
+     [
+      "deployment/geo",
+      0.0
+     ],
+     [
+      "deployment/jaeger",
+      0.0
+     ]
+    ]
+   },
+   "text": "Root cause: Service `rate` (Deployment `rate`) in namespace `hotel-reservation`: container hotel-reserv-rate env RATE_BACKEND_QPS_LIMIT=20.\nMechanism: container hotel-reserv-rate env RATE_BACKEND_QPS_LIMIT=20.\nEffect: its pods are Running and Ready; its callers see connectivity or timeout (68 lines).\nAffected (symptoms only, not causes): Deployment `search` in namespace `hotel-reservation`: connectivity or timeout calling it (68 lines, still occurring).",
+   "grade": {
+    "judgment": "False",
+    "reasoning": "Verdict: False (composite=0.34). D1 Fault Localization: 0.00 | D2 Fault Characterization: 0.00 | D3 Scope Precision: 1.00. Weakest dimension: Fault Localization (0.00). Checklist details: [{\"id\": \"D1-Q1\", \"answer\": \"No\", \"evidence\": \"Diagnosis names Deployment rate as the origin; ground truth identifies the search-to-rate RPC path.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q2\", \"answer\": \"No\", \"evidence\": \"Diagnosis labels search as 'symptoms only, not causes,' although search's retry policy contributes to the sustaining feedback loop.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q3\", \"answer\": \"No\", \"evidence\": \"Diagnosis blames rate's static backend limit instead of the specified search-to-rate RPC path.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q1\", \"answer\": \"No\", \"evidence\": \"The stated mechanism is RATE_BACKEND_QPS_LIMIT=20; it omits the transient burst, expired downstream work, and sustaining timeout/retry/queue feedback loop.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q2\", \"answer\": \"No\", \"evidence\": \"RATE_BACKEND_QPS_LIMIT=20 is not specified in ground truth; diagnosis omits three attempts and the short per-attempt deadline.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q3\", \"answer\": \"No\", \"evidence\": \"Diagnosis attributes the fault to a static backend limit, whereas ground truth identifies post-burst amplification through retries and continuing expired calls.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q1\", \"answer\": \"Yes\", \"evidence\": \"Diagnosis blames only rate, whose bounded backend queue and capacity contribute to the ground-truth feedback loop; no uninvolved component is blamed.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q2\", \"answer\": \"Yes\", \"evidence\": \"Diagnosis explicitly mentions both rate and search, the services contributing to or affected by the ground-truth fault.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q3\", \"answer\": \"Yes\", \"evidence\": \"Diagnosis reports search experiencing ongoing timeouts calling rate, consistent with calls exceeding deadlines and sustained overload.\", \"confidence\": \"High\"}]",
+    "success": false,
+    "accuracy": 34.0,
+    "composite_score": 0.34,
+    "dimensions": {
+     "D1": {
+      "name": "Fault Localization",
+      "score": 0.0
+     },
+     "D2": {
+      "name": "Fault Characterization",
+      "score": 0.0
+     },
+     "D3": {
+      "name": "Scope Precision",
+      "score": 1.0
+     }
+    },
+    "checklist": [
+     {
+      "id": "D1-Q1",
+      "answer": "No",
+      "evidence": "Diagnosis names Deployment rate as the origin; ground truth identifies the search-to-rate RPC path.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q2",
+      "answer": "No",
+      "evidence": "Diagnosis labels search as 'symptoms only, not causes,' although search's retry policy contributes to the sustaining feedback loop.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q3",
+      "answer": "No",
+      "evidence": "Diagnosis blames rate's static backend limit instead of the specified search-to-rate RPC path.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q1",
+      "answer": "No",
+      "evidence": "The stated mechanism is RATE_BACKEND_QPS_LIMIT=20; it omits the transient burst, expired downstream work, and sustaining timeout/retry/queue feedback loop.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q2",
+      "answer": "No",
+      "evidence": "RATE_BACKEND_QPS_LIMIT=20 is not specified in ground truth; diagnosis omits three attempts and the short per-attempt deadline.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q3",
+      "answer": "No",
+      "evidence": "Diagnosis attributes the fault to a static backend limit, whereas ground truth identifies post-burst amplification through retries and continuing expired calls.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q1",
+      "answer": "Yes",
+      "evidence": "Diagnosis blames only rate, whose bounded backend queue and capacity contribute to the ground-truth feedback loop; no uninvolved component is blamed.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q2",
+      "answer": "Yes",
+      "evidence": "Diagnosis explicitly mentions both rate and search, the services contributing to or affected by the ground-truth fault.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q3",
+      "answer": "Yes",
+      "evidence": "Diagnosis reports search experiencing ongoing timeouts calling rate, consistent with calls exceeding deadlines and sustained overload.",
+      "confidence": "High"
+     }
+    ]
+   }
+  },
+  {
+   "arm": 3,
+   "kind": "v2",
+   "model": "openai/gpt-6-luna-decisions",
+   "position": 3,
+   "seconds": 1.8,
+   "requests": 3,
+   "input_tokens": 24330,
+   "error": null,
+   "component": "deployment/rate",
+   "investigation": {
+    "steps": [
+     {
+      "step": 1,
+      "node": "investigate",
+      "component": "deployment/rate",
+      "verdict": "origin",
+      "origin_p": 0.49,
+      "victim_p": 0.25,
+      "next": "deployment/search",
+      "next_p": 0.9,
+      "category": "data_or_traffic",
+      "spec_checks": [],
+      "blocked_input": null,
+      "key_evidence": "container hotel-reserv-rate env RATE_BACKEND_QPS_LIMIT=20"
+     },
+     {
+      "step": 2,
+      "node": "investigate",
+      "component": "deployment/search",
+      "verdict": "victim",
+      "origin_p": 0.01,
+      "victim_p": 0.94,
+      "next": "none",
+      "next_p": 0.4,
+      "category": "data_or_traffic",
+      "spec_checks": [],
+      "blocked_input": null,
+      "key_evidence": "container hotel-reserv-search env RATE_RPC_TIMEOUT_MS=750"
+     }
+    ],
+    "concluded": "deployment/rate",
+    "fallback": "most likely origin among investigated components",
+    "triage_top": [
+     [
+      "deployment/rate",
+      0.99
+     ],
+     [
+      "deployment/recommendation",
+      0.01
+     ],
+     [
+      "deployment/consul",
+      0.0
+     ],
+     [
+      "deployment/frontend",
+      0.0
+     ],
+     [
+      "deployment/geo",
+      0.0
+     ]
+    ]
+   },
+   "text": "Root cause: Service `rate` (Deployment `rate`) in namespace `hotel-reservation`: container hotel-reserv-rate env RATE_BACKEND_QPS_LIMIT=20.\nMechanism: container hotel-reserv-rate env RATE_BACKEND_QPS_LIMIT=20.\nEffect: its pods are Running and Ready; its callers see connectivity or timeout (68 lines).\nAffected (symptoms only, not causes): Deployment `search` in namespace `hotel-reservation`: connectivity or timeout calling it (68 lines, still occurring).",
+   "grade": {
+    "judgment": "False",
+    "reasoning": "Verdict: False (composite=0.34). D1 Fault Localization: 0.00 | D2 Fault Characterization: 0.00 | D3 Scope Precision: 1.00. Weakest dimension: Fault Localization (0.00). Checklist details: [{\"id\": \"D1-Q1\", \"answer\": \"No\", \"evidence\": \"Diagnosis names Deployment rate as the origin; the fault specification identifies the search-to-rate RPC path.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q2\", \"answer\": \"No\", \"evidence\": \"Diagnosis labels search as 'symptoms only, not causes,' missing its retry policy's causal role and attributing the origin solely to rate.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q3\", \"answer\": \"No\", \"evidence\": \"Diagnosis blames rate's QPS limit rather than the specified search-to-rate RPC path.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q1\", \"answer\": \"No\", \"evidence\": \"The stated mechanism is RATE_BACKEND_QPS_LIMIT=20; the diagnosis omits the transient burst and sustaining timeout/retry/queue feedback loop.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q2\", \"answer\": \"No\", \"evidence\": \"RATE_BACKEND_QPS_LIMIT=20 is not specified in ground truth; the diagnosis omits three attempts, short per-attempt deadlines, and bounded queue behavior.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q3\", \"answer\": \"No\", \"evidence\": \"Diagnosis attributes the fault to a static backend QPS limit, whereas ground truth identifies post-burst retry amplification as the sustaining cause.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q1\", \"answer\": \"Yes\", \"evidence\": \"Diagnosis blames only rate, which participates in the ground-truth feedback loop; it introduces no uninvolved components.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q2\", \"answer\": \"Yes\", \"evidence\": \"Diagnosis explicitly mentions both rate and search in hotel-reservation, covering the components named in ground truth.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q3\", \"answer\": \"Yes\", \"evidence\": \"Diagnosis reports search experiencing ongoing timeouts calling rate, consistent with calls exceeding deadlines in ground truth.\", \"confidence\": \"High\"}]",
+    "success": false,
+    "accuracy": 34.0,
+    "composite_score": 0.34,
+    "dimensions": {
+     "D1": {
+      "name": "Fault Localization",
+      "score": 0.0
+     },
+     "D2": {
+      "name": "Fault Characterization",
+      "score": 0.0
+     },
+     "D3": {
+      "name": "Scope Precision",
+      "score": 1.0
+     }
+    },
+    "checklist": [
+     {
+      "id": "D1-Q1",
+      "answer": "No",
+      "evidence": "Diagnosis names Deployment rate as the origin; the fault specification identifies the search-to-rate RPC path.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q2",
+      "answer": "No",
+      "evidence": "Diagnosis labels search as 'symptoms only, not causes,' missing its retry policy's causal role and attributing the origin solely to rate.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q3",
+      "answer": "No",
+      "evidence": "Diagnosis blames rate's QPS limit rather than the specified search-to-rate RPC path.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q1",
+      "answer": "No",
+      "evidence": "The stated mechanism is RATE_BACKEND_QPS_LIMIT=20; the diagnosis omits the transient burst and sustaining timeout/retry/queue feedback loop.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q2",
+      "answer": "No",
+      "evidence": "RATE_BACKEND_QPS_LIMIT=20 is not specified in ground truth; the diagnosis omits three attempts, short per-attempt deadlines, and bounded queue behavior.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q3",
+      "answer": "No",
+      "evidence": "Diagnosis attributes the fault to a static backend QPS limit, whereas ground truth identifies post-burst retry amplification as the sustaining cause.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q1",
+      "answer": "Yes",
+      "evidence": "Diagnosis blames only rate, which participates in the ground-truth feedback loop; it introduces no uninvolved components.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q2",
+      "answer": "Yes",
+      "evidence": "Diagnosis explicitly mentions both rate and search in hotel-reservation, covering the components named in ground truth.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q3",
+      "answer": "Yes",
+      "evidence": "Diagnosis reports search experiencing ongoing timeouts calling rate, consistent with calls exceeding deadlines in ground truth.",
+      "confidence": "High"
+     }
+    ]
+   }
+  }
+ ],
+ "judge": {
+  "model": "gpt-6-astra",
+  "backend": "codex",
+  "effort": "high"
+ }
+}

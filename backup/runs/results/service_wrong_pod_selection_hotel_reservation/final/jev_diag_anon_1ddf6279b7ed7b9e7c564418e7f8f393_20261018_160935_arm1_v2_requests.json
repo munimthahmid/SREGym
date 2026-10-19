@@ -1,0 +1,290 @@
+[
+ {
+  "label": "decide:1",
+  "state": {
+   "application": {
+    "name": "Hotel Reservation",
+    "description": "A hotel reservation application built with Go and gRPC, providing backend in-memory and persistent databases, a recommender system for hotel recommendations, and a functionality to place reservations.",
+    "namespaces": [
+     "hotel-reservation"
+    ]
+   },
+   "evidence": {
+    "deployment/frontend": {
+     "kind": "Deployment",
+     "name": "frontend",
+     "namespace": "hotel-reservation",
+     "healthy": false,
+     "signals": [
+      "service frontend selects pods of 2 different workloads (also deployment/search) through selector {'service-route': 'frontend'}; its selector is broader than this workload, so traffic is spread across unrelated pods; deployment/search does not expose targetPort 5000 (its containers expose [8082, 9092])",
+      "Service frontend was modified 131s ago, 17s after it was created (fields: spec.selector)",
+      "spec modified 134s ago, 14s after this object was created (fields: template.labels.service-route); pod template changes: pod label pod-template-hash: bc766b7fc -> 86c6c7c8cb; pod label service-route added: frontend"
+     ],
+     "template_changes": {
+      "revision": 2,
+      "changed_at": "2026-10-18T16:09:26Z",
+      "changes": [
+       "pod label pod-template-hash: bc766b7fc -> 86c6c7c8cb",
+       "pod label service-route added: frontend"
+      ]
+     }
+    },
+    "deployment/search": {
+     "kind": "Deployment",
+     "name": "search",
+     "namespace": "hotel-reservation",
+     "healthy": false,
+     "signals": [
+      "service frontend selects pods of 2 different workloads (also deployment/frontend) through selector {'service-route': 'frontend'}; its selector is broader than this workload, so traffic is spread across unrelated pods; deployment/search does not expose targetPort 5000 (its containers expose [8082, 9092])",
+      "Service frontend was modified 131s ago, 17s after it was created (fields: spec.selector)",
+      "spec modified 133s ago, 14s after this object was created (fields: template.labels.service-route); pod template changes: pod label pod-template-hash: 7d996cf85b -> 698fd87cf5; pod label service-route added: frontend"
+     ],
+     "template_changes": {
+      "revision": 2,
+      "changed_at": "2026-10-18T16:09:27Z",
+      "changes": [
+       "pod label pod-template-hash: 7d996cf85b -> 698fd87cf5",
+       "pod label service-route added: frontend"
+      ]
+     }
+    }
+   },
+   "cluster": {
+    "symptom_onset": null,
+    "recent_changes": [
+     {
+      "object": "service/hotel-reservation/frontend",
+      "at": "2026-10-18T16:09:29Z",
+      "modified_after_creation_s": 17,
+      "fields": [
+       "spec.selector"
+      ],
+      "seconds_ago": 131,
+      "seconds_before_symptoms": null
+     },
+     {
+      "object": "deployment/search",
+      "at": "2026-10-18T16:09:27Z",
+      "modified_after_creation_s": 14,
+      "fields": [
+       "template.labels.service-route"
+      ],
+      "seconds_ago": 133,
+      "seconds_before_symptoms": null
+     },
+     {
+      "object": "deployment/frontend",
+      "at": "2026-10-18T16:09:26Z",
+      "modified_after_creation_s": 14,
+      "fields": [
+       "template.labels.service-route"
+      ],
+      "seconds_ago": 134,
+      "seconds_before_symptoms": null
+     }
+    ],
+    "findings": [
+     {
+      "kind": "Service",
+      "name": "frontend",
+      "namespace": "hotel-reservation",
+      "signal": "Service frontend was modified 131s ago, 17s after it was created (fields: spec.selector)",
+      "components": [
+       "deployment/frontend",
+       "deployment/search"
+      ]
+     }
+    ]
+   }
+  },
+  "questions": {
+   "best_explanation": {
+    "type": "choice",
+    "criteria": {
+     "o1": "Origin: deployment/hotel-reservation/search. deployment search was changed recently and breaks deployment/search, which it acts on. | Details: deployment search fields written: template.labels.service-route | Observed impact on: deployment/hotel-reservation/search | Checks: deployment/search shows symptoms of its own (supports)",
+     "o2": "Origin: deployment/hotel-reservation/search. The pod template change 'pod label service-route added: frontend' in revision 2 of deployment/search breaks deployment/search. | Details: pod label service-route added: frontend | Observed impact on: deployment/hotel-reservation/search | Checks: deployment/search shows symptoms of its own (supports)",
+     "o3": "Origin: deployment/hotel-reservation/frontend. The pod template change 'pod label service-route added: frontend' in revision 2 of deployment/frontend breaks deployment/frontend. | Details: pod label service-route added: frontend | Observed impact on: deployment/hotel-reservation/frontend | Checks: deployment/frontend shows symptoms of its own (supports)",
+     "o4": "Origin: service/hotel-reservation/frontend. service frontend was changed recently and breaks deployment/frontend, deployment/search, which it acts on. | Details: service frontend fields written: spec.selector; service frontend selects pods of 2 different workloads (also deployment/search) through selector {'service-route': 'frontend'}; its selector is broader than this workload, so traffic is spread across unrelated pods; deployment/search does not expose targetPort 5000 (its containers expose [8082, 9092]); service frontend selects pods of 2 different workloads (also deployment/frontend) through selector {'service-route': 'frontend'}; its selector is broader than this workload, so traffic is spread across unrelated pods; deployment/search does not expose targetPort 5000 (its containers expose [8082, 9092]); Service frontend was modified 131s ago, 17s after it was created (fields: spec.selector) | Observed impact on: deployment/hotel-reservation/frontend, deployment/hotel-reservation/search | Checks: deployment/frontend shows symptoms of its own (supports); deployment/search shows symptoms of its own (supports)",
+     "o5": "Origin: deployment/hotel-reservation/frontend. The fault is in this component; the mechanism is not established. | Observed impact on: deployment/hotel-reservation/frontend",
+     "o6": "Origin: deployment/hotel-reservation/frontend. deployment frontend was changed recently and breaks deployment/frontend, which it acts on. | Details: deployment frontend fields written: template.labels.service-route | Observed impact on: deployment/hotel-reservation/frontend | Checks: deployment/frontend shows symptoms of its own (supports)",
+     "o7": "None of these explanations fits the evidence."
+    },
+    "instructions": {
+     "question": "Which explanation best accounts for all the observed symptoms in `evidence`?",
+     "how_to_decide": [
+      "Prefer the explanation whose chain is supported by the observed facts and explains the most symptoms; an explanation contradicted by a fact is unlikely.",
+      "A component that only fails because something it calls fails is a victim, not the origin.",
+      "Choose `o7` when none of the explanations fits the evidence."
+     ]
+    }
+   }
+  },
+  "model": "openai/gpt-6-luna-decisions-20261006",
+  "latency_ms": 585,
+  "usage": {
+   "input_tokens": 1463,
+   "output_tokens": 0,
+   "cost": 0.0001463
+  },
+  "answers": {
+   "best_explanation": {
+    "type": "choice",
+    "choice": "o4",
+    "confidence": 0.99,
+    "probabilities": {
+     "o1": 0.0,
+     "o2": 0.0,
+     "o3": 0.0,
+     "o4": 0.99,
+     "o5": 0.01,
+     "o6": 0.0,
+     "o7": 0.0
+    }
+   }
+  }
+ },
+ {
+  "label": "decide:2",
+  "state": {
+   "application": {
+    "name": "Hotel Reservation",
+    "description": "A hotel reservation application built with Go and gRPC, providing backend in-memory and persistent databases, a recommender system for hotel recommendations, and a functionality to place reservations.",
+    "namespaces": [
+     "hotel-reservation"
+    ]
+   },
+   "evidence": {
+    "deployment/frontend": {
+     "kind": "Deployment",
+     "name": "frontend",
+     "namespace": "hotel-reservation",
+     "healthy": false,
+     "signals": [
+      "service frontend selects pods of 2 different workloads (also deployment/search) through selector {'service-route': 'frontend'}; its selector is broader than this workload, so traffic is spread across unrelated pods; deployment/search does not expose targetPort 5000 (its containers expose [8082, 9092])",
+      "Service frontend was modified 131s ago, 17s after it was created (fields: spec.selector)",
+      "spec modified 134s ago, 14s after this object was created (fields: template.labels.service-route); pod template changes: pod label pod-template-hash: bc766b7fc -> 86c6c7c8cb; pod label service-route added: frontend"
+     ],
+     "template_changes": {
+      "revision": 2,
+      "changed_at": "2026-10-18T16:09:26Z",
+      "changes": [
+       "pod label pod-template-hash: bc766b7fc -> 86c6c7c8cb",
+       "pod label service-route added: frontend"
+      ]
+     }
+    },
+    "deployment/search": {
+     "kind": "Deployment",
+     "name": "search",
+     "namespace": "hotel-reservation",
+     "healthy": false,
+     "signals": [
+      "service frontend selects pods of 2 different workloads (also deployment/frontend) through selector {'service-route': 'frontend'}; its selector is broader than this workload, so traffic is spread across unrelated pods; deployment/search does not expose targetPort 5000 (its containers expose [8082, 9092])",
+      "Service frontend was modified 131s ago, 17s after it was created (fields: spec.selector)",
+      "spec modified 133s ago, 14s after this object was created (fields: template.labels.service-route); pod template changes: pod label pod-template-hash: 7d996cf85b -> 698fd87cf5; pod label service-route added: frontend"
+     ],
+     "template_changes": {
+      "revision": 2,
+      "changed_at": "2026-10-18T16:09:27Z",
+      "changes": [
+       "pod label pod-template-hash: 7d996cf85b -> 698fd87cf5",
+       "pod label service-route added: frontend"
+      ]
+     }
+    }
+   },
+   "cluster": {
+    "symptom_onset": null,
+    "recent_changes": [
+     {
+      "object": "service/hotel-reservation/frontend",
+      "at": "2026-10-18T16:09:29Z",
+      "modified_after_creation_s": 17,
+      "fields": [
+       "spec.selector"
+      ],
+      "seconds_ago": 131,
+      "seconds_before_symptoms": null
+     },
+     {
+      "object": "deployment/search",
+      "at": "2026-10-18T16:09:27Z",
+      "modified_after_creation_s": 14,
+      "fields": [
+       "template.labels.service-route"
+      ],
+      "seconds_ago": 133,
+      "seconds_before_symptoms": null
+     },
+     {
+      "object": "deployment/frontend",
+      "at": "2026-10-18T16:09:26Z",
+      "modified_after_creation_s": 14,
+      "fields": [
+       "template.labels.service-route"
+      ],
+      "seconds_ago": 134,
+      "seconds_before_symptoms": null
+     }
+    ],
+    "findings": [
+     {
+      "kind": "Service",
+      "name": "frontend",
+      "namespace": "hotel-reservation",
+      "signal": "Service frontend was modified 131s ago, 17s after it was created (fields: spec.selector)",
+      "components": [
+       "deployment/frontend",
+       "deployment/search"
+      ]
+     }
+    ]
+   }
+  },
+  "questions": {
+   "best_explanation": {
+    "type": "choice",
+    "criteria": {
+     "o1": "Origin: deployment/hotel-reservation/frontend. The pod template change 'pod label service-route added: frontend' in revision 2 of deployment/frontend breaks deployment/frontend. | Details: pod label service-route added: frontend | Observed impact on: deployment/hotel-reservation/frontend | Checks: deployment/frontend shows symptoms of its own (supports)",
+     "o2": "Origin: service/hotel-reservation/frontend. service frontend was changed recently and breaks deployment/frontend, deployment/search, which it acts on. | Details: service frontend fields written: spec.selector; service frontend selects pods of 2 different workloads (also deployment/search) through selector {'service-route': 'frontend'}; its selector is broader than this workload, so traffic is spread across unrelated pods; deployment/search does not expose targetPort 5000 (its containers expose [8082, 9092]); service frontend selects pods of 2 different workloads (also deployment/frontend) through selector {'service-route': 'frontend'}; its selector is broader than this workload, so traffic is spread across unrelated pods; deployment/search does not expose targetPort 5000 (its containers expose [8082, 9092]); Service frontend was modified 131s ago, 17s after it was created (fields: spec.selector) | Observed impact on: deployment/hotel-reservation/frontend, deployment/hotel-reservation/search | Checks: deployment/frontend shows symptoms of its own (supports); deployment/search shows symptoms of its own (supports)",
+     "o3": "Origin: deployment/hotel-reservation/search. deployment search was changed recently and breaks deployment/search, which it acts on. | Details: deployment search fields written: template.labels.service-route | Observed impact on: deployment/hotel-reservation/search | Checks: deployment/search shows symptoms of its own (supports)",
+     "o4": "Origin: deployment/hotel-reservation/frontend. The fault is in this component; the mechanism is not established. | Observed impact on: deployment/hotel-reservation/frontend",
+     "o5": "None of these explanations fits the evidence.",
+     "o6": "Origin: deployment/hotel-reservation/search. The pod template change 'pod label service-route added: frontend' in revision 2 of deployment/search breaks deployment/search. | Details: pod label service-route added: frontend | Observed impact on: deployment/hotel-reservation/search | Checks: deployment/search shows symptoms of its own (supports)",
+     "o7": "Origin: deployment/hotel-reservation/frontend. deployment frontend was changed recently and breaks deployment/frontend, which it acts on. | Details: deployment frontend fields written: template.labels.service-route | Observed impact on: deployment/hotel-reservation/frontend | Checks: deployment/frontend shows symptoms of its own (supports)"
+    },
+    "instructions": {
+     "question": "Which explanation best accounts for all the observed symptoms in `evidence`?",
+     "how_to_decide": [
+      "Prefer the explanation whose chain is supported by the observed facts and explains the most symptoms; an explanation contradicted by a fact is unlikely.",
+      "A component that only fails because something it calls fails is a victim, not the origin.",
+      "Choose `o5` when none of the explanations fits the evidence."
+     ]
+    }
+   }
+  },
+  "model": "openai/gpt-6-luna-decisions-20261006",
+  "latency_ms": 1296,
+  "usage": {
+   "input_tokens": 1463,
+   "output_tokens": 0,
+   "cost": 0.0001463
+  },
+  "answers": {
+   "best_explanation": {
+    "type": "choice",
+    "choice": "o2",
+    "confidence": 0.98,
+    "probabilities": {
+     "o1": 0.01,
+     "o2": 0.98,
+     "o3": 0.01,
+     "o4": 0.0,
+     "o5": 0.0,
+     "o6": 0.0,
+     "o7": 0.0
+    }
+   }
+  }
+ }
+]

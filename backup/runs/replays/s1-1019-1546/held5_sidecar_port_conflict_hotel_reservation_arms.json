@@ -1,0 +1,231 @@
+{
+ "problem_id": "sidecar_port_conflict_hotel_reservation",
+ "source": "held5_sidecar_port_conflict_hotel_reservation",
+ "replay": true,
+ "arms": [
+  {
+   "arm": 0,
+   "kind": "v1",
+   "model": "typesafe/jev-1.13",
+   "position": 0,
+   "seconds": 1.6,
+   "requests": 2,
+   "input_tokens": 27377,
+   "error": null,
+   "component": "deployment/frontend",
+   "investigation": {
+    "steps": [
+     {
+      "step": 1,
+      "node": "investigate",
+      "component": "deployment/frontend",
+      "verdict": "origin",
+      "origin_p": 1.0,
+      "victim_p": 0.0,
+      "next": "none",
+      "next_p": 0.92,
+      "category": "config_value",
+      "spec_checks": [
+       "service frontend has no ready endpoints"
+      ],
+      "blocked_input": null,
+      "key_evidence": "previous log frontend-77cb75bf8-jkjrg/sidecar: nc: bind: Address already in use"
+     }
+    ],
+    "concluded": "deployment/frontend",
+    "fallback": null,
+    "triage_top": [
+     [
+      "deployment/frontend",
+      0.59
+     ],
+     [
+      "other",
+      0.4
+     ],
+     [
+      "deployment/mongodb-geo",
+      0.01
+     ],
+     [
+      "deployment/consul",
+      0.0
+     ],
+     [
+      "deployment/geo",
+      0.0
+     ]
+    ]
+   },
+   "text": "Root cause component: Deployment `frontend` in namespace `hotel-reservation`.\nMechanism: previous log frontend-77cb75bf8-jkjrg/sidecar: nc: bind: Address already in use.\nFault type: config value (a wrong, missing, or shadowed value in this component's own configuration).\nAbnormal state observed on this component:\n- only 0 of 1 desired replicas are ready\n- pod frontend-77cb75bf8-jkjrg: container sidecar waiting in CrashLoopBackOff\n- pod frontend-77cb75bf8-jkjrg: container sidecar restarted 4 times\n- warning events: BackOff x11\n- service frontend selects this component but has 0 ready endpoints\n- pod frontend-77cb75bf8-jkjrg: container sidecar restarted 1 more time(s) in the last 0s\n- warning event BackOff on pod/frontend-77cb75bf8-jkjrg repeated 4 more time(s) in the last 0s\nNotable spec settings:\n- Available=False (MinimumReplicasUnavailable)\n- container hotel-reserv-frontend: image ghcr.io/sregym/hotel-reservation:sha-d2c036bc3d1138f5a0bdaffd3d87f37522c3461a@sha256:1c685e1c4c304f327952397b3a99c54dadb086607774d71f222b200ec0d2e65e, limits {'cpu': '1'}\n- container sidecar: image busybox:latest\nWarning events:\n- BackOff x11 on pod/frontend-77cb75bf8-jkjrg: Back-off restarting failed container sidecar in pod frontend-77cb75bf8-jkjrg_hotel-reservation(10b9de8e-463e-477e-acf6-f265110cd57e)\nLast lines of the previous (crashed) run of container sidecar:\n- nc: bind: Address already in use\nClassification: Jev (typesafe/jev-1.13-20260917) confirmed this origin at investigation step 1 with probability 1.00 (triage probability 0.59)."
+  },
+  {
+   "arm": 1,
+   "kind": "v1",
+   "model": "openai/gpt-6-luna-decisions",
+   "position": 1,
+   "seconds": 1.1,
+   "requests": 2,
+   "input_tokens": 18156,
+   "error": null,
+   "component": "deployment/frontend",
+   "investigation": {
+    "steps": [
+     {
+      "step": 1,
+      "node": "investigate",
+      "component": "deployment/frontend",
+      "verdict": "origin",
+      "origin_p": 0.94,
+      "victim_p": 0.03,
+      "next": "none",
+      "next_p": 0.66,
+      "category": "config_value",
+      "spec_checks": [
+       "service frontend has no ready endpoints"
+      ],
+      "blocked_input": null,
+      "key_evidence": "previous log frontend-77cb75bf8-jkjrg/sidecar: nc: bind: Address already in use"
+     }
+    ],
+    "concluded": "deployment/frontend",
+    "fallback": null,
+    "triage_top": [
+     [
+      "deployment/frontend",
+      0.78
+     ],
+     [
+      "other",
+      0.14
+     ],
+     [
+      "deployment/consul",
+      0.02
+     ],
+     [
+      "deployment/geo",
+      0.01
+     ],
+     [
+      "deployment/jaeger",
+      0.01
+     ]
+    ]
+   },
+   "text": "Root cause component: Deployment `frontend` in namespace `hotel-reservation`.\nMechanism: previous log frontend-77cb75bf8-jkjrg/sidecar: nc: bind: Address already in use.\nFault type: config value (a wrong, missing, or shadowed value in this component's own configuration).\nAbnormal state observed on this component:\n- only 0 of 1 desired replicas are ready\n- pod frontend-77cb75bf8-jkjrg: container sidecar waiting in CrashLoopBackOff\n- pod frontend-77cb75bf8-jkjrg: container sidecar restarted 4 times\n- warning events: BackOff x11\n- service frontend selects this component but has 0 ready endpoints\n- pod frontend-77cb75bf8-jkjrg: container sidecar restarted 1 more time(s) in the last 0s\n- warning event BackOff on pod/frontend-77cb75bf8-jkjrg repeated 4 more time(s) in the last 0s\nNotable spec settings:\n- Available=False (MinimumReplicasUnavailable)\n- container hotel-reserv-frontend: image ghcr.io/sregym/hotel-reservation:sha-d2c036bc3d1138f5a0bdaffd3d87f37522c3461a@sha256:1c685e1c4c304f327952397b3a99c54dadb086607774d71f222b200ec0d2e65e, limits {'cpu': '1'}\n- container sidecar: image busybox:latest\nWarning events:\n- BackOff x11 on pod/frontend-77cb75bf8-jkjrg: Back-off restarting failed container sidecar in pod frontend-77cb75bf8-jkjrg_hotel-reservation(10b9de8e-463e-477e-acf6-f265110cd57e)\nLast lines of the previous (crashed) run of container sidecar:\n- nc: bind: Address already in use\nClassification: Jev (openai/gpt-6-luna-decisions-20261006) confirmed this origin at investigation step 1 with probability 0.94 (triage probability 0.78)."
+  },
+  {
+   "arm": 2,
+   "kind": "v2",
+   "model": "typesafe/jev-1.13",
+   "position": 2,
+   "seconds": 1.1,
+   "requests": 2,
+   "input_tokens": 27476,
+   "error": null,
+   "component": "deployment/frontend",
+   "investigation": {
+    "steps": [
+     {
+      "step": 1,
+      "node": "investigate",
+      "component": "deployment/frontend",
+      "verdict": "origin",
+      "origin_p": 1.0,
+      "victim_p": 0.0,
+      "next": "none",
+      "next_p": 0.78,
+      "category": "config_value",
+      "spec_checks": [
+       "service frontend has no ready endpoints"
+      ],
+      "blocked_input": null,
+      "key_evidence": "previous log frontend-77cb75bf8-jkjrg/sidecar: nc: bind: Address already in use"
+     }
+    ],
+    "concluded": "deployment/frontend",
+    "fallback": null,
+    "triage_top": [
+     [
+      "deployment/frontend",
+      0.47
+     ],
+     [
+      "deployment/mongodb-rate",
+      0.4
+     ],
+     [
+      "deployment/mongodb-geo",
+      0.12
+     ],
+     [
+      "other",
+      0.01
+     ],
+     [
+      "deployment/consul",
+      0.0
+     ]
+    ]
+   },
+   "text": "Root cause: Service `frontend` (Deployment `frontend`) in namespace `hotel-reservation`: previous log frontend-77cb75bf8-jkjrg/sidecar: nc: bind: Address already in use.\nMechanism: previous log frontend-77cb75bf8-jkjrg/sidecar: nc: bind: Address already in use.\nDetails: service frontend has no ready endpoints.\nEffect: only 0 of 1 desired replicas are ready; pod frontend-77cb75bf8-jkjrg: container sidecar waiting in CrashLoopBackOff."
+  },
+  {
+   "arm": 3,
+   "kind": "v2",
+   "model": "openai/gpt-6-luna-decisions",
+   "position": 3,
+   "seconds": 1.3,
+   "requests": 2,
+   "input_tokens": 18258,
+   "error": null,
+   "component": "deployment/frontend",
+   "investigation": {
+    "steps": [
+     {
+      "step": 1,
+      "node": "investigate",
+      "component": "deployment/frontend",
+      "verdict": "origin",
+      "origin_p": 0.95,
+      "victim_p": 0.03,
+      "next": "none",
+      "next_p": 0.84,
+      "category": "config_value",
+      "spec_checks": [
+       "service frontend has no ready endpoints"
+      ],
+      "blocked_input": null,
+      "key_evidence": "previous log frontend-77cb75bf8-jkjrg/sidecar: nc: bind: Address already in use"
+     }
+    ],
+    "concluded": "deployment/frontend",
+    "fallback": null,
+    "triage_top": [
+     [
+      "deployment/frontend",
+      0.37
+     ],
+     [
+      "deployment/mongodb-geo",
+      0.37
+     ],
+     [
+      "deployment/mongodb-rate",
+      0.18
+     ],
+     [
+      "deployment/consul",
+      0.01
+     ],
+     [
+      "deployment/geo",
+      0.01
+     ]
+    ]
+   },
+   "text": "Root cause: Service `frontend` (Deployment `frontend`) in namespace `hotel-reservation`: previous log frontend-77cb75bf8-jkjrg/sidecar: nc: bind: Address already in use.\nMechanism: previous log frontend-77cb75bf8-jkjrg/sidecar: nc: bind: Address already in use.\nDetails: service frontend has no ready endpoints.\nEffect: only 0 of 1 desired replicas are ready; pod frontend-77cb75bf8-jkjrg: container sidecar waiting in CrashLoopBackOff."
+  }
+ ]
+}

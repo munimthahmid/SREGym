@@ -1,0 +1,1088 @@
+[
+ {
+  "label": "decide:1",
+  "state": {
+   "application": {
+    "name": "Social Network",
+    "description": "A social network with unidirectional follow relationships, implemented with loosely-coupled microservices, communicating with each other via Thrift RPCs.",
+    "namespaces": [
+     "social-network"
+    ]
+   },
+   "evidence": {
+    "deployment/custom-service": {
+     "kind": "Deployment",
+     "name": "custom-service",
+     "namespace": "social-network",
+     "healthy": false,
+     "signals": [
+      "rolling update allows maxUnavailable=100% and maxSurge=0% for 3 replicas: all pods may go down at once; no replacement pod is started before the old ones stop",
+      "only 0 of 3 desired replicas are ready",
+      "pod custom-service-8654548dc8-2w5g5: pod phase Pending",
+      "pod custom-service-8654548dc8-2w5g5: init container hang-init has been running for 130s; the pod's main containers cannot start until it exits",
+      "pod custom-service-8654548dc8-64sm5: pod phase Pending",
+      "pod custom-service-8654548dc8-64sm5: init container hang-init has been running for 130s; the pod's main containers cannot start until it exits",
+      "pod custom-service-8654548dc8-jlhrr: pod phase Pending",
+      "pod custom-service-8654548dc8-jlhrr: init container hang-init has been running for 130s; the pod's main containers cannot start until it exits"
+     ],
+     "template_changes": {
+      "revision": 3,
+      "changed_at": "2026-10-18T14:44:46Z",
+      "changes": [
+       "template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-18T20:44:46+06:00",
+       "pod label pod-template-hash: 5d95dbc564 -> 8654548dc8"
+      ]
+     }
+    },
+    "deployment/social-graph-service": {
+     "kind": "Deployment",
+     "name": "social-graph-service",
+     "namespace": "social-network",
+     "healthy": false
+    }
+   },
+   "cluster": {
+    "symptom_onset": "2026-10-18T14:44:46+00:00",
+    "recent_changes": [
+     {
+      "object": "configmap/kube-system/coredns",
+      "at": "2026-10-18T14:18:25Z",
+      "modified_after_creation_s": 20204,
+      "fields": [
+       "data.Corefile"
+      ],
+      "seconds_ago": 1716,
+      "seconds_before_symptoms": 1581
+     }
+    ],
+    "findings": [
+     {
+      "kind": "ConfigMap",
+      "name": "coredns",
+      "namespace": "kube-system",
+      "signal": "ConfigMap coredns was modified 1716s ago, 20204s after it was created (fields: data.Corefile); 1581s before the first active symptom"
+     }
+    ]
+   }
+  },
+  "questions": {
+   "best_explanation": {
+    "type": "choice",
+    "criteria": {
+     "o1": "Origin: deployment/social-network/social-graph-service. The fault is in this component; the mechanism is not established. | Observed impact on: deployment/social-network/social-graph-service",
+     "o2": "Origin: deployment/social-network/custom-service. The fault is in this component; the mechanism is not established. | Observed impact on: deployment/social-network/custom-service",
+     "o3": "Origin: deployment/social-network/custom-service. The pod template change 'template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-18T20:44:46+06:00' in revision 3 of deployment/custom-service breaks deployment/custom-service. | Details: template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-18T20:44:46+06:00 | Observed impact on: deployment/social-network/custom-service | Checks: revision 3 of deployment/custom-service was made before the symptoms began (supports); deployment/custom-service shows symptoms of its own (supports)",
+     "o4": "None of these explanations fits the evidence.",
+     "o5": "Origin: configmap/kube-system/coredns. configmap coredns acts on the application: ConfigMap coredns was modified 1716s ago, 20204s after it was created (fields: data.Corefile); 1581s before the first active symptom. | Details: ConfigMap coredns was modified 1716s ago, 20204s after it was created (fields: data.Corefile); 1581s before the first active symptom"
+    },
+    "instructions": {
+     "question": "Which explanation best accounts for all the observed symptoms in `evidence`?",
+     "how_to_decide": [
+      "Prefer the explanation whose chain is supported by the observed facts and explains the most symptoms; an explanation contradicted by a fact is unlikely.",
+      "A component that only fails because something it calls fails is a victim, not the origin.",
+      "Choose `o4` when none of the explanations fits the evidence."
+     ]
+    }
+   }
+  },
+  "model": "typesafe/jev-1.13-20260917",
+  "latency_ms": 521,
+  "usage": {
+   "input_tokens": 1571,
+   "output_tokens": 61,
+   "cost": 6.5982e-05
+  },
+  "answers": {
+   "best_explanation": {
+    "type": "choice",
+    "choice": "o5",
+    "confidence": 0.27,
+    "probabilities": {
+     "o1": 0.01,
+     "o2": 0.24,
+     "o3": 0.16,
+     "o4": 0.17,
+     "o5": 0.42
+    }
+   }
+  }
+ },
+ {
+  "label": "decide:2",
+  "state": {
+   "application": {
+    "name": "Social Network",
+    "description": "A social network with unidirectional follow relationships, implemented with loosely-coupled microservices, communicating with each other via Thrift RPCs.",
+    "namespaces": [
+     "social-network"
+    ]
+   },
+   "evidence": {
+    "deployment/custom-service": {
+     "kind": "Deployment",
+     "name": "custom-service",
+     "namespace": "social-network",
+     "healthy": false,
+     "signals": [
+      "rolling update allows maxUnavailable=100% and maxSurge=0% for 3 replicas: all pods may go down at once; no replacement pod is started before the old ones stop",
+      "only 0 of 3 desired replicas are ready",
+      "pod custom-service-8654548dc8-2w5g5: pod phase Pending",
+      "pod custom-service-8654548dc8-2w5g5: init container hang-init has been running for 130s; the pod's main containers cannot start until it exits",
+      "pod custom-service-8654548dc8-64sm5: pod phase Pending",
+      "pod custom-service-8654548dc8-64sm5: init container hang-init has been running for 130s; the pod's main containers cannot start until it exits",
+      "pod custom-service-8654548dc8-jlhrr: pod phase Pending",
+      "pod custom-service-8654548dc8-jlhrr: init container hang-init has been running for 130s; the pod's main containers cannot start until it exits"
+     ],
+     "template_changes": {
+      "revision": 3,
+      "changed_at": "2026-10-18T14:44:46Z",
+      "changes": [
+       "template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-18T20:44:46+06:00",
+       "pod label pod-template-hash: 5d95dbc564 -> 8654548dc8"
+      ]
+     }
+    },
+    "deployment/social-graph-service": {
+     "kind": "Deployment",
+     "name": "social-graph-service",
+     "namespace": "social-network",
+     "healthy": false
+    }
+   },
+   "cluster": {
+    "symptom_onset": "2026-10-18T14:44:46+00:00",
+    "recent_changes": [
+     {
+      "object": "configmap/kube-system/coredns",
+      "at": "2026-10-18T14:18:25Z",
+      "modified_after_creation_s": 20204,
+      "fields": [
+       "data.Corefile"
+      ],
+      "seconds_ago": 1716,
+      "seconds_before_symptoms": 1581
+     }
+    ],
+    "findings": [
+     {
+      "kind": "ConfigMap",
+      "name": "coredns",
+      "namespace": "kube-system",
+      "signal": "ConfigMap coredns was modified 1716s ago, 20204s after it was created (fields: data.Corefile); 1581s before the first active symptom"
+     }
+    ]
+   }
+  },
+  "questions": {
+   "best_explanation": {
+    "type": "choice",
+    "criteria": {
+     "o1": "Origin: deployment/social-network/custom-service. The pod template change 'template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-18T20:44:46+06:00' in revision 3 of deployment/custom-service breaks deployment/custom-service. | Details: template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-18T20:44:46+06:00 | Observed impact on: deployment/social-network/custom-service | Checks: revision 3 of deployment/custom-service was made before the symptoms began (supports); deployment/custom-service shows symptoms of its own (supports)",
+     "o2": "Origin: deployment/social-network/social-graph-service. The fault is in this component; the mechanism is not established. | Observed impact on: deployment/social-network/social-graph-service",
+     "o3": "Origin: deployment/social-network/custom-service. The fault is in this component; the mechanism is not established. | Observed impact on: deployment/social-network/custom-service",
+     "o4": "Origin: configmap/kube-system/coredns. configmap coredns acts on the application: ConfigMap coredns was modified 1716s ago, 20204s after it was created (fields: data.Corefile); 1581s before the first active symptom. | Details: ConfigMap coredns was modified 1716s ago, 20204s after it was created (fields: data.Corefile); 1581s before the first active symptom",
+     "o5": "None of these explanations fits the evidence."
+    },
+    "instructions": {
+     "question": "Which explanation best accounts for all the observed symptoms in `evidence`?",
+     "how_to_decide": [
+      "Prefer the explanation whose chain is supported by the observed facts and explains the most symptoms; an explanation contradicted by a fact is unlikely.",
+      "A component that only fails because something it calls fails is a victim, not the origin.",
+      "Choose `o5` when none of the explanations fits the evidence."
+     ]
+    }
+   }
+  },
+  "model": "typesafe/jev-1.13-20260917",
+  "latency_ms": 508,
+  "usage": {
+   "input_tokens": 1571,
+   "output_tokens": 61,
+   "cost": 6.5982e-05
+  },
+  "answers": {
+   "best_explanation": {
+    "type": "choice",
+    "choice": "o4",
+    "confidence": 0.16,
+    "probabilities": {
+     "o1": 0.26,
+     "o2": 0.01,
+     "o3": 0.24,
+     "o4": 0.33,
+     "o5": 0.16
+    }
+   }
+  }
+ },
+ {
+  "label": "decide:1",
+  "state": {
+   "application": {
+    "name": "Social Network",
+    "description": "A social network with unidirectional follow relationships, implemented with loosely-coupled microservices, communicating with each other via Thrift RPCs.",
+    "namespaces": [
+     "social-network"
+    ]
+   },
+   "evidence": {
+    "deployment/custom-service": {
+     "kind": "Deployment",
+     "name": "custom-service",
+     "namespace": "social-network",
+     "healthy": false,
+     "signals": [
+      "rolling update allows maxUnavailable=100% and maxSurge=0% for 3 replicas: all pods may go down at once; no replacement pod is started before the old ones stop",
+      "only 0 of 3 desired replicas are ready",
+      "pod custom-service-8654548dc8-2w5g5: pod phase Pending",
+      "pod custom-service-8654548dc8-2w5g5: init container hang-init has been running for 130s; the pod's main containers cannot start until it exits",
+      "pod custom-service-8654548dc8-64sm5: pod phase Pending",
+      "pod custom-service-8654548dc8-64sm5: init container hang-init has been running for 130s; the pod's main containers cannot start until it exits",
+      "pod custom-service-8654548dc8-jlhrr: pod phase Pending",
+      "pod custom-service-8654548dc8-jlhrr: init container hang-init has been running for 130s; the pod's main containers cannot start until it exits"
+     ],
+     "template_changes": {
+      "revision": 3,
+      "changed_at": "2026-10-18T14:44:46Z",
+      "changes": [
+       "template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-18T20:44:46+06:00",
+       "pod label pod-template-hash: 5d95dbc564 -> 8654548dc8"
+      ]
+     },
+     "detail": {
+      "component": "deployment/custom-service",
+      "namespace": "social-network",
+      "workload": {
+       "created": "2026-10-18T14:44:44Z",
+       "last_spec_write": "2026-10-18T14:44:46Z",
+       "spec_writers": [
+        {
+         "manager": "kubectl-client-side-apply",
+         "op": "Update",
+         "time": "2026-10-18T14:44:44Z"
+        },
+        {
+         "manager": "kubectl-patch",
+         "op": "Update",
+         "time": "2026-10-18T14:44:46Z"
+        },
+        {
+         "manager": "kubectl-rollout",
+         "op": "Update",
+         "time": "2026-10-18T14:44:46Z"
+        }
+       ],
+       "replicas": 3,
+       "strategy": {
+        "rollingUpdate": {
+         "maxSurge": "0%",
+         "maxUnavailable": "100%"
+        },
+        "type": "RollingUpdate"
+       },
+       "dns_policy": "ClusterFirst",
+       "restart_policy": "Always",
+       "init_containers": [
+        {
+         "name": "hang-init",
+         "image": "busybox:1.36",
+         "command": [
+          "/bin/sh",
+          "-c",
+          "sleep infinity"
+         ]
+        }
+       ],
+       "containers": [
+        {
+         "name": "custom-service-main",
+         "image": "python:3.9-slim",
+         "command": [
+          "python3",
+          "-m",
+          "http.server",
+          "8080"
+         ],
+         "ports": [
+          {
+           "port": 8080
+          }
+         ]
+        }
+       ],
+       "template_labels": {
+        "app": "custom-service"
+       }
+      },
+      "pods": [
+       {
+        "name": "custom-service-8654548dc8-2w5g5",
+        "node": "kind-worker2",
+        "phase": "Pending",
+        "started": "2026-10-18T14:44:46Z",
+        "conditions": [
+         "PodReadyToStartContainers=True",
+         "Initialized=False (ContainersNotInitialized: containers with incomplete status: [hang-init])",
+         "Ready=False (ContainersNotReady: containers with unready status: [custom-service-main])",
+         "ContainersReady=False (ContainersNotReady: containers with unready status: [custom-service-main])",
+         "PodScheduled=True"
+        ],
+        "containers": [
+         {
+          "name": "hang-init",
+          "ready": false,
+          "restarts": 0,
+          "state": {
+           "running": {
+            "startedAt": "2026-10-18T14:44:47Z"
+           }
+          }
+         },
+         {
+          "name": "custom-service-main",
+          "ready": false,
+          "restarts": 0,
+          "state": {
+           "waiting": {
+            "reason": "PodInitializing"
+           }
+          }
+         }
+        ]
+       },
+       {
+        "name": "custom-service-8654548dc8-64sm5",
+        "node": "kind-worker3",
+        "phase": "Pending",
+        "started": "2026-10-18T14:44:46Z",
+        "conditions": [
+         "PodReadyToStartContainers=True",
+         "Initialized=False (ContainersNotInitialized: containers with incomplete status: [hang-init])",
+         "Ready=False (ContainersNotReady: containers with unready status: [custom-service-main])",
+         "ContainersReady=False (ContainersNotReady: containers with unready status: [custom-service-main])",
+         "PodScheduled=True"
+        ],
+        "containers": [
+         {
+          "name": "hang-init",
+          "ready": false,
+          "restarts": 0,
+          "state": {
+           "running": {
+            "startedAt": "2026-10-18T14:44:47Z"
+           }
+          }
+         },
+         {
+          "name": "custom-service-main",
+          "ready": false,
+          "restarts": 0,
+          "state": {
+           "waiting": {
+            "reason": "PodInitializing"
+           }
+          }
+         }
+        ]
+       },
+       {
+        "name": "custom-service-8654548dc8-jlhrr",
+        "node": "kind-worker",
+        "phase": "Pending",
+        "started": "2026-10-18T14:44:46Z",
+        "conditions": [
+         "PodReadyToStartContainers=True",
+         "Initialized=False (ContainersNotInitialized: containers with incomplete status: [hang-init])",
+         "Ready=False (ContainersNotReady: containers with unready status: [custom-service-main])",
+         "ContainersReady=False (ContainersNotReady: containers with unready status: [custom-service-main])",
+         "PodScheduled=True"
+        ],
+        "containers": [
+         {
+          "name": "hang-init",
+          "ready": false,
+          "restarts": 0,
+          "state": {
+           "running": {
+            "startedAt": "2026-10-18T14:44:47Z"
+           }
+          }
+         },
+         {
+          "name": "custom-service-main",
+          "ready": false,
+          "restarts": 0,
+          "state": {
+           "waiting": {
+            "reason": "PodInitializing"
+           }
+          }
+         }
+        ]
+       }
+      ],
+      "events": [
+       {
+        "type": "Normal",
+        "reason": "Pulled",
+        "count": 1,
+        "object": "pod/custom-service-8654548dc8-2w5g5",
+        "last": "2026-10-18T14:44:47Z",
+        "message": "Container image \"busybox:1.36\" already present on machine"
+       },
+       {
+        "type": "Normal",
+        "reason": "Created",
+        "count": 1,
+        "object": "pod/custom-service-8654548dc8-2w5g5",
+        "last": "2026-10-18T14:44:47Z",
+        "message": "Created container: hang-init"
+       },
+       {
+        "type": "Normal",
+        "reason": "Started",
+        "count": 1,
+        "object": "pod/custom-service-8654548dc8-2w5g5",
+        "last": "2026-10-18T14:44:47Z",
+        "message": "Started container hang-init"
+       },
+       {
+        "type": "Normal",
+        "reason": "Pulled",
+        "count": 1,
+        "object": "pod/custom-service-8654548dc8-64sm5",
+        "last": "2026-10-18T14:44:47Z",
+        "message": "Container image \"busybox:1.36\" already present on machine"
+       },
+       {
+        "type": "Normal",
+        "reason": "Created",
+        "count": 1,
+        "object": "pod/custom-service-8654548dc8-64sm5",
+        "last": "2026-10-18T14:44:47Z",
+        "message": "Created container: hang-init"
+       },
+       {
+        "type": "Normal",
+        "reason": "Started",
+        "count": 1,
+        "object": "pod/custom-service-8654548dc8-64sm5",
+        "last": "2026-10-18T14:44:47Z",
+        "message": "Started container hang-init"
+       },
+       {
+        "type": "Normal",
+        "reason": "Pulled",
+        "count": 1,
+        "object": "pod/custom-service-8654548dc8-jlhrr",
+        "last": "2026-10-18T14:44:47Z",
+        "message": "Container image \"busybox:1.36\" already present on machine"
+       },
+       {
+        "type": "Normal",
+        "reason": "Created",
+        "count": 1,
+        "object": "pod/custom-service-8654548dc8-jlhrr",
+        "last": "2026-10-18T14:44:47Z",
+        "message": "Created container: hang-init"
+       },
+       {
+        "type": "Normal",
+        "reason": "Started",
+        "count": 1,
+        "object": "pod/custom-service-8654548dc8-jlhrr",
+        "last": "2026-10-18T14:44:47Z",
+        "message": "Started container hang-init"
+       },
+       {
+        "type": "Normal",
+        "reason": "SuccessfulCreate",
+        "count": 1,
+        "object": "replicaset/custom-service-8654548dc8",
+        "last": "2026-10-18T14:44:46Z",
+        "message": "Created pod: custom-service-8654548dc8-jlhrr"
+       },
+       {
+        "type": "Normal",
+        "reason": "SuccessfulCreate",
+        "count": 1,
+        "object": "replicaset/custom-service-8654548dc8",
+        "last": "2026-10-18T14:44:46Z",
+        "message": "Created pod: custom-service-8654548dc8-2w5g5"
+       },
+       {
+        "type": "Normal",
+        "reason": "SuccessfulCreate",
+        "count": 1,
+        "object": "replicaset/custom-service-8654548dc8",
+        "last": "2026-10-18T14:44:46Z",
+        "message": "Created pod: custom-service-8654548dc8-64sm5"
+       },
+       {
+        "type": "Normal",
+        "reason": "Scheduled",
+        "count": 1,
+        "object": "pod/custom-service-8654548dc8-64sm5",
+        "last": "2026-10-18T14:44:46.437863Z",
+        "message": "Successfully assigned social-network/custom-service-8654548dc8-64sm5 to kind-worker3"
+       },
+       {
+        "type": "Normal",
+        "reason": "Scheduled",
+        "count": 1,
+        "object": "pod/custom-service-8654548dc8-2w5g5",
+        "last": "2026-10-18T14:44:46.434905Z",
+        "message": "Successfully assigned social-network/custom-service-8654548dc8-2w5g5 to kind-worker2"
+       },
+       {
+        "type": "Normal",
+        "reason": "Scheduled",
+        "count": 1,
+        "object": "pod/custom-service-8654548dc8-jlhrr",
+        "last": "2026-10-18T14:44:46.417417Z",
+        "message": "Successfully assigned social-network/custom-service-8654548dc8-jlhrr to kind-worker"
+       }
+      ],
+      "logs": {
+       "total_lines": 2,
+       "error_lines": 2,
+       "error_lines_still_occurring": 2,
+       "error_lines_stopped": 0,
+       "telemetry_export_error_lines": 0,
+       "error_classes_still_occurring": {
+        "connectivity or timeout": 2
+       },
+       "error_samples": [
+        {
+         "count": 1,
+         "line": "[logs unavailable for custom-service-8654548dc8-2w5g5: kubectl logs custom-service-8654548dc8-2w5g5 -n social-network --all-containers=true --prefix=true --timestamps=true --t]"
+        },
+        {
+         "count": 1,
+         "line": "[logs unavailable for custom-service-8654548dc8-64sm5: kubectl logs custom-service-8654548dc8-64sm5 -n social-network --all-containers=true --prefix=true --timestamps=true --t]"
+        }
+       ],
+       "tail": [
+        "[logs unavailable for custom-service-8654548dc8-2w5g5: kubectl logs custom-service-8654548dc8-2w5g5 -n social-network --all-containers=true --prefix=true --timestamps=true --t]",
+        "[logs unavailable for custom-service-8654548dc8-64sm5: kubectl logs custom-service-8654548dc8-64sm5 -n social-network --all-containers=true --prefix=true --timestamps=true --t]"
+       ]
+      },
+      "template_changes": {
+       "revision": 3,
+       "changed_at": "2026-10-18T14:44:46Z",
+       "changes": [
+        "template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-18T20:44:46+06:00",
+        "pod label pod-template-hash: 5d95dbc564 -> 8654548dc8"
+       ]
+      }
+     }
+    },
+    "deployment/social-graph-service": {
+     "kind": "Deployment",
+     "name": "social-graph-service",
+     "namespace": "social-network",
+     "healthy": false
+    }
+   },
+   "cluster": {
+    "symptom_onset": "2026-10-18T14:44:46+00:00",
+    "recent_changes": [
+     {
+      "object": "configmap/kube-system/coredns",
+      "at": "2026-10-18T14:18:25Z",
+      "modified_after_creation_s": 20204,
+      "fields": [
+       "data.Corefile"
+      ],
+      "seconds_ago": 1716,
+      "seconds_before_symptoms": 1581
+     }
+    ],
+    "findings": [
+     {
+      "kind": "ConfigMap",
+      "name": "coredns",
+      "namespace": "kube-system",
+      "signal": "ConfigMap coredns was modified 1716s ago, 20204s after it was created (fields: data.Corefile); 1581s before the first active symptom"
+     }
+    ]
+   }
+  },
+  "questions": {
+   "best_explanation": {
+    "type": "choice",
+    "criteria": {
+     "o1": "Origin: deployment/social-network/custom-service. The fault is in this component; the mechanism is not established. | Observed impact on: deployment/social-network/custom-service",
+     "o2": "Origin: deployment/social-network/custom-service. The pod template change 'template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-18T20:44:46+06:00' in revision 3 of deployment/custom-service breaks deployment/custom-service. | Details: template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-18T20:44:46+06:00 | Observed impact on: deployment/social-network/custom-service | Checks: revision 3 of deployment/custom-service was made before the symptoms began (supports); deployment/custom-service shows symptoms of its own (supports)",
+     "o3": "None of these explanations fits the evidence.",
+     "o4": "Origin: deployment/social-network/social-graph-service. The fault is in this component; the mechanism is not established. | Observed impact on: deployment/social-network/social-graph-service",
+     "o5": "Origin: configmap/kube-system/coredns. configmap coredns acts on the application: ConfigMap coredns was modified 1716s ago, 20204s after it was created (fields: data.Corefile); 1581s before the first active symptom. | Details: ConfigMap coredns was modified 1716s ago, 20204s after it was created (fields: data.Corefile); 1581s before the first active symptom"
+    },
+    "instructions": {
+     "question": "Which explanation best accounts for all the observed symptoms in `evidence`?",
+     "how_to_decide": [
+      "Prefer the explanation whose chain is supported by the observed facts and explains the most symptoms; an explanation contradicted by a fact is unlikely.",
+      "A component that only fails because something it calls fails is a victim, not the origin.",
+      "Choose `o3` when none of the explanations fits the evidence."
+     ]
+    }
+   }
+  },
+  "model": "typesafe/jev-1.13-20260917",
+  "latency_ms": 607,
+  "usage": {
+   "input_tokens": 4869,
+   "output_tokens": 61,
+   "cost": 0.000204498
+  },
+  "answers": {
+   "best_explanation": {
+    "type": "choice",
+    "choice": "o1",
+    "confidence": 0.31,
+    "probabilities": {
+     "o1": 0.45,
+     "o2": 0.21,
+     "o3": 0.22,
+     "o4": 0.0,
+     "o5": 0.12
+    }
+   }
+  }
+ },
+ {
+  "label": "decide:2",
+  "state": {
+   "application": {
+    "name": "Social Network",
+    "description": "A social network with unidirectional follow relationships, implemented with loosely-coupled microservices, communicating with each other via Thrift RPCs.",
+    "namespaces": [
+     "social-network"
+    ]
+   },
+   "evidence": {
+    "deployment/custom-service": {
+     "kind": "Deployment",
+     "name": "custom-service",
+     "namespace": "social-network",
+     "healthy": false,
+     "signals": [
+      "rolling update allows maxUnavailable=100% and maxSurge=0% for 3 replicas: all pods may go down at once; no replacement pod is started before the old ones stop",
+      "only 0 of 3 desired replicas are ready",
+      "pod custom-service-8654548dc8-2w5g5: pod phase Pending",
+      "pod custom-service-8654548dc8-2w5g5: init container hang-init has been running for 130s; the pod's main containers cannot start until it exits",
+      "pod custom-service-8654548dc8-64sm5: pod phase Pending",
+      "pod custom-service-8654548dc8-64sm5: init container hang-init has been running for 130s; the pod's main containers cannot start until it exits",
+      "pod custom-service-8654548dc8-jlhrr: pod phase Pending",
+      "pod custom-service-8654548dc8-jlhrr: init container hang-init has been running for 130s; the pod's main containers cannot start until it exits"
+     ],
+     "template_changes": {
+      "revision": 3,
+      "changed_at": "2026-10-18T14:44:46Z",
+      "changes": [
+       "template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-18T20:44:46+06:00",
+       "pod label pod-template-hash: 5d95dbc564 -> 8654548dc8"
+      ]
+     },
+     "detail": {
+      "component": "deployment/custom-service",
+      "namespace": "social-network",
+      "workload": {
+       "created": "2026-10-18T14:44:44Z",
+       "last_spec_write": "2026-10-18T14:44:46Z",
+       "spec_writers": [
+        {
+         "manager": "kubectl-client-side-apply",
+         "op": "Update",
+         "time": "2026-10-18T14:44:44Z"
+        },
+        {
+         "manager": "kubectl-patch",
+         "op": "Update",
+         "time": "2026-10-18T14:44:46Z"
+        },
+        {
+         "manager": "kubectl-rollout",
+         "op": "Update",
+         "time": "2026-10-18T14:44:46Z"
+        }
+       ],
+       "replicas": 3,
+       "strategy": {
+        "rollingUpdate": {
+         "maxSurge": "0%",
+         "maxUnavailable": "100%"
+        },
+        "type": "RollingUpdate"
+       },
+       "dns_policy": "ClusterFirst",
+       "restart_policy": "Always",
+       "init_containers": [
+        {
+         "name": "hang-init",
+         "image": "busybox:1.36",
+         "command": [
+          "/bin/sh",
+          "-c",
+          "sleep infinity"
+         ]
+        }
+       ],
+       "containers": [
+        {
+         "name": "custom-service-main",
+         "image": "python:3.9-slim",
+         "command": [
+          "python3",
+          "-m",
+          "http.server",
+          "8080"
+         ],
+         "ports": [
+          {
+           "port": 8080
+          }
+         ]
+        }
+       ],
+       "template_labels": {
+        "app": "custom-service"
+       }
+      },
+      "pods": [
+       {
+        "name": "custom-service-8654548dc8-2w5g5",
+        "node": "kind-worker2",
+        "phase": "Pending",
+        "started": "2026-10-18T14:44:46Z",
+        "conditions": [
+         "PodReadyToStartContainers=True",
+         "Initialized=False (ContainersNotInitialized: containers with incomplete status: [hang-init])",
+         "Ready=False (ContainersNotReady: containers with unready status: [custom-service-main])",
+         "ContainersReady=False (ContainersNotReady: containers with unready status: [custom-service-main])",
+         "PodScheduled=True"
+        ],
+        "containers": [
+         {
+          "name": "hang-init",
+          "ready": false,
+          "restarts": 0,
+          "state": {
+           "running": {
+            "startedAt": "2026-10-18T14:44:47Z"
+           }
+          }
+         },
+         {
+          "name": "custom-service-main",
+          "ready": false,
+          "restarts": 0,
+          "state": {
+           "waiting": {
+            "reason": "PodInitializing"
+           }
+          }
+         }
+        ]
+       },
+       {
+        "name": "custom-service-8654548dc8-64sm5",
+        "node": "kind-worker3",
+        "phase": "Pending",
+        "started": "2026-10-18T14:44:46Z",
+        "conditions": [
+         "PodReadyToStartContainers=True",
+         "Initialized=False (ContainersNotInitialized: containers with incomplete status: [hang-init])",
+         "Ready=False (ContainersNotReady: containers with unready status: [custom-service-main])",
+         "ContainersReady=False (ContainersNotReady: containers with unready status: [custom-service-main])",
+         "PodScheduled=True"
+        ],
+        "containers": [
+         {
+          "name": "hang-init",
+          "ready": false,
+          "restarts": 0,
+          "state": {
+           "running": {
+            "startedAt": "2026-10-18T14:44:47Z"
+           }
+          }
+         },
+         {
+          "name": "custom-service-main",
+          "ready": false,
+          "restarts": 0,
+          "state": {
+           "waiting": {
+            "reason": "PodInitializing"
+           }
+          }
+         }
+        ]
+       },
+       {
+        "name": "custom-service-8654548dc8-jlhrr",
+        "node": "kind-worker",
+        "phase": "Pending",
+        "started": "2026-10-18T14:44:46Z",
+        "conditions": [
+         "PodReadyToStartContainers=True",
+         "Initialized=False (ContainersNotInitialized: containers with incomplete status: [hang-init])",
+         "Ready=False (ContainersNotReady: containers with unready status: [custom-service-main])",
+         "ContainersReady=False (ContainersNotReady: containers with unready status: [custom-service-main])",
+         "PodScheduled=True"
+        ],
+        "containers": [
+         {
+          "name": "hang-init",
+          "ready": false,
+          "restarts": 0,
+          "state": {
+           "running": {
+            "startedAt": "2026-10-18T14:44:47Z"
+           }
+          }
+         },
+         {
+          "name": "custom-service-main",
+          "ready": false,
+          "restarts": 0,
+          "state": {
+           "waiting": {
+            "reason": "PodInitializing"
+           }
+          }
+         }
+        ]
+       }
+      ],
+      "events": [
+       {
+        "type": "Normal",
+        "reason": "Pulled",
+        "count": 1,
+        "object": "pod/custom-service-8654548dc8-2w5g5",
+        "last": "2026-10-18T14:44:47Z",
+        "message": "Container image \"busybox:1.36\" already present on machine"
+       },
+       {
+        "type": "Normal",
+        "reason": "Created",
+        "count": 1,
+        "object": "pod/custom-service-8654548dc8-2w5g5",
+        "last": "2026-10-18T14:44:47Z",
+        "message": "Created container: hang-init"
+       },
+       {
+        "type": "Normal",
+        "reason": "Started",
+        "count": 1,
+        "object": "pod/custom-service-8654548dc8-2w5g5",
+        "last": "2026-10-18T14:44:47Z",
+        "message": "Started container hang-init"
+       },
+       {
+        "type": "Normal",
+        "reason": "Pulled",
+        "count": 1,
+        "object": "pod/custom-service-8654548dc8-64sm5",
+        "last": "2026-10-18T14:44:47Z",
+        "message": "Container image \"busybox:1.36\" already present on machine"
+       },
+       {
+        "type": "Normal",
+        "reason": "Created",
+        "count": 1,
+        "object": "pod/custom-service-8654548dc8-64sm5",
+        "last": "2026-10-18T14:44:47Z",
+        "message": "Created container: hang-init"
+       },
+       {
+        "type": "Normal",
+        "reason": "Started",
+        "count": 1,
+        "object": "pod/custom-service-8654548dc8-64sm5",
+        "last": "2026-10-18T14:44:47Z",
+        "message": "Started container hang-init"
+       },
+       {
+        "type": "Normal",
+        "reason": "Pulled",
+        "count": 1,
+        "object": "pod/custom-service-8654548dc8-jlhrr",
+        "last": "2026-10-18T14:44:47Z",
+        "message": "Container image \"busybox:1.36\" already present on machine"
+       },
+       {
+        "type": "Normal",
+        "reason": "Created",
+        "count": 1,
+        "object": "pod/custom-service-8654548dc8-jlhrr",
+        "last": "2026-10-18T14:44:47Z",
+        "message": "Created container: hang-init"
+       },
+       {
+        "type": "Normal",
+        "reason": "Started",
+        "count": 1,
+        "object": "pod/custom-service-8654548dc8-jlhrr",
+        "last": "2026-10-18T14:44:47Z",
+        "message": "Started container hang-init"
+       },
+       {
+        "type": "Normal",
+        "reason": "SuccessfulCreate",
+        "count": 1,
+        "object": "replicaset/custom-service-8654548dc8",
+        "last": "2026-10-18T14:44:46Z",
+        "message": "Created pod: custom-service-8654548dc8-jlhrr"
+       },
+       {
+        "type": "Normal",
+        "reason": "SuccessfulCreate",
+        "count": 1,
+        "object": "replicaset/custom-service-8654548dc8",
+        "last": "2026-10-18T14:44:46Z",
+        "message": "Created pod: custom-service-8654548dc8-2w5g5"
+       },
+       {
+        "type": "Normal",
+        "reason": "SuccessfulCreate",
+        "count": 1,
+        "object": "replicaset/custom-service-8654548dc8",
+        "last": "2026-10-18T14:44:46Z",
+        "message": "Created pod: custom-service-8654548dc8-64sm5"
+       },
+       {
+        "type": "Normal",
+        "reason": "Scheduled",
+        "count": 1,
+        "object": "pod/custom-service-8654548dc8-64sm5",
+        "last": "2026-10-18T14:44:46.437863Z",
+        "message": "Successfully assigned social-network/custom-service-8654548dc8-64sm5 to kind-worker3"
+       },
+       {
+        "type": "Normal",
+        "reason": "Scheduled",
+        "count": 1,
+        "object": "pod/custom-service-8654548dc8-2w5g5",
+        "last": "2026-10-18T14:44:46.434905Z",
+        "message": "Successfully assigned social-network/custom-service-8654548dc8-2w5g5 to kind-worker2"
+       },
+       {
+        "type": "Normal",
+        "reason": "Scheduled",
+        "count": 1,
+        "object": "pod/custom-service-8654548dc8-jlhrr",
+        "last": "2026-10-18T14:44:46.417417Z",
+        "message": "Successfully assigned social-network/custom-service-8654548dc8-jlhrr to kind-worker"
+       }
+      ],
+      "logs": {
+       "total_lines": 2,
+       "error_lines": 2,
+       "error_lines_still_occurring": 2,
+       "error_lines_stopped": 0,
+       "telemetry_export_error_lines": 0,
+       "error_classes_still_occurring": {
+        "connectivity or timeout": 2
+       },
+       "error_samples": [
+        {
+         "count": 1,
+         "line": "[logs unavailable for custom-service-8654548dc8-2w5g5: kubectl logs custom-service-8654548dc8-2w5g5 -n social-network --all-containers=true --prefix=true --timestamps=true --t]"
+        },
+        {
+         "count": 1,
+         "line": "[logs unavailable for custom-service-8654548dc8-64sm5: kubectl logs custom-service-8654548dc8-64sm5 -n social-network --all-containers=true --prefix=true --timestamps=true --t]"
+        }
+       ],
+       "tail": [
+        "[logs unavailable for custom-service-8654548dc8-2w5g5: kubectl logs custom-service-8654548dc8-2w5g5 -n social-network --all-containers=true --prefix=true --timestamps=true --t]",
+        "[logs unavailable for custom-service-8654548dc8-64sm5: kubectl logs custom-service-8654548dc8-64sm5 -n social-network --all-containers=true --prefix=true --timestamps=true --t]"
+       ]
+      },
+      "template_changes": {
+       "revision": 3,
+       "changed_at": "2026-10-18T14:44:46Z",
+       "changes": [
+        "template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-18T20:44:46+06:00",
+        "pod label pod-template-hash: 5d95dbc564 -> 8654548dc8"
+       ]
+      }
+     }
+    },
+    "deployment/social-graph-service": {
+     "kind": "Deployment",
+     "name": "social-graph-service",
+     "namespace": "social-network",
+     "healthy": false
+    }
+   },
+   "cluster": {
+    "symptom_onset": "2026-10-18T14:44:46+00:00",
+    "recent_changes": [
+     {
+      "object": "configmap/kube-system/coredns",
+      "at": "2026-10-18T14:18:25Z",
+      "modified_after_creation_s": 20204,
+      "fields": [
+       "data.Corefile"
+      ],
+      "seconds_ago": 1716,
+      "seconds_before_symptoms": 1581
+     }
+    ],
+    "findings": [
+     {
+      "kind": "ConfigMap",
+      "name": "coredns",
+      "namespace": "kube-system",
+      "signal": "ConfigMap coredns was modified 1716s ago, 20204s after it was created (fields: data.Corefile); 1581s before the first active symptom"
+     }
+    ]
+   }
+  },
+  "questions": {
+   "best_explanation": {
+    "type": "choice",
+    "criteria": {
+     "o1": "Origin: deployment/social-network/social-graph-service. The fault is in this component; the mechanism is not established. | Observed impact on: deployment/social-network/social-graph-service",
+     "o2": "Origin: deployment/social-network/custom-service. The pod template change 'template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-18T20:44:46+06:00' in revision 3 of deployment/custom-service breaks deployment/custom-service. | Details: template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-18T20:44:46+06:00 | Observed impact on: deployment/social-network/custom-service | Checks: revision 3 of deployment/custom-service was made before the symptoms began (supports); deployment/custom-service shows symptoms of its own (supports)",
+     "o3": "Origin: configmap/kube-system/coredns. configmap coredns acts on the application: ConfigMap coredns was modified 1716s ago, 20204s after it was created (fields: data.Corefile); 1581s before the first active symptom. | Details: ConfigMap coredns was modified 1716s ago, 20204s after it was created (fields: data.Corefile); 1581s before the first active symptom",
+     "o4": "Origin: deployment/social-network/custom-service. The fault is in this component; the mechanism is not established. | Observed impact on: deployment/social-network/custom-service",
+     "o5": "None of these explanations fits the evidence."
+    },
+    "instructions": {
+     "question": "Which explanation best accounts for all the observed symptoms in `evidence`?",
+     "how_to_decide": [
+      "Prefer the explanation whose chain is supported by the observed facts and explains the most symptoms; an explanation contradicted by a fact is unlikely.",
+      "A component that only fails because something it calls fails is a victim, not the origin.",
+      "Choose `o5` when none of the explanations fits the evidence."
+     ]
+    }
+   }
+  },
+  "model": "typesafe/jev-1.13-20260917",
+  "latency_ms": 575,
+  "usage": {
+   "input_tokens": 4869,
+   "output_tokens": 61,
+   "cost": 0.000204498
+  },
+  "answers": {
+   "best_explanation": {
+    "type": "choice",
+    "choice": "o4",
+    "confidence": 0.22,
+    "probabilities": {
+     "o1": 0.01,
+     "o2": 0.22,
+     "o3": 0.13,
+     "o4": 0.38,
+     "o5": 0.26
+    }
+   }
+  }
+ }
+]

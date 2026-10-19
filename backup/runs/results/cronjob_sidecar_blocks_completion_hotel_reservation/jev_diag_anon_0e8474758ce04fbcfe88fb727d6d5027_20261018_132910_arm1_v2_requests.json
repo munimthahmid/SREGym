@@ -1,0 +1,220 @@
+[
+ {
+  "label": "decide:1",
+  "state": {
+   "application": {
+    "name": "Hotel Reservation",
+    "description": "A hotel reservation application built with Go and gRPC, providing backend in-memory and persistent databases, a recommender system for hotel recommendations, and a functionality to place reservations.",
+    "namespaces": [
+     "hotel-reservation"
+    ]
+   },
+   "evidence": {
+    "cronjob/audit-log-archiver": {
+     "kind": "CronJob",
+     "name": "audit-log-archiver",
+     "namespace": "hotel-reservation",
+     "healthy": false,
+     "signals": [
+      "4 job(s) still active and no successful completion since the last schedule at 2026-10-18T13:31:00Z (last success: never)",
+      "4 jobs of this cronjob are active without completing (they pile up)",
+      "pod audit-log-archiver-29872168-l9g2m: container archiver completed but container fluent-bit-sidecar keeps running, so this job pod never completes",
+      "pod audit-log-archiver-29872169-hp88v: container archiver completed but container fluent-bit-sidecar keeps running, so this job pod never completes",
+      "pod audit-log-archiver-29872170-lb5k9: container archiver completed but container fluent-bit-sidecar keeps running, so this job pod never completes",
+      "pod audit-log-archiver-29872171-zqb8q: container archiver completed but container fluent-bit-sidecar keeps running, so this job pod never completes",
+      "firing alert KubePodNotReady"
+     ]
+    },
+    "deployment/mongodb-geo": {
+     "kind": "Deployment",
+     "name": "mongodb-geo",
+     "namespace": "hotel-reservation",
+     "healthy": true,
+     "template_changes": {
+      "revision": 2,
+      "changed_at": "2026-10-18T13:27:45Z",
+      "changes": [
+       "pod label pod-template-hash: 78487c9767 -> 5ff578bcb8",
+       "volume failure-script added: {\"configMap\": {\"defaultMode\": 420, \"name\": \"failure-admin-geo\"}}",
+       "container hotel-reserv-geo-mongo mounts volume failure-script at /scripts"
+      ]
+     }
+    },
+    "deployment/mongodb-rate": {
+     "kind": "Deployment",
+     "name": "mongodb-rate",
+     "namespace": "hotel-reservation",
+     "healthy": true,
+     "template_changes": {
+      "revision": 2,
+      "changed_at": "2026-10-18T13:27:45Z",
+      "changes": [
+       "pod label pod-template-hash: 6747cb74bf -> 56cc8659c9",
+       "volume failure-script added: {\"configMap\": {\"defaultMode\": 420, \"name\": \"failure-admin-rate\"}}",
+       "container hotel-reserv-rate-mongo mounts volume failure-script at /scripts"
+      ]
+     }
+    }
+   },
+   "cluster": {
+    "symptom_onset": "2026-10-18T13:28:07+00:00",
+    "recent_changes": [],
+    "findings": []
+   }
+  },
+  "questions": {
+   "best_explanation": {
+    "type": "choice",
+    "criteria": {
+     "o1": "Origin: deployment/hotel-reservation/mongodb-rate. The pod template change 'volume failure-script added: {\"configMap\": {\"defaultMode\": 420, \"name\": \"failure-admin-rate\"}}' in revision 2 of deployment/mongodb-rate breaks deployment/mongodb-rate. | Details: volume failure-script added: {\"configMap\": {\"defaultMode\": 420, \"name\": \"failure-admin-rate\"}} | Checks: revision 2 of deployment/mongodb-rate was made before the symptoms began (supports); deployment/mongodb-rate shows symptoms of its own (contradicts)",
+     "o2": "Origin: deployment/hotel-reservation/mongodb-geo. The pod template change 'container hotel-reserv-geo-mongo mounts volume failure-script at /scripts' in revision 2 of deployment/mongodb-geo breaks deployment/mongodb-geo. | Details: container hotel-reserv-geo-mongo mounts volume failure-script at /scripts | Checks: revision 2 of deployment/mongodb-geo was made before the symptoms began (supports); deployment/mongodb-geo shows symptoms of its own (contradicts)",
+     "o3": "Origin: deployment/hotel-reservation/mongodb-geo. The pod template change 'volume failure-script added: {\"configMap\": {\"defaultMode\": 420, \"name\": \"failure-admin-geo\"}}' in revision 2 of deployment/mongodb-geo breaks deployment/mongodb-geo. | Details: volume failure-script added: {\"configMap\": {\"defaultMode\": 420, \"name\": \"failure-admin-geo\"}} | Checks: revision 2 of deployment/mongodb-geo was made before the symptoms began (supports); deployment/mongodb-geo shows symptoms of its own (contradicts)",
+     "o4": "Origin: cronjob/hotel-reservation/audit-log-archiver. The fault is in this component; the mechanism is not established. | Observed impact on: cronjob/hotel-reservation/audit-log-archiver",
+     "o5": "Origin: deployment/hotel-reservation/mongodb-rate. The pod template change 'container hotel-reserv-rate-mongo mounts volume failure-script at /scripts' in revision 2 of deployment/mongodb-rate breaks deployment/mongodb-rate. | Details: container hotel-reserv-rate-mongo mounts volume failure-script at /scripts | Checks: revision 2 of deployment/mongodb-rate was made before the symptoms began (supports); deployment/mongodb-rate shows symptoms of its own (contradicts)",
+     "o6": "Origin: deployment/hotel-reservation/mongodb-geo. The pod template changes in revision 2 of deployment/mongodb-geo, which only cause the fault together, break deployment/mongodb-geo. | Details: volume failure-script added: {\"configMap\": {\"defaultMode\": 420, \"name\": \"failure-admin-geo\"}}; container hotel-reserv-geo-mongo mounts volume failure-script at /scripts | Checks: revision 2 of deployment/mongodb-geo was made before the symptoms began (supports); deployment/mongodb-geo shows symptoms of its own (contradicts)",
+     "o7": "None of these explanations fits the evidence."
+    },
+    "instructions": {
+     "question": "Which explanation best accounts for all the observed symptoms in `evidence`?",
+     "how_to_decide": [
+      "Prefer the explanation whose chain is supported by the observed facts and explains the most symptoms; an explanation contradicted by a fact is unlikely.",
+      "A component that only fails because something it calls fails is a victim, not the origin.",
+      "Choose `o7` when none of the explanations fits the evidence."
+     ]
+    }
+   }
+  },
+  "model": "openai/gpt-6-luna-decisions-20261006",
+  "latency_ms": 1143,
+  "usage": {
+   "input_tokens": 1394,
+   "output_tokens": 0,
+   "cost": 0.0001394
+  },
+  "answers": {
+   "best_explanation": {
+    "type": "choice",
+    "choice": "o4",
+    "confidence": 0.94,
+    "probabilities": {
+     "o1": 0.0,
+     "o2": 0.0,
+     "o3": 0.0,
+     "o4": 0.95,
+     "o5": 0.04,
+     "o6": 0.0,
+     "o7": 0.01
+    }
+   }
+  }
+ },
+ {
+  "label": "decide:2",
+  "state": {
+   "application": {
+    "name": "Hotel Reservation",
+    "description": "A hotel reservation application built with Go and gRPC, providing backend in-memory and persistent databases, a recommender system for hotel recommendations, and a functionality to place reservations.",
+    "namespaces": [
+     "hotel-reservation"
+    ]
+   },
+   "evidence": {
+    "cronjob/audit-log-archiver": {
+     "kind": "CronJob",
+     "name": "audit-log-archiver",
+     "namespace": "hotel-reservation",
+     "healthy": false,
+     "signals": [
+      "4 job(s) still active and no successful completion since the last schedule at 2026-10-18T13:31:00Z (last success: never)",
+      "4 jobs of this cronjob are active without completing (they pile up)",
+      "pod audit-log-archiver-29872168-l9g2m: container archiver completed but container fluent-bit-sidecar keeps running, so this job pod never completes",
+      "pod audit-log-archiver-29872169-hp88v: container archiver completed but container fluent-bit-sidecar keeps running, so this job pod never completes",
+      "pod audit-log-archiver-29872170-lb5k9: container archiver completed but container fluent-bit-sidecar keeps running, so this job pod never completes",
+      "pod audit-log-archiver-29872171-zqb8q: container archiver completed but container fluent-bit-sidecar keeps running, so this job pod never completes",
+      "firing alert KubePodNotReady"
+     ]
+    },
+    "deployment/mongodb-geo": {
+     "kind": "Deployment",
+     "name": "mongodb-geo",
+     "namespace": "hotel-reservation",
+     "healthy": true,
+     "template_changes": {
+      "revision": 2,
+      "changed_at": "2026-10-18T13:27:45Z",
+      "changes": [
+       "pod label pod-template-hash: 78487c9767 -> 5ff578bcb8",
+       "volume failure-script added: {\"configMap\": {\"defaultMode\": 420, \"name\": \"failure-admin-geo\"}}",
+       "container hotel-reserv-geo-mongo mounts volume failure-script at /scripts"
+      ]
+     }
+    },
+    "deployment/mongodb-rate": {
+     "kind": "Deployment",
+     "name": "mongodb-rate",
+     "namespace": "hotel-reservation",
+     "healthy": true,
+     "template_changes": {
+      "revision": 2,
+      "changed_at": "2026-10-18T13:27:45Z",
+      "changes": [
+       "pod label pod-template-hash: 6747cb74bf -> 56cc8659c9",
+       "volume failure-script added: {\"configMap\": {\"defaultMode\": 420, \"name\": \"failure-admin-rate\"}}",
+       "container hotel-reserv-rate-mongo mounts volume failure-script at /scripts"
+      ]
+     }
+    }
+   },
+   "cluster": {
+    "symptom_onset": "2026-10-18T13:28:07+00:00",
+    "recent_changes": [],
+    "findings": []
+   }
+  },
+  "questions": {
+   "best_explanation": {
+    "type": "choice",
+    "criteria": {
+     "o1": "Origin: deployment/hotel-reservation/mongodb-geo. The pod template change 'volume failure-script added: {\"configMap\": {\"defaultMode\": 420, \"name\": \"failure-admin-geo\"}}' in revision 2 of deployment/mongodb-geo breaks deployment/mongodb-geo. | Details: volume failure-script added: {\"configMap\": {\"defaultMode\": 420, \"name\": \"failure-admin-geo\"}} | Checks: revision 2 of deployment/mongodb-geo was made before the symptoms began (supports); deployment/mongodb-geo shows symptoms of its own (contradicts)",
+     "o2": "Origin: cronjob/hotel-reservation/audit-log-archiver. The fault is in this component; the mechanism is not established. | Observed impact on: cronjob/hotel-reservation/audit-log-archiver",
+     "o3": "Origin: deployment/hotel-reservation/mongodb-rate. The pod template change 'volume failure-script added: {\"configMap\": {\"defaultMode\": 420, \"name\": \"failure-admin-rate\"}}' in revision 2 of deployment/mongodb-rate breaks deployment/mongodb-rate. | Details: volume failure-script added: {\"configMap\": {\"defaultMode\": 420, \"name\": \"failure-admin-rate\"}} | Checks: revision 2 of deployment/mongodb-rate was made before the symptoms began (supports); deployment/mongodb-rate shows symptoms of its own (contradicts)",
+     "o4": "Origin: deployment/hotel-reservation/mongodb-rate. The pod template change 'container hotel-reserv-rate-mongo mounts volume failure-script at /scripts' in revision 2 of deployment/mongodb-rate breaks deployment/mongodb-rate. | Details: container hotel-reserv-rate-mongo mounts volume failure-script at /scripts | Checks: revision 2 of deployment/mongodb-rate was made before the symptoms began (supports); deployment/mongodb-rate shows symptoms of its own (contradicts)",
+     "o5": "None of these explanations fits the evidence.",
+     "o6": "Origin: deployment/hotel-reservation/mongodb-geo. The pod template change 'container hotel-reserv-geo-mongo mounts volume failure-script at /scripts' in revision 2 of deployment/mongodb-geo breaks deployment/mongodb-geo. | Details: container hotel-reserv-geo-mongo mounts volume failure-script at /scripts | Checks: revision 2 of deployment/mongodb-geo was made before the symptoms began (supports); deployment/mongodb-geo shows symptoms of its own (contradicts)",
+     "o7": "Origin: deployment/hotel-reservation/mongodb-geo. The pod template changes in revision 2 of deployment/mongodb-geo, which only cause the fault together, break deployment/mongodb-geo. | Details: volume failure-script added: {\"configMap\": {\"defaultMode\": 420, \"name\": \"failure-admin-geo\"}}; container hotel-reserv-geo-mongo mounts volume failure-script at /scripts | Checks: revision 2 of deployment/mongodb-geo was made before the symptoms began (supports); deployment/mongodb-geo shows symptoms of its own (contradicts)"
+    },
+    "instructions": {
+     "question": "Which explanation best accounts for all the observed symptoms in `evidence`?",
+     "how_to_decide": [
+      "Prefer the explanation whose chain is supported by the observed facts and explains the most symptoms; an explanation contradicted by a fact is unlikely.",
+      "A component that only fails because something it calls fails is a victim, not the origin.",
+      "Choose `o5` when none of the explanations fits the evidence."
+     ]
+    }
+   }
+  },
+  "model": "openai/gpt-6-luna-decisions-20261006",
+  "latency_ms": 583,
+  "usage": {
+   "input_tokens": 1394,
+   "output_tokens": 0,
+   "cost": 0.0001394
+  },
+  "answers": {
+   "best_explanation": {
+    "type": "choice",
+    "choice": "o2",
+    "confidence": 1.0,
+    "probabilities": {
+     "o1": 0.0,
+     "o2": 1.0,
+     "o3": 0.0,
+     "o4": 0.0,
+     "o5": 0.0,
+     "o6": 0.0,
+     "o7": 0.0
+    }
+   }
+  }
+ }
+]

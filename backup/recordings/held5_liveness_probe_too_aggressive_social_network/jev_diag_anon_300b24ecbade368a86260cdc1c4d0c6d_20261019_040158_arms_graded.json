@@ -1,0 +1,540 @@
+{
+ "problem_id": "jev_diag_anon_300b24ecbade368a86260cdc1c4d0c6d_20261019_040158",
+ "submit_arm": 0,
+ "order": [
+  1,
+  2,
+  0,
+  3
+ ],
+ "arms": [
+  {
+   "arm": 0,
+   "kind": "v2",
+   "model": "openrouter/typesafe/jev-1.13",
+   "position": 2,
+   "seconds": 5.0,
+   "requests": 4,
+   "input_tokens": 28756,
+   "cost_usd": 0.001208,
+   "error": null,
+   "investigation": {
+    "rounds": [
+     {
+      "candidates": [
+       "partial:deployment/aux-service",
+       "partial:deployment/social-graph-service",
+       "acts-on:configmap/kube-system/coredns:ConfigMap coredns was modified 3478s ago, 66266s after it wa"
+      ],
+      "probabilities": {
+       "partial:deployment/aux-service": 0.26,
+       "partial:deployment/social-graph-service": 0.1,
+       "acts-on:configmap/kube-system/coredns:ConfigMap coredns was modified 3478s ago, 66266s after it wa": 0.19,
+       "none_of_these": 0.45
+      },
+      "picks": [
+       "none_of_these",
+       "none_of_these"
+      ],
+      "route": "coverage"
+     }
+    ],
+    "explanations": 3,
+    "winner": "key-fact:deployment/aux-service",
+    "pattern": "key-fact",
+    "key_fact": "ConfigMap aux-service-script key service.py: import http.server \u23ce import random \u23ce import socketserver \u23ce import time \u23ce \u23ce INIT_SECONDS = 15 \u23ce _START = time.time() \u23ce \u23ce \u23ce def _initialized() -> bool: \u23ce return time.time() - _START >= INIT_SECONDS \u23ce \u23ce \u23ce class MainHandler(http.server.SimpleHTTPRequestHandler): \u23ce def _write(self, status: int, body: str): \u23ce self.send_response(status) \u23ce self.end_headers() \u23ce self.wfile.write(body.encode()) \u23ce \u23ce def do_G\u2026",
+    "key_fact_probability": 0.38,
+    "fault_type": "code_bug",
+    "fault_object": null,
+    "uncertain": true
+   },
+   "text": "Root cause: deployment `aux-service` in namespace `social-network`.\nMechanism: ConfigMap aux-service-script key service.py: import http.server \u23ce import random \u23ce import socketserver \u23ce import time \u23ce \u23ce INIT_SECONDS = 15 \u23ce _START = time.time() \u23ce \u23ce \u23ce def _initialized() -> bool: \u23ce return time.time() - _START >= INIT_SECONDS \u23ce \u23ce \u23ce class MainHandler(http.server.SimpleHTTPRequestHandler): \u23ce def _write(self, status: int, body: str): \u23ce self.send_response(status) \u23ce self.end_headers() \u23ce self.wfile.write(body.encode()) \u23ce \u23ce def do_G\u2026.\nConcrete details: ConfigMap aux-service-script key service.py: import http.server \u23ce import random \u23ce import socketserver \u23ce import time \u23ce \u23ce INIT_SECONDS = 15 \u23ce _START = time.time() \u23ce \u23ce \u23ce def _initialized() -> bool: \u23ce return time.time() - _START >= INIT_SECONDS \u23ce \u23ce \u23ce class MainHandler(http.server.SimpleHTTPRequestHandler): \u23ce def _write(self, status: int, body: str): \u23ce self.send_response(status) \u23ce self.end_headers() \u23ce self.wfile.write(body.encode()) \u23ce \u23ce def do_G\u2026.\nObserved impact: deployment `aux-service` in namespace `social-network`.\nFault type: code bug (the component's own logic is faulty).\nEvidence:\n- ConfigMap aux-service-script key service.py: import http.server \u23ce import random \u23ce import socketserver \u23ce import time \u23ce \u23ce INIT_SECONDS = 15 \u23ce _START = time.time() \u23ce \u23ce \u23ce def _initialized() -> bool: \u23ce return time.time() - _START >= INIT_SECONDS \u23ce \u23ce \u23ce class MainHandler(http.server.SimpleHTTPRequestHandler): \u23ce def _write(self, status: int, body: str): \u23ce self.send_response(status) \u23ce self.end_headers() \u23ce self.wfile.write(body.encode()) \u23ce \u23ce def do_G\u2026\n- only 0 of 1 desired replicas are ready\n- pod aux-service-9df4c6c8c-f22ql: container aux-service-container waiting in CrashLoopBackOff\n- pod aux-service-9df4c6c8c-f22ql: container aux-service-container restarted 5 times\n- deployment/aux-service: only 0 of 1 desired replicas are ready\nConfidence: low; the investigation budget ended before the leading explanation was confirmed.",
+   "grade": {
+    "judgment": "False",
+    "reasoning": "Verdict: False (composite=0.67). D1 Fault Localization: 1.00 | D2 Fault Characterization: 0.00 | D3 Scope Precision: 1.00. Weakest dimension: Fault Characterization (0.00). Checklist details: [{\"id\": \"D1-Q1\", \"answer\": \"Yes\", \"evidence\": \"Explicitly identifies deployment aux-service in namespace social-network as the root cause, matching the ground truth.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q2\", \"answer\": \"Yes\", \"evidence\": \"Points to aux-service as the fault origin; does not substitute a downstream victim.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q3\", \"answer\": \"Yes\", \"evidence\": \"Names the correct aux-service deployment rather than a different, healthy component.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q1\", \"answer\": \"No\", \"evidence\": \"Attributes the mechanism to service.py code rather than overly aggressive liveness probes and immediate termination.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q2\", \"answer\": \"No\", \"evidence\": \"Provides INIT_SECONDS = 15 but omits the mutated liveness probe settings and terminationGracePeriodSeconds=0.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q3\", \"answer\": \"No\", \"evidence\": \"Explicitly labels the fault a code bug, conflicting with the ground-truth probe and termination configuration fault.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q1\", \"answer\": \"Yes\", \"evidence\": \"Confines blame to aux-service and its own script; does not implicate unrelated services or infrastructure.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q2\", \"answer\": \"Yes\", \"evidence\": \"Includes aux-service in social-network, the sole component identified in the ground truth.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q3\", \"answer\": \"Yes\", \"evidence\": \"Reports zero ready replicas, CrashLoopBackOff, and five container restarts, consistent with repeated restart cycles and readiness instability.\", \"confidence\": \"High\"}]",
+    "success": false,
+    "accuracy": 67.0,
+    "composite_score": 0.67,
+    "dimensions": {
+     "D1": {
+      "name": "Fault Localization",
+      "score": 1.0
+     },
+     "D2": {
+      "name": "Fault Characterization",
+      "score": 0.0
+     },
+     "D3": {
+      "name": "Scope Precision",
+      "score": 1.0
+     }
+    },
+    "checklist": [
+     {
+      "id": "D1-Q1",
+      "answer": "Yes",
+      "evidence": "Explicitly identifies deployment aux-service in namespace social-network as the root cause, matching the ground truth.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q2",
+      "answer": "Yes",
+      "evidence": "Points to aux-service as the fault origin; does not substitute a downstream victim.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q3",
+      "answer": "Yes",
+      "evidence": "Names the correct aux-service deployment rather than a different, healthy component.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q1",
+      "answer": "No",
+      "evidence": "Attributes the mechanism to service.py code rather than overly aggressive liveness probes and immediate termination.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q2",
+      "answer": "No",
+      "evidence": "Provides INIT_SECONDS = 15 but omits the mutated liveness probe settings and terminationGracePeriodSeconds=0.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q3",
+      "answer": "No",
+      "evidence": "Explicitly labels the fault a code bug, conflicting with the ground-truth probe and termination configuration fault.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q1",
+      "answer": "Yes",
+      "evidence": "Confines blame to aux-service and its own script; does not implicate unrelated services or infrastructure.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q2",
+      "answer": "Yes",
+      "evidence": "Includes aux-service in social-network, the sole component identified in the ground truth.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q3",
+      "answer": "Yes",
+      "evidence": "Reports zero ready replicas, CrashLoopBackOff, and five container restarts, consistent with repeated restart cycles and readiness instability.",
+      "confidence": "High"
+     }
+    ]
+   }
+  },
+  {
+   "arm": 1,
+   "kind": "v2",
+   "model": "openrouter/openai/gpt-6-luna-decisions",
+   "position": 0,
+   "seconds": 7.2,
+   "requests": 4,
+   "input_tokens": 19960,
+   "cost_usd": 0.001996,
+   "error": null,
+   "investigation": {
+    "rounds": [
+     {
+      "candidates": [
+       "partial:deployment/aux-service",
+       "partial:deployment/social-graph-service",
+       "acts-on:configmap/kube-system/coredns:ConfigMap coredns was modified 3478s ago, 66266s after it wa"
+      ],
+      "probabilities": {
+       "partial:deployment/aux-service": 0.875,
+       "partial:deployment/social-graph-service": 0.025,
+       "acts-on:configmap/kube-system/coredns:ConfigMap coredns was modified 3478s ago, 66266s after it wa": 0.0,
+       "none_of_these": 0.1
+      },
+      "picks": [
+       "partial:deployment/aux-service",
+       "partial:deployment/aux-service"
+      ],
+      "route": "accept"
+     }
+    ],
+    "explanations": 3,
+    "winner": "key-fact:deployment/aux-service",
+    "pattern": "key-fact",
+    "key_fact": "ConfigMap aux-service-script key service.py: import http.server \u23ce import random \u23ce import socketserver \u23ce import time \u23ce \u23ce INIT_SECONDS = 15 \u23ce _START = time.time() \u23ce \u23ce \u23ce def _initialized() -> bool: \u23ce return time.time() - _START >= INIT_SECONDS \u23ce \u23ce \u23ce class MainHandler(http.server.SimpleHTTPRequestHandler): \u23ce def _write(self, status: int, body: str): \u23ce self.send_response(status) \u23ce self.end_headers() \u23ce self.wfile.write(body.encode()) \u23ce \u23ce def do_G\u2026",
+    "key_fact_probability": 0.6,
+    "fault_type": "health_probe_config",
+    "fault_object": null,
+    "uncertain": false
+   },
+   "text": "Root cause: deployment `aux-service` in namespace `social-network`.\nMechanism: ConfigMap aux-service-script key service.py: import http.server \u23ce import random \u23ce import socketserver \u23ce import time \u23ce \u23ce INIT_SECONDS = 15 \u23ce _START = time.time() \u23ce \u23ce \u23ce def _initialized() -> bool: \u23ce return time.time() - _START >= INIT_SECONDS \u23ce \u23ce \u23ce class MainHandler(http.server.SimpleHTTPRequestHandler): \u23ce def _write(self, status: int, body: str): \u23ce self.send_response(status) \u23ce self.end_headers() \u23ce self.wfile.write(body.encode()) \u23ce \u23ce def do_G\u2026.\nConcrete details: ConfigMap aux-service-script key service.py: import http.server \u23ce import random \u23ce import socketserver \u23ce import time \u23ce \u23ce INIT_SECONDS = 15 \u23ce _START = time.time() \u23ce \u23ce \u23ce def _initialized() -> bool: \u23ce return time.time() - _START >= INIT_SECONDS \u23ce \u23ce \u23ce class MainHandler(http.server.SimpleHTTPRequestHandler): \u23ce def _write(self, status: int, body: str): \u23ce self.send_response(status) \u23ce self.end_headers() \u23ce self.wfile.write(body.encode()) \u23ce \u23ce def do_G\u2026.\nObserved impact: deployment `aux-service` in namespace `social-network`.\nFault type: health probe config (a health probe is misconfigured, so healthy containers are reported unhealthy).\nEvidence:\n- ConfigMap aux-service-script key service.py: import http.server \u23ce import random \u23ce import socketserver \u23ce import time \u23ce \u23ce INIT_SECONDS = 15 \u23ce _START = time.time() \u23ce \u23ce \u23ce def _initialized() -> bool: \u23ce return time.time() - _START >= INIT_SECONDS \u23ce \u23ce \u23ce class MainHandler(http.server.SimpleHTTPRequestHandler): \u23ce def _write(self, status: int, body: str): \u23ce self.send_response(status) \u23ce self.end_headers() \u23ce self.wfile.write(body.encode()) \u23ce \u23ce def do_G\u2026\n- only 0 of 1 desired replicas are ready\n- pod aux-service-9df4c6c8c-f22ql: container aux-service-container waiting in CrashLoopBackOff\n- pod aux-service-9df4c6c8c-f22ql: container aux-service-container restarted 5 times\n- deployment/aux-service: only 0 of 1 desired replicas are ready",
+   "grade": {
+    "judgment": "True",
+    "reasoning": "Verdict: True (composite=0.89). D1 Fault Localization: 1.00 | D2 Fault Characterization: 0.67 | D3 Scope Precision: 1.00. Weakest dimension: Fault Characterization (0.67). Checklist details: [{\"id\": \"D1-Q1\", \"answer\": \"Yes\", \"evidence\": \"Explicitly identifies deployment `aux-service` in namespace `social-network` as the root cause, matching ground truth.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q2\", \"answer\": \"Yes\", \"evidence\": \"Names `aux-service` as the fault origin and reports restart and readiness symptoms in its own pod.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q3\", \"answer\": \"Yes\", \"evidence\": \"The diagnosed deployment matches `aux-service`; no different healthy component is identified as the origin.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q1\", \"answer\": \"Yes\", \"evidence\": \"Explicitly classifies the fault as health probe misconfiguration, matching the ground-truth mechanism.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q2\", \"answer\": \"No\", \"evidence\": \"Provides script initialization details but omits the mutated liveness probe settings and `terminationGracePeriodSeconds=0`.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q3\", \"answer\": \"Yes\", \"evidence\": \"The stated fault type is health probe misconfiguration; no conflicting fault type is asserted.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q1\", \"answer\": \"Yes\", \"evidence\": \"Attributes the fault to `aux-service` and cites its associated script and pod; no unrelated component is blamed.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q2\", \"answer\": \"Yes\", \"evidence\": \"Includes `aux-service`, the sole component identified in the ground truth.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q3\", \"answer\": \"Yes\", \"evidence\": \"Reports CrashLoopBackOff, five container restarts, and zero ready replicas, consistent with repeated restart cycles and readiness instability.\", \"confidence\": \"High\"}]",
+    "success": true,
+    "accuracy": 89.0,
+    "composite_score": 0.89,
+    "dimensions": {
+     "D1": {
+      "name": "Fault Localization",
+      "score": 1.0
+     },
+     "D2": {
+      "name": "Fault Characterization",
+      "score": 0.67
+     },
+     "D3": {
+      "name": "Scope Precision",
+      "score": 1.0
+     }
+    },
+    "checklist": [
+     {
+      "id": "D1-Q1",
+      "answer": "Yes",
+      "evidence": "Explicitly identifies deployment `aux-service` in namespace `social-network` as the root cause, matching ground truth.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q2",
+      "answer": "Yes",
+      "evidence": "Names `aux-service` as the fault origin and reports restart and readiness symptoms in its own pod.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q3",
+      "answer": "Yes",
+      "evidence": "The diagnosed deployment matches `aux-service`; no different healthy component is identified as the origin.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q1",
+      "answer": "Yes",
+      "evidence": "Explicitly classifies the fault as health probe misconfiguration, matching the ground-truth mechanism.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q2",
+      "answer": "No",
+      "evidence": "Provides script initialization details but omits the mutated liveness probe settings and `terminationGracePeriodSeconds=0`.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q3",
+      "answer": "Yes",
+      "evidence": "The stated fault type is health probe misconfiguration; no conflicting fault type is asserted.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q1",
+      "answer": "Yes",
+      "evidence": "Attributes the fault to `aux-service` and cites its associated script and pod; no unrelated component is blamed.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q2",
+      "answer": "Yes",
+      "evidence": "Includes `aux-service`, the sole component identified in the ground truth.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q3",
+      "answer": "Yes",
+      "evidence": "Reports CrashLoopBackOff, five container restarts, and zero ready replicas, consistent with repeated restart cycles and readiness instability.",
+      "confidence": "High"
+     }
+    ]
+   }
+  },
+  {
+   "arm": 2,
+   "kind": "v1",
+   "model": "openrouter/typesafe/jev-1.13",
+   "position": 1,
+   "seconds": 2.8,
+   "requests": 2,
+   "input_tokens": 26917,
+   "cost_usd": 0.001131,
+   "error": null,
+   "investigation": {
+    "steps": [
+     {
+      "step": 1,
+      "node": "investigate",
+      "component": "deployment/aux-service",
+      "verdict": "origin",
+      "origin_p": 0.94,
+      "victim_p": 0.0,
+      "next": "none",
+      "next_p": 0.82,
+      "category": "code_bug",
+      "spec_checks": [
+       "service aux-service has no ready endpoints"
+      ],
+      "blocked_input": null,
+      "key_evidence": "ConfigMap aux-service-script key service.py: import http.server \u23ce import random \u23ce import socketserver \u23ce import time \u23ce \u23ce INIT_SECONDS = 15 \u23ce _START = time.time() \u23ce \u23ce \u23ce def _initialized() -> bool: \u23ce return time.time() - _START >= INIT_SECONDS \u23ce \u23ce \u23ce class MainHandler(http.server.SimpleHTTPRequestHandler): \u23ce def _write(self, status: int, body: str): \u23ce self.send_response(status) \u23ce self.end_headers() \u23ce self.wfile.write(body.encode()) \u23ce \u23ce def do_G\u2026"
+     }
+    ],
+    "concluded": "deployment/aux-service",
+    "fallback": null,
+    "triage_top": [
+     [
+      "other",
+      0.49
+     ],
+     [
+      "deployment/aux-service",
+      0.4
+     ],
+     [
+      "deployment/social-graph-service",
+      0.1
+     ],
+     [
+      "deployment/jaeger",
+      0.01
+     ],
+     [
+      "deployment/compose-post-service",
+      0.0
+     ]
+    ]
+   },
+   "text": "Root cause component: Deployment `aux-service` in namespace `social-network`.\nMechanism: ConfigMap aux-service-script key service.py: import http.server \u23ce import random \u23ce import socketserver \u23ce import time \u23ce \u23ce INIT_SECONDS = 15 \u23ce _START = time.time() \u23ce \u23ce \u23ce def _initialized() -> bool: \u23ce return time.time() - _START >= INIT_SECONDS \u23ce \u23ce \u23ce class MainHandler(http.server.SimpleHTTPRequestHandler): \u23ce def _write(self, status: int, body: str): \u23ce self.send_response(status) \u23ce self.end_headers() \u23ce self.wfile.write(body.encode()) \u23ce \u23ce def do_G\u2026.\nFault type: code bug (the component's own logic is faulty).\nAbnormal state observed on this component:\n- only 0 of 1 desired replicas are ready\n- pod aux-service-9df4c6c8c-f22ql: container aux-service-container waiting in CrashLoopBackOff\n- pod aux-service-9df4c6c8c-f22ql: container aux-service-container restarted 5 times\n- warning events: BackOff x14, Unhealthy x3\n- service aux-service selects this component but has 0 ready endpoints\n- firing alert DeploymentNotReady\n- firing alert KubePodNotReady\n- pod aux-service-9df4c6c8c-f22ql: container aux-service-container restarted 1 more time(s) in the last 49s\n- warning event Unhealthy on pod/aux-service-9df4c6c8c-f22ql repeated 1 more time(s) in the last 49s\n- warning event BackOff on pod/aux-service-9df4c6c8c-f22ql repeated 4 more time(s) in the last 49s\nNotable spec settings:\n- Available=False (MinimumReplicasUnavailable)\n- container aux-service-container: image python:3.9-slim\nWarning events:\n- BackOff x14 on pod/aux-service-9df4c6c8c-f22ql: Back-off restarting failed container aux-service-container in pod aux-service-9df4c6c8c-f22ql_social-network(db9f0d03-d8f4-4adf-b7a5-6dfcbc686d3d)\n- Unhealthy x2 on pod/aux-service-9df4c6c8c-f22ql: Liveness probe failed: HTTP probe failed with statuscode: 503\n- Unhealthy x1 on pod/aux-service-9df4c6c8c-f22ql: Liveness probe failed: Get \"http://10.244.195.240:8080/health\": dial tcp 10.244.195.240:8080: connect: connection refused\nFiring alerts on this component: DeploymentNotReady, KubePodNotReady.\nClassification: Jev (typesafe/jev-1.13-20260917) confirmed this origin at investigation step 1 with probability 0.94 (triage probability 0.40).",
+   "grade": {
+    "judgment": "False",
+    "reasoning": "Verdict: False (composite=0.67). D1 Fault Localization: 1.00 | D2 Fault Characterization: 0.00 | D3 Scope Precision: 1.00. Weakest dimension: Fault Characterization (0.00). Checklist details: [{\"id\": \"D1-Q1\", \"answer\": \"Yes\", \"evidence\": \"Names Deployment `aux-service` in namespace `social-network` as the root cause component, matching ground truth.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q2\", \"answer\": \"Yes\", \"evidence\": \"Identifies `aux-service` as the origin and reports its pod failures and unavailable service endpoints as symptoms.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q3\", \"answer\": \"Yes\", \"evidence\": \"The diagnosed origin is `aux-service`, the ground-truth target; no different healthy component is named as the origin.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q1\", \"answer\": \"No\", \"evidence\": \"Attributes the mechanism to service.py and a code bug rather than overly aggressive liveness probing and zero termination grace.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q2\", \"answer\": \"No\", \"evidence\": \"Omits initialDelaySeconds=0, periodSeconds=1, failureThreshold=1, and terminationGracePeriodSeconds=0; reported probe failures are symptoms, not mutated settings.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q3\", \"answer\": \"No\", \"evidence\": \"Explicitly classifies the fault as 'code bug (the component's own logic is faulty)', conflicting with the ground-truth probe configuration fault.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q1\", \"answer\": \"Yes\", \"evidence\": \"Confines blame to `aux-service` and its own script; does not implicate additional services or unrelated infrastructure.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q2\", \"answer\": \"Yes\", \"evidence\": \"Includes `aux-service`, the only component identified in ground truth as contributing to or affected by the fault.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q3\", \"answer\": \"Yes\", \"evidence\": \"Reports CrashLoopBackOff, repeated restarts, zero ready replicas, and zero ready endpoints, consistent with restart cycles and readiness instability.\", \"confidence\": \"High\"}]",
+    "success": false,
+    "accuracy": 67.0,
+    "composite_score": 0.67,
+    "dimensions": {
+     "D1": {
+      "name": "Fault Localization",
+      "score": 1.0
+     },
+     "D2": {
+      "name": "Fault Characterization",
+      "score": 0.0
+     },
+     "D3": {
+      "name": "Scope Precision",
+      "score": 1.0
+     }
+    },
+    "checklist": [
+     {
+      "id": "D1-Q1",
+      "answer": "Yes",
+      "evidence": "Names Deployment `aux-service` in namespace `social-network` as the root cause component, matching ground truth.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q2",
+      "answer": "Yes",
+      "evidence": "Identifies `aux-service` as the origin and reports its pod failures and unavailable service endpoints as symptoms.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q3",
+      "answer": "Yes",
+      "evidence": "The diagnosed origin is `aux-service`, the ground-truth target; no different healthy component is named as the origin.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q1",
+      "answer": "No",
+      "evidence": "Attributes the mechanism to service.py and a code bug rather than overly aggressive liveness probing and zero termination grace.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q2",
+      "answer": "No",
+      "evidence": "Omits initialDelaySeconds=0, periodSeconds=1, failureThreshold=1, and terminationGracePeriodSeconds=0; reported probe failures are symptoms, not mutated settings.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q3",
+      "answer": "No",
+      "evidence": "Explicitly classifies the fault as 'code bug (the component's own logic is faulty)', conflicting with the ground-truth probe configuration fault.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q1",
+      "answer": "Yes",
+      "evidence": "Confines blame to `aux-service` and its own script; does not implicate additional services or unrelated infrastructure.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q2",
+      "answer": "Yes",
+      "evidence": "Includes `aux-service`, the only component identified in ground truth as contributing to or affected by the fault.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q3",
+      "answer": "Yes",
+      "evidence": "Reports CrashLoopBackOff, repeated restarts, zero ready replicas, and zero ready endpoints, consistent with restart cycles and readiness instability.",
+      "confidence": "High"
+     }
+    ]
+   }
+  },
+  {
+   "arm": 3,
+   "kind": "v1",
+   "model": "openrouter/openai/gpt-6-luna-decisions",
+   "position": 3,
+   "seconds": 3.3,
+   "requests": 3,
+   "input_tokens": 19724,
+   "cost_usd": 0.001972,
+   "error": null,
+   "investigation": {
+    "steps": [
+     {
+      "step": 1,
+      "node": "investigate",
+      "component": "deployment/aux-service",
+      "verdict": "undetermined",
+      "origin_p": 0.45,
+      "victim_p": 0.03,
+      "next": "none",
+      "next_p": 0.82,
+      "category": "health_probe_config",
+      "spec_checks": [
+       "service aux-service has no ready endpoints"
+      ],
+      "blocked_input": null,
+      "key_evidence": "ConfigMap aux-service-script key service.py: import http.server \u23ce import random \u23ce import socketserver \u23ce import time \u23ce \u23ce INIT_SECONDS = 15 \u23ce _START = time.time() \u23ce \u23ce \u23ce def _initialized() -> bool: \u23ce return time.time() - _START >= INIT_SECONDS \u23ce \u23ce \u23ce class MainHandler(http.server.SimpleHTTPRequestHandler): \u23ce def _write(self, status: int, body: str): \u23ce self.send_response(status) \u23ce self.end_headers() \u23ce self.wfile.write(body.encode()) \u23ce \u23ce def do_G\u2026"
+     },
+     {
+      "step": 2,
+      "node": "cluster",
+      "result": [
+       [
+        "F1",
+        0.86
+       ],
+       [
+        "none",
+        0.14
+       ]
+      ]
+     }
+    ],
+    "concluded": "other",
+    "fallback": null,
+    "triage_top": [
+     [
+      "deployment/aux-service",
+      0.44
+     ],
+     [
+      "other",
+      0.25
+     ],
+     [
+      "deployment/social-graph-service",
+      0.13
+     ],
+     [
+      "deployment/compose-post-service",
+      0.01
+     ],
+     [
+      "deployment/home-timeline-redis",
+      0.01
+     ]
+    ]
+   },
+   "text": "Root cause object: ConfigMap `coredns` in namespace `kube-system`.\nMechanism: ConfigMap coredns was modified 3478s ago, 66266s after it was created (fields: data.Corefile); 3350s before the first active symptom.\nClassification: Jev (openai/gpt-6-luna-decisions-20261006) selected this origin with triage probability 0.25 after 2 investigation step(s).",
+   "grade": {
+    "judgment": "False",
+    "reasoning": "Verdict: False (composite=0.00). D1 Fault Localization: 0.00 | D2 Fault Characterization: 0.00 | D3 Scope Precision: 0.00. Weakest dimension: Fault Localization (0.00). Checklist details: [{\"id\": \"D1-Q1\", \"answer\": \"No\", \"evidence\": \"Diagnosis names ConfigMap coredns in kube-system, rather than deployment aux-service in social-network.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q2\", \"answer\": \"No\", \"evidence\": \"Diagnosis identifies coredns as the origin and does not identify the actual fault origin, aux-service.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q3\", \"answer\": \"No\", \"evidence\": \"Diagnosis blames coredns, a different component from the ground-truth target aux-service.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q1\", \"answer\": \"No\", \"evidence\": \"Diagnosis cites a Corefile modification instead of aggressive liveness probes and zero termination grace period.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q2\", \"answer\": \"No\", \"evidence\": \"Diagnosis provides Corefile modification timing but omits initialDelaySeconds=0, periodSeconds=1, failureThreshold=1, and terminationGracePeriodSeconds=0.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q3\", \"answer\": \"No\", \"evidence\": \"Diagnosis attributes the fault to a coredns ConfigMap modification, unrelated to the stated probe and termination configuration fault.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q1\", \"answer\": \"No\", \"evidence\": \"Diagnosis blames coredns, which the ground truth does not identify as contributing to the fault.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q2\", \"answer\": \"No\", \"evidence\": \"Diagnosis never mentions aux-service, the component identified as faulty and affected in the ground truth.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q3\", \"answer\": \"No\", \"evidence\": \"Diagnosis references an unspecified first active symptom but does not describe restarts, readiness instability, intermittent service drops, or elevated error rates.\", \"confidence\": \"High\"}]",
+    "success": false,
+    "accuracy": 0.0,
+    "composite_score": 0.0,
+    "dimensions": {
+     "D1": {
+      "name": "Fault Localization",
+      "score": 0.0
+     },
+     "D2": {
+      "name": "Fault Characterization",
+      "score": 0.0
+     },
+     "D3": {
+      "name": "Scope Precision",
+      "score": 0.0
+     }
+    },
+    "checklist": [
+     {
+      "id": "D1-Q1",
+      "answer": "No",
+      "evidence": "Diagnosis names ConfigMap coredns in kube-system, rather than deployment aux-service in social-network.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q2",
+      "answer": "No",
+      "evidence": "Diagnosis identifies coredns as the origin and does not identify the actual fault origin, aux-service.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q3",
+      "answer": "No",
+      "evidence": "Diagnosis blames coredns, a different component from the ground-truth target aux-service.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q1",
+      "answer": "No",
+      "evidence": "Diagnosis cites a Corefile modification instead of aggressive liveness probes and zero termination grace period.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q2",
+      "answer": "No",
+      "evidence": "Diagnosis provides Corefile modification timing but omits initialDelaySeconds=0, periodSeconds=1, failureThreshold=1, and terminationGracePeriodSeconds=0.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q3",
+      "answer": "No",
+      "evidence": "Diagnosis attributes the fault to a coredns ConfigMap modification, unrelated to the stated probe and termination configuration fault.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q1",
+      "answer": "No",
+      "evidence": "Diagnosis blames coredns, which the ground truth does not identify as contributing to the fault.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q2",
+      "answer": "No",
+      "evidence": "Diagnosis never mentions aux-service, the component identified as faulty and affected in the ground truth.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q3",
+      "answer": "No",
+      "evidence": "Diagnosis references an unspecified first active symptom but does not describe restarts, readiness instability, intermittent service drops, or elevated error rates.",
+      "confidence": "High"
+     }
+    ]
+   }
+  }
+ ],
+ "submission": {
+  "status": "200",
+  "message": "Submission received",
+  "stage": "diagnosis"
+ },
+ "judge": {
+  "model": "gpt-6-astra",
+  "backend": "codex",
+  "effort": "high"
+ }
+}

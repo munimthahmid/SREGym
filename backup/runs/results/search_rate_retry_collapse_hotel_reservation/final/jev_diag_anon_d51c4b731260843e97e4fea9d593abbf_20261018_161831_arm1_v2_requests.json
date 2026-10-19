@@ -1,0 +1,164 @@
+[
+ {
+  "label": "decide:1",
+  "state": {
+   "application": {
+    "name": "Hotel Reservation",
+    "description": "A hotel reservation application built with Go and gRPC, providing backend in-memory and persistent databases, a recommender system for hotel recommendations, and a functionality to place reservations.",
+    "namespaces": [
+     "hotel-reservation"
+    ]
+   },
+   "evidence": {
+    "deployment/rate": {
+     "kind": "Deployment",
+     "name": "rate",
+     "namespace": "hotel-reservation",
+     "healthy": false,
+     "signals": [
+      "errors logged by 1 other component(s) (deployment/search) name this component (connectivity or timeout, 64 lines, still occurring), e.g. '2026-10-18T16:20:29Z WRN services/search/server.go:252 > downstream request failed dependency=rate grpc_code=DeadlineExceeded'"
+     ],
+     "referenced_by_errors_from": [
+      "deployment/search"
+     ]
+    },
+    "deployment/search": {
+     "kind": "Deployment",
+     "name": "search",
+     "namespace": "hotel-reservation",
+     "healthy": false,
+     "errors_point_to": [
+      "deployment/rate"
+     ]
+    }
+   },
+   "cluster": {
+    "symptom_onset": "2026-10-18T16:20:21+00:00",
+    "recent_changes": [],
+    "findings": []
+   }
+  },
+  "questions": {
+   "best_explanation": {
+    "type": "choice",
+    "criteria": {
+     "o1": "Origin: deployment/hotel-reservation/rate. The fault is in this component; the mechanism is not established. | Observed impact on: deployment/hotel-reservation/rate, deployment/hotel-reservation/search",
+     "o2": "Origin: interaction/hotel-reservation/search--rate. Calls from deployment/search to deployment/rate time out; deployment/search retries them, and the retries add load that keeps deployment/rate saturated, so the failure sustains itself. | Together with: deployment/hotel-reservation/search, deployment/hotel-reservation/rate | Observed impact on: deployment/hotel-reservation/rate, deployment/hotel-reservation/search | Checks: errors of deployment/search on deployment/rate are timeouts or overload (supports)",
+     "o3": "Origin: deployment/hotel-reservation/rate. deployment/rate fails or rejects requests, so deployment/search fail when calling it. | Observed impact on: deployment/hotel-reservation/rate, deployment/hotel-reservation/search | Checks: still-occurring errors of deployment/search name deployment/rate (supports); deployment/rate shows failures of its own (supports)",
+     "o4": "None of these explanations fits the evidence.",
+     "o5": "Origin: deployment/hotel-reservation/search. The fault is in this component; the mechanism is not established. | Observed impact on: deployment/hotel-reservation/search"
+    },
+    "instructions": {
+     "question": "Which explanation best accounts for all the observed symptoms in `evidence`?",
+     "how_to_decide": [
+      "Prefer the explanation whose chain is supported by the observed facts and explains the most symptoms; an explanation contradicted by a fact is unlikely.",
+      "A component that only fails because something it calls fails is a victim, not the origin.",
+      "Choose `o4` when none of the explanations fits the evidence."
+     ]
+    }
+   }
+  },
+  "model": "openai/gpt-6-luna-decisions-20261006",
+  "latency_ms": 537,
+  "usage": {
+   "input_tokens": 688,
+   "output_tokens": 0,
+   "cost": 6.88e-05
+  },
+  "answers": {
+   "best_explanation": {
+    "type": "choice",
+    "choice": "o1",
+    "confidence": 0.57,
+    "probabilities": {
+     "o1": 0.66,
+     "o2": 0.04,
+     "o3": 0.23,
+     "o4": 0.06,
+     "o5": 0.01
+    }
+   }
+  }
+ },
+ {
+  "label": "decide:2",
+  "state": {
+   "application": {
+    "name": "Hotel Reservation",
+    "description": "A hotel reservation application built with Go and gRPC, providing backend in-memory and persistent databases, a recommender system for hotel recommendations, and a functionality to place reservations.",
+    "namespaces": [
+     "hotel-reservation"
+    ]
+   },
+   "evidence": {
+    "deployment/rate": {
+     "kind": "Deployment",
+     "name": "rate",
+     "namespace": "hotel-reservation",
+     "healthy": false,
+     "signals": [
+      "errors logged by 1 other component(s) (deployment/search) name this component (connectivity or timeout, 64 lines, still occurring), e.g. '2026-10-18T16:20:29Z WRN services/search/server.go:252 > downstream request failed dependency=rate grpc_code=DeadlineExceeded'"
+     ],
+     "referenced_by_errors_from": [
+      "deployment/search"
+     ]
+    },
+    "deployment/search": {
+     "kind": "Deployment",
+     "name": "search",
+     "namespace": "hotel-reservation",
+     "healthy": false,
+     "errors_point_to": [
+      "deployment/rate"
+     ]
+    }
+   },
+   "cluster": {
+    "symptom_onset": "2026-10-18T16:20:21+00:00",
+    "recent_changes": [],
+    "findings": []
+   }
+  },
+  "questions": {
+   "best_explanation": {
+    "type": "choice",
+    "criteria": {
+     "o1": "Origin: deployment/hotel-reservation/rate. deployment/rate fails or rejects requests, so deployment/search fail when calling it. | Observed impact on: deployment/hotel-reservation/rate, deployment/hotel-reservation/search | Checks: still-occurring errors of deployment/search name deployment/rate (supports); deployment/rate shows failures of its own (supports)",
+     "o2": "Origin: deployment/hotel-reservation/rate. The fault is in this component; the mechanism is not established. | Observed impact on: deployment/hotel-reservation/rate, deployment/hotel-reservation/search",
+     "o3": "Origin: interaction/hotel-reservation/search--rate. Calls from deployment/search to deployment/rate time out; deployment/search retries them, and the retries add load that keeps deployment/rate saturated, so the failure sustains itself. | Together with: deployment/hotel-reservation/search, deployment/hotel-reservation/rate | Observed impact on: deployment/hotel-reservation/rate, deployment/hotel-reservation/search | Checks: errors of deployment/search on deployment/rate are timeouts or overload (supports)",
+     "o4": "Origin: deployment/hotel-reservation/search. The fault is in this component; the mechanism is not established. | Observed impact on: deployment/hotel-reservation/search",
+     "o5": "None of these explanations fits the evidence."
+    },
+    "instructions": {
+     "question": "Which explanation best accounts for all the observed symptoms in `evidence`?",
+     "how_to_decide": [
+      "Prefer the explanation whose chain is supported by the observed facts and explains the most symptoms; an explanation contradicted by a fact is unlikely.",
+      "A component that only fails because something it calls fails is a victim, not the origin.",
+      "Choose `o5` when none of the explanations fits the evidence."
+     ]
+    }
+   }
+  },
+  "model": "openai/gpt-6-luna-decisions-20261006",
+  "latency_ms": 525,
+  "usage": {
+   "input_tokens": 688,
+   "output_tokens": 0,
+   "cost": 6.88e-05
+  },
+  "answers": {
+   "best_explanation": {
+    "type": "choice",
+    "choice": "o2",
+    "confidence": 0.47,
+    "probabilities": {
+     "o1": 0.22,
+     "o2": 0.58,
+     "o3": 0.09,
+     "o4": 0.03,
+     "o5": 0.08
+    }
+   }
+  }
+ }
+]

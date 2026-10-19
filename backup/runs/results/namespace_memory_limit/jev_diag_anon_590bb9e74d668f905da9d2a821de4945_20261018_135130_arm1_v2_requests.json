@@ -1,0 +1,254 @@
+[
+ {
+  "label": "decide:1",
+  "state": {
+   "application": {
+    "name": "Hotel Reservation",
+    "description": "A hotel reservation application built with Go and gRPC, providing backend in-memory and persistent databases, a recommender system for hotel recommendations, and a functionality to place reservations.",
+    "namespaces": [
+     "hotel-reservation"
+    ]
+   },
+   "evidence": {
+    "deployment/search": {
+     "kind": "Deployment",
+     "name": "search",
+     "namespace": "hotel-reservation",
+     "healthy": false,
+     "signals": [
+      "only 0 of 1 desired replicas are ready",
+      "no pods exist for this workload",
+      "warning events: FailedCreate x11",
+      "service search selects this component but has 0 ready endpoints",
+      "firing alert DeploymentNotReady",
+      "ResourceQuota memory-limit-quota requires memory on every pod and this workload's containers declare none, so the API server rejects its new pods"
+     ]
+    },
+    "deployment/mongodb-geo": {
+     "kind": "Deployment",
+     "name": "mongodb-geo",
+     "namespace": "hotel-reservation",
+     "healthy": true,
+     "template_changes": {
+      "revision": 2,
+      "changed_at": "2026-10-18T13:51:17Z",
+      "changes": [
+       "pod label pod-template-hash: 78487c9767 -> 5ff578bcb8",
+       "volume failure-script added: {\"configMap\": {\"defaultMode\": 420, \"name\": \"failure-admin-geo\"}}",
+       "container hotel-reserv-geo-mongo mounts volume failure-script at /scripts"
+      ]
+     }
+    },
+    "deployment/mongodb-rate": {
+     "kind": "Deployment",
+     "name": "mongodb-rate",
+     "namespace": "hotel-reservation",
+     "healthy": true,
+     "template_changes": {
+      "revision": 2,
+      "changed_at": "2026-10-18T13:51:17Z",
+      "changes": [
+       "pod label pod-template-hash: 6747cb74bf -> 56cc8659c9",
+       "volume failure-script added: {\"configMap\": {\"defaultMode\": 420, \"name\": \"failure-admin-rate\"}}",
+       "container hotel-reserv-rate-mongo mounts volume failure-script at /scripts"
+      ]
+     }
+    }
+   },
+   "cluster": {
+    "symptom_onset": "2026-10-18T13:51:28+00:00",
+    "recent_changes": [
+     {
+      "object": "resourcequota/hotel-reservation/memory-limit-quota",
+      "at": "2026-10-18T13:51:27Z",
+      "created_after_targets_s": 13,
+      "seconds_ago": 129,
+      "seconds_before_symptoms": 1
+     }
+    ],
+    "findings": [
+     {
+      "kind": "ResourceQuota",
+      "name": "memory-limit-quota",
+      "namespace": "hotel-reservation",
+      "signal": "rejects pods of deployment/search (missing memory); ResourceQuota memory-limit-quota was created 129s ago, 13s after the workloads in its namespace; 1s before the first active symptom",
+      "components": [
+       "deployment/search"
+      ]
+     }
+    ]
+   }
+  },
+  "questions": {
+   "best_explanation": {
+    "type": "choice",
+    "criteria": {
+     "o1": "Origin: deployment/hotel-reservation/mongodb-geo. The pod template changes in revision 2 of deployment/mongodb-geo, which only cause the fault together, break deployment/mongodb-geo. | Details: volume failure-script added: {\"configMap\": {\"defaultMode\": 420, \"name\": \"failure-admin-geo\"}}; container hotel-reserv-geo-mongo mounts volume failure-script at /scripts | Checks: revision 2 of deployment/mongodb-geo was made before the symptoms began (supports); deployment/mongodb-geo shows symptoms of its own (contradicts)",
+     "o2": "Origin: deployment/hotel-reservation/mongodb-geo. The pod template change 'volume failure-script added: {\"configMap\": {\"defaultMode\": 420, \"name\": \"failure-admin-geo\"}}' in revision 2 of deployment/mongodb-geo breaks deployment/mongodb-geo. | Details: volume failure-script added: {\"configMap\": {\"defaultMode\": 420, \"name\": \"failure-admin-geo\"}} | Checks: revision 2 of deployment/mongodb-geo was made before the symptoms began (supports); deployment/mongodb-geo shows symptoms of its own (contradicts)",
+     "o3": "Origin: deployment/hotel-reservation/search. The fault is in this component; the mechanism is not established. | Observed impact on: deployment/hotel-reservation/search",
+     "o4": "Origin: resourcequota/hotel-reservation/memory-limit-quota. resourcequota memory-limit-quota acts on deployment/search: rejects pods of deployment/search (missing memory); ResourceQuota memory-limit-quota was created 129s ago, 13s after the workloads in its namespace; 1s before the first active symptom. | Details: rejects pods of deployment/search (missing memory); ResourceQuota memory-limit-quota was created 129s ago, 13s after the workloads in its namespace; 1s before the first active symptom; ResourceQuota memory-limit-quota requires memory on every pod and this workload's containers declare none, so the API server rejects its new pods | Observed impact on: deployment/hotel-reservation/search | Checks: deployment/search shows symptoms of its own (supports)",
+     "o5": "Origin: deployment/hotel-reservation/mongodb-rate. The pod template change 'volume failure-script added: {\"configMap\": {\"defaultMode\": 420, \"name\": \"failure-admin-rate\"}}' in revision 2 of deployment/mongodb-rate breaks deployment/mongodb-rate. | Details: volume failure-script added: {\"configMap\": {\"defaultMode\": 420, \"name\": \"failure-admin-rate\"}} | Checks: revision 2 of deployment/mongodb-rate was made before the symptoms began (supports); deployment/mongodb-rate shows symptoms of its own (contradicts)",
+     "o6": "Origin: deployment/hotel-reservation/mongodb-geo. The pod template change 'container hotel-reserv-geo-mongo mounts volume failure-script at /scripts' in revision 2 of deployment/mongodb-geo breaks deployment/mongodb-geo. | Details: container hotel-reserv-geo-mongo mounts volume failure-script at /scripts | Checks: revision 2 of deployment/mongodb-geo was made before the symptoms began (supports); deployment/mongodb-geo shows symptoms of its own (contradicts)",
+     "o7": "None of these explanations fits the evidence."
+    },
+    "instructions": {
+     "question": "Which explanation best accounts for all the observed symptoms in `evidence`?",
+     "how_to_decide": [
+      "Prefer the explanation whose chain is supported by the observed facts and explains the most symptoms; an explanation contradicted by a fact is unlikely.",
+      "A component that only fails because something it calls fails is a victim, not the origin.",
+      "Choose `o7` when none of the explanations fits the evidence."
+     ]
+    }
+   }
+  },
+  "model": "openai/gpt-6-luna-decisions-20261006",
+  "latency_ms": 1342,
+  "usage": {
+   "input_tokens": 1426,
+   "output_tokens": 0,
+   "cost": 0.0001426
+  },
+  "answers": {
+   "best_explanation": {
+    "type": "choice",
+    "choice": "o4",
+    "confidence": 0.99,
+    "probabilities": {
+     "o1": 0.0,
+     "o2": 0.0,
+     "o3": 0.0,
+     "o4": 0.99,
+     "o5": 0.01,
+     "o6": 0.0,
+     "o7": 0.0
+    }
+   }
+  }
+ },
+ {
+  "label": "decide:2",
+  "state": {
+   "application": {
+    "name": "Hotel Reservation",
+    "description": "A hotel reservation application built with Go and gRPC, providing backend in-memory and persistent databases, a recommender system for hotel recommendations, and a functionality to place reservations.",
+    "namespaces": [
+     "hotel-reservation"
+    ]
+   },
+   "evidence": {
+    "deployment/search": {
+     "kind": "Deployment",
+     "name": "search",
+     "namespace": "hotel-reservation",
+     "healthy": false,
+     "signals": [
+      "only 0 of 1 desired replicas are ready",
+      "no pods exist for this workload",
+      "warning events: FailedCreate x11",
+      "service search selects this component but has 0 ready endpoints",
+      "firing alert DeploymentNotReady",
+      "ResourceQuota memory-limit-quota requires memory on every pod and this workload's containers declare none, so the API server rejects its new pods"
+     ]
+    },
+    "deployment/mongodb-geo": {
+     "kind": "Deployment",
+     "name": "mongodb-geo",
+     "namespace": "hotel-reservation",
+     "healthy": true,
+     "template_changes": {
+      "revision": 2,
+      "changed_at": "2026-10-18T13:51:17Z",
+      "changes": [
+       "pod label pod-template-hash: 78487c9767 -> 5ff578bcb8",
+       "volume failure-script added: {\"configMap\": {\"defaultMode\": 420, \"name\": \"failure-admin-geo\"}}",
+       "container hotel-reserv-geo-mongo mounts volume failure-script at /scripts"
+      ]
+     }
+    },
+    "deployment/mongodb-rate": {
+     "kind": "Deployment",
+     "name": "mongodb-rate",
+     "namespace": "hotel-reservation",
+     "healthy": true,
+     "template_changes": {
+      "revision": 2,
+      "changed_at": "2026-10-18T13:51:17Z",
+      "changes": [
+       "pod label pod-template-hash: 6747cb74bf -> 56cc8659c9",
+       "volume failure-script added: {\"configMap\": {\"defaultMode\": 420, \"name\": \"failure-admin-rate\"}}",
+       "container hotel-reserv-rate-mongo mounts volume failure-script at /scripts"
+      ]
+     }
+    }
+   },
+   "cluster": {
+    "symptom_onset": "2026-10-18T13:51:28+00:00",
+    "recent_changes": [
+     {
+      "object": "resourcequota/hotel-reservation/memory-limit-quota",
+      "at": "2026-10-18T13:51:27Z",
+      "created_after_targets_s": 13,
+      "seconds_ago": 129,
+      "seconds_before_symptoms": 1
+     }
+    ],
+    "findings": [
+     {
+      "kind": "ResourceQuota",
+      "name": "memory-limit-quota",
+      "namespace": "hotel-reservation",
+      "signal": "rejects pods of deployment/search (missing memory); ResourceQuota memory-limit-quota was created 129s ago, 13s after the workloads in its namespace; 1s before the first active symptom",
+      "components": [
+       "deployment/search"
+      ]
+     }
+    ]
+   }
+  },
+  "questions": {
+   "best_explanation": {
+    "type": "choice",
+    "criteria": {
+     "o1": "Origin: deployment/hotel-reservation/search. The fault is in this component; the mechanism is not established. | Observed impact on: deployment/hotel-reservation/search",
+     "o2": "Origin: resourcequota/hotel-reservation/memory-limit-quota. resourcequota memory-limit-quota acts on deployment/search: rejects pods of deployment/search (missing memory); ResourceQuota memory-limit-quota was created 129s ago, 13s after the workloads in its namespace; 1s before the first active symptom. | Details: rejects pods of deployment/search (missing memory); ResourceQuota memory-limit-quota was created 129s ago, 13s after the workloads in its namespace; 1s before the first active symptom; ResourceQuota memory-limit-quota requires memory on every pod and this workload's containers declare none, so the API server rejects its new pods | Observed impact on: deployment/hotel-reservation/search | Checks: deployment/search shows symptoms of its own (supports)",
+     "o3": "Origin: deployment/hotel-reservation/mongodb-geo. The pod template changes in revision 2 of deployment/mongodb-geo, which only cause the fault together, break deployment/mongodb-geo. | Details: volume failure-script added: {\"configMap\": {\"defaultMode\": 420, \"name\": \"failure-admin-geo\"}}; container hotel-reserv-geo-mongo mounts volume failure-script at /scripts | Checks: revision 2 of deployment/mongodb-geo was made before the symptoms began (supports); deployment/mongodb-geo shows symptoms of its own (contradicts)",
+     "o4": "Origin: deployment/hotel-reservation/mongodb-rate. The pod template change 'volume failure-script added: {\"configMap\": {\"defaultMode\": 420, \"name\": \"failure-admin-rate\"}}' in revision 2 of deployment/mongodb-rate breaks deployment/mongodb-rate. | Details: volume failure-script added: {\"configMap\": {\"defaultMode\": 420, \"name\": \"failure-admin-rate\"}} | Checks: revision 2 of deployment/mongodb-rate was made before the symptoms began (supports); deployment/mongodb-rate shows symptoms of its own (contradicts)",
+     "o5": "None of these explanations fits the evidence.",
+     "o6": "Origin: deployment/hotel-reservation/mongodb-geo. The pod template change 'volume failure-script added: {\"configMap\": {\"defaultMode\": 420, \"name\": \"failure-admin-geo\"}}' in revision 2 of deployment/mongodb-geo breaks deployment/mongodb-geo. | Details: volume failure-script added: {\"configMap\": {\"defaultMode\": 420, \"name\": \"failure-admin-geo\"}} | Checks: revision 2 of deployment/mongodb-geo was made before the symptoms began (supports); deployment/mongodb-geo shows symptoms of its own (contradicts)",
+     "o7": "Origin: deployment/hotel-reservation/mongodb-geo. The pod template change 'container hotel-reserv-geo-mongo mounts volume failure-script at /scripts' in revision 2 of deployment/mongodb-geo breaks deployment/mongodb-geo. | Details: container hotel-reserv-geo-mongo mounts volume failure-script at /scripts | Checks: revision 2 of deployment/mongodb-geo was made before the symptoms began (supports); deployment/mongodb-geo shows symptoms of its own (contradicts)"
+    },
+    "instructions": {
+     "question": "Which explanation best accounts for all the observed symptoms in `evidence`?",
+     "how_to_decide": [
+      "Prefer the explanation whose chain is supported by the observed facts and explains the most symptoms; an explanation contradicted by a fact is unlikely.",
+      "A component that only fails because something it calls fails is a victim, not the origin.",
+      "Choose `o5` when none of the explanations fits the evidence."
+     ]
+    }
+   }
+  },
+  "model": "openai/gpt-6-luna-decisions-20261006",
+  "latency_ms": 833,
+  "usage": {
+   "input_tokens": 1426,
+   "output_tokens": 0,
+   "cost": 0.0001426
+  },
+  "answers": {
+   "best_explanation": {
+    "type": "choice",
+    "choice": "o2",
+    "confidence": 0.95,
+    "probabilities": {
+     "o1": 0.0,
+     "o2": 0.96,
+     "o3": 0.04,
+     "o4": 0.0,
+     "o5": 0.0,
+     "o6": 0.0,
+     "o7": 0.0
+    }
+   }
+  }
+ }
+]

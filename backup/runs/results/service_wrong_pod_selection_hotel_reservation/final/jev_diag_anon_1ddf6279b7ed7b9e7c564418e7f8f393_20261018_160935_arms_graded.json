@@ -1,0 +1,530 @@
+{
+ "problem_id": "jev_diag_anon_1ddf6279b7ed7b9e7c564418e7f8f393_20261018_160935",
+ "submit_arm": 0,
+ "order": [
+  0,
+  3,
+  2,
+  1
+ ],
+ "arms": [
+  {
+   "arm": 0,
+   "kind": "v2",
+   "model": "openrouter/typesafe/jev-1.13",
+   "position": 0,
+   "seconds": 1.6,
+   "requests": 2,
+   "input_tokens": 4114,
+   "cost_usd": 0.000173,
+   "error": null,
+   "investigation": {
+    "rounds": [
+     {
+      "candidates": [
+       "change:service/hotel-reservation/frontend",
+       "change:deployment/frontend:pod label service-route added: frontend",
+       "change:deployment/search:pod label service-route added: frontend",
+       "change:deployment/hotel-reservation/frontend",
+       "change:deployment/hotel-reservation/search",
+       "partial:deployment/frontend"
+      ],
+      "probabilities": {
+       "change:service/hotel-reservation/frontend": 0.995,
+       "change:deployment/frontend:pod label service-route added: frontend": 0.005,
+       "change:deployment/search:pod label service-route added: frontend": 0.0,
+       "change:deployment/hotel-reservation/frontend": 0.0,
+       "change:deployment/hotel-reservation/search": 0.0,
+       "partial:deployment/frontend": 0.0,
+       "none_of_these": 0.0
+      },
+      "picks": [
+       "change:service/hotel-reservation/frontend",
+       "change:service/hotel-reservation/frontend"
+      ],
+      "route": "accept"
+     }
+    ],
+    "explanations": 13,
+    "winner": "change:service/hotel-reservation/frontend",
+    "pattern": "acts-on",
+    "uncertain": false
+   },
+   "text": "Root cause: service `frontend` in namespace `hotel-reservation`.\nMechanism: service frontend was changed recently and breaks deployment/frontend, deployment/search, which it acts on.\nConcrete details: service frontend fields written: spec.selector; service frontend selects pods of 2 different workloads (also deployment/search) through selector {'service-route': 'frontend'}; its selector is broader than this workload, so traffic is spread across unrelated pods; deployment/search does not expose targetPort 5000 (its containers expose [8082, 9092]); service frontend selects pods of 2 different workloads (also deployment/frontend) through selector {'service-route': 'frontend'}; its selector is broader than this workload, so traffic is spread across unrelated pods; deployment/search does not expose targetPort 5000 (its containers expose [8082, 9092]); Service frontend was modified 131s ago, 17s after it was created (fields: spec.selector).\nObserved impact: deployment `frontend` in namespace `hotel-reservation`, deployment `search` in namespace `hotel-reservation`.\nEvidence:\n- service frontend fields written: spec.selector\n- service frontend selects pods of 2 different workloads (also deployment/search) through selector {'service-route': 'frontend'}; its selector is broader than this workload, so traffic is spread across unrelated pods; deployment/search does not expose targetPort 5000 (its containers expose [8082, 9092])\n- service frontend selects pods of 2 different workloads (also deployment/frontend) through selector {'service-route': 'frontend'}; its selector is broader than this workload, so traffic is spread across unrelated pods; deployment/search does not expose targetPort 5000 (its containers expose [8082, 9092])\n- Service frontend was modified 131s ago, 17s after it was created (fields: spec.selector)\n- deployment/frontend: service frontend selects pods of 2 different workloads (also deployment/search) through selector {'service-route': 'frontend'}; its selector is broader than this workload, so traffic is spread across unrelated pods; deployment/search does not expose targetPort 5000 (its containers expose [8082, 9092])\n- deployment/search: service frontend selects pods of 2 different workloads (also deployment/frontend) through selector {'service-route': 'frontend'}; its selector is broader than this workload, so traffic is spread across unrelated pods; deployment/search does not expose targetPort 5000 (its containers expose [8082, 9092])",
+   "grade": {
+    "judgment": "True",
+    "reasoning": "Verdict: True (composite=0.89). D1 Fault Localization: 1.00 | D2 Fault Characterization: 1.00 | D3 Scope Precision: 0.67. Weakest dimension: Scope Precision (0.67). Checklist details: [{\"id\": \"D1-Q1\", \"answer\": \"Yes\", \"evidence\": \"Explicitly identifies service frontend in namespace hotel-reservation as the root cause.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q2\", \"answer\": \"Yes\", \"evidence\": \"Identifies the frontend Service selector change as the origin and lists frontend and search deployments separately as impacted workloads.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q3\", \"answer\": \"Yes\", \"evidence\": \"Attributes the fault to the frontend Service, matching the fault specification.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q1\", \"answer\": \"Yes\", \"evidence\": \"Describes an overly broad Service selector selecting pods from two different workloads.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q2\", \"answer\": \"Yes\", \"evidence\": \"Names spec.selector, selector {'service-route': 'frontend'}, targetPort 5000, and search container port 8082.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q3\", \"answer\": \"Yes\", \"evidence\": \"Consistently attributes the fault to selector broadening and incompatible search pod ports.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q1\", \"answer\": \"Yes\", \"evidence\": \"Names only the frontend Service and frontend and search workloads, all explicitly involved in the ground truth.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q2\", \"answer\": \"Yes\", \"evidence\": \"Includes the frontend Service, intended frontend pods, and unintended search pods.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q3\", \"answer\": \"No\", \"evidence\": \"Claims the change 'breaks deployment/frontend, deployment/search'; ground truth establishes intermittent frontend request failures, not failure of the search deployment.\", \"confidence\": \"Medium\"}]",
+    "success": true,
+    "accuracy": 89.0,
+    "composite_score": 0.89,
+    "dimensions": {
+     "D1": {
+      "name": "Fault Localization",
+      "score": 1.0
+     },
+     "D2": {
+      "name": "Fault Characterization",
+      "score": 1.0
+     },
+     "D3": {
+      "name": "Scope Precision",
+      "score": 0.67
+     }
+    },
+    "checklist": [
+     {
+      "id": "D1-Q1",
+      "answer": "Yes",
+      "evidence": "Explicitly identifies service frontend in namespace hotel-reservation as the root cause.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q2",
+      "answer": "Yes",
+      "evidence": "Identifies the frontend Service selector change as the origin and lists frontend and search deployments separately as impacted workloads.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q3",
+      "answer": "Yes",
+      "evidence": "Attributes the fault to the frontend Service, matching the fault specification.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q1",
+      "answer": "Yes",
+      "evidence": "Describes an overly broad Service selector selecting pods from two different workloads.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q2",
+      "answer": "Yes",
+      "evidence": "Names spec.selector, selector {'service-route': 'frontend'}, targetPort 5000, and search container port 8082.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q3",
+      "answer": "Yes",
+      "evidence": "Consistently attributes the fault to selector broadening and incompatible search pod ports.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q1",
+      "answer": "Yes",
+      "evidence": "Names only the frontend Service and frontend and search workloads, all explicitly involved in the ground truth.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q2",
+      "answer": "Yes",
+      "evidence": "Includes the frontend Service, intended frontend pods, and unintended search pods.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q3",
+      "answer": "No",
+      "evidence": "Claims the change 'breaks deployment/frontend, deployment/search'; ground truth establishes intermittent frontend request failures, not failure of the search deployment.",
+      "confidence": "Medium"
+     }
+    ]
+   }
+  },
+  {
+   "arm": 1,
+   "kind": "v2",
+   "model": "openrouter/openai/gpt-6-luna-decisions",
+   "position": 3,
+   "seconds": 1.9,
+   "requests": 2,
+   "input_tokens": 2926,
+   "cost_usd": 0.000293,
+   "error": null,
+   "investigation": {
+    "rounds": [
+     {
+      "candidates": [
+       "change:service/hotel-reservation/frontend",
+       "change:deployment/frontend:pod label service-route added: frontend",
+       "change:deployment/search:pod label service-route added: frontend",
+       "change:deployment/hotel-reservation/frontend",
+       "change:deployment/hotel-reservation/search",
+       "partial:deployment/frontend"
+      ],
+      "probabilities": {
+       "change:service/hotel-reservation/frontend": 0.985,
+       "change:deployment/frontend:pod label service-route added: frontend": 0.005,
+       "change:deployment/search:pod label service-route added: frontend": 0.0,
+       "change:deployment/hotel-reservation/frontend": 0.0,
+       "change:deployment/hotel-reservation/search": 0.005,
+       "partial:deployment/frontend": 0.005,
+       "none_of_these": 0.0
+      },
+      "picks": [
+       "change:service/hotel-reservation/frontend",
+       "change:service/hotel-reservation/frontend"
+      ],
+      "route": "accept"
+     }
+    ],
+    "explanations": 13,
+    "winner": "change:service/hotel-reservation/frontend",
+    "pattern": "acts-on",
+    "uncertain": false
+   },
+   "text": "Root cause: service `frontend` in namespace `hotel-reservation`.\nMechanism: service frontend was changed recently and breaks deployment/frontend, deployment/search, which it acts on.\nConcrete details: service frontend fields written: spec.selector; service frontend selects pods of 2 different workloads (also deployment/search) through selector {'service-route': 'frontend'}; its selector is broader than this workload, so traffic is spread across unrelated pods; deployment/search does not expose targetPort 5000 (its containers expose [8082, 9092]); service frontend selects pods of 2 different workloads (also deployment/frontend) through selector {'service-route': 'frontend'}; its selector is broader than this workload, so traffic is spread across unrelated pods; deployment/search does not expose targetPort 5000 (its containers expose [8082, 9092]); Service frontend was modified 131s ago, 17s after it was created (fields: spec.selector).\nObserved impact: deployment `frontend` in namespace `hotel-reservation`, deployment `search` in namespace `hotel-reservation`.\nEvidence:\n- service frontend fields written: spec.selector\n- service frontend selects pods of 2 different workloads (also deployment/search) through selector {'service-route': 'frontend'}; its selector is broader than this workload, so traffic is spread across unrelated pods; deployment/search does not expose targetPort 5000 (its containers expose [8082, 9092])\n- service frontend selects pods of 2 different workloads (also deployment/frontend) through selector {'service-route': 'frontend'}; its selector is broader than this workload, so traffic is spread across unrelated pods; deployment/search does not expose targetPort 5000 (its containers expose [8082, 9092])\n- Service frontend was modified 131s ago, 17s after it was created (fields: spec.selector)\n- deployment/frontend: service frontend selects pods of 2 different workloads (also deployment/search) through selector {'service-route': 'frontend'}; its selector is broader than this workload, so traffic is spread across unrelated pods; deployment/search does not expose targetPort 5000 (its containers expose [8082, 9092])\n- deployment/search: service frontend selects pods of 2 different workloads (also deployment/frontend) through selector {'service-route': 'frontend'}; its selector is broader than this workload, so traffic is spread across unrelated pods; deployment/search does not expose targetPort 5000 (its containers expose [8082, 9092])",
+   "grade": {
+    "judgment": "True",
+    "reasoning": "Verdict: True (composite=0.89). D1 Fault Localization: 1.00 | D2 Fault Characterization: 1.00 | D3 Scope Precision: 0.67. Weakest dimension: Scope Precision (0.67). Checklist details: [{\"id\": \"D1-Q1\", \"answer\": \"Yes\", \"evidence\": \"Explicitly identifies service frontend in namespace hotel-reservation as the root cause.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q2\", \"answer\": \"Yes\", \"evidence\": \"Names the frontend Service as the cause and distinguishes frontend and search deployments as claimed impact points.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q3\", \"answer\": \"Yes\", \"evidence\": \"Attributes fault origin to the frontend Service, matching the fault specification.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q1\", \"answer\": \"Yes\", \"evidence\": \"Describes an overly broad Service selector selecting pods from both frontend and search workloads.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q2\", \"answer\": \"Yes\", \"evidence\": \"Names spec.selector, selector {'service-route': 'frontend'}, targetPort 5000, and search container port 8082.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q3\", \"answer\": \"Yes\", \"evidence\": \"Attributes the fault to selector broadening and incompatible selected pod ports, consistent with ground truth.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q1\", \"answer\": \"No\", \"evidence\": \"Claims the Service change 'breaks deployment/frontend, deployment/search'; ground truth describes search as an unintended endpoint, not a broken deployment.\", \"confidence\": \"Medium\"}, {\"id\": \"D3-Q2\", \"answer\": \"Yes\", \"evidence\": \"Includes the frontend Service, intended frontend pods, and unintended search pods in hotel-reservation.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q3\", \"answer\": \"Yes\", \"evidence\": \"Describes traffic spreading across unrelated pods and search lacking targetPort 5000, matching the frontend request failure mechanism.\", \"confidence\": \"High\"}]",
+    "success": true,
+    "accuracy": 89.0,
+    "composite_score": 0.89,
+    "dimensions": {
+     "D1": {
+      "name": "Fault Localization",
+      "score": 1.0
+     },
+     "D2": {
+      "name": "Fault Characterization",
+      "score": 1.0
+     },
+     "D3": {
+      "name": "Scope Precision",
+      "score": 0.67
+     }
+    },
+    "checklist": [
+     {
+      "id": "D1-Q1",
+      "answer": "Yes",
+      "evidence": "Explicitly identifies service frontend in namespace hotel-reservation as the root cause.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q2",
+      "answer": "Yes",
+      "evidence": "Names the frontend Service as the cause and distinguishes frontend and search deployments as claimed impact points.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q3",
+      "answer": "Yes",
+      "evidence": "Attributes fault origin to the frontend Service, matching the fault specification.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q1",
+      "answer": "Yes",
+      "evidence": "Describes an overly broad Service selector selecting pods from both frontend and search workloads.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q2",
+      "answer": "Yes",
+      "evidence": "Names spec.selector, selector {'service-route': 'frontend'}, targetPort 5000, and search container port 8082.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q3",
+      "answer": "Yes",
+      "evidence": "Attributes the fault to selector broadening and incompatible selected pod ports, consistent with ground truth.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q1",
+      "answer": "No",
+      "evidence": "Claims the Service change 'breaks deployment/frontend, deployment/search'; ground truth describes search as an unintended endpoint, not a broken deployment.",
+      "confidence": "Medium"
+     },
+     {
+      "id": "D3-Q2",
+      "answer": "Yes",
+      "evidence": "Includes the frontend Service, intended frontend pods, and unintended search pods in hotel-reservation.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q3",
+      "answer": "Yes",
+      "evidence": "Describes traffic spreading across unrelated pods and search lacking targetPort 5000, matching the frontend request failure mechanism.",
+      "confidence": "High"
+     }
+    ]
+   }
+  },
+  {
+   "arm": 2,
+   "kind": "v1",
+   "model": "openrouter/typesafe/jev-1.13",
+   "position": 2,
+   "seconds": 2.2,
+   "requests": 2,
+   "input_tokens": 26491,
+   "cost_usd": 0.001113,
+   "error": null,
+   "investigation": {
+    "steps": [
+     {
+      "step": 1,
+      "node": "investigate",
+      "component": "deployment/frontend",
+      "verdict": "origin",
+      "origin_p": 0.94,
+      "victim_p": 0.01,
+      "next": "deployment/search",
+      "next_p": 0.64,
+      "category": "service_routing",
+      "spec_checks": [
+       "service frontend (selector {'service-route': 'frontend'}) also selects pods of deployment/search, which expose [8082, 9092] but not targetPort 5000"
+      ],
+      "blocked_input": null,
+      "key_evidence": "service frontend selects pods of 2 different workloads (also deployment/search) through selector {'service-route': 'frontend'}; its selector is broader than this workload, so traffic is spread across unrelated pods; deployment/search does not expose targetPort 5000 (its containers expose [8082, 9092])"
+     }
+    ],
+    "concluded": "deployment/frontend",
+    "fallback": null,
+    "triage_top": [
+     [
+      "deployment/frontend",
+      0.77
+     ],
+     [
+      "other",
+      0.19
+     ],
+     [
+      "deployment/search",
+      0.04
+     ],
+     [
+      "deployment/consul",
+      0.0
+     ],
+     [
+      "deployment/geo",
+      0.0
+     ]
+    ]
+   },
+   "text": "Root cause component: Deployment `frontend` in namespace `hotel-reservation`.\nMechanism: service frontend selects pods of 2 different workloads (also deployment/search) through selector {'service-route': 'frontend'}; its selector is broader than this workload, so traffic is spread across unrelated pods; deployment/search does not expose targetPort 5000 (its containers expose [8082, 9092]).\nFault object: Service `frontend`: Service frontend was modified 131s ago, 17s after it was created (fields: spec.selector).\nFault type: service routing (a Service selector or port sends traffic to the wrong pods or to none).\nConfiguration mismatches found by code:\n- service frontend (selector {'service-route': 'frontend'}) also selects pods of deployment/search, which expose [8082, 9092] but not targetPort 5000\nAbnormal state observed on this component:\n- Service frontend was modified 131s ago, 17s after it was created (fields: spec.selector)\n- spec modified 134s ago, 14s after this object was created (fields: template.labels.service-route); pod template changes: pod label pod-template-hash: bc766b7fc -> 86c6c7c8cb; pod label service-route added: frontend\n- container hotel-reserv-frontend: image ghcr.io/sregym/hotel-reservation:sha-d2c036bc3d1138f5a0bdaffd3d87f37522c3461a@sha256:1c685e1c4c304f327952397b3a99c54dadb086607774d71f222b200ec0d2e65e, limits {'cpu': '1'}\nClassification: Jev (typesafe/jev-1.13-20260917) confirmed this origin at investigation step 1 with probability 0.94 (triage probability 0.77).",
+   "grade": {
+    "judgment": "True",
+    "reasoning": "Verdict: True (composite=1.00). D1 Fault Localization: 1.00 | D2 Fault Characterization: 1.00 | D3 Scope Precision: 1.00. Weakest dimension: Fault Localization (1.00). Checklist details: [{\"id\": \"D1-Q1\", \"answer\": \"Yes\", \"evidence\": \"Explicitly identifies \\u201cFault object: Service frontend\\u201d in hotel-reservation, although the opening root-cause label names Deployment frontend.\", \"confidence\": \"Medium\"}, {\"id\": \"D1-Q2\", \"answer\": \"Yes\", \"evidence\": \"Attributes incorrect routing to the frontend Service's broad selector; search is identified as an unintended selected workload.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q3\", \"answer\": \"Yes\", \"evidence\": \"The explicit fault object is Service frontend; no unrelated component is identified as the origin, despite the opening Deployment wording.\", \"confidence\": \"Medium\"}, {\"id\": \"D2-Q1\", \"answer\": \"Yes\", \"evidence\": \"States that selector {'service-route': 'frontend'} selects two workloads, matching the broadened Service selector mechanism.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q2\", \"answer\": \"Yes\", \"evidence\": \"Specifies service-route=frontend, unintended deployment/search selection, targetPort 5000, and search container ports including 8082.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q3\", \"answer\": \"Yes\", \"evidence\": \"Classifies the fault as Service routing and specifically explains incorrect pod selection and the targetPort mismatch.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q1\", \"answer\": \"Yes\", \"evidence\": \"The causal explanation involves only frontend Service routing and unintended search pods, both present in the ground truth.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q2\", \"answer\": \"Yes\", \"evidence\": \"Mentions the frontend Service, intended frontend workload, and unintended search workload.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q3\", \"answer\": \"Yes\", \"evidence\": \"Explains that traffic is spread across unrelated pods and search does not expose targetPort 5000, consistent with intermittent frontend request failures.\", \"confidence\": \"High\"}]",
+    "success": true,
+    "accuracy": 100.0,
+    "composite_score": 1.0,
+    "dimensions": {
+     "D1": {
+      "name": "Fault Localization",
+      "score": 1.0
+     },
+     "D2": {
+      "name": "Fault Characterization",
+      "score": 1.0
+     },
+     "D3": {
+      "name": "Scope Precision",
+      "score": 1.0
+     }
+    },
+    "checklist": [
+     {
+      "id": "D1-Q1",
+      "answer": "Yes",
+      "evidence": "Explicitly identifies \u201cFault object: Service frontend\u201d in hotel-reservation, although the opening root-cause label names Deployment frontend.",
+      "confidence": "Medium"
+     },
+     {
+      "id": "D1-Q2",
+      "answer": "Yes",
+      "evidence": "Attributes incorrect routing to the frontend Service's broad selector; search is identified as an unintended selected workload.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q3",
+      "answer": "Yes",
+      "evidence": "The explicit fault object is Service frontend; no unrelated component is identified as the origin, despite the opening Deployment wording.",
+      "confidence": "Medium"
+     },
+     {
+      "id": "D2-Q1",
+      "answer": "Yes",
+      "evidence": "States that selector {'service-route': 'frontend'} selects two workloads, matching the broadened Service selector mechanism.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q2",
+      "answer": "Yes",
+      "evidence": "Specifies service-route=frontend, unintended deployment/search selection, targetPort 5000, and search container ports including 8082.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q3",
+      "answer": "Yes",
+      "evidence": "Classifies the fault as Service routing and specifically explains incorrect pod selection and the targetPort mismatch.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q1",
+      "answer": "Yes",
+      "evidence": "The causal explanation involves only frontend Service routing and unintended search pods, both present in the ground truth.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q2",
+      "answer": "Yes",
+      "evidence": "Mentions the frontend Service, intended frontend workload, and unintended search workload.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q3",
+      "answer": "Yes",
+      "evidence": "Explains that traffic is spread across unrelated pods and search does not expose targetPort 5000, consistent with intermittent frontend request failures.",
+      "confidence": "High"
+     }
+    ]
+   }
+  },
+  {
+   "arm": 3,
+   "kind": "v1",
+   "model": "openrouter/openai/gpt-6-luna-decisions",
+   "position": 1,
+   "seconds": 2.9,
+   "requests": 2,
+   "input_tokens": 17673,
+   "cost_usd": 0.001767,
+   "error": null,
+   "investigation": {
+    "steps": [
+     {
+      "step": 1,
+      "node": "investigate",
+      "component": "deployment/frontend",
+      "verdict": "origin",
+      "origin_p": 0.96,
+      "victim_p": 0.03,
+      "next": "deployment/search",
+      "next_p": 0.7,
+      "category": "service_routing",
+      "spec_checks": [
+       "service frontend (selector {'service-route': 'frontend'}) also selects pods of deployment/search, which expose [8082, 9092] but not targetPort 5000"
+      ],
+      "blocked_input": null,
+      "key_evidence": "service frontend selects pods of 2 different workloads (also deployment/search) through selector {'service-route': 'frontend'}; its selector is broader than this workload, so traffic is spread across unrelated pods; deployment/search does not expose targetPort 5000 (its containers expose [8082, 9092])"
+     }
+    ],
+    "concluded": "deployment/frontend",
+    "fallback": null,
+    "triage_top": [
+     [
+      "deployment/frontend",
+      0.86
+     ],
+     [
+      "deployment/search",
+      0.12
+     ],
+     [
+      "deployment/geo",
+      0.01
+     ],
+     [
+      "deployment/user",
+      0.01
+     ],
+     [
+      "deployment/consul",
+      0.0
+     ]
+    ]
+   },
+   "text": "Root cause component: Deployment `frontend` in namespace `hotel-reservation`.\nMechanism: service frontend selects pods of 2 different workloads (also deployment/search) through selector {'service-route': 'frontend'}; its selector is broader than this workload, so traffic is spread across unrelated pods; deployment/search does not expose targetPort 5000 (its containers expose [8082, 9092]).\nFault object: Service `frontend`: Service frontend was modified 131s ago, 17s after it was created (fields: spec.selector).\nFault type: service routing (a Service selector or port sends traffic to the wrong pods or to none).\nConfiguration mismatches found by code:\n- service frontend (selector {'service-route': 'frontend'}) also selects pods of deployment/search, which expose [8082, 9092] but not targetPort 5000\nAbnormal state observed on this component:\n- Service frontend was modified 131s ago, 17s after it was created (fields: spec.selector)\n- spec modified 134s ago, 14s after this object was created (fields: template.labels.service-route); pod template changes: pod label pod-template-hash: bc766b7fc -> 86c6c7c8cb; pod label service-route added: frontend\n- container hotel-reserv-frontend: image ghcr.io/sregym/hotel-reservation:sha-d2c036bc3d1138f5a0bdaffd3d87f37522c3461a@sha256:1c685e1c4c304f327952397b3a99c54dadb086607774d71f222b200ec0d2e65e, limits {'cpu': '1'}\nClassification: Jev (openai/gpt-6-luna-decisions-20261006) confirmed this origin at investigation step 1 with probability 0.96 (triage probability 0.86).",
+   "grade": {
+    "judgment": "True",
+    "reasoning": "Verdict: True (composite=0.89). D1 Fault Localization: 0.67 | D2 Fault Characterization: 1.00 | D3 Scope Precision: 1.00. Weakest dimension: Fault Localization (0.67). Checklist details: [{\"id\": \"D1-Q1\", \"answer\": \"Yes\", \"evidence\": \"Explicitly identifies \\u201cFault object: Service `frontend`\\u201d and namespace `hotel-reservation`, matching the ground-truth target.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q2\", \"answer\": \"Yes\", \"evidence\": \"Attributes incorrect routing to the frontend Service selector; search is identified as an unintended selected workload.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q3\", \"answer\": \"No\", \"evidence\": \"The opening explicitly names Deployment `frontend` as the root-cause component, conflicting with the Service origin despite correctly identifying the fault object later.\", \"confidence\": \"Medium\"}, {\"id\": \"D2-Q1\", \"answer\": \"Yes\", \"evidence\": \"Describes an overly broad Service selector selecting pods from both frontend and search workloads.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q2\", \"answer\": \"Yes\", \"evidence\": \"Names selector `service-route=frontend`, frontend targetPort 5000, and search ports including 8082.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q3\", \"answer\": \"Yes\", \"evidence\": \"Classifies the fault as Service routing and specifically attributes it to the selector selecting unintended pods.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q1\", \"answer\": \"Yes\", \"evidence\": \"The causal explanation involves only the frontend Service, intended frontend pods, and unintended search pods, all present in ground truth.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q2\", \"answer\": \"Yes\", \"evidence\": \"Mentions the frontend Service and both frontend and search workloads selected by it.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q3\", \"answer\": \"Yes\", \"evidence\": \"Explains traffic spreads across unrelated pods and search does not expose targetPort 5000, consistent with intermittent frontend request failures.\", \"confidence\": \"High\"}]",
+    "success": true,
+    "accuracy": 89.0,
+    "composite_score": 0.89,
+    "dimensions": {
+     "D1": {
+      "name": "Fault Localization",
+      "score": 0.67
+     },
+     "D2": {
+      "name": "Fault Characterization",
+      "score": 1.0
+     },
+     "D3": {
+      "name": "Scope Precision",
+      "score": 1.0
+     }
+    },
+    "checklist": [
+     {
+      "id": "D1-Q1",
+      "answer": "Yes",
+      "evidence": "Explicitly identifies \u201cFault object: Service `frontend`\u201d and namespace `hotel-reservation`, matching the ground-truth target.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q2",
+      "answer": "Yes",
+      "evidence": "Attributes incorrect routing to the frontend Service selector; search is identified as an unintended selected workload.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q3",
+      "answer": "No",
+      "evidence": "The opening explicitly names Deployment `frontend` as the root-cause component, conflicting with the Service origin despite correctly identifying the fault object later.",
+      "confidence": "Medium"
+     },
+     {
+      "id": "D2-Q1",
+      "answer": "Yes",
+      "evidence": "Describes an overly broad Service selector selecting pods from both frontend and search workloads.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q2",
+      "answer": "Yes",
+      "evidence": "Names selector `service-route=frontend`, frontend targetPort 5000, and search ports including 8082.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q3",
+      "answer": "Yes",
+      "evidence": "Classifies the fault as Service routing and specifically attributes it to the selector selecting unintended pods.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q1",
+      "answer": "Yes",
+      "evidence": "The causal explanation involves only the frontend Service, intended frontend pods, and unintended search pods, all present in ground truth.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q2",
+      "answer": "Yes",
+      "evidence": "Mentions the frontend Service and both frontend and search workloads selected by it.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q3",
+      "answer": "Yes",
+      "evidence": "Explains traffic spreads across unrelated pods and search does not expose targetPort 5000, consistent with intermittent frontend request failures.",
+      "confidence": "High"
+     }
+    ]
+   }
+  }
+ ],
+ "submission": {
+  "status": "200",
+  "message": "Submission received",
+  "stage": "diagnosis"
+ },
+ "judge": {
+  "model": "gpt-6-astra",
+  "backend": "codex",
+  "effort": "high"
+ }
+}

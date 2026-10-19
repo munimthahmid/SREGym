@@ -1,0 +1,391 @@
+{
+ "problem_id": "missing_env_variable_astronomy_shop",
+ "source": "tgt_missing_env_variable_astronomy_shop",
+ "replay": true,
+ "arms": [
+  {
+   "arm": 0,
+   "kind": "v1",
+   "model": "typesafe/jev-1.13",
+   "position": 0,
+   "seconds": 4.0,
+   "requests": 6,
+   "input_tokens": 68369,
+   "error": null,
+   "component": "deployment/frontend",
+   "investigation": {
+    "steps": [
+     {
+      "step": 1,
+      "node": "investigate",
+      "component": "deployment/frontend",
+      "verdict": "victim",
+      "origin_p": 0.11,
+      "victim_p": 0.81,
+      "next": "deployment/email",
+      "next_p": 0.84,
+      "category": "config_value",
+      "spec_checks": [],
+      "blocked_input": null,
+      "key_evidence": "pod template changed in revision 2: container frontend env CART_ADDR removed"
+     },
+     {
+      "step": 2,
+      "node": "investigate",
+      "component": "deployment/email",
+      "verdict": "victim",
+      "origin_p": 0.08,
+      "victim_p": 0.44,
+      "next": "none",
+      "next_p": 0.43,
+      "category": "config_value",
+      "spec_checks": [],
+      "blocked_input": null,
+      "key_evidence": "errors logged by 1 other component(s) (deployment/frontend) name this component (error mentioning the component, 26 lines, still occurring), e.g. 'Error: 13 INTERNAL: shipping quote failure: failed POST to email service: expected 200, got 400'"
+     },
+     {
+      "step": 3,
+      "node": "investigate",
+      "component": "deployment/quote",
+      "verdict": "victim",
+      "origin_p": 0.05,
+      "victim_p": 0.51,
+      "next": "deployment/shipping",
+      "next_p": 0.78,
+      "category": "config_value",
+      "spec_checks": [],
+      "blocked_input": null,
+      "key_evidence": "dependency daemonset/otel-collector-agent is abnormal on its own: spec modified 89s ago, 18s after this object was created (fields: template.annotations.kubectl.kubernetes.io/restartedAt); pod template changes: template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-19T13:37:04+06:00; 45s before the first active symptom"
+     },
+     {
+      "step": 4,
+      "node": "investigate",
+      "component": "deployment/shipping",
+      "verdict": "victim",
+      "origin_p": 0.07,
+      "victim_p": 0.48,
+      "next": "none",
+      "next_p": 0.48,
+      "category": "resource_limits",
+      "spec_checks": [],
+      "blocked_input": null,
+      "key_evidence": "dependency daemonset/otel-collector-agent is abnormal on its own: spec modified 89s ago, 18s after this object was created (fields: template.annotations.kubectl.kubernetes.io/restartedAt); pod template changes: template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-19T13:37:04+06:00; 45s before the first active symptom"
+     },
+     {
+      "step": 5,
+      "node": "investigate",
+      "component": "daemonset/otel-collector-agent",
+      "verdict": "unrelated",
+      "origin_p": 0.22,
+      "victim_p": 0.17,
+      "next": "none",
+      "next_p": 0.7,
+      "category": "config_value",
+      "spec_checks": [],
+      "blocked_input": null,
+      "key_evidence": "ConfigMap otel-collector-agent key relay: connectors: \u23ce spanmetrics: {} \u23ce exporters: \u23ce debug: {} \u23ce opensearch: \u23ce http: \u23ce endpoint: http://opensearch:9200 \u23ce tls: \u23ce insecure: true \u23ce logs_index: otel-logs \u23ce logs_index_time_format: yyyy-MM-dd \u23ce otlp/jaeger: \u23ce endpoint: jaeger:4317 \u23ce sending_queue: \u23ce batch: null \u23ce tls: \u23ce insecure: true \u23ce otlphttp/prometheus: \u23ce endpoint: http://prometheus:9090/api/v1/otlp \u23ce sending_queue: \u23ce batch: null \u23ce tls: \u2026"
+     }
+    ],
+    "concluded": "deployment/frontend",
+    "fallback": "triage top-1 (telemetry components skipped)",
+    "triage_top": [
+     [
+      "deployment/frontend",
+      0.4
+     ],
+     [
+      "deployment/email",
+      0.32
+     ],
+     [
+      "daemonset/otel-collector-agent",
+      0.23
+     ],
+     [
+      "deployment/checkout",
+      0.02
+     ],
+     [
+      "deployment/cart",
+      0.01
+     ]
+    ]
+   },
+   "text": "Root cause component: Deployment `frontend` in namespace `astronomy-shop`.\nMechanism: pod template changed in revision 2: container frontend env CART_ADDR removed.\nFault type: config value (a wrong, missing, or shadowed value in this component's own configuration).\nAbnormal state observed on this component:\n- 80 error-like log lines still occurring in the recent pod logs\n- container frontend: image ghcr.io/open-telemetry/demo:2.2.0-frontend, limits {'memory': '250Mi'}\nError-like log lines still occurring:\n- x54: frontend: \u2a2f Error: Could not parse target name \"\"\n- x13: frontend: Error: 13 INTERNAL: shipping quote failure: failed POST to email service: expected 200, got 400\n- x13: frontend: details: 'shipping quote failure: failed POST to email service: expected 200, got 400',\nClassification: Jev (typesafe/jev-1.13-20260917) selected this origin as the most likely candidate after 5 investigation step(s) (origin probability 0.11, triage probability 0.40).\nLow confidence: `deployment/email` (probability 0.32) cannot be ruled out."
+  },
+  {
+   "arm": 1,
+   "kind": "v1",
+   "model": "openai/gpt-6-luna-decisions",
+   "position": 1,
+   "seconds": 5.0,
+   "requests": 7,
+   "input_tokens": 55269,
+   "error": null,
+   "component": "deployment/frontend",
+   "investigation": {
+    "steps": [
+     {
+      "step": 1,
+      "node": "investigate",
+      "component": "deployment/frontend",
+      "verdict": "origin",
+      "origin_p": 0.47,
+      "victim_p": 0.29,
+      "next": "deployment/email",
+      "next_p": 0.72,
+      "category": "config_value",
+      "spec_checks": [],
+      "blocked_input": null,
+      "key_evidence": "pod template changed in revision 2: container frontend env CART_ADDR removed"
+     },
+     {
+      "step": 2,
+      "node": "investigate",
+      "component": "deployment/email",
+      "verdict": "victim",
+      "origin_p": 0.28,
+      "victim_p": 0.36,
+      "next": "deployment/checkout",
+      "next_p": 0.9,
+      "category": "code_bug",
+      "spec_checks": [],
+      "blocked_input": null,
+      "key_evidence": "container email env OTEL_EXPORTER_OTLP_ENDPOINT=http://$(OTEL_COLLECTOR_NAME):4318"
+     },
+     {
+      "step": 3,
+      "node": "investigate",
+      "component": "deployment/quote",
+      "verdict": "victim",
+      "origin_p": 0.15,
+      "victim_p": 0.4,
+      "next": "deployment/shipping",
+      "next_p": 0.43,
+      "category": "config_value",
+      "spec_checks": [],
+      "blocked_input": null,
+      "key_evidence": "dependency daemonset/otel-collector-agent is abnormal on its own: spec modified 89s ago, 18s after this object was created (fields: template.annotations.kubectl.kubernetes.io/restartedAt); pod template changes: template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-19T13:37:04+06:00; 45s before the first active symptom"
+     },
+     {
+      "step": 4,
+      "node": "investigate",
+      "component": "deployment/shipping",
+      "verdict": "origin",
+      "origin_p": 0.33,
+      "victim_p": 0.27,
+      "next": "none",
+      "next_p": 0.58,
+      "category": "config_value",
+      "spec_checks": [],
+      "blocked_input": null,
+      "key_evidence": "container shipping env QUOTE_ADDR=http://quote:8080"
+     },
+     {
+      "step": 5,
+      "node": "investigate",
+      "component": "daemonset/otel-collector-agent",
+      "verdict": "unrelated",
+      "origin_p": 0.26,
+      "victim_p": 0.12,
+      "next": "none",
+      "next_p": 0.28,
+      "category": "config_value",
+      "spec_checks": [],
+      "blocked_input": null,
+      "key_evidence": "pod template changed in revision 2: template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-19T13:37:04+06:00"
+     },
+     {
+      "step": 6,
+      "node": "investigate",
+      "component": "deployment/checkout",
+      "verdict": "unrelated",
+      "origin_p": 0.07,
+      "victim_p": 0.14,
+      "next": "none",
+      "next_p": 0.52,
+      "category": "other",
+      "spec_checks": [],
+      "blocked_input": null,
+      "key_evidence": "dependency daemonset/otel-collector-agent is abnormal on its own: spec modified 89s ago, 18s after this object was created (fields: template.annotations.kubectl.kubernetes.io/restartedAt); pod template changes: template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-19T13:37:04+06:00; 45s before the first active symptom"
+     }
+    ],
+    "concluded": "deployment/frontend",
+    "fallback": "most likely origin among investigated components",
+    "triage_top": [
+     [
+      "deployment/frontend",
+      0.47
+     ],
+     [
+      "deployment/email",
+      0.15
+     ],
+     [
+      "deployment/quote",
+      0.15
+     ],
+     [
+      "deployment/shipping",
+      0.08
+     ],
+     [
+      "daemonset/otel-collector-agent",
+      0.07
+     ]
+    ]
+   },
+   "text": "Root cause component: Deployment `frontend` in namespace `astronomy-shop`.\nMechanism: pod template changed in revision 2: container frontend env CART_ADDR removed.\nFault type: config value (a wrong, missing, or shadowed value in this component's own configuration).\nAbnormal state observed on this component:\n- 80 error-like log lines still occurring in the recent pod logs\n- container frontend: image ghcr.io/open-telemetry/demo:2.2.0-frontend, limits {'memory': '250Mi'}\nError-like log lines still occurring:\n- x54: frontend: \u2a2f Error: Could not parse target name \"\"\n- x13: frontend: Error: 13 INTERNAL: shipping quote failure: failed POST to email service: expected 200, got 400\n- x13: frontend: details: 'shipping quote failure: failed POST to email service: expected 200, got 400',\nClassification: Jev (openai/gpt-6-luna-decisions-20261006) selected this origin as the most likely candidate after 6 investigation step(s) (origin probability 0.47, triage probability 0.47)."
+  },
+  {
+   "arm": 2,
+   "kind": "v2",
+   "model": "typesafe/jev-1.13",
+   "position": 2,
+   "seconds": 4.2,
+   "requests": 5,
+   "input_tokens": 58591,
+   "error": null,
+   "component": "deployment/frontend",
+   "investigation": {
+    "steps": [
+     {
+      "step": 1,
+      "node": "investigate",
+      "component": "deployment/frontend",
+      "verdict": "victim",
+      "origin_p": 0.37,
+      "victim_p": 0.6,
+      "next": "deployment/email",
+      "next_p": 0.7,
+      "category": "config_value",
+      "spec_checks": [],
+      "blocked_input": null,
+      "key_evidence": "pod template changed in revision 2: container frontend env CART_ADDR removed"
+     },
+     {
+      "step": 2,
+      "node": "investigate",
+      "component": "deployment/email",
+      "verdict": "victim",
+      "origin_p": 0.04,
+      "victim_p": 0.61,
+      "next": "deployment/checkout",
+      "next_p": 0.61,
+      "category": "config_value",
+      "spec_checks": [],
+      "blocked_input": null,
+      "key_evidence": "container email env OTEL_EXPORTER_OTLP_ENDPOINT=http://$(OTEL_COLLECTOR_NAME):4318"
+     },
+     {
+      "step": 3,
+      "node": "investigate",
+      "component": "deployment/checkout",
+      "verdict": "unrelated",
+      "origin_p": 0.01,
+      "victim_p": 0.03,
+      "next": "none",
+      "next_p": 0.66,
+      "category": "resource_limits",
+      "spec_checks": [],
+      "blocked_input": null,
+      "key_evidence": "container checkout env OTEL_EXPORTER_OTLP_ENDPOINT=http://$(OTEL_COLLECTOR_NAME):4317"
+     },
+     {
+      "step": 4,
+      "node": "investigate",
+      "component": "deployment/shipping",
+      "verdict": "unrelated",
+      "origin_p": 0.01,
+      "victim_p": 0.11,
+      "next": "none",
+      "next_p": 0.65,
+      "category": "other",
+      "spec_checks": [],
+      "blocked_input": null,
+      "key_evidence": "dependency daemonset/otel-collector-agent is abnormal on its own: rolling restart 89s ago (only the restart annotation changed; no setting changed); 45s before the first active symptom"
+     }
+    ],
+    "concluded": "deployment/frontend",
+    "fallback": "triage top-1 (telemetry components skipped)",
+    "triage_top": [
+     [
+      "deployment/frontend",
+      0.89
+     ],
+     [
+      "deployment/email",
+      0.11
+     ],
+     [
+      "deployment/accounting",
+      0.0
+     ],
+     [
+      "deployment/ad",
+      0.0
+     ],
+     [
+      "deployment/cart",
+      0.0
+     ]
+    ]
+   },
+   "text": "Root cause: Deployment `frontend` in namespace `astronomy-shop`: pod template changed in revision 2: container frontend env CART_ADDR removed.\nMechanism: the component logs \"\u2a2f Error: Could not parse target name \"\"\".\nDetails: container frontend env CART_ADDR removed.\nEffect: its pods are Running and Ready."
+  },
+  {
+   "arm": 3,
+   "kind": "v2",
+   "model": "openai/gpt-6-luna-decisions",
+   "position": 3,
+   "seconds": 1.2,
+   "requests": 2,
+   "input_tokens": 23817,
+   "error": null,
+   "component": "deployment/frontend",
+   "investigation": {
+    "steps": [
+     {
+      "step": 1,
+      "node": "investigate",
+      "component": "deployment/frontend",
+      "verdict": "origin",
+      "origin_p": 0.91,
+      "victim_p": 0.06,
+      "next": "deployment/email",
+      "next_p": 0.72,
+      "category": "config_value",
+      "spec_checks": [],
+      "blocked_input": null,
+      "key_evidence": "pod template changed in revision 2: container frontend env CART_ADDR removed"
+     }
+    ],
+    "concluded": "deployment/frontend",
+    "fallback": null,
+    "triage_top": [
+     [
+      "deployment/frontend",
+      0.89
+     ],
+     [
+      "deployment/email",
+      0.06
+     ],
+     [
+      "deployment/accounting",
+      0.01
+     ],
+     [
+      "deployment/frontend-proxy",
+      0.01
+     ],
+     [
+      "deployment/product-catalog",
+      0.01
+     ]
+    ]
+   },
+   "text": "Root cause: Deployment `frontend` in namespace `astronomy-shop`: pod template changed in revision 2: container frontend env CART_ADDR removed.\nMechanism: the component logs \"\u2a2f Error: Could not parse target name \"\"\".\nDetails: container frontend env CART_ADDR removed.\nEffect: its pods are Running and Ready."
+  }
+ ]
+}

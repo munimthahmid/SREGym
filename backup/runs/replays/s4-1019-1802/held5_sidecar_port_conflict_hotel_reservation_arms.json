@@ -1,0 +1,123 @@
+{
+ "problem_id": "sidecar_port_conflict_hotel_reservation",
+ "source": "held5_sidecar_port_conflict_hotel_reservation",
+ "replay": true,
+ "arms": [
+  {
+   "arm": 0,
+   "kind": "v2",
+   "model": "typesafe/jev-1.13",
+   "position": 0,
+   "seconds": 2.0,
+   "requests": 2,
+   "input_tokens": 26874,
+   "error": null,
+   "model_failed": false,
+   "component": "deployment/frontend",
+   "investigation": {
+    "steps": [
+     {
+      "step": 1,
+      "node": "investigate",
+      "component": "deployment/frontend",
+      "verdict": "origin",
+      "origin_p": 1.0,
+      "victim_p": 0.0,
+      "next": "none",
+      "next_p": 1.0,
+      "category": "config_value",
+      "spec_checks": [
+       "service frontend has no ready endpoints"
+      ],
+      "blocked_input": null,
+      "key_evidence": "previous log frontend-77cb75bf8-jkjrg/sidecar: nc: bind: Address already in use"
+     }
+    ],
+    "concluded": "deployment/frontend",
+    "fallback": null,
+    "triage_top": [
+     [
+      "deployment/frontend",
+      0.99
+     ],
+     [
+      "other",
+      0.01
+     ],
+     [
+      "deployment/consul",
+      0.0
+     ],
+     [
+      "deployment/geo",
+      0.0
+     ],
+     [
+      "deployment/jaeger",
+      0.0
+     ]
+    ],
+    "second": null
+   },
+   "text": "Root cause: Service `frontend` (Deployment `frontend`) in namespace `hotel-reservation`: previous log frontend-77cb75bf8-jkjrg/sidecar: nc: bind: Address already in use.\nMechanism: warning events: BackOff x11.\nDetails: service frontend has no ready endpoints.\nEffect: only 0 of 1 desired replicas are ready; pod frontend-77cb75bf8-jkjrg: container sidecar waiting in CrashLoopBackOff.\nObserved: pod frontend-77cb75bf8-jkjrg: container sidecar restarted 4 times; service frontend selects this component but has 0 ready endpoints; pod frontend-77cb75bf8-jkjrg: container sidecar restarted 1 more time(s) in the last 0s; warning event BackOff on pod/frontend-77cb75bf8-jkjrg repeated 4 more time(s) in the last 0s."
+  },
+  {
+   "arm": 1,
+   "kind": "v2",
+   "model": "openai/gpt-6-luna-decisions",
+   "position": 1,
+   "seconds": 1.8,
+   "requests": 2,
+   "input_tokens": 17793,
+   "error": null,
+   "model_failed": false,
+   "component": "deployment/frontend",
+   "investigation": {
+    "steps": [
+     {
+      "step": 1,
+      "node": "investigate",
+      "component": "deployment/frontend",
+      "verdict": "origin",
+      "origin_p": 0.94,
+      "victim_p": 0.04,
+      "next": "none",
+      "next_p": 0.84,
+      "category": "config_value",
+      "spec_checks": [
+       "service frontend has no ready endpoints"
+      ],
+      "blocked_input": null,
+      "key_evidence": "container sidecar command: sh -c exec nc -lk -p 5000"
+     }
+    ],
+    "concluded": "deployment/frontend",
+    "fallback": null,
+    "triage_top": [
+     [
+      "deployment/frontend",
+      1.0
+     ],
+     [
+      "deployment/consul",
+      0.0
+     ],
+     [
+      "deployment/geo",
+      0.0
+     ],
+     [
+      "deployment/jaeger",
+      0.0
+     ],
+     [
+      "deployment/memcached-profile",
+      0.0
+     ]
+    ],
+    "second": null
+   },
+   "text": "Root cause: Service `frontend` (Deployment `frontend`) in namespace `hotel-reservation`: container sidecar command: sh -c exec nc -lk -p 5000.\nMechanism: warning events: BackOff x11.\nDetails: service frontend has no ready endpoints.\nEffect: only 0 of 1 desired replicas are ready; pod frontend-77cb75bf8-jkjrg: container sidecar waiting in CrashLoopBackOff.\nObserved: pod frontend-77cb75bf8-jkjrg: container sidecar restarted 4 times; service frontend selects this component but has 0 ready endpoints; pod frontend-77cb75bf8-jkjrg: container sidecar restarted 1 more time(s) in the last 0s; warning event BackOff on pod/frontend-77cb75bf8-jkjrg repeated 4 more time(s) in the last 0s."
+  }
+ ]
+}

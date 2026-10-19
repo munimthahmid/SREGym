@@ -1,0 +1,115 @@
+{
+ "problem_id": "jev_diag_anon_35f55ecc6f76198f4920e973ece2b7aa_20261019_051850",
+ "submit_arm": 0,
+ "order": [
+  2,
+  0,
+  3,
+  1
+ ],
+ "arms": [
+  {
+   "arm": 0,
+   "kind": "v2",
+   "model": "openrouter/typesafe/jev-1.13",
+   "position": 1,
+   "seconds": 5.9,
+   "requests": 4,
+   "input_tokens": 30128,
+   "cost_usd": 0.001265,
+   "error": null,
+   "investigation": {
+    "rounds": [
+     {
+      "candidates": [
+       "acts-on:clusterrole/configmap-cleanup-controller:bound workload deployment/cleanup-controller logs authorizat",
+       "acts-on:configmap/hotel-reservation/reservation-cleanup-token:terminating for 128s, held by finalizer cleanup.reservations",
+       "partial:deployment/cleanup-controller",
+       "change:deployment/mongodb-geo:volume failure-script added: {\"configMap\": {\"defaultMode\": 420, \"name\": \"failure-admin-geo\"}}",
+       "change:deployment/mongodb-geo:container hotel-reserv-geo-mongo mounts volume failure-script at /scripts",
+       "change:deployment/mongodb-geo:together"
+      ],
+      "probabilities": {
+       "acts-on:clusterrole/configmap-cleanup-controller:bound workload deployment/cleanup-controller logs authorizat": 0.87,
+       "acts-on:configmap/hotel-reservation/reservation-cleanup-token:terminating for 128s, held by finalizer cleanup.reservations": 0.13,
+       "partial:deployment/cleanup-controller": 0.0,
+       "change:deployment/mongodb-geo:volume failure-script added: {\"configMap\": {\"defaultMode\": 420, \"name\": \"failure-admin-geo\"}}": 0.0,
+       "change:deployment/mongodb-geo:container hotel-reserv-geo-mongo mounts volume failure-script at /scripts": 0.0,
+       "change:deployment/mongodb-geo:together": 0.0,
+       "none_of_these": 0.0
+      },
+      "picks": [
+       "acts-on:clusterrole/configmap-cleanup-controller:bound workload deployment/cleanup-controller logs authorizat",
+       "acts-on:clusterrole/configmap-cleanup-controller:bound workload deployment/cleanup-controller logs authorizat"
+      ],
+      "route": "accept"
+     }
+    ],
+    "explanations": 9,
+    "winner": "acts-on:clusterrole/configmap-cleanup-controller:bound workload deployment/cleanup-controller logs authorizat",
+    "pattern": "acts-on",
+    "key_fact": "ConfigMap reservation-cleanup-token has been terminating for 128s, held by finalizer cleanup.reservations.io/pending-cleanup; linked to this component because its ClusterRole configmap-cleanup-controller covers configmaps and its logs show authorization denials; removing a finalizer requires patch or update on configmaps, which ClusterRole configmap-cleanup-controller does not grant (it grants get, list, watch)",
+    "key_fact_probability": 0.895,
+    "fault_type": "rbac_permission",
+    "fault_object": null,
+    "uncertain": false
+   },
+   "text": "Root cause: clusterrole `configmap-cleanup-controller`.\nMechanism: ConfigMap reservation-cleanup-token has been terminating for 128s, held by finalizer cleanup.reservations.io/pending-cleanup; linked to this component because its ClusterRole configmap-cleanup-controller covers configmaps and its logs show authorization denials; removing a finalizer requires patch or update on configmaps, which ClusterRole configmap-cleanup-controller does not grant (it grants get, list, watch).\nHow it fails: clusterrole configmap-cleanup-controller acts on deployment/cleanup-controller: bound workload deployment/cleanup-controller logs authorization denials (63 lines); bound via ClusterRoleBinding/configmap-cleanup-controller to deployment/cleanup-controller.\nConcrete details: bound workload deployment/cleanup-controller logs authorization denials (63 lines); bound via ClusterRoleBinding/configmap-cleanup-controller to deployment/cleanup-controller; ConfigMap reservation-cleanup-token has been terminating for 128s, held by finalizer cleanup.reservations.io/pending-cleanup; linked to this component because its ClusterRole configmap-cleanup-controller covers configmaps and its logs show authorization denials; removing a finalizer requires patch or update on configmaps, which ClusterRole configmap-cleanup-controller does not grant (it grants get, list, watch).\nObserved impact: deployment `cleanup-controller` in namespace `hotel-reservation`.\nFault type: rbac permission (the component is denied Kubernetes API operations it needs).\nEvidence:\n- bound workload deployment/cleanup-controller logs authorization denials (63 lines); bound via ClusterRoleBinding/configmap-cleanup-controller to deployment/cleanup-controller\n- ConfigMap reservation-cleanup-token has been terminating for 128s, held by finalizer cleanup.reservations.io/pending-cleanup; linked to this component because its ClusterRole configmap-cleanup-controller covers configmaps and its logs show authorization denials; removing a finalizer requires patch or update on configmaps, which ClusterRole configmap-cleanup-controller does not grant (it grants get, list, watch)\n- deployment/cleanup-controller: service account hotel-reservation/cleanup-controller is bound to ClusterRole/configmap-cleanup-controller granting: configmaps [core]: get,list,watch",
+   "text_before_rerender": "Root cause: clusterrole `configmap-cleanup-controller`.\nMechanism: clusterrole configmap-cleanup-controller acts on deployment/cleanup-controller: bound workload deployment/cleanup-controller logs authorization denials (63 lines); bound via ClusterRoleBinding/configmap-cleanup-controller to deployment/cleanup-controller.\nConcrete details: bound workload deployment/cleanup-controller logs authorization denials (63 lines); bound via ClusterRoleBinding/configmap-cleanup-controller to deployment/cleanup-controller; ConfigMap reservation-cleanup-token has been terminating for 128s, held by finalizer cleanup.reservations.io/pending-cleanup; linked to this component because its ClusterRole configmap-cleanup-controller covers configmaps and its logs show authorization denials; removing a finalizer requires patch or update on configmaps, which ClusterRole configmap-cleanup-controller does not grant (it grants get, list, watch).\nObserved impact: deployment `cleanup-controller` in namespace `hotel-reservation`.\nFault type: rbac permission (the component is denied Kubernetes API operations it needs).\nEvidence:\n- bound workload deployment/cleanup-controller logs authorization denials (63 lines); bound via ClusterRoleBinding/configmap-cleanup-controller to deployment/cleanup-controller\n- ConfigMap reservation-cleanup-token has been terminating for 128s, held by finalizer cleanup.reservations.io/pending-cleanup; linked to this component because its ClusterRole configmap-cleanup-controller covers configmaps and its logs show authorization denials; removing a finalizer requires patch or update on configmaps, which ClusterRole configmap-cleanup-controller does not grant (it grants get, list, watch)\n- deployment/cleanup-controller: service account hotel-reservation/cleanup-controller is bound to ClusterRole/configmap-cleanup-controller granting: configmaps [core]: get,list,watch"
+  },
+  {
+   "arm": 1,
+   "kind": "v2",
+   "model": "openrouter/openai/gpt-6-luna-decisions",
+   "position": 3,
+   "seconds": 5.5,
+   "requests": 4,
+   "input_tokens": 21034,
+   "cost_usd": 0.002103,
+   "error": null,
+   "investigation": {
+    "rounds": [
+     {
+      "candidates": [
+       "acts-on:clusterrole/configmap-cleanup-controller:bound workload deployment/cleanup-controller logs authorizat",
+       "acts-on:configmap/hotel-reservation/reservation-cleanup-token:terminating for 128s, held by finalizer cleanup.reservations",
+       "partial:deployment/cleanup-controller",
+       "change:deployment/mongodb-geo:volume failure-script added: {\"configMap\": {\"defaultMode\": 420, \"name\": \"failure-admin-geo\"}}",
+       "change:deployment/mongodb-geo:container hotel-reserv-geo-mongo mounts volume failure-script at /scripts",
+       "change:deployment/mongodb-geo:together"
+      ],
+      "probabilities": {
+       "acts-on:clusterrole/configmap-cleanup-controller:bound workload deployment/cleanup-controller logs authorizat": 0.79,
+       "acts-on:configmap/hotel-reservation/reservation-cleanup-token:terminating for 128s, held by finalizer cleanup.reservations": 0.034999999999999996,
+       "partial:deployment/cleanup-controller": 0.035,
+       "change:deployment/mongodb-geo:volume failure-script added: {\"configMap\": {\"defaultMode\": 420, \"name\": \"failure-admin-geo\"}}": 0.01,
+       "change:deployment/mongodb-geo:container hotel-reserv-geo-mongo mounts volume failure-script at /scripts": 0.015,
+       "change:deployment/mongodb-geo:together": 0.11,
+       "none_of_these": 0.005
+      },
+      "picks": [
+       "acts-on:clusterrole/configmap-cleanup-controller:bound workload deployment/cleanup-controller logs authorizat",
+       "acts-on:clusterrole/configmap-cleanup-controller:bound workload deployment/cleanup-controller logs authorizat"
+      ],
+      "route": "accept"
+     }
+    ],
+    "explanations": 9,
+    "winner": "acts-on:clusterrole/configmap-cleanup-controller:bound workload deployment/cleanup-controller logs authorizat",
+    "pattern": "acts-on",
+    "key_fact": "ConfigMap reservation-cleanup-token has been terminating for 128s, held by finalizer cleanup.reservations.io/pending-cleanup; linked to this component because its ClusterRole configmap-cleanup-controller covers configmaps and its logs show authorization denials; removing a finalizer requires patch or update on configmaps, which ClusterRole configmap-cleanup-controller does not grant (it grants get, list, watch)",
+    "key_fact_probability": 0.63,
+    "fault_type": "rbac_permission",
+    "fault_object": null,
+    "uncertain": false
+   },
+   "text": "Root cause: clusterrole `configmap-cleanup-controller`.\nMechanism: ConfigMap reservation-cleanup-token has been terminating for 128s, held by finalizer cleanup.reservations.io/pending-cleanup; linked to this component because its ClusterRole configmap-cleanup-controller covers configmaps and its logs show authorization denials; removing a finalizer requires patch or update on configmaps, which ClusterRole configmap-cleanup-controller does not grant (it grants get, list, watch).\nHow it fails: clusterrole configmap-cleanup-controller acts on deployment/cleanup-controller: bound workload deployment/cleanup-controller logs authorization denials (63 lines); bound via ClusterRoleBinding/configmap-cleanup-controller to deployment/cleanup-controller.\nConcrete details: bound workload deployment/cleanup-controller logs authorization denials (63 lines); bound via ClusterRoleBinding/configmap-cleanup-controller to deployment/cleanup-controller; ConfigMap reservation-cleanup-token has been terminating for 128s, held by finalizer cleanup.reservations.io/pending-cleanup; linked to this component because its ClusterRole configmap-cleanup-controller covers configmaps and its logs show authorization denials; removing a finalizer requires patch or update on configmaps, which ClusterRole configmap-cleanup-controller does not grant (it grants get, list, watch).\nObserved impact: deployment `cleanup-controller` in namespace `hotel-reservation`.\nFault type: rbac permission (the component is denied Kubernetes API operations it needs).\nEvidence:\n- bound workload deployment/cleanup-controller logs authorization denials (63 lines); bound via ClusterRoleBinding/configmap-cleanup-controller to deployment/cleanup-controller\n- ConfigMap reservation-cleanup-token has been terminating for 128s, held by finalizer cleanup.reservations.io/pending-cleanup; linked to this component because its ClusterRole configmap-cleanup-controller covers configmaps and its logs show authorization denials; removing a finalizer requires patch or update on configmaps, which ClusterRole configmap-cleanup-controller does not grant (it grants get, list, watch)\n- deployment/cleanup-controller: service account hotel-reservation/cleanup-controller is bound to ClusterRole/configmap-cleanup-controller granting: configmaps [core]: get,list,watch",
+   "text_before_rerender": "Root cause: clusterrole `configmap-cleanup-controller`.\nMechanism: clusterrole configmap-cleanup-controller acts on deployment/cleanup-controller: bound workload deployment/cleanup-controller logs authorization denials (63 lines); bound via ClusterRoleBinding/configmap-cleanup-controller to deployment/cleanup-controller.\nConcrete details: bound workload deployment/cleanup-controller logs authorization denials (63 lines); bound via ClusterRoleBinding/configmap-cleanup-controller to deployment/cleanup-controller; ConfigMap reservation-cleanup-token has been terminating for 128s, held by finalizer cleanup.reservations.io/pending-cleanup; linked to this component because its ClusterRole configmap-cleanup-controller covers configmaps and its logs show authorization denials; removing a finalizer requires patch or update on configmaps, which ClusterRole configmap-cleanup-controller does not grant (it grants get, list, watch).\nObserved impact: deployment `cleanup-controller` in namespace `hotel-reservation`.\nFault type: rbac permission (the component is denied Kubernetes API operations it needs).\nEvidence:\n- bound workload deployment/cleanup-controller logs authorization denials (63 lines); bound via ClusterRoleBinding/configmap-cleanup-controller to deployment/cleanup-controller\n- ConfigMap reservation-cleanup-token has been terminating for 128s, held by finalizer cleanup.reservations.io/pending-cleanup; linked to this component because its ClusterRole configmap-cleanup-controller covers configmaps and its logs show authorization denials; removing a finalizer requires patch or update on configmaps, which ClusterRole configmap-cleanup-controller does not grant (it grants get, list, watch)\n- deployment/cleanup-controller: service account hotel-reservation/cleanup-controller is bound to ClusterRole/configmap-cleanup-controller granting: configmaps [core]: get,list,watch"
+  }
+ ],
+ "submission": {
+  "status": "200",
+  "message": "Submission received",
+  "stage": "diagnosis"
+ }
+}

@@ -1,0 +1,253 @@
+{
+ "problem_id": "jev_diag_anon_d51c4b731260843e97e4fea9d593abbf_20261018_161831",
+ "submit_arm": 0,
+ "order": [
+  2,
+  3,
+  0,
+  1
+ ],
+ "arms": [
+  {
+   "arm": 0,
+   "kind": "v2",
+   "model": "openrouter/typesafe/jev-1.13",
+   "position": 2,
+   "seconds": 4.5,
+   "requests": 4,
+   "input_tokens": 14928,
+   "cost_usd": 0.000627,
+   "error": null,
+   "investigation": {
+    "rounds": [
+     {
+      "candidates": [
+       "dependency:deployment/rate",
+       "amplify:deployment/search->deployment/rate",
+       "partial:deployment/rate",
+       "partial:deployment/search"
+      ],
+      "probabilities": {
+       "dependency:deployment/rate": 0.5,
+       "amplify:deployment/search->deployment/rate": 0.41500000000000004,
+       "partial:deployment/rate": 0.075,
+       "partial:deployment/search": 0.0,
+       "none_of_these": 0.01
+      },
+      "picks": [
+       "dependency:deployment/rate",
+       "dependency:deployment/rate"
+      ],
+      "route": "check"
+     },
+     {
+      "candidates": [
+       "dependency:deployment/rate",
+       "amplify:deployment/search->deployment/rate",
+       "partial:deployment/rate",
+       "partial:deployment/search"
+      ],
+      "probabilities": {
+       "dependency:deployment/rate": 0.02,
+       "amplify:deployment/search->deployment/rate": 0.9299999999999999,
+       "partial:deployment/rate": 0.015,
+       "partial:deployment/search": 0.0,
+       "none_of_these": 0.035
+      },
+      "picks": [
+       "amplify:deployment/search->deployment/rate",
+       "amplify:deployment/search->deployment/rate"
+      ],
+      "route": "accept"
+     }
+    ],
+    "explanations": 4,
+    "winner": "amplify:deployment/search->deployment/rate",
+    "pattern": "amplify",
+    "uncertain": false
+   },
+   "text": "Root cause: the interaction between `search` (caller) and `rate` (callee) in namespace `hotel-reservation`.\nMechanism: Calls from deployment/search to deployment/rate time out; deployment/search retries them, and the retries add load that keeps deployment/rate saturated, so the failure sustains itself.\nConcrete details: deployment/search RATE_RPC_TIMEOUT_MS=750; deployment/search RATE_RPC_MAX_ATTEMPTS=3; deployment/search RATE_RPC_INITIAL_BACKOFF_MS=50; deployment/search RATE_RPC_BACKOFF_MULTIPLIER=2.0; deployment/search RATE_RPC_JITTER=0.2; deployment/rate RATE_BACKEND_QPS_LIMIT=20; deployment/rate RATE_QUEUE_CAPACITY=256.\nContributing: deployment `search` in namespace `hotel-reservation`, deployment `rate` in namespace `hotel-reservation`.\nObserved impact: deployment `rate` in namespace `hotel-reservation`, deployment `search` in namespace `hotel-reservation`.\nEvidence:\n- deployment/search RATE_RPC_TIMEOUT_MS=750\n- deployment/search RATE_RPC_MAX_ATTEMPTS=3\n- deployment/search RATE_RPC_INITIAL_BACKOFF_MS=50\n- deployment/search RATE_RPC_BACKOFF_MULTIPLIER=2.0\n- deployment/search RATE_RPC_JITTER=0.2\n- deployment/rate RATE_BACKEND_QPS_LIMIT=20\n- deployment/rate RATE_QUEUE_CAPACITY=256\n- deployment/rate: errors logged by 1 other component(s) (deployment/search) name this component (connectivity or timeout, 64 lines, still occurring), e.g. '2026-10-18T16:20:29Z WRN services/search/server.go:252 > downstream request failed dependency=rate grpc_code=DeadlineExceeded'"
+  },
+  {
+   "arm": 1,
+   "kind": "v2",
+   "model": "openrouter/openai/gpt-6-luna-decisions",
+   "position": 3,
+   "seconds": 1.1,
+   "requests": 2,
+   "input_tokens": 1376,
+   "cost_usd": 0.000138,
+   "error": null,
+   "investigation": {
+    "rounds": [
+     {
+      "candidates": [
+       "dependency:deployment/rate",
+       "amplify:deployment/search->deployment/rate",
+       "partial:deployment/rate",
+       "partial:deployment/search"
+      ],
+      "probabilities": {
+       "dependency:deployment/rate": 0.225,
+       "amplify:deployment/search->deployment/rate": 0.065,
+       "partial:deployment/rate": 0.62,
+       "partial:deployment/search": 0.02,
+       "none_of_these": 0.07
+      },
+      "picks": [
+       "partial:deployment/rate",
+       "partial:deployment/rate"
+      ],
+      "route": "accept"
+     }
+    ],
+    "explanations": 4,
+    "winner": "partial:deployment/rate",
+    "pattern": "partial",
+    "uncertain": false
+   },
+   "text": "Root cause: deployment `rate` in namespace `hotel-reservation`.\nMechanism: not established from the collected evidence.\nObserved impact: deployment `rate` in namespace `hotel-reservation`, deployment `search` in namespace `hotel-reservation`.\nEvidence:\n- errors logged by 1 other component(s) (deployment/search) name this component (connectivity or timeout, 64 lines, still occurring), e.g. '2026-10-18T16:20:29Z WRN services/search/server.go:252 > downstream request failed dependency=rate grpc_code=DeadlineExceeded'\n- deployment/rate: errors logged by 1 other component(s) (deployment/search) name this component (connectivity or timeout, 64 lines, still occurring), e.g. '2026-10-18T16:20:29Z WRN services/search/server.go:252 > downstream request failed dependency=rate grpc_code=DeadlineExceeded'"
+  },
+  {
+   "arm": 2,
+   "kind": "v1",
+   "model": "openrouter/typesafe/jev-1.13",
+   "position": 0,
+   "seconds": 4.7,
+   "requests": 3,
+   "input_tokens": 32748,
+   "cost_usd": 0.001375,
+   "error": null,
+   "investigation": {
+    "steps": [
+     {
+      "step": 1,
+      "node": "investigate",
+      "component": "deployment/rate",
+      "verdict": "origin",
+      "origin_p": 0.48,
+      "victim_p": 0.05,
+      "next": "deployment/consul",
+      "next_p": 0.6,
+      "category": "data_or_traffic",
+      "spec_checks": [],
+      "blocked_input": null,
+      "key_evidence": "container hotel-reserv-rate env RATE_BACKEND_QPS_LIMIT=20"
+     },
+     {
+      "step": 2,
+      "node": "investigate",
+      "component": "deployment/consul",
+      "verdict": "unrelated",
+      "origin_p": 0.0,
+      "victim_p": 0.0,
+      "next": "none",
+      "next_p": 0.56,
+      "category": "other",
+      "spec_checks": [],
+      "blocked_input": null,
+      "key_evidence": "log x1 (stopped, last seen 239s ago): consul: 2026-10-18T16:16:41.346Z [WARN] agent.server.raft: heartbeat timeout reached, starting election: last-leader-addr= last-leader-id="
+     }
+    ],
+    "concluded": "deployment/rate",
+    "fallback": "most likely origin among investigated components",
+    "triage_top": [
+     [
+      "deployment/rate",
+      0.99
+     ],
+     [
+      "deployment/consul",
+      0.01
+     ],
+     [
+      "deployment/frontend",
+      0.0
+     ],
+     [
+      "deployment/geo",
+      0.0
+     ],
+     [
+      "deployment/jaeger",
+      0.0
+     ]
+    ]
+   },
+   "text": "Root cause component: Deployment `rate` in namespace `hotel-reservation`.\nMechanism: container hotel-reserv-rate env RATE_BACKEND_QPS_LIMIT=20.\nFault type: data or traffic (the component's inputs or traffic pattern overwhelm or break it).\nImpact on other components:\n- deployment/search fails when calling this component (connectivity or timeout x64, still occurring)\n- container hotel-reserv-rate: image ghcr.io/sregym/hotel-reservation:sha-d2c036bc3d1138f5a0bdaffd3d87f37522c3461a@sha256:1c685e1c4c304f327952397b3a99c54dadb086607774d71f222b200ec0d2e65e, limits {'cpu': '1'}\nClassification: Jev (typesafe/jev-1.13-20260917) selected this origin as the most likely candidate after 2 investigation step(s) (origin probability 0.48, triage probability 0.99)."
+  },
+  {
+   "arm": 3,
+   "kind": "v1",
+   "model": "openrouter/openai/gpt-6-luna-decisions",
+   "position": 1,
+   "seconds": 4.3,
+   "requests": 3,
+   "input_tokens": 22998,
+   "cost_usd": 0.0023,
+   "error": null,
+   "investigation": {
+    "steps": [
+     {
+      "step": 1,
+      "node": "investigate",
+      "component": "deployment/rate",
+      "verdict": "origin",
+      "origin_p": 0.44,
+      "victim_p": 0.33,
+      "next": "deployment/search",
+      "next_p": 0.9,
+      "category": "data_or_traffic",
+      "spec_checks": [],
+      "blocked_input": null,
+      "key_evidence": "container hotel-reserv-rate env RATE_BACKEND_QPS_LIMIT=20"
+     },
+     {
+      "step": 2,
+      "node": "investigate",
+      "component": "deployment/search",
+      "verdict": "victim",
+      "origin_p": 0.03,
+      "victim_p": 0.85,
+      "next": "none",
+      "next_p": 0.5,
+      "category": "data_or_traffic",
+      "spec_checks": [],
+      "blocked_input": null,
+      "key_evidence": "container hotel-reserv-search env RATE_RPC_TIMEOUT_MS=750"
+     }
+    ],
+    "concluded": "deployment/rate",
+    "fallback": "most likely origin among investigated components",
+    "triage_top": [
+     [
+      "deployment/rate",
+      0.95
+     ],
+     [
+      "deployment/recommendation",
+      0.03
+     ],
+     [
+      "deployment/consul",
+      0.01
+     ],
+     [
+      "deployment/search",
+      0.01
+     ],
+     [
+      "deployment/frontend",
+      0.0
+     ]
+    ]
+   },
+   "text": "Root cause component: Deployment `rate` in namespace `hotel-reservation`.\nMechanism: container hotel-reserv-rate env RATE_BACKEND_QPS_LIMIT=20.\nFault type: data or traffic (the component's inputs or traffic pattern overwhelm or break it).\nImpact on other components:\n- deployment/search fails when calling this component (connectivity or timeout x64, still occurring)\n- container hotel-reserv-rate: image ghcr.io/sregym/hotel-reservation:sha-d2c036bc3d1138f5a0bdaffd3d87f37522c3461a@sha256:1c685e1c4c304f327952397b3a99c54dadb086607774d71f222b200ec0d2e65e, limits {'cpu': '1'}\nClassification: Jev (openai/gpt-6-luna-decisions-20261006) selected this origin as the most likely candidate after 2 investigation step(s) (origin probability 0.44, triage probability 0.95)."
+  }
+ ],
+ "submission": {
+  "status": "200",
+  "message": "Submission received",
+  "stage": "diagnosis"
+ }
+}

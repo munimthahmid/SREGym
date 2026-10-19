@@ -1,0 +1,278 @@
+{
+ "problem_id": "env_variable_shadowing_astronomy_shop",
+ "source": "lite6_env_variable_shadowing_astronomy_shop",
+ "replay": true,
+ "arms": [
+  {
+   "arm": 0,
+   "kind": "v2",
+   "model": "typesafe/jev-1.13",
+   "position": 0,
+   "seconds": 2.0,
+   "requests": 2,
+   "input_tokens": 36830,
+   "error": null,
+   "model_failed": false,
+   "component": "deployment/frontend-proxy",
+   "investigation": {
+    "steps": [
+     {
+      "step": 1,
+      "node": "investigate",
+      "component": "deployment/frontend-proxy",
+      "verdict": "origin",
+      "origin_p": 0.98,
+      "victim_p": 0.01,
+      "next": "none",
+      "next_p": 0.93,
+      "category": "config_value",
+      "spec_checks": [],
+      "blocked_input": null,
+      "key_evidence": "container frontend-proxy defines env var FRONTEND_HOST 2 times: 'frontend', then 'localhost'; the last value ('localhost') is the one the container sees"
+     }
+    ],
+    "concluded": "deployment/frontend-proxy",
+    "fallback": null,
+    "triage_top": [
+     [
+      "deployment/frontend-proxy",
+      1.0
+     ],
+     [
+      "deployment/accounting",
+      0.0
+     ],
+     [
+      "deployment/ad",
+      0.0
+     ],
+     [
+      "deployment/cart",
+      0.0
+     ],
+     [
+      "deployment/checkout",
+      0.0
+     ]
+    ],
+    "second": null
+   },
+   "text": "Root cause: Deployment `frontend-proxy` in namespace `astronomy-shop`: container frontend-proxy defines env var FRONTEND_HOST 2 times: 'frontend', then 'localhost'; the last value ('localhost') is the one the container sees.\nMechanism: warning events: BackOff x3.\nDetails: container frontend-proxy env FRONTEND_HOST: frontend -> localhost; container frontend-proxy env FRONTEND_HOST is now defined 2 times: frontend, localhost.\nEffect: pod frontend-proxy-7b7cd5fb4-vjnnv: container frontend-proxy was OOMKilled; pod frontend-proxy-7b7cd5fb4-vjnnv: container frontend-proxy restarted 3 times.\nObserved: container frontend-proxy memory usage 64Mi is near its limit 65Mi; pod frontend-proxy-7b7cd5fb4-vjnnv: container frontend-proxy restarted 1 more time(s) in the last 0s; warning event BackOff on pod/frontend-proxy-7b7cd5fb4-vjnnv repeated 1 more time(s) in the last 0s; spec modified 77s ago, 34s after this object was created (fields: containers[frontend-proxy].env[FRONTEND_HOST]); pod template changes: container frontend-proxy env FRONTEND_HOST: frontend -> localhost; container frontend-proxy env FRONTEND_HOST is now defined 2 times: frontend, localhost; 9s before the first active symptom.",
+   "grade": {
+    "judgment": "True",
+    "reasoning": "Verdict: True (composite=0.78). D1 Fault Localization: 1.00 | D2 Fault Characterization: 0.67 | D3 Scope Precision: 0.67. Weakest dimension: Fault Characterization (0.67). Checklist details: [{\"id\": \"D1-Q1\", \"answer\": \"Yes\", \"evidence\": \"Names Deployment frontend-proxy in namespace astronomy-shop as the root cause, exactly matching the fault specification.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q2\", \"answer\": \"Yes\", \"evidence\": \"Locates the faulty environment variable in frontend-proxy itself, rather than attributing the origin to a downstream component.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q3\", \"answer\": \"Yes\", \"evidence\": \"Identifies frontend-proxy as the fault origin and does not blame a different component.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q1\", \"answer\": \"Yes\", \"evidence\": \"States FRONTEND_HOST is defined twice and the last value, localhost, is the one the container sees.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q2\", \"answer\": \"Yes\", \"evidence\": \"Explicitly identifies FRONTEND_HOST and its ordered duplicate values: frontend, then localhost.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q3\", \"answer\": \"No\", \"evidence\": \"Adds 'Mechanism: warning events: BackOff x3' and OOMKilled claims, introducing an unrelated memory and restart fault characterization.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q1\", \"answer\": \"Yes\", \"evidence\": \"All fault and symptom claims concern the frontend-proxy deployment, container, or its pod; no additional components are blamed.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q2\", \"answer\": \"Yes\", \"evidence\": \"Includes the frontend-proxy deployment and container in astronomy-shop, covering the component identified as faulty in the ground truth.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q3\", \"answer\": \"No\", \"evidence\": \"Reports OOMKilled, restarts, and BackOff instead of requests reaching the wrong upstream while the pod remains Running and Ready.\", \"confidence\": \"High\"}]",
+    "success": true,
+    "accuracy": 78.0,
+    "composite_score": 0.78,
+    "dimensions": {
+     "D1": {
+      "name": "Fault Localization",
+      "score": 1.0
+     },
+     "D2": {
+      "name": "Fault Characterization",
+      "score": 0.67
+     },
+     "D3": {
+      "name": "Scope Precision",
+      "score": 0.67
+     }
+    },
+    "checklist": [
+     {
+      "id": "D1-Q1",
+      "answer": "Yes",
+      "evidence": "Names Deployment frontend-proxy in namespace astronomy-shop as the root cause, exactly matching the fault specification.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q2",
+      "answer": "Yes",
+      "evidence": "Locates the faulty environment variable in frontend-proxy itself, rather than attributing the origin to a downstream component.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q3",
+      "answer": "Yes",
+      "evidence": "Identifies frontend-proxy as the fault origin and does not blame a different component.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q1",
+      "answer": "Yes",
+      "evidence": "States FRONTEND_HOST is defined twice and the last value, localhost, is the one the container sees.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q2",
+      "answer": "Yes",
+      "evidence": "Explicitly identifies FRONTEND_HOST and its ordered duplicate values: frontend, then localhost.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q3",
+      "answer": "No",
+      "evidence": "Adds 'Mechanism: warning events: BackOff x3' and OOMKilled claims, introducing an unrelated memory and restart fault characterization.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q1",
+      "answer": "Yes",
+      "evidence": "All fault and symptom claims concern the frontend-proxy deployment, container, or its pod; no additional components are blamed.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q2",
+      "answer": "Yes",
+      "evidence": "Includes the frontend-proxy deployment and container in astronomy-shop, covering the component identified as faulty in the ground truth.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q3",
+      "answer": "No",
+      "evidence": "Reports OOMKilled, restarts, and BackOff instead of requests reaching the wrong upstream while the pod remains Running and Ready.",
+      "confidence": "High"
+     }
+    ]
+   }
+  },
+  {
+   "arm": 1,
+   "kind": "v2",
+   "model": "openai/gpt-6-luna-decisions",
+   "position": 1,
+   "seconds": 2.1,
+   "requests": 2,
+   "input_tokens": 24891,
+   "error": null,
+   "model_failed": false,
+   "component": "deployment/frontend-proxy",
+   "investigation": {
+    "steps": [
+     {
+      "step": 1,
+      "node": "investigate",
+      "component": "deployment/frontend-proxy",
+      "verdict": "origin",
+      "origin_p": 0.96,
+      "victim_p": 0.03,
+      "next": "deployment/frontend",
+      "next_p": 0.48,
+      "category": "config_value",
+      "spec_checks": [],
+      "blocked_input": null,
+      "key_evidence": "container frontend-proxy defines env var FRONTEND_HOST 2 times: 'frontend', then 'localhost'; the last value ('localhost') is the one the container sees"
+     }
+    ],
+    "concluded": "deployment/frontend-proxy",
+    "fallback": null,
+    "triage_top": [
+     [
+      "deployment/frontend-proxy",
+      0.99
+     ],
+     [
+      "deployment/frontend",
+      0.01
+     ],
+     [
+      "deployment/accounting",
+      0.0
+     ],
+     [
+      "deployment/ad",
+      0.0
+     ],
+     [
+      "deployment/cart",
+      0.0
+     ]
+    ],
+    "second": null
+   },
+   "text": "Root cause: Deployment `frontend-proxy` in namespace `astronomy-shop`: container frontend-proxy defines env var FRONTEND_HOST 2 times: 'frontend', then 'localhost'; the last value ('localhost') is the one the container sees.\nMechanism: warning events: BackOff x3.\nDetails: container frontend-proxy env FRONTEND_HOST: frontend -> localhost; container frontend-proxy env FRONTEND_HOST is now defined 2 times: frontend, localhost.\nEffect: pod frontend-proxy-7b7cd5fb4-vjnnv: container frontend-proxy was OOMKilled; pod frontend-proxy-7b7cd5fb4-vjnnv: container frontend-proxy restarted 3 times.\nObserved: container frontend-proxy memory usage 64Mi is near its limit 65Mi; pod frontend-proxy-7b7cd5fb4-vjnnv: container frontend-proxy restarted 1 more time(s) in the last 0s; warning event BackOff on pod/frontend-proxy-7b7cd5fb4-vjnnv repeated 1 more time(s) in the last 0s; spec modified 77s ago, 34s after this object was created (fields: containers[frontend-proxy].env[FRONTEND_HOST]); pod template changes: container frontend-proxy env FRONTEND_HOST: frontend -> localhost; container frontend-proxy env FRONTEND_HOST is now defined 2 times: frontend, localhost; 9s before the first active symptom.",
+   "grade": {
+    "judgment": "True",
+    "reasoning": "Verdict: True (composite=0.78). D1 Fault Localization: 1.00 | D2 Fault Characterization: 0.67 | D3 Scope Precision: 0.67. Weakest dimension: Fault Characterization (0.67). Checklist details: [{\"id\": \"D1-Q1\", \"answer\": \"Yes\", \"evidence\": \"Names Deployment frontend-proxy in namespace astronomy-shop as the root cause, exactly matching the fault specification.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q2\", \"answer\": \"Yes\", \"evidence\": \"Locates the faulty environment variable in frontend-proxy itself, rather than attributing the origin to a downstream component.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q3\", \"answer\": \"Yes\", \"evidence\": \"Identifies frontend-proxy as the fault origin and does not blame a different component.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q1\", \"answer\": \"Yes\", \"evidence\": \"States FRONTEND_HOST is defined twice and the last value, localhost, is the one the container sees.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q2\", \"answer\": \"Yes\", \"evidence\": \"Explicitly identifies FRONTEND_HOST and its ordered duplicate values: frontend, then localhost.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q3\", \"answer\": \"No\", \"evidence\": \"Adds 'Mechanism: warning events: BackOff x3' and OOMKilled claims, introducing an unrelated memory and restart fault characterization.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q1\", \"answer\": \"Yes\", \"evidence\": \"All fault and symptom claims concern the frontend-proxy deployment, container, or its pod; no additional components are blamed.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q2\", \"answer\": \"Yes\", \"evidence\": \"Includes the frontend-proxy deployment and container in astronomy-shop, covering the component identified as faulty in the ground truth.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q3\", \"answer\": \"No\", \"evidence\": \"Reports OOMKilled, restarts, and BackOff instead of requests reaching the wrong upstream while the pod remains Running and Ready.\", \"confidence\": \"High\"}]",
+    "success": true,
+    "accuracy": 78.0,
+    "composite_score": 0.78,
+    "dimensions": {
+     "D1": {
+      "name": "Fault Localization",
+      "score": 1.0
+     },
+     "D2": {
+      "name": "Fault Characterization",
+      "score": 0.67
+     },
+     "D3": {
+      "name": "Scope Precision",
+      "score": 0.67
+     }
+    },
+    "checklist": [
+     {
+      "id": "D1-Q1",
+      "answer": "Yes",
+      "evidence": "Names Deployment frontend-proxy in namespace astronomy-shop as the root cause, exactly matching the fault specification.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q2",
+      "answer": "Yes",
+      "evidence": "Locates the faulty environment variable in frontend-proxy itself, rather than attributing the origin to a downstream component.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q3",
+      "answer": "Yes",
+      "evidence": "Identifies frontend-proxy as the fault origin and does not blame a different component.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q1",
+      "answer": "Yes",
+      "evidence": "States FRONTEND_HOST is defined twice and the last value, localhost, is the one the container sees.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q2",
+      "answer": "Yes",
+      "evidence": "Explicitly identifies FRONTEND_HOST and its ordered duplicate values: frontend, then localhost.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q3",
+      "answer": "No",
+      "evidence": "Adds 'Mechanism: warning events: BackOff x3' and OOMKilled claims, introducing an unrelated memory and restart fault characterization.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q1",
+      "answer": "Yes",
+      "evidence": "All fault and symptom claims concern the frontend-proxy deployment, container, or its pod; no additional components are blamed.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q2",
+      "answer": "Yes",
+      "evidence": "Includes the frontend-proxy deployment and container in astronomy-shop, covering the component identified as faulty in the ground truth.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q3",
+      "answer": "No",
+      "evidence": "Reports OOMKilled, restarts, and BackOff instead of requests reaching the wrong upstream while the pod remains Running and Ready.",
+      "confidence": "High"
+     }
+    ]
+   }
+  }
+ ],
+ "judge": {
+  "model": "gpt-6-astra",
+  "backend": "codex",
+  "effort": "high"
+ }
+}

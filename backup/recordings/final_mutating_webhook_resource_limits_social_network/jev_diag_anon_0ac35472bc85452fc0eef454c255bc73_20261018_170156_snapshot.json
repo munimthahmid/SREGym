@@ -1,0 +1,3293 @@
+{
+  "application": {
+    "name": "Social Network",
+    "description": "A social network with unidirectional follow relationships, implemented with loosely-coupled microservices, communicating with each other via Thrift RPCs.",
+    "namespaces": [
+      "social-network"
+    ]
+  },
+  "cluster": {
+    "namespaces": [
+      "social-network"
+    ],
+    "nodes": [
+      {
+        "name": "kind-control-plane"
+      },
+      {
+        "name": "kind-worker"
+      },
+      {
+        "name": "kind-worker2"
+      },
+      {
+        "name": "kind-worker3"
+      }
+    ],
+    "firing_alerts": [
+      {
+        "alertname": "DeploymentNotReady",
+        "labels": {
+          "namespace": "social-network",
+          "deployment": "nginx-thrift",
+          "job": "kube-state-metrics",
+          "severity": "critical"
+        },
+        "summary": "Deployment nginx-thrift in namespace social-network has 0 available replicas.",
+        "active_since": "2026-10-18T17:02:26.634499229Z"
+      }
+    ],
+    "cluster_dns": {
+      "configmap": "kube-system/coredns",
+      "modified": "2026-10-18T16:57:47Z",
+      "corefile_lines": 23,
+      "plugins": [
+        "disable",
+        "errors",
+        "fallthrough",
+        "lameduck",
+        "loadbalance",
+        "loop",
+        "max_concurrent",
+        "pods",
+        "prometheus",
+        "ready",
+        "reload",
+        "ttl"
+      ],
+      "pods": 2,
+      "changed": true
+    },
+    "admission_webhooks": [
+      {
+        "kind": "MutatingWebhookConfiguration",
+        "configuration": "cert-manager-webhook",
+        "created": "2026-10-18T17:01:47Z",
+        "webhook": "webhook.cert-manager.io",
+        "failure_policy": "Fail",
+        "timeout_seconds": 5,
+        "rules": [
+          "CREATE/UPDATE certificates,issuers"
+        ],
+        "namespace_selector": {
+          "matchLabels": {
+            "kubernetes.io/metadata.name": "social-network"
+          }
+        },
+        "backend": {
+          "namespace": "platform-ops",
+          "service": "platform-policy-controller",
+          "port": 443
+        },
+        "backend_ready_endpoints": 1,
+        "signals": [
+          "mutating webhook webhook.cert-manager.io rewrites objects matching CREATE/UPDATE certificates,issuers"
+        ],
+        "changed": true
+      },
+      {
+        "kind": "MutatingWebhookConfiguration",
+        "configuration": "gatekeeper-mutating-webhook-configuration",
+        "created": "2026-10-18T17:01:47Z",
+        "webhook": "mutation.gatekeeper.sh",
+        "failure_policy": "Fail",
+        "timeout_seconds": 5,
+        "rules": [
+          "CREATE pods"
+        ],
+        "namespace_selector": {
+          "matchLabels": {
+            "kubernetes.io/metadata.name": "social-network"
+          }
+        },
+        "backend": {
+          "namespace": "platform-ops",
+          "service": "platform-policy-controller",
+          "port": 443
+        },
+        "backend_ready_endpoints": 1,
+        "signals": [
+          "mutating webhook mutation.gatekeeper.sh rewrites objects matching CREATE pods",
+          "rewrites pods of deployment/nginx-thrift at admission (container nginx-thrift limits.memory 16Mi, template 256Mi)"
+        ],
+        "components": [
+          "deployment/nginx-thrift"
+        ],
+        "changed": true
+      },
+      {
+        "kind": "MutatingWebhookConfiguration",
+        "configuration": "istio-sidecar-injector",
+        "created": "2026-10-18T17:01:47Z",
+        "webhook": "rev.namespace.sidecar-injector.istio.io",
+        "failure_policy": "Fail",
+        "timeout_seconds": 5,
+        "rules": [
+          "CREATE pods"
+        ],
+        "namespace_selector": {
+          "matchLabels": {
+            "kubernetes.io/metadata.name": "social-network"
+          }
+        },
+        "object_selector": {
+          "matchLabels": {
+            "sidecar.istio.io/inject": "true"
+          }
+        },
+        "backend": {
+          "namespace": "platform-ops",
+          "service": "platform-policy-controller",
+          "port": 443
+        },
+        "backend_ready_endpoints": 1,
+        "signals": [
+          "mutating webhook rev.namespace.sidecar-injector.istio.io rewrites objects matching CREATE pods"
+        ],
+        "changed": true
+      },
+      {
+        "kind": "MutatingWebhookConfiguration",
+        "configuration": "kyverno-resource-mutating-webhook-cfg",
+        "created": "2026-10-18T17:01:47Z",
+        "webhook": "mutate.kyverno.svc",
+        "failure_policy": "Fail",
+        "timeout_seconds": 5,
+        "rules": [
+          "CREATE/UPDATE pods"
+        ],
+        "namespace_selector": {
+          "matchLabels": {
+            "kubernetes.io/metadata.name": "social-network"
+          }
+        },
+        "object_selector": {
+          "matchLabels": {
+            "kyverno.io/managed": "enabled"
+          }
+        },
+        "backend": {
+          "namespace": "platform-ops",
+          "service": "platform-policy-controller",
+          "port": 443
+        },
+        "backend_ready_endpoints": 1,
+        "signals": [
+          "mutating webhook mutate.kyverno.svc rewrites objects matching CREATE/UPDATE pods"
+        ],
+        "changed": true
+      },
+      {
+        "kind": "MutatingWebhookConfiguration",
+        "configuration": "linkerd-proxy-injector-webhook-config",
+        "created": "2026-10-18T17:01:47Z",
+        "webhook": "linkerd-proxy-injector.linkerd.io",
+        "failure_policy": "Fail",
+        "timeout_seconds": 5,
+        "rules": [
+          "CREATE pods"
+        ],
+        "namespace_selector": {
+          "matchLabels": {
+            "kubernetes.io/metadata.name": "social-network"
+          }
+        },
+        "object_selector": {
+          "matchLabels": {
+            "linkerd.io/inject": "enabled"
+          }
+        },
+        "backend": {
+          "namespace": "platform-ops",
+          "service": "platform-policy-controller",
+          "port": 443
+        },
+        "backend_ready_endpoints": 1,
+        "signals": [
+          "mutating webhook linkerd-proxy-injector.linkerd.io rewrites objects matching CREATE pods"
+        ],
+        "changed": true
+      }
+    ],
+    "trend": {
+      "interval_s": 48,
+      "observations": 2
+    },
+    "_changes": [
+      {
+        "object": "mutatingwebhookconfiguration/cert-manager-webhook",
+        "kind": "MutatingWebhookConfiguration",
+        "name": "cert-manager-webhook",
+        "created": "2026-10-18T17:01:47Z",
+        "at": "2026-10-18T17:01:47Z",
+        "created_after_targets_s": 11
+      },
+      {
+        "object": "mutatingwebhookconfiguration/gatekeeper-mutating-webhook-configuration",
+        "kind": "MutatingWebhookConfiguration",
+        "name": "gatekeeper-mutating-webhook-configuration",
+        "created": "2026-10-18T17:01:47Z",
+        "at": "2026-10-18T17:01:47Z",
+        "affects": [
+          "deployment/nginx-thrift"
+        ],
+        "created_after_targets_s": 11
+      },
+      {
+        "object": "mutatingwebhookconfiguration/istio-sidecar-injector",
+        "kind": "MutatingWebhookConfiguration",
+        "name": "istio-sidecar-injector",
+        "created": "2026-10-18T17:01:47Z",
+        "at": "2026-10-18T17:01:47Z",
+        "created_after_targets_s": 11
+      },
+      {
+        "object": "mutatingwebhookconfiguration/kyverno-resource-mutating-webhook-cfg",
+        "kind": "MutatingWebhookConfiguration",
+        "name": "kyverno-resource-mutating-webhook-cfg",
+        "created": "2026-10-18T17:01:47Z",
+        "at": "2026-10-18T17:01:47Z",
+        "created_after_targets_s": 11
+      },
+      {
+        "object": "mutatingwebhookconfiguration/linkerd-proxy-injector-webhook-config",
+        "kind": "MutatingWebhookConfiguration",
+        "name": "linkerd-proxy-injector-webhook-config",
+        "created": "2026-10-18T17:01:47Z",
+        "at": "2026-10-18T17:01:47Z",
+        "created_after_targets_s": 11
+      },
+      {
+        "object": "configmap/kube-system/coredns",
+        "kind": "ConfigMap",
+        "name": "coredns",
+        "namespace": "kube-system",
+        "created": "2026-10-18T08:41:41Z",
+        "at": "2026-10-18T16:57:47Z",
+        "modified_after_creation_s": 29766,
+        "fields": [
+          "data.Corefile"
+        ]
+      }
+    ],
+    "symptom_onset": "2026-10-18T17:01:55+00:00",
+    "symptom_onset_source": "pod not ready in deployment/nginx-thrift",
+    "recent_changes": [
+      {
+        "object": "mutatingwebhookconfiguration/cert-manager-webhook",
+        "at": "2026-10-18T17:01:47Z",
+        "created_after_targets_s": 11,
+        "seconds_ago": 135,
+        "seconds_before_symptoms": 8
+      },
+      {
+        "object": "mutatingwebhookconfiguration/gatekeeper-mutating-webhook-configuration",
+        "at": "2026-10-18T17:01:47Z",
+        "created_after_targets_s": 11,
+        "seconds_ago": 135,
+        "seconds_before_symptoms": 8
+      },
+      {
+        "object": "mutatingwebhookconfiguration/istio-sidecar-injector",
+        "at": "2026-10-18T17:01:47Z",
+        "created_after_targets_s": 11,
+        "seconds_ago": 135,
+        "seconds_before_symptoms": 8
+      },
+      {
+        "object": "mutatingwebhookconfiguration/kyverno-resource-mutating-webhook-cfg",
+        "at": "2026-10-18T17:01:47Z",
+        "created_after_targets_s": 11,
+        "seconds_ago": 135,
+        "seconds_before_symptoms": 8
+      },
+      {
+        "object": "mutatingwebhookconfiguration/linkerd-proxy-injector-webhook-config",
+        "at": "2026-10-18T17:01:47Z",
+        "created_after_targets_s": 11,
+        "seconds_ago": 135,
+        "seconds_before_symptoms": 8
+      },
+      {
+        "object": "configmap/kube-system/coredns",
+        "at": "2026-10-18T16:57:47Z",
+        "modified_after_creation_s": 29766,
+        "fields": [
+          "data.Corefile"
+        ],
+        "seconds_ago": 375,
+        "seconds_before_symptoms": 248
+      }
+    ],
+    "findings": [
+      {
+        "kind": "MutatingWebhookConfiguration",
+        "name": "cert-manager-webhook",
+        "signal": "mutating webhook webhook.cert-manager.io rewrites objects matching CREATE/UPDATE certificates,issuers; MutatingWebhookConfiguration cert-manager-webhook was created 135s ago, 11s after the workloads it intercepts; 8s before the first active symptom"
+      },
+      {
+        "kind": "MutatingWebhookConfiguration",
+        "name": "gatekeeper-mutating-webhook-configuration",
+        "signal": "mutating webhook mutation.gatekeeper.sh rewrites objects matching CREATE pods; MutatingWebhookConfiguration gatekeeper-mutating-webhook-configuration was created 135s ago, 11s after the workloads it intercepts; 8s before the first active symptom",
+        "components": [
+          "deployment/nginx-thrift"
+        ]
+      },
+      {
+        "kind": "MutatingWebhookConfiguration",
+        "name": "gatekeeper-mutating-webhook-configuration",
+        "signal": "rewrites pods of deployment/nginx-thrift at admission (container nginx-thrift limits.memory 16Mi, template 256Mi)",
+        "components": [
+          "deployment/nginx-thrift"
+        ]
+      },
+      {
+        "kind": "MutatingWebhookConfiguration",
+        "name": "istio-sidecar-injector",
+        "signal": "mutating webhook rev.namespace.sidecar-injector.istio.io rewrites objects matching CREATE pods; MutatingWebhookConfiguration istio-sidecar-injector was created 135s ago, 11s after the workloads it intercepts; 8s before the first active symptom"
+      },
+      {
+        "kind": "MutatingWebhookConfiguration",
+        "name": "kyverno-resource-mutating-webhook-cfg",
+        "signal": "mutating webhook mutate.kyverno.svc rewrites objects matching CREATE/UPDATE pods; MutatingWebhookConfiguration kyverno-resource-mutating-webhook-cfg was created 135s ago, 11s after the workloads it intercepts; 8s before the first active symptom"
+      },
+      {
+        "kind": "MutatingWebhookConfiguration",
+        "name": "linkerd-proxy-injector-webhook-config",
+        "signal": "mutating webhook linkerd-proxy-injector.linkerd.io rewrites objects matching CREATE pods; MutatingWebhookConfiguration linkerd-proxy-injector-webhook-config was created 135s ago, 11s after the workloads it intercepts; 8s before the first active symptom"
+      },
+      {
+        "kind": "ConfigMap",
+        "name": "coredns",
+        "namespace": "kube-system",
+        "signal": "ConfigMap coredns was modified 375s ago, 29766s after it was created (fields: data.Corefile); 248s before the first active symptom"
+      }
+    ]
+  },
+  "components": {
+    "deployment/compose-post-service": {
+      "kind": "Deployment",
+      "name": "compose-post-service",
+      "namespace": "social-network",
+      "created": "2026-10-18T17:01:36Z",
+      "modified": "2026-10-18T17:01:36Z",
+      "service_account": "default",
+      "replicas": {
+        "desired": 1,
+        "ready": 1,
+        "available": 1,
+        "updated": 1
+      },
+      "strategy": {
+        "type": "RollingUpdate",
+        "maxSurge": "25%",
+        "maxUnavailable": "25%"
+      },
+      "rollout": {
+        "progressDeadlineSeconds": 600
+      },
+      "containers": [
+        {
+          "name": "compose-post-service",
+          "init": false,
+          "image": "ghcr.io/sregym/social-network:sha-d2c036bc3d1138f5a0bdaffd3d87f37522c3461a@sha256:70287c4756f9187613e49409291927c342724e3974f93709b21595ed1cdf1d69",
+          "ports": [
+            9090
+          ],
+          "mounts": [
+            "/social-network-microservices/config/jaeger-config.yml",
+            "/social-network-microservices/config/service-config.json"
+          ],
+          "command": [
+            "ComposePostService"
+          ]
+        }
+      ],
+      "volumes": [
+        {
+          "name": "compose-post-service-config",
+          "configMap": "compose-post-service"
+        }
+      ],
+      "config_refs": {
+        "configmaps": [
+          "compose-post-service"
+        ]
+      },
+      "pods": [
+        {
+          "name": "compose-post-service-b9c49c955-4n6kz",
+          "phase": "Running",
+          "ready": "1/1",
+          "restarts": 0,
+          "created": "2026-10-18T17:01:37Z",
+          "started": "2026-10-18T17:01:37Z",
+          "ready_since": "2026-10-18T17:01:38Z",
+          "node": "kind-worker",
+          "ip": "10.244.162.181"
+        }
+      ],
+      "services": [
+        {
+          "name": "compose-post-service",
+          "type": "ClusterIP",
+          "ports": [
+            "9090->9090/TCP"
+          ],
+          "ready_endpoints": 1,
+          "not_ready_endpoints": 0
+        }
+      ],
+      "log_signals": [
+        {
+          "count": 148,
+          "line": "compose-post-service: [Error] File: /tmp/opentelemetry-cpp/exporters/otlp/src/otlp_grpc_exporter.cc:68 [OTLP TRACE GRPC Exporter] Export() failed with status_code: \"UNAVAILABLE\" error_message: \"DNS resolution failed for otel-collector:4317\u2026",
+          "first_seen_seconds_ago": 130,
+          "last_seen_seconds_ago": 126,
+          "median_gap_seconds": 0.0,
+          "state": "stopped"
+        },
+        {
+          "count": 52,
+          "line": "compose-post-service: [Error] File: /tmp/opentelemetry-cpp/exporters/otlp/src/otlp_grpc_exporter.cc:68 [OTLP TRACE GRPC Exporter] Export() failed with status_code: \"UNAVAILABLE\" error_message: \"DNS resolution failed for otel-collector:4317\u2026",
+          "first_seen_seconds_ago": 126,
+          "last_seen_seconds_ago": 126,
+          "median_gap_seconds": 0.0,
+          "state": "stopped"
+        }
+      ],
+      "resource_usage": [
+        {
+          "pod": "compose-post-service-b9c49c955-4n6kz",
+          "container": "compose-post-service",
+          "cpu": "3m",
+          "memory": "5Mi"
+        }
+      ],
+      "modified_seconds_ago": 143,
+      "config_objects": {
+        "configmap/compose-post-service": {
+          "keys": [
+            "jaeger-config.yml",
+            "service-config.json"
+          ],
+          "last_update": "2026-10-18T17:01:36Z"
+        }
+      },
+      "stopped_error_lines": 200,
+      "healthy": true,
+      "signals": [],
+      "spec_flags": [],
+      "log_error_lines": null,
+      "_derived_signals": [],
+      "_derived": true,
+      "evidence_kinds": []
+    },
+    "deployment/home-timeline-redis": {
+      "kind": "Deployment",
+      "name": "home-timeline-redis",
+      "namespace": "social-network",
+      "created": "2026-10-18T17:01:36Z",
+      "modified": "2026-10-18T17:01:36Z",
+      "service_account": "default",
+      "replicas": {
+        "desired": 1,
+        "ready": 1,
+        "available": 1,
+        "updated": 1
+      },
+      "strategy": {
+        "type": "RollingUpdate",
+        "maxSurge": "25%",
+        "maxUnavailable": "25%"
+      },
+      "rollout": {
+        "progressDeadlineSeconds": 600
+      },
+      "containers": [
+        {
+          "name": "home-timeline-redis",
+          "init": false,
+          "image": "docker.io/library/redis:6.2.4",
+          "ports": [
+            6379
+          ],
+          "mounts": [
+            "/social-network-microservices/config/redis.conf"
+          ],
+          "args": [
+            "/social-network-microservices/config/redis.conf"
+          ]
+        }
+      ],
+      "volumes": [
+        {
+          "name": "home-timeline-redis-config",
+          "configMap": "home-timeline-redis"
+        }
+      ],
+      "config_refs": {
+        "configmaps": [
+          "home-timeline-redis"
+        ]
+      },
+      "pods": [
+        {
+          "name": "home-timeline-redis-ff9499c5c-hcgtp",
+          "phase": "Running",
+          "ready": "1/1",
+          "restarts": 0,
+          "created": "2026-10-18T17:01:36Z",
+          "started": "2026-10-18T17:01:36Z",
+          "ready_since": "2026-10-18T17:01:38Z",
+          "node": "kind-worker2",
+          "ip": "10.244.110.135"
+        }
+      ],
+      "services": [
+        {
+          "name": "home-timeline-redis",
+          "type": "ClusterIP",
+          "ports": [
+            "6379->6379/TCP"
+          ],
+          "ready_endpoints": 1,
+          "not_ready_endpoints": 0
+        }
+      ],
+      "resource_usage": [
+        {
+          "pod": "home-timeline-redis-ff9499c5c-hcgtp",
+          "container": "home-timeline-redis",
+          "cpu": "2m",
+          "memory": "11Mi"
+        }
+      ],
+      "modified_seconds_ago": 143,
+      "config_objects": {
+        "configmap/home-timeline-redis": {
+          "keys": [
+            "redis.conf"
+          ],
+          "last_update": "2026-10-18T17:01:36Z"
+        }
+      },
+      "healthy": true,
+      "signals": [],
+      "spec_flags": [],
+      "_derived_signals": [],
+      "_derived": true,
+      "evidence_kinds": []
+    },
+    "deployment/home-timeline-service": {
+      "kind": "Deployment",
+      "name": "home-timeline-service",
+      "namespace": "social-network",
+      "created": "2026-10-18T17:01:36Z",
+      "modified": "2026-10-18T17:01:36Z",
+      "service_account": "default",
+      "replicas": {
+        "desired": 1,
+        "ready": 1,
+        "available": 1,
+        "updated": 1
+      },
+      "strategy": {
+        "type": "RollingUpdate",
+        "maxSurge": "25%",
+        "maxUnavailable": "25%"
+      },
+      "rollout": {
+        "progressDeadlineSeconds": 600
+      },
+      "containers": [
+        {
+          "name": "home-timeline-service",
+          "init": false,
+          "image": "ghcr.io/sregym/social-network:sha-d2c036bc3d1138f5a0bdaffd3d87f37522c3461a@sha256:70287c4756f9187613e49409291927c342724e3974f93709b21595ed1cdf1d69",
+          "ports": [
+            9090
+          ],
+          "mounts": [
+            "/social-network-microservices/config/jaeger-config.yml",
+            "/social-network-microservices/config/service-config.json"
+          ],
+          "command": [
+            "HomeTimelineService"
+          ]
+        }
+      ],
+      "volumes": [
+        {
+          "name": "home-timeline-service-config",
+          "configMap": "home-timeline-service"
+        }
+      ],
+      "config_refs": {
+        "configmaps": [
+          "home-timeline-service"
+        ]
+      },
+      "pods": [
+        {
+          "name": "home-timeline-service-7b54b6f7b9-fq42z",
+          "phase": "Running",
+          "ready": "1/1",
+          "restarts": 0,
+          "created": "2026-10-18T17:01:38Z",
+          "started": "2026-10-18T17:01:38Z",
+          "ready_since": "2026-10-18T17:01:39Z",
+          "node": "kind-worker3",
+          "ip": "10.244.195.227"
+        }
+      ],
+      "services": [
+        {
+          "name": "home-timeline-service",
+          "type": "ClusterIP",
+          "ports": [
+            "9090->9090/TCP"
+          ],
+          "ready_endpoints": 1,
+          "not_ready_endpoints": 0
+        }
+      ],
+      "resource_usage": [
+        {
+          "pod": "home-timeline-service-7b54b6f7b9-fq42z",
+          "container": "home-timeline-service",
+          "cpu": "1m",
+          "memory": "2Mi"
+        }
+      ],
+      "modified_seconds_ago": 143,
+      "config_objects": {
+        "configmap/home-timeline-service": {
+          "keys": [
+            "jaeger-config.yml",
+            "service-config.json"
+          ],
+          "last_update": "2026-10-18T17:01:36Z"
+        }
+      },
+      "healthy": true,
+      "signals": [],
+      "spec_flags": [],
+      "_derived_signals": [],
+      "_derived": true,
+      "evidence_kinds": []
+    },
+    "deployment/jaeger": {
+      "kind": "Deployment",
+      "name": "jaeger",
+      "namespace": "social-network",
+      "created": "2026-10-18T17:01:36Z",
+      "modified": "2026-10-18T17:01:36Z",
+      "service_account": "default",
+      "replicas": {
+        "desired": 1,
+        "ready": 1,
+        "available": 1,
+        "updated": 1
+      },
+      "strategy": {
+        "type": "RollingUpdate",
+        "maxSurge": "25%",
+        "maxUnavailable": "25%"
+      },
+      "rollout": {
+        "progressDeadlineSeconds": 600
+      },
+      "containers": [
+        {
+          "name": "jaeger",
+          "init": false,
+          "image": "docker.io/jaegertracing/all-in-one:1.57",
+          "ports": [
+            5775,
+            6831,
+            6832,
+            5778,
+            16686,
+            14268,
+            9411
+          ],
+          "env_names": [
+            "COLLECTOR_ZIPKIN_HTTP_PORT"
+          ],
+          "mounts": [
+            "/social-network-microservices/config/jaeger-config.yml",
+            "/social-network-microservices/config/service-config.json"
+          ]
+        }
+      ],
+      "volumes": [
+        {
+          "name": "jaeger-config",
+          "configMap": "jaeger"
+        }
+      ],
+      "config_refs": {
+        "configmaps": [
+          "jaeger"
+        ]
+      },
+      "pods": [
+        {
+          "name": "jaeger-7d8548779-snn6s",
+          "phase": "Running",
+          "ready": "1/1",
+          "restarts": 0,
+          "created": "2026-10-18T17:01:36Z",
+          "started": "2026-10-18T17:01:36Z",
+          "ready_since": "2026-10-18T17:01:37Z",
+          "node": "kind-worker3",
+          "ip": "10.244.195.226"
+        }
+      ],
+      "resource_usage": [
+        {
+          "pod": "jaeger-7d8548779-snn6s",
+          "container": "jaeger",
+          "cpu": "1m",
+          "memory": "35Mi"
+        }
+      ],
+      "modified_seconds_ago": 143,
+      "config_objects": {
+        "configmap/jaeger": {
+          "keys": [
+            "jaeger-config.yml",
+            "service-config.json"
+          ],
+          "last_update": "2026-10-18T17:01:36Z"
+        }
+      },
+      "healthy": true,
+      "signals": [],
+      "spec_flags": [],
+      "role": "observability",
+      "_derived_signals": [],
+      "_derived": true,
+      "evidence_kinds": []
+    },
+    "deployment/media-frontend": {
+      "kind": "Deployment",
+      "name": "media-frontend",
+      "namespace": "social-network",
+      "created": "2026-10-18T17:01:36Z",
+      "modified": "2026-10-18T17:01:36Z",
+      "service_account": "default",
+      "replicas": {
+        "desired": 1,
+        "ready": 1,
+        "available": 1,
+        "updated": 1
+      },
+      "strategy": {
+        "type": "RollingUpdate",
+        "maxSurge": "25%",
+        "maxUnavailable": "25%"
+      },
+      "rollout": {
+        "progressDeadlineSeconds": 600
+      },
+      "containers": [
+        {
+          "name": "alpine-container",
+          "init": true,
+          "image": "ghcr.io/sregym/social-network-assets:v1",
+          "mounts": [
+            "/lua-scripts"
+          ],
+          "command": [
+            "/bin/sh"
+          ],
+          "args": [
+            "-c",
+            "cp -r /opt/social-network/media/lua-scripts/. /lua-scripts/"
+          ]
+        },
+        {
+          "name": "media-frontend",
+          "init": false,
+          "image": "ghcr.io/sregym/media-frontend:sha-d2c036bc3d1138f5a0bdaffd3d87f37522c3461a@sha256:32de5e0371ccb7f47f36e1f027ae0075a7e265e4eed374c1b1020fe213754d00",
+          "ports": [
+            8081
+          ],
+          "env_names": [
+            "fqdn_suffix"
+          ],
+          "mounts": [
+            "/usr/local/openresty/nginx/conf/nginx.conf",
+            "/social-network-microservices/config/jaeger-config.yml",
+            "/social-network-microservices/config/service-config.json",
+            "/usr/local/openresty/nginx/lua-scripts"
+          ]
+        }
+      ],
+      "volumes": [
+        {
+          "name": "media-frontend-config",
+          "configMap": "media-frontend"
+        }
+      ],
+      "config_refs": {
+        "configmaps": [
+          "media-frontend"
+        ]
+      },
+      "pods": [
+        {
+          "name": "media-frontend-864dc9bb45-stk6w",
+          "phase": "Running",
+          "ready": "1/1",
+          "restarts": 0,
+          "created": "2026-10-18T17:01:37Z",
+          "started": "2026-10-18T17:01:37Z",
+          "ready_since": "2026-10-18T17:01:40Z",
+          "node": "kind-worker",
+          "ip": "10.244.162.174",
+          "container_states": [
+            "alpine-container: terminated Completed exit=0"
+          ]
+        }
+      ],
+      "services": [
+        {
+          "name": "media-frontend",
+          "type": "ClusterIP",
+          "ports": [
+            "8081->8080/TCP"
+          ],
+          "ready_endpoints": 1,
+          "not_ready_endpoints": 0
+        }
+      ],
+      "resource_usage": [
+        {
+          "pod": "media-frontend-864dc9bb45-stk6w",
+          "container": "media-frontend",
+          "cpu": "0m",
+          "memory": "18Mi"
+        }
+      ],
+      "modified_seconds_ago": 143,
+      "config_objects": {
+        "configmap/media-frontend": {
+          "keys": [
+            "jaeger-config.yml",
+            "nginx.conf",
+            "service-config.json"
+          ],
+          "last_update": "2026-10-18T17:01:36Z"
+        }
+      },
+      "healthy": true,
+      "signals": [],
+      "spec_flags": [],
+      "_derived_signals": [],
+      "_derived": true,
+      "evidence_kinds": []
+    },
+    "deployment/media-memcached": {
+      "kind": "Deployment",
+      "name": "media-memcached",
+      "namespace": "social-network",
+      "created": "2026-10-18T17:01:36Z",
+      "modified": "2026-10-18T17:01:36Z",
+      "service_account": "default",
+      "replicas": {
+        "desired": 1,
+        "ready": 1,
+        "available": 1,
+        "updated": 1
+      },
+      "strategy": {
+        "type": "RollingUpdate",
+        "maxSurge": "25%",
+        "maxUnavailable": "25%"
+      },
+      "rollout": {
+        "progressDeadlineSeconds": 600
+      },
+      "containers": [
+        {
+          "name": "media-memcached",
+          "init": false,
+          "image": "docker.io/library/memcached:1.6.7",
+          "ports": [
+            11211
+          ],
+          "mounts": [
+            "/social-network-microservices/config/jaeger-config.yml",
+            "/social-network-microservices/config/service-config.json"
+          ]
+        }
+      ],
+      "volumes": [
+        {
+          "name": "media-memcached-config",
+          "configMap": "media-memcached"
+        }
+      ],
+      "config_refs": {
+        "configmaps": [
+          "media-memcached"
+        ]
+      },
+      "pods": [
+        {
+          "name": "media-memcached-54b5cffb48-fwq7p",
+          "phase": "Running",
+          "ready": "1/1",
+          "restarts": 0,
+          "created": "2026-10-18T17:01:40Z",
+          "started": "2026-10-18T17:01:40Z",
+          "ready_since": "2026-10-18T17:01:41Z",
+          "node": "kind-worker",
+          "ip": "10.244.162.143"
+        }
+      ],
+      "services": [
+        {
+          "name": "media-memcached",
+          "type": "ClusterIP",
+          "ports": [
+            "11211->11211/TCP"
+          ],
+          "ready_endpoints": 1,
+          "not_ready_endpoints": 0
+        }
+      ],
+      "resource_usage": [
+        {
+          "pod": "media-memcached-54b5cffb48-fwq7p",
+          "container": "media-memcached",
+          "cpu": "1m",
+          "memory": "5Mi"
+        }
+      ],
+      "modified_seconds_ago": 143,
+      "config_objects": {
+        "configmap/media-memcached": {
+          "keys": [
+            "jaeger-config.yml",
+            "service-config.json"
+          ],
+          "last_update": "2026-10-18T17:01:36Z"
+        }
+      },
+      "healthy": true,
+      "signals": [],
+      "spec_flags": [],
+      "_derived_signals": [],
+      "_derived": true,
+      "evidence_kinds": []
+    },
+    "deployment/media-mongodb": {
+      "kind": "Deployment",
+      "name": "media-mongodb",
+      "namespace": "social-network",
+      "created": "2026-10-18T17:01:36Z",
+      "modified": "2026-10-18T17:01:36Z",
+      "service_account": "default",
+      "replicas": {
+        "desired": 1,
+        "ready": 1,
+        "available": 1,
+        "updated": 1
+      },
+      "strategy": {
+        "type": "RollingUpdate",
+        "maxSurge": "25%",
+        "maxUnavailable": "25%"
+      },
+      "rollout": {
+        "progressDeadlineSeconds": 600
+      },
+      "containers": [
+        {
+          "name": "media-mongodb",
+          "init": false,
+          "image": "docker.io/library/mongo:4.4.6",
+          "ports": [
+            27017
+          ],
+          "mounts": [
+            "/social-network-microservices/config/mongod.conf"
+          ],
+          "args": [
+            "--config",
+            "/social-network-microservices/config/mongod.conf"
+          ]
+        }
+      ],
+      "volumes": [
+        {
+          "name": "media-mongodb-config",
+          "configMap": "media-mongodb"
+        }
+      ],
+      "config_refs": {
+        "configmaps": [
+          "media-mongodb"
+        ]
+      },
+      "pods": [
+        {
+          "name": "media-mongodb-6d47ccb779-njcz9",
+          "phase": "Running",
+          "ready": "1/1",
+          "restarts": 0,
+          "created": "2026-10-18T17:01:36Z",
+          "started": "2026-10-18T17:01:36Z",
+          "ready_since": "2026-10-18T17:01:37Z",
+          "node": "kind-worker",
+          "ip": "10.244.162.185"
+        }
+      ],
+      "services": [
+        {
+          "name": "media-mongodb",
+          "type": "ClusterIP",
+          "ports": [
+            "27017->27017/TCP"
+          ],
+          "ready_endpoints": 1,
+          "not_ready_endpoints": 0
+        }
+      ],
+      "resource_usage": [
+        {
+          "pod": "media-mongodb-6d47ccb779-njcz9",
+          "container": "media-mongodb",
+          "cpu": "7m",
+          "memory": "110Mi"
+        }
+      ],
+      "modified_seconds_ago": 143,
+      "config_objects": {
+        "configmap/media-mongodb": {
+          "keys": [
+            "mongod.conf"
+          ],
+          "last_update": "2026-10-18T17:01:36Z"
+        }
+      },
+      "healthy": true,
+      "signals": [],
+      "spec_flags": [],
+      "_derived_signals": [],
+      "_derived": true,
+      "evidence_kinds": []
+    },
+    "deployment/media-service": {
+      "kind": "Deployment",
+      "name": "media-service",
+      "namespace": "social-network",
+      "created": "2026-10-18T17:01:36Z",
+      "modified": "2026-10-18T17:01:36Z",
+      "service_account": "default",
+      "replicas": {
+        "desired": 1,
+        "ready": 1,
+        "available": 1,
+        "updated": 1
+      },
+      "strategy": {
+        "type": "RollingUpdate",
+        "maxSurge": "25%",
+        "maxUnavailable": "25%"
+      },
+      "rollout": {
+        "progressDeadlineSeconds": 600
+      },
+      "containers": [
+        {
+          "name": "media-service",
+          "init": false,
+          "image": "ghcr.io/sregym/social-network:sha-d2c036bc3d1138f5a0bdaffd3d87f37522c3461a@sha256:70287c4756f9187613e49409291927c342724e3974f93709b21595ed1cdf1d69",
+          "ports": [
+            9090
+          ],
+          "mounts": [
+            "/social-network-microservices/config/jaeger-config.yml",
+            "/social-network-microservices/config/service-config.json"
+          ],
+          "command": [
+            "MediaService"
+          ]
+        }
+      ],
+      "volumes": [
+        {
+          "name": "media-service-config",
+          "configMap": "media-service"
+        }
+      ],
+      "config_refs": {
+        "configmaps": [
+          "media-service"
+        ]
+      },
+      "pods": [
+        {
+          "name": "media-service-5c984f9b95-bwqk9",
+          "phase": "Running",
+          "ready": "1/1",
+          "restarts": 0,
+          "created": "2026-10-18T17:01:37Z",
+          "started": "2026-10-18T17:01:37Z",
+          "ready_since": "2026-10-18T17:01:38Z",
+          "node": "kind-worker3",
+          "ip": "10.244.195.193"
+        }
+      ],
+      "services": [
+        {
+          "name": "media-service",
+          "type": "ClusterIP",
+          "ports": [
+            "9090->9090/TCP"
+          ],
+          "ready_endpoints": 1,
+          "not_ready_endpoints": 0
+        }
+      ],
+      "resource_usage": [
+        {
+          "pod": "media-service-5c984f9b95-bwqk9",
+          "container": "media-service",
+          "cpu": "1m",
+          "memory": "3Mi"
+        }
+      ],
+      "modified_seconds_ago": 143,
+      "config_objects": {
+        "configmap/media-service": {
+          "keys": [
+            "jaeger-config.yml",
+            "service-config.json"
+          ],
+          "last_update": "2026-10-18T17:01:36Z"
+        }
+      },
+      "healthy": true,
+      "signals": [],
+      "spec_flags": [],
+      "_derived_signals": [],
+      "_derived": true,
+      "evidence_kinds": []
+    },
+    "deployment/nginx-thrift": {
+      "kind": "Deployment",
+      "name": "nginx-thrift",
+      "namespace": "social-network",
+      "created": "2026-10-18T17:01:36Z",
+      "modified": "2026-10-18T17:01:43Z",
+      "service_account": "default",
+      "replicas": {
+        "desired": 1,
+        "ready": 0,
+        "available": 0,
+        "updated": 1
+      },
+      "strategy": {
+        "type": "RollingUpdate",
+        "maxSurge": "25%",
+        "maxUnavailable": "25%"
+      },
+      "rollout": {
+        "progressDeadlineSeconds": 600
+      },
+      "containers": [
+        {
+          "name": "alpine-container",
+          "init": true,
+          "image": "ghcr.io/sregym/social-network-assets:v1",
+          "mounts": [
+            "/lua-scripts",
+            "/lua-thrift",
+            "/pages",
+            "/gen-lua",
+            "/keys"
+          ],
+          "command": [
+            "/bin/sh"
+          ],
+          "args": [
+            "-c",
+            "cp -r /opt/social-network/gen-lua/. /gen-lua/ && cp -r /opt/social-network/lua-thrift/. /lua-thrift/ && cp -r /opt/social-network/nginx/lua-scripts/. /lua-scripts/ && cp -r /opt/social-network/nginx/pages/. /pages/ && cp -r /opt/social-network/keys/. /keys/"
+          ]
+        },
+        {
+          "name": "nginx-thrift",
+          "init": false,
+          "image": "docker.io/yg397/openresty-thrift:xenial",
+          "limits": {
+            "memory": "256Mi"
+          },
+          "requests": {
+            "memory": "128Mi"
+          },
+          "ports": [
+            8080
+          ],
+          "env_names": [
+            "fqdn_suffix"
+          ],
+          "mounts": [
+            "/usr/local/openresty/nginx/jaeger-config.json",
+            "/usr/local/openresty/nginx/conf/nginx.conf",
+            "/usr/local/openresty/nginx/lua-scripts",
+            "/usr/local/openresty/lualib/thrift",
+            "/usr/local/openresty/nginx/pages",
+            "/gen-lua",
+            "/keys"
+          ]
+        }
+      ],
+      "volumes": [
+        {
+          "name": "nginx-thrift-config",
+          "configMap": "nginx-thrift"
+        }
+      ],
+      "config_refs": {
+        "configmaps": [
+          "nginx-thrift"
+        ]
+      },
+      "spec_flags": [
+        "Available=False (MinimumReplicasUnavailable)"
+      ],
+      "pods": [
+        {
+          "name": "nginx-thrift-6c5bcfcb8f-cmr7j",
+          "phase": "Running",
+          "ready": "0/1",
+          "restarts": 4,
+          "created": "2026-10-18T17:01:55Z",
+          "started": "2026-10-18T17:01:55Z",
+          "not_ready_since": "2026-10-18T17:01:55Z",
+          "last_crash_at": "2026-10-18T17:03:32Z",
+          "node": "kind-worker3",
+          "ip": "10.244.195.232",
+          "container_states": [
+            "alpine-container: terminated Completed exit=0",
+            "nginx-thrift: waiting CrashLoopBackOff: back-off 1m20s restarting failed container=nginx-thrift pod=nginx-thrift-6c5bcfcb8f-cmr7j_social-network(7e4ab3c6-3182-409c-95ad-a23cf543f9e0)",
+            "nginx-thrift: last terminated OOMKilled exit=137"
+          ],
+          "conditions": [
+            "Ready=False (ContainersNotReady): containers with unready status: [nginx-thrift]",
+            "ContainersReady=False (ContainersNotReady): containers with unready status: [nginx-thrift]"
+          ]
+        }
+      ],
+      "services": [
+        {
+          "name": "nginx-thrift",
+          "type": "ClusterIP",
+          "ports": [
+            "8080->8080/TCP"
+          ],
+          "ready_endpoints": 0,
+          "not_ready_endpoints": 1
+        }
+      ],
+      "warning_events": [
+        {
+          "reason": "BackOff",
+          "count": 10,
+          "object": "pod/nginx-thrift-6c5bcfcb8f-cmr7j",
+          "first_seen": "2026-10-18T17:01:58Z",
+          "last_seen": "2026-10-18T17:03:47Z",
+          "message": "Back-off restarting failed container nginx-thrift in pod nginx-thrift-6c5bcfcb8f-cmr7j_social-network(7e4ab3c6-3182-409c-95ad-a23cf543f9e0)"
+        }
+      ],
+      "alerts": [
+        "DeploymentNotReady"
+      ],
+      "signals": [
+        "only 0 of 1 desired replicas are ready",
+        "pod nginx-thrift-6c5bcfcb8f-cmr7j: container nginx-thrift waiting in CrashLoopBackOff",
+        "pod nginx-thrift-6c5bcfcb8f-cmr7j: container nginx-thrift was OOMKilled",
+        "pod nginx-thrift-6c5bcfcb8f-cmr7j: container nginx-thrift restarted 4 times",
+        "warning events: BackOff x10",
+        "service nginx-thrift selects this component but has 0 ready endpoints",
+        "pod nginx-thrift-6c5bcfcb8f-cmr7j: container nginx-thrift limits.memory 16Mi, template 256Mi; container nginx-thrift requests.memory 16Mi, template 128Mi \u2014 the running pod differs from the pod template of its revision, so it was changed at admission; mutating webhooks whose rules and selectors match these pods: gatekeeper-mutating-webhook-configuration",
+        "firing alert DeploymentNotReady",
+        "pod nginx-thrift-6c5bcfcb8f-cmr7j: container nginx-thrift restarted 1 more time(s) in the last 48s",
+        "warning event BackOff on pod/nginx-thrift-6c5bcfcb8f-cmr7j repeated 3 more time(s) in the last 48s",
+        "MutatingWebhookConfiguration gatekeeper-mutating-webhook-configuration was created 135s ago, 11s after the workloads it intercepts; 8s before the first active symptom"
+      ],
+      "template_changes": {
+        "revision": 2,
+        "changed_at": "2026-10-18T17:01:43Z",
+        "changes": [
+          "pod label pod-template-hash: 5d54468559 -> 6c5bcfcb8f",
+          "container nginx-thrift limits.memory: unset -> 256Mi",
+          "container nginx-thrift requests.memory: unset -> 128Mi"
+        ]
+      },
+      "modified_seconds_ago": 136,
+      "config_objects": {
+        "configmap/nginx-thrift": {
+          "keys": [
+            "jaeger-config.json",
+            "nginx.conf"
+          ],
+          "last_update": "2026-10-18T17:01:36Z"
+        }
+      },
+      "admission_changes": {
+        "pod": "nginx-thrift-6c5bcfcb8f-cmr7j",
+        "differences": [
+          "container nginx-thrift limits.memory 16Mi, template 256Mi",
+          "container nginx-thrift requests.memory 16Mi, template 128Mi"
+        ],
+        "webhooks": [
+          "gatekeeper-mutating-webhook-configuration"
+        ]
+      },
+      "healthy": false,
+      "_derived_signals": [
+        "MutatingWebhookConfiguration gatekeeper-mutating-webhook-configuration was created 135s ago, 11s after the workloads it intercepts; 8s before the first active symptom"
+      ],
+      "_derived": true,
+      "evidence_kinds": [
+        "change",
+        "configuration",
+        "symptoms"
+      ]
+    },
+    "deployment/post-storage-memcached": {
+      "kind": "Deployment",
+      "name": "post-storage-memcached",
+      "namespace": "social-network",
+      "created": "2026-10-18T17:01:36Z",
+      "modified": "2026-10-18T17:01:36Z",
+      "service_account": "default",
+      "replicas": {
+        "desired": 1,
+        "ready": 1,
+        "available": 1,
+        "updated": 1
+      },
+      "strategy": {
+        "type": "RollingUpdate",
+        "maxSurge": "25%",
+        "maxUnavailable": "25%"
+      },
+      "rollout": {
+        "progressDeadlineSeconds": 600
+      },
+      "containers": [
+        {
+          "name": "post-storage-memcached",
+          "init": false,
+          "image": "docker.io/library/memcached:1.6.7",
+          "ports": [
+            11211
+          ],
+          "mounts": [
+            "/social-network-microservices/config/jaeger-config.yml",
+            "/social-network-microservices/config/service-config.json"
+          ]
+        }
+      ],
+      "volumes": [
+        {
+          "name": "post-storage-memcached-config",
+          "configMap": "post-storage-memcached"
+        }
+      ],
+      "config_refs": {
+        "configmaps": [
+          "post-storage-memcached"
+        ]
+      },
+      "pods": [
+        {
+          "name": "post-storage-memcached-5b544b79d8-vzqxk",
+          "phase": "Running",
+          "ready": "1/1",
+          "restarts": 0,
+          "created": "2026-10-18T17:01:37Z",
+          "started": "2026-10-18T17:01:37Z",
+          "ready_since": "2026-10-18T17:01:38Z",
+          "node": "kind-worker2",
+          "ip": "10.244.110.179"
+        }
+      ],
+      "services": [
+        {
+          "name": "post-storage-memcached",
+          "type": "ClusterIP",
+          "ports": [
+            "11211->11211/TCP"
+          ],
+          "ready_endpoints": 1,
+          "not_ready_endpoints": 0
+        }
+      ],
+      "resource_usage": [
+        {
+          "pod": "post-storage-memcached-5b544b79d8-vzqxk",
+          "container": "post-storage-memcached",
+          "cpu": "1m",
+          "memory": "3Mi"
+        }
+      ],
+      "modified_seconds_ago": 143,
+      "config_objects": {
+        "configmap/post-storage-memcached": {
+          "keys": [
+            "jaeger-config.yml",
+            "service-config.json"
+          ],
+          "last_update": "2026-10-18T17:01:36Z"
+        }
+      },
+      "healthy": true,
+      "signals": [],
+      "spec_flags": [],
+      "_derived_signals": [],
+      "_derived": true,
+      "evidence_kinds": []
+    },
+    "deployment/post-storage-mongodb": {
+      "kind": "Deployment",
+      "name": "post-storage-mongodb",
+      "namespace": "social-network",
+      "created": "2026-10-18T17:01:36Z",
+      "modified": "2026-10-18T17:01:36Z",
+      "service_account": "default",
+      "replicas": {
+        "desired": 1,
+        "ready": 1,
+        "available": 1,
+        "updated": 1
+      },
+      "strategy": {
+        "type": "RollingUpdate",
+        "maxSurge": "25%",
+        "maxUnavailable": "25%"
+      },
+      "rollout": {
+        "progressDeadlineSeconds": 600
+      },
+      "containers": [
+        {
+          "name": "post-storage-mongodb",
+          "init": false,
+          "image": "docker.io/library/mongo:4.4.6",
+          "ports": [
+            27017
+          ],
+          "mounts": [
+            "/social-network-microservices/config/mongod.conf"
+          ],
+          "args": [
+            "--config",
+            "/social-network-microservices/config/mongod.conf"
+          ]
+        }
+      ],
+      "volumes": [
+        {
+          "name": "post-storage-mongodb-config",
+          "configMap": "post-storage-mongodb"
+        }
+      ],
+      "config_refs": {
+        "configmaps": [
+          "post-storage-mongodb"
+        ]
+      },
+      "pods": [
+        {
+          "name": "post-storage-mongodb-846dcb76b7-6k5qk",
+          "phase": "Running",
+          "ready": "1/1",
+          "restarts": 0,
+          "created": "2026-10-18T17:01:39Z",
+          "started": "2026-10-18T17:01:39Z",
+          "ready_since": "2026-10-18T17:01:40Z",
+          "node": "kind-worker3",
+          "ip": "10.244.195.228"
+        }
+      ],
+      "services": [
+        {
+          "name": "post-storage-mongodb",
+          "type": "ClusterIP",
+          "ports": [
+            "27017->27017/TCP"
+          ],
+          "ready_endpoints": 1,
+          "not_ready_endpoints": 0
+        }
+      ],
+      "resource_usage": [
+        {
+          "pod": "post-storage-mongodb-846dcb76b7-6k5qk",
+          "container": "post-storage-mongodb",
+          "cpu": "7m",
+          "memory": "57Mi"
+        }
+      ],
+      "modified_seconds_ago": 143,
+      "config_objects": {
+        "configmap/post-storage-mongodb": {
+          "keys": [
+            "mongod.conf"
+          ],
+          "last_update": "2026-10-18T17:01:36Z"
+        }
+      },
+      "healthy": true,
+      "signals": [],
+      "spec_flags": [],
+      "_derived_signals": [],
+      "_derived": true,
+      "evidence_kinds": []
+    },
+    "deployment/post-storage-service": {
+      "kind": "Deployment",
+      "name": "post-storage-service",
+      "namespace": "social-network",
+      "created": "2026-10-18T17:01:36Z",
+      "modified": "2026-10-18T17:01:36Z",
+      "service_account": "default",
+      "replicas": {
+        "desired": 1,
+        "ready": 1,
+        "available": 1,
+        "updated": 1
+      },
+      "strategy": {
+        "type": "RollingUpdate",
+        "maxSurge": "25%",
+        "maxUnavailable": "25%"
+      },
+      "rollout": {
+        "progressDeadlineSeconds": 600
+      },
+      "containers": [
+        {
+          "name": "post-storage-service",
+          "init": false,
+          "image": "ghcr.io/sregym/social-network:sha-d2c036bc3d1138f5a0bdaffd3d87f37522c3461a@sha256:70287c4756f9187613e49409291927c342724e3974f93709b21595ed1cdf1d69",
+          "ports": [
+            9090
+          ],
+          "mounts": [
+            "/social-network-microservices/config/jaeger-config.yml",
+            "/social-network-microservices/config/service-config.json"
+          ],
+          "command": [
+            "PostStorageService"
+          ]
+        }
+      ],
+      "volumes": [
+        {
+          "name": "post-storage-service-config",
+          "configMap": "post-storage-service"
+        }
+      ],
+      "config_refs": {
+        "configmaps": [
+          "post-storage-service"
+        ]
+      },
+      "pods": [
+        {
+          "name": "post-storage-service-6b855d8db4-vtp28",
+          "phase": "Running",
+          "ready": "1/1",
+          "restarts": 0,
+          "created": "2026-10-18T17:01:40Z",
+          "started": "2026-10-18T17:01:40Z",
+          "ready_since": "2026-10-18T17:01:41Z",
+          "node": "kind-worker3",
+          "ip": "10.244.195.223"
+        }
+      ],
+      "services": [
+        {
+          "name": "post-storage-service",
+          "type": "ClusterIP",
+          "ports": [
+            "9090->9090/TCP"
+          ],
+          "ready_endpoints": 1,
+          "not_ready_endpoints": 0
+        }
+      ],
+      "resource_usage": [
+        {
+          "pod": "post-storage-service-6b855d8db4-vtp28",
+          "container": "post-storage-service",
+          "cpu": "1m",
+          "memory": "4Mi"
+        }
+      ],
+      "modified_seconds_ago": 143,
+      "config_objects": {
+        "configmap/post-storage-service": {
+          "keys": [
+            "jaeger-config.yml",
+            "service-config.json"
+          ],
+          "last_update": "2026-10-18T17:01:36Z"
+        }
+      },
+      "healthy": true,
+      "signals": [],
+      "spec_flags": [],
+      "_derived_signals": [],
+      "_derived": true,
+      "evidence_kinds": []
+    },
+    "deployment/social-graph-mongodb": {
+      "kind": "Deployment",
+      "name": "social-graph-mongodb",
+      "namespace": "social-network",
+      "created": "2026-10-18T17:01:36Z",
+      "modified": "2026-10-18T17:01:36Z",
+      "service_account": "default",
+      "replicas": {
+        "desired": 1,
+        "ready": 1,
+        "available": 1,
+        "updated": 1
+      },
+      "strategy": {
+        "type": "RollingUpdate",
+        "maxSurge": "25%",
+        "maxUnavailable": "25%"
+      },
+      "rollout": {
+        "progressDeadlineSeconds": 600
+      },
+      "containers": [
+        {
+          "name": "social-graph-mongodb",
+          "init": false,
+          "image": "docker.io/library/mongo:4.4.6",
+          "ports": [
+            27017
+          ],
+          "mounts": [
+            "/social-network-microservices/config/mongod.conf"
+          ],
+          "args": [
+            "--config",
+            "/social-network-microservices/config/mongod.conf"
+          ]
+        }
+      ],
+      "volumes": [
+        {
+          "name": "social-graph-mongodb-config",
+          "configMap": "social-graph-mongodb"
+        }
+      ],
+      "config_refs": {
+        "configmaps": [
+          "social-graph-mongodb"
+        ]
+      },
+      "pods": [
+        {
+          "name": "social-graph-mongodb-69ddddf895-nkgqf",
+          "phase": "Running",
+          "ready": "1/1",
+          "restarts": 0,
+          "created": "2026-10-18T17:01:38Z",
+          "started": "2026-10-18T17:01:38Z",
+          "ready_since": "2026-10-18T17:01:39Z",
+          "node": "kind-worker2",
+          "ip": "10.244.110.175"
+        }
+      ],
+      "services": [
+        {
+          "name": "social-graph-mongodb",
+          "type": "ClusterIP",
+          "ports": [
+            "27017->27017/TCP"
+          ],
+          "ready_endpoints": 1,
+          "not_ready_endpoints": 0
+        }
+      ],
+      "resource_usage": [
+        {
+          "pod": "social-graph-mongodb-69ddddf895-nkgqf",
+          "container": "social-graph-mongodb",
+          "cpu": "7m",
+          "memory": "56Mi"
+        }
+      ],
+      "modified_seconds_ago": 143,
+      "config_objects": {
+        "configmap/social-graph-mongodb": {
+          "keys": [
+            "mongod.conf"
+          ],
+          "last_update": "2026-10-18T17:01:36Z"
+        }
+      },
+      "healthy": true,
+      "signals": [],
+      "spec_flags": [],
+      "_derived_signals": [],
+      "_derived": true,
+      "evidence_kinds": []
+    },
+    "deployment/social-graph-redis": {
+      "kind": "Deployment",
+      "name": "social-graph-redis",
+      "namespace": "social-network",
+      "created": "2026-10-18T17:01:36Z",
+      "modified": "2026-10-18T17:01:36Z",
+      "service_account": "default",
+      "replicas": {
+        "desired": 1,
+        "ready": 1,
+        "available": 1,
+        "updated": 1
+      },
+      "strategy": {
+        "type": "RollingUpdate",
+        "maxSurge": "25%",
+        "maxUnavailable": "25%"
+      },
+      "rollout": {
+        "progressDeadlineSeconds": 600
+      },
+      "containers": [
+        {
+          "name": "social-graph-redis",
+          "init": false,
+          "image": "docker.io/library/redis:6.2.4",
+          "ports": [
+            6379
+          ],
+          "mounts": [
+            "/social-network-microservices/config/redis.conf"
+          ],
+          "args": [
+            "/social-network-microservices/config/redis.conf"
+          ]
+        }
+      ],
+      "volumes": [
+        {
+          "name": "social-graph-redis-config",
+          "configMap": "social-graph-redis"
+        }
+      ],
+      "config_refs": {
+        "configmaps": [
+          "social-graph-redis"
+        ]
+      },
+      "pods": [
+        {
+          "name": "social-graph-redis-f9759b67d-sj56l",
+          "phase": "Running",
+          "ready": "1/1",
+          "restarts": 0,
+          "created": "2026-10-18T17:01:39Z",
+          "started": "2026-10-18T17:01:39Z",
+          "ready_since": "2026-10-18T17:01:41Z",
+          "node": "kind-worker2",
+          "ip": "10.244.110.167"
+        }
+      ],
+      "services": [
+        {
+          "name": "social-graph-redis",
+          "type": "ClusterIP",
+          "ports": [
+            "6379->6379/TCP"
+          ],
+          "ready_endpoints": 1,
+          "not_ready_endpoints": 0
+        }
+      ],
+      "resource_usage": [
+        {
+          "pod": "social-graph-redis-f9759b67d-sj56l",
+          "container": "social-graph-redis",
+          "cpu": "2m",
+          "memory": "2Mi"
+        }
+      ],
+      "modified_seconds_ago": 143,
+      "config_objects": {
+        "configmap/social-graph-redis": {
+          "keys": [
+            "redis.conf"
+          ],
+          "last_update": "2026-10-18T17:01:36Z"
+        }
+      },
+      "warmup_log_errors_ignored": 7,
+      "healthy": true,
+      "signals": [],
+      "spec_flags": [],
+      "_derived_signals": [],
+      "_derived": true,
+      "evidence_kinds": []
+    },
+    "deployment/social-graph-service": {
+      "kind": "Deployment",
+      "name": "social-graph-service",
+      "namespace": "social-network",
+      "created": "2026-10-18T17:01:36Z",
+      "modified": "2026-10-18T17:01:36Z",
+      "service_account": "default",
+      "replicas": {
+        "desired": 1,
+        "ready": 1,
+        "available": 1,
+        "updated": 1
+      },
+      "strategy": {
+        "type": "RollingUpdate",
+        "maxSurge": "25%",
+        "maxUnavailable": "25%"
+      },
+      "rollout": {
+        "progressDeadlineSeconds": 600
+      },
+      "containers": [
+        {
+          "name": "social-graph-service",
+          "init": false,
+          "image": "ghcr.io/sregym/social-network:sha-d2c036bc3d1138f5a0bdaffd3d87f37522c3461a@sha256:70287c4756f9187613e49409291927c342724e3974f93709b21595ed1cdf1d69",
+          "ports": [
+            9090
+          ],
+          "mounts": [
+            "/social-network-microservices/config/jaeger-config.yml",
+            "/social-network-microservices/config/service-config.json"
+          ],
+          "command": [
+            "SocialGraphService"
+          ]
+        }
+      ],
+      "volumes": [
+        {
+          "name": "social-graph-service-config",
+          "configMap": "social-graph-service"
+        }
+      ],
+      "config_refs": {
+        "configmaps": [
+          "social-graph-service"
+        ]
+      },
+      "pods": [
+        {
+          "name": "social-graph-service-5b9b8c454b-b8ccz",
+          "phase": "Running",
+          "ready": "1/1",
+          "restarts": 0,
+          "created": "2026-10-18T17:01:36Z",
+          "started": "2026-10-18T17:01:36Z",
+          "ready_since": "2026-10-18T17:01:38Z",
+          "node": "kind-worker3",
+          "ip": "10.244.195.205"
+        }
+      ],
+      "services": [
+        {
+          "name": "social-graph-service",
+          "type": "ClusterIP",
+          "ports": [
+            "9090->9090/TCP"
+          ],
+          "ready_endpoints": 1,
+          "not_ready_endpoints": 0
+        }
+      ],
+      "log_signals": [
+        {
+          "count": 15,
+          "line": "social-graph-service: [2026-Oct-18 17:01:47.101732] <warning>: (SocialGraphHandler.h:612:GetFollowers) user_id: 223 not found",
+          "first_seen_seconds_ago": 134,
+          "last_seen_seconds_ago": 133,
+          "median_gap_seconds": 0.0,
+          "state": "stopped"
+        },
+        {
+          "count": 12,
+          "line": "social-graph-service: [2026-Oct-18 17:01:46.495405] <warning>: (SocialGraphHandler.h:612:GetFollowers) user_id: 738 not found",
+          "first_seen_seconds_ago": 135,
+          "last_seen_seconds_ago": 134,
+          "median_gap_seconds": 0.0,
+          "state": "stopped"
+        },
+        {
+          "count": 11,
+          "line": "social-graph-service: [2026-Oct-18 17:01:48.027999] <warning>: (SocialGraphHandler.h:612:GetFollowers) user_id: 807 not found",
+          "first_seen_seconds_ago": 133,
+          "last_seen_seconds_ago": 132,
+          "median_gap_seconds": 0.1,
+          "state": "stopped"
+        },
+        {
+          "count": 11,
+          "line": "social-graph-service: [2026-Oct-18 17:01:51.062768] <warning>: (SocialGraphHandler.h:612:GetFollowers) user_id: 309 not found",
+          "first_seen_seconds_ago": 130,
+          "last_seen_seconds_ago": 130,
+          "median_gap_seconds": 0.0,
+          "state": "stopped"
+        },
+        {
+          "count": 10,
+          "line": "social-graph-service: [2026-Oct-18 17:01:53.048806] <warning>: (SocialGraphHandler.h:612:GetFollowers) user_id: 307 not found",
+          "first_seen_seconds_ago": 128,
+          "last_seen_seconds_ago": 128,
+          "median_gap_seconds": 0.0,
+          "state": "stopped"
+        },
+        {
+          "count": 9,
+          "line": "social-graph-service: [2026-Oct-18 17:01:44.142107] <warning>: (SocialGraphHandler.h:612:GetFollowers) user_id: 142 not found",
+          "first_seen_seconds_ago": 137,
+          "last_seen_seconds_ago": 136,
+          "median_gap_seconds": 0.1,
+          "state": "stopped"
+        },
+        {
+          "count": 7,
+          "line": "social-graph-service: [2026-Oct-18 17:01:49.031646] <warning>: (SocialGraphHandler.h:612:GetFollowers) user_id: 467 not found",
+          "first_seen_seconds_ago": 132,
+          "last_seen_seconds_ago": 132,
+          "median_gap_seconds": 0.1,
+          "state": "stopped"
+        },
+        {
+          "count": 7,
+          "line": "social-graph-service: [2026-Oct-18 17:01:52.088054] <warning>: (SocialGraphHandler.h:612:GetFollowers) user_id: 174 not found",
+          "first_seen_seconds_ago": 129,
+          "last_seen_seconds_ago": 128,
+          "median_gap_seconds": 0.1,
+          "state": "stopped"
+        }
+      ],
+      "resource_usage": [
+        {
+          "pod": "social-graph-service-5b9b8c454b-b8ccz",
+          "container": "social-graph-service",
+          "cpu": "1m",
+          "memory": "4Mi"
+        }
+      ],
+      "modified_seconds_ago": 143,
+      "config_objects": {
+        "configmap/social-graph-service": {
+          "keys": [
+            "jaeger-config.yml",
+            "service-config.json"
+          ],
+          "last_update": "2026-10-18T17:01:36Z"
+        }
+      },
+      "stopped_error_lines": 82,
+      "healthy": true,
+      "signals": [],
+      "spec_flags": [],
+      "log_error_lines": null,
+      "_derived_signals": [],
+      "_derived": true,
+      "evidence_kinds": []
+    },
+    "deployment/text-service": {
+      "kind": "Deployment",
+      "name": "text-service",
+      "namespace": "social-network",
+      "created": "2026-10-18T17:01:36Z",
+      "modified": "2026-10-18T17:01:36Z",
+      "service_account": "default",
+      "replicas": {
+        "desired": 1,
+        "ready": 1,
+        "available": 1,
+        "updated": 1
+      },
+      "strategy": {
+        "type": "RollingUpdate",
+        "maxSurge": "25%",
+        "maxUnavailable": "25%"
+      },
+      "rollout": {
+        "progressDeadlineSeconds": 600
+      },
+      "containers": [
+        {
+          "name": "text-service",
+          "init": false,
+          "image": "ghcr.io/sregym/social-network:sha-d2c036bc3d1138f5a0bdaffd3d87f37522c3461a@sha256:70287c4756f9187613e49409291927c342724e3974f93709b21595ed1cdf1d69",
+          "ports": [
+            9090
+          ],
+          "mounts": [
+            "/social-network-microservices/config/jaeger-config.yml",
+            "/social-network-microservices/config/service-config.json"
+          ],
+          "command": [
+            "TextService"
+          ]
+        }
+      ],
+      "volumes": [
+        {
+          "name": "text-service-config",
+          "configMap": "text-service"
+        }
+      ],
+      "config_refs": {
+        "configmaps": [
+          "text-service"
+        ]
+      },
+      "pods": [
+        {
+          "name": "text-service-6fcdf945fd-fztjf",
+          "phase": "Running",
+          "ready": "1/1",
+          "restarts": 0,
+          "created": "2026-10-18T17:01:36Z",
+          "started": "2026-10-18T17:01:36Z",
+          "ready_since": "2026-10-18T17:01:37Z",
+          "node": "kind-worker3",
+          "ip": "10.244.195.248"
+        }
+      ],
+      "services": [
+        {
+          "name": "text-service",
+          "type": "ClusterIP",
+          "ports": [
+            "9090->9090/TCP"
+          ],
+          "ready_endpoints": 1,
+          "not_ready_endpoints": 0
+        }
+      ],
+      "log_signals": [
+        {
+          "count": 200,
+          "line": "text-service: [Error] File: /tmp/opentelemetry-cpp/exporters/otlp/src/otlp_grpc_exporter.cc:68 [OTLP TRACE GRPC Exporter] Export() failed with status_code: \"UNAVAILABLE\" error_message: \"DNS resolution failed for otel-collector:4317: C-ares\u2026",
+          "first_seen_seconds_ago": 133,
+          "last_seen_seconds_ago": 126,
+          "median_gap_seconds": 0.0,
+          "state": "stopped"
+        }
+      ],
+      "resource_usage": [
+        {
+          "pod": "text-service-6fcdf945fd-fztjf",
+          "container": "text-service",
+          "cpu": "3m",
+          "memory": "18Mi"
+        }
+      ],
+      "modified_seconds_ago": 143,
+      "config_objects": {
+        "configmap/text-service": {
+          "keys": [
+            "jaeger-config.yml",
+            "service-config.json"
+          ],
+          "last_update": "2026-10-18T17:01:36Z"
+        }
+      },
+      "stopped_error_lines": 200,
+      "healthy": true,
+      "signals": [],
+      "spec_flags": [],
+      "log_error_lines": null,
+      "_derived_signals": [],
+      "_derived": true,
+      "evidence_kinds": []
+    },
+    "deployment/unique-id-service": {
+      "kind": "Deployment",
+      "name": "unique-id-service",
+      "namespace": "social-network",
+      "created": "2026-10-18T17:01:36Z",
+      "modified": "2026-10-18T17:01:36Z",
+      "service_account": "default",
+      "replicas": {
+        "desired": 1,
+        "ready": 1,
+        "available": 1,
+        "updated": 1
+      },
+      "strategy": {
+        "type": "RollingUpdate",
+        "maxSurge": "25%",
+        "maxUnavailable": "25%"
+      },
+      "rollout": {
+        "progressDeadlineSeconds": 600
+      },
+      "containers": [
+        {
+          "name": "unique-id-service",
+          "init": false,
+          "image": "ghcr.io/sregym/social-network:sha-d2c036bc3d1138f5a0bdaffd3d87f37522c3461a@sha256:70287c4756f9187613e49409291927c342724e3974f93709b21595ed1cdf1d69",
+          "ports": [
+            9090
+          ],
+          "mounts": [
+            "/social-network-microservices/config/jaeger-config.yml",
+            "/social-network-microservices/config/service-config.json"
+          ],
+          "command": [
+            "UniqueIdService"
+          ]
+        }
+      ],
+      "volumes": [
+        {
+          "name": "unique-id-service-config",
+          "configMap": "unique-id-service"
+        }
+      ],
+      "config_refs": {
+        "configmaps": [
+          "unique-id-service"
+        ]
+      },
+      "pods": [
+        {
+          "name": "unique-id-service-d54549bcf-wl77f",
+          "phase": "Running",
+          "ready": "1/1",
+          "restarts": 0,
+          "created": "2026-10-18T17:01:36Z",
+          "started": "2026-10-18T17:01:36Z",
+          "ready_since": "2026-10-18T17:01:38Z",
+          "node": "kind-worker3",
+          "ip": "10.244.195.215"
+        }
+      ],
+      "services": [
+        {
+          "name": "unique-id-service",
+          "type": "ClusterIP",
+          "ports": [
+            "9090->9090/TCP"
+          ],
+          "ready_endpoints": 1,
+          "not_ready_endpoints": 0
+        }
+      ],
+      "resource_usage": [
+        {
+          "pod": "unique-id-service-d54549bcf-wl77f",
+          "container": "unique-id-service",
+          "cpu": "1m",
+          "memory": "3Mi"
+        }
+      ],
+      "modified_seconds_ago": 143,
+      "config_objects": {
+        "configmap/unique-id-service": {
+          "keys": [
+            "jaeger-config.yml",
+            "service-config.json"
+          ],
+          "last_update": "2026-10-18T17:01:36Z"
+        }
+      },
+      "healthy": true,
+      "signals": [],
+      "spec_flags": [],
+      "_derived_signals": [],
+      "_derived": true,
+      "evidence_kinds": []
+    },
+    "deployment/url-shorten-memcached": {
+      "kind": "Deployment",
+      "name": "url-shorten-memcached",
+      "namespace": "social-network",
+      "created": "2026-10-18T17:01:36Z",
+      "modified": "2026-10-18T17:01:36Z",
+      "service_account": "default",
+      "replicas": {
+        "desired": 1,
+        "ready": 1,
+        "available": 1,
+        "updated": 1
+      },
+      "strategy": {
+        "type": "RollingUpdate",
+        "maxSurge": "25%",
+        "maxUnavailable": "25%"
+      },
+      "rollout": {
+        "progressDeadlineSeconds": 600
+      },
+      "containers": [
+        {
+          "name": "url-shorten-memcached",
+          "init": false,
+          "image": "docker.io/library/memcached:1.6.7",
+          "ports": [
+            11211
+          ],
+          "mounts": [
+            "/social-network-microservices/config/jaeger-config.yml",
+            "/social-network-microservices/config/service-config.json"
+          ]
+        }
+      ],
+      "volumes": [
+        {
+          "name": "url-shorten-memcached-config",
+          "configMap": "url-shorten-memcached"
+        }
+      ],
+      "config_refs": {
+        "configmaps": [
+          "url-shorten-memcached"
+        ]
+      },
+      "pods": [
+        {
+          "name": "url-shorten-memcached-999559bdb-gfxq8",
+          "phase": "Running",
+          "ready": "1/1",
+          "restarts": 0,
+          "created": "2026-10-18T17:01:36Z",
+          "started": "2026-10-18T17:01:36Z",
+          "ready_since": "2026-10-18T17:01:38Z",
+          "node": "kind-worker3",
+          "ip": "10.244.195.206"
+        }
+      ],
+      "services": [
+        {
+          "name": "url-shorten-memcached",
+          "type": "ClusterIP",
+          "ports": [
+            "11211->11211/TCP"
+          ],
+          "ready_endpoints": 1,
+          "not_ready_endpoints": 0
+        }
+      ],
+      "resource_usage": [
+        {
+          "pod": "url-shorten-memcached-999559bdb-gfxq8",
+          "container": "url-shorten-memcached",
+          "cpu": "1m",
+          "memory": "5Mi"
+        }
+      ],
+      "modified_seconds_ago": 143,
+      "config_objects": {
+        "configmap/url-shorten-memcached": {
+          "keys": [
+            "jaeger-config.yml",
+            "service-config.json"
+          ],
+          "last_update": "2026-10-18T17:01:36Z"
+        }
+      },
+      "healthy": true,
+      "signals": [],
+      "spec_flags": [],
+      "_derived_signals": [],
+      "_derived": true,
+      "evidence_kinds": []
+    },
+    "deployment/url-shorten-mongodb": {
+      "kind": "Deployment",
+      "name": "url-shorten-mongodb",
+      "namespace": "social-network",
+      "created": "2026-10-18T17:01:36Z",
+      "modified": "2026-10-18T17:01:36Z",
+      "service_account": "default",
+      "replicas": {
+        "desired": 1,
+        "ready": 1,
+        "available": 1,
+        "updated": 1
+      },
+      "strategy": {
+        "type": "RollingUpdate",
+        "maxSurge": "25%",
+        "maxUnavailable": "25%"
+      },
+      "rollout": {
+        "progressDeadlineSeconds": 600
+      },
+      "containers": [
+        {
+          "name": "url-shorten-mongodb",
+          "init": false,
+          "image": "docker.io/library/mongo:4.4.6",
+          "ports": [
+            27017
+          ],
+          "mounts": [
+            "/social-network-microservices/config/mongod.conf"
+          ],
+          "args": [
+            "--config",
+            "/social-network-microservices/config/mongod.conf"
+          ]
+        }
+      ],
+      "volumes": [
+        {
+          "name": "url-shorten-mongodb-config",
+          "configMap": "url-shorten-mongodb"
+        }
+      ],
+      "config_refs": {
+        "configmaps": [
+          "url-shorten-mongodb"
+        ]
+      },
+      "pods": [
+        {
+          "name": "url-shorten-mongodb-6b486f55b8-t8g2g",
+          "phase": "Running",
+          "ready": "1/1",
+          "restarts": 0,
+          "created": "2026-10-18T17:01:38Z",
+          "started": "2026-10-18T17:01:38Z",
+          "ready_since": "2026-10-18T17:01:39Z",
+          "node": "kind-worker3",
+          "ip": "10.244.195.203"
+        }
+      ],
+      "services": [
+        {
+          "name": "url-shorten-mongodb",
+          "type": "ClusterIP",
+          "ports": [
+            "27017->27017/TCP"
+          ],
+          "ready_endpoints": 1,
+          "not_ready_endpoints": 0
+        }
+      ],
+      "resource_usage": [
+        {
+          "pod": "url-shorten-mongodb-6b486f55b8-t8g2g",
+          "container": "url-shorten-mongodb",
+          "cpu": "6m",
+          "memory": "84Mi"
+        }
+      ],
+      "modified_seconds_ago": 143,
+      "config_objects": {
+        "configmap/url-shorten-mongodb": {
+          "keys": [
+            "mongod.conf"
+          ],
+          "last_update": "2026-10-18T17:01:36Z"
+        }
+      },
+      "healthy": true,
+      "signals": [],
+      "spec_flags": [],
+      "_derived_signals": [],
+      "_derived": true,
+      "evidence_kinds": []
+    },
+    "deployment/url-shorten-service": {
+      "kind": "Deployment",
+      "name": "url-shorten-service",
+      "namespace": "social-network",
+      "created": "2026-10-18T17:01:36Z",
+      "modified": "2026-10-18T17:01:36Z",
+      "service_account": "default",
+      "replicas": {
+        "desired": 1,
+        "ready": 1,
+        "available": 1,
+        "updated": 1
+      },
+      "strategy": {
+        "type": "RollingUpdate",
+        "maxSurge": "25%",
+        "maxUnavailable": "25%"
+      },
+      "rollout": {
+        "progressDeadlineSeconds": 600
+      },
+      "containers": [
+        {
+          "name": "url-shorten-service",
+          "init": false,
+          "image": "ghcr.io/sregym/social-network:sha-d2c036bc3d1138f5a0bdaffd3d87f37522c3461a@sha256:70287c4756f9187613e49409291927c342724e3974f93709b21595ed1cdf1d69",
+          "ports": [
+            9090
+          ],
+          "mounts": [
+            "/social-network-microservices/config/jaeger-config.yml",
+            "/social-network-microservices/config/service-config.json"
+          ],
+          "command": [
+            "UrlShortenService"
+          ]
+        }
+      ],
+      "volumes": [
+        {
+          "name": "url-shorten-service-config",
+          "configMap": "url-shorten-service"
+        }
+      ],
+      "config_refs": {
+        "configmaps": [
+          "url-shorten-service"
+        ]
+      },
+      "pods": [
+        {
+          "name": "url-shorten-service-844c7fb5cf-vp5wr",
+          "phase": "Running",
+          "ready": "1/1",
+          "restarts": 0,
+          "created": "2026-10-18T17:01:36Z",
+          "started": "2026-10-18T17:01:36Z",
+          "ready_since": "2026-10-18T17:01:38Z",
+          "node": "kind-worker3",
+          "ip": "10.244.195.207"
+        }
+      ],
+      "services": [
+        {
+          "name": "url-shorten-service",
+          "type": "ClusterIP",
+          "ports": [
+            "9090->9090/TCP"
+          ],
+          "ready_endpoints": 1,
+          "not_ready_endpoints": 0
+        }
+      ],
+      "log_signals": [
+        {
+          "count": 200,
+          "line": "url-shorten-service: [Error] File: /tmp/opentelemetry-cpp/exporters/otlp/src/otlp_grpc_exporter.cc:68 [OTLP TRACE GRPC Exporter] Export() failed with status_code: \"UNAVAILABLE\" error_message: \"DNS resolution failed for otel-collector:4317:\u2026",
+          "first_seen_seconds_ago": 136,
+          "last_seen_seconds_ago": 126,
+          "median_gap_seconds": 0.0,
+          "state": "stopped"
+        }
+      ],
+      "resource_usage": [
+        {
+          "pod": "url-shorten-service-844c7fb5cf-vp5wr",
+          "container": "url-shorten-service",
+          "cpu": "4m",
+          "memory": "9Mi"
+        }
+      ],
+      "modified_seconds_ago": 143,
+      "config_objects": {
+        "configmap/url-shorten-service": {
+          "keys": [
+            "jaeger-config.yml",
+            "service-config.json"
+          ],
+          "last_update": "2026-10-18T17:01:36Z"
+        }
+      },
+      "stopped_error_lines": 200,
+      "healthy": true,
+      "signals": [],
+      "spec_flags": [],
+      "log_error_lines": null,
+      "_derived_signals": [],
+      "_derived": true,
+      "evidence_kinds": []
+    },
+    "deployment/user-memcached": {
+      "kind": "Deployment",
+      "name": "user-memcached",
+      "namespace": "social-network",
+      "created": "2026-10-18T17:01:36Z",
+      "modified": "2026-10-18T17:01:36Z",
+      "service_account": "default",
+      "replicas": {
+        "desired": 1,
+        "ready": 1,
+        "available": 1,
+        "updated": 1
+      },
+      "strategy": {
+        "type": "RollingUpdate",
+        "maxSurge": "25%",
+        "maxUnavailable": "25%"
+      },
+      "rollout": {
+        "progressDeadlineSeconds": 600
+      },
+      "containers": [
+        {
+          "name": "user-memcached",
+          "init": false,
+          "image": "docker.io/library/memcached:1.6.7",
+          "ports": [
+            11211
+          ],
+          "mounts": [
+            "/social-network-microservices/config/jaeger-config.yml",
+            "/social-network-microservices/config/service-config.json"
+          ]
+        }
+      ],
+      "volumes": [
+        {
+          "name": "user-memcached-config",
+          "configMap": "user-memcached"
+        }
+      ],
+      "config_refs": {
+        "configmaps": [
+          "user-memcached"
+        ]
+      },
+      "pods": [
+        {
+          "name": "user-memcached-554fcf9578-qzt6m",
+          "phase": "Running",
+          "ready": "1/1",
+          "restarts": 0,
+          "created": "2026-10-18T17:01:36Z",
+          "started": "2026-10-18T17:01:36Z",
+          "ready_since": "2026-10-18T17:01:38Z",
+          "node": "kind-worker3",
+          "ip": "10.244.195.212"
+        }
+      ],
+      "services": [
+        {
+          "name": "user-memcached",
+          "type": "ClusterIP",
+          "ports": [
+            "11211->11211/TCP"
+          ],
+          "ready_endpoints": 1,
+          "not_ready_endpoints": 0
+        }
+      ],
+      "resource_usage": [
+        {
+          "pod": "user-memcached-554fcf9578-qzt6m",
+          "container": "user-memcached",
+          "cpu": "1m",
+          "memory": "1Mi"
+        }
+      ],
+      "modified_seconds_ago": 143,
+      "config_objects": {
+        "configmap/user-memcached": {
+          "keys": [
+            "jaeger-config.yml",
+            "service-config.json"
+          ],
+          "last_update": "2026-10-18T17:01:36Z"
+        }
+      },
+      "healthy": true,
+      "signals": [],
+      "spec_flags": [],
+      "_derived_signals": [],
+      "_derived": true,
+      "evidence_kinds": []
+    },
+    "deployment/user-mention-service": {
+      "kind": "Deployment",
+      "name": "user-mention-service",
+      "namespace": "social-network",
+      "created": "2026-10-18T17:01:36Z",
+      "modified": "2026-10-18T17:01:36Z",
+      "service_account": "default",
+      "replicas": {
+        "desired": 1,
+        "ready": 1,
+        "available": 1,
+        "updated": 1
+      },
+      "strategy": {
+        "type": "RollingUpdate",
+        "maxSurge": "25%",
+        "maxUnavailable": "25%"
+      },
+      "rollout": {
+        "progressDeadlineSeconds": 600
+      },
+      "containers": [
+        {
+          "name": "user-mention-service",
+          "init": false,
+          "image": "ghcr.io/sregym/social-network:sha-d2c036bc3d1138f5a0bdaffd3d87f37522c3461a@sha256:70287c4756f9187613e49409291927c342724e3974f93709b21595ed1cdf1d69",
+          "ports": [
+            9090
+          ],
+          "mounts": [
+            "/social-network-microservices/config/jaeger-config.yml",
+            "/social-network-microservices/config/service-config.json"
+          ],
+          "command": [
+            "UserMentionService"
+          ]
+        }
+      ],
+      "volumes": [
+        {
+          "name": "user-mention-service-config",
+          "configMap": "user-mention-service"
+        }
+      ],
+      "config_refs": {
+        "configmaps": [
+          "user-mention-service"
+        ]
+      },
+      "pods": [
+        {
+          "name": "user-mention-service-77d6fb7dfb-zw796",
+          "phase": "Running",
+          "ready": "1/1",
+          "restarts": 0,
+          "created": "2026-10-18T17:01:36Z",
+          "started": "2026-10-18T17:01:36Z",
+          "ready_since": "2026-10-18T17:01:37Z",
+          "node": "kind-worker",
+          "ip": "10.244.162.175"
+        }
+      ],
+      "services": [
+        {
+          "name": "user-mention-service",
+          "type": "ClusterIP",
+          "ports": [
+            "9090->9090/TCP"
+          ],
+          "ready_endpoints": 1,
+          "not_ready_endpoints": 0
+        }
+      ],
+      "log_signals": [
+        {
+          "count": 150,
+          "line": "user-mention-service: [Error] File: /tmp/opentelemetry-cpp/exporters/otlp/src/otlp_grpc_exporter.cc:68 [OTLP TRACE GRPC Exporter] Export() failed with status_code: \"UNAVAILABLE\" error_message: \"DNS resolution failed for otel-collector:4317\u2026",
+          "first_seen_seconds_ago": 132,
+          "last_seen_seconds_ago": 126,
+          "median_gap_seconds": 0.0,
+          "state": "stopped"
+        },
+        {
+          "count": 43,
+          "line": "user-mention-service: [Error] File: /tmp/opentelemetry-cpp/exporters/otlp/src/otlp_grpc_log_record_exporter.cc:79 [OTLP LOG GRPC Exporter] Export() failed: DNS resolution failed for otel-collector:4317: C-ares status is not ARES_SUCCESS qt\u2026",
+          "first_seen_seconds_ago": 132,
+          "last_seen_seconds_ago": 126,
+          "median_gap_seconds": 0.0,
+          "state": "stopped"
+        },
+        {
+          "count": 7,
+          "line": "user-mention-service: [Error] File: /tmp/opentelemetry-cpp/exporters/otlp/src/otlp_grpc_log_record_exporter.cc:79 [OTLP LOG GRPC Exporter] Export() failed: DNS resolution failed for otel-collector:4317: C-ares status is not ARES_SUCCESS qt\u2026",
+          "first_seen_seconds_ago": 126,
+          "last_seen_seconds_ago": 126,
+          "median_gap_seconds": 0.0,
+          "state": "stopped"
+        }
+      ],
+      "resource_usage": [
+        {
+          "pod": "user-mention-service-77d6fb7dfb-zw796",
+          "container": "user-mention-service",
+          "cpu": "3m",
+          "memory": "31Mi"
+        }
+      ],
+      "modified_seconds_ago": 143,
+      "config_objects": {
+        "configmap/user-mention-service": {
+          "keys": [
+            "jaeger-config.yml",
+            "service-config.json"
+          ],
+          "last_update": "2026-10-18T17:01:36Z"
+        }
+      },
+      "stopped_error_lines": 200,
+      "healthy": true,
+      "signals": [],
+      "spec_flags": [],
+      "log_error_lines": null,
+      "_derived_signals": [],
+      "_derived": true,
+      "evidence_kinds": []
+    },
+    "deployment/user-mongodb": {
+      "kind": "Deployment",
+      "name": "user-mongodb",
+      "namespace": "social-network",
+      "created": "2026-10-18T17:01:36Z",
+      "modified": "2026-10-18T17:01:36Z",
+      "service_account": "default",
+      "replicas": {
+        "desired": 1,
+        "ready": 1,
+        "available": 1,
+        "updated": 1
+      },
+      "strategy": {
+        "type": "RollingUpdate",
+        "maxSurge": "25%",
+        "maxUnavailable": "25%"
+      },
+      "rollout": {
+        "progressDeadlineSeconds": 600
+      },
+      "containers": [
+        {
+          "name": "user-mongodb",
+          "init": false,
+          "image": "docker.io/library/mongo:4.4.6",
+          "ports": [
+            27017
+          ],
+          "mounts": [
+            "/social-network-microservices/config/mongod.conf"
+          ],
+          "args": [
+            "--config",
+            "/social-network-microservices/config/mongod.conf"
+          ]
+        }
+      ],
+      "volumes": [
+        {
+          "name": "user-mongodb-config",
+          "configMap": "user-mongodb"
+        }
+      ],
+      "config_refs": {
+        "configmaps": [
+          "user-mongodb"
+        ]
+      },
+      "pods": [
+        {
+          "name": "user-mongodb-75847cfbb-vdxg5",
+          "phase": "Running",
+          "ready": "1/1",
+          "restarts": 0,
+          "created": "2026-10-18T17:01:36Z",
+          "started": "2026-10-18T17:01:37Z",
+          "ready_since": "2026-10-18T17:01:38Z",
+          "node": "kind-worker2",
+          "ip": "10.244.110.155"
+        }
+      ],
+      "services": [
+        {
+          "name": "user-mongodb",
+          "type": "ClusterIP",
+          "ports": [
+            "27017->27017/TCP"
+          ],
+          "ready_endpoints": 1,
+          "not_ready_endpoints": 0
+        }
+      ],
+      "log_signals": [
+        {
+          "count": 1,
+          "line": "user-mongodb: {\"t\":{\"$date\":\"2026-10-18T17:01:38.505+00:00\"},\"s\":\"W\", \"c\":\"CONTROL\", \"id\":22120, \"ctx\":\"initandlisten\",\"msg\":\"Access control is not enabled for the database. Read and write access to data and configuration is unrestricted\",\u2026",
+          "first_seen_seconds_ago": 143,
+          "last_seen_seconds_ago": 143,
+          "state": "stopped"
+        }
+      ],
+      "resource_usage": [
+        {
+          "pod": "user-mongodb-75847cfbb-vdxg5",
+          "container": "user-mongodb",
+          "cpu": "7m",
+          "memory": "91Mi"
+        }
+      ],
+      "modified_seconds_ago": 143,
+      "config_objects": {
+        "configmap/user-mongodb": {
+          "keys": [
+            "mongod.conf"
+          ],
+          "last_update": "2026-10-18T17:01:36Z"
+        }
+      },
+      "stopped_error_lines": 1,
+      "healthy": true,
+      "signals": [],
+      "spec_flags": [],
+      "log_error_lines": null,
+      "_derived_signals": [],
+      "_derived": true,
+      "evidence_kinds": []
+    },
+    "deployment/user-service": {
+      "kind": "Deployment",
+      "name": "user-service",
+      "namespace": "social-network",
+      "created": "2026-10-18T17:01:36Z",
+      "modified": "2026-10-18T17:01:36Z",
+      "service_account": "default",
+      "replicas": {
+        "desired": 1,
+        "ready": 1,
+        "available": 1,
+        "updated": 1
+      },
+      "strategy": {
+        "type": "RollingUpdate",
+        "maxSurge": "25%",
+        "maxUnavailable": "25%"
+      },
+      "rollout": {
+        "progressDeadlineSeconds": 600
+      },
+      "containers": [
+        {
+          "name": "user-service",
+          "init": false,
+          "image": "ghcr.io/sregym/social-network:sha-d2c036bc3d1138f5a0bdaffd3d87f37522c3461a@sha256:70287c4756f9187613e49409291927c342724e3974f93709b21595ed1cdf1d69",
+          "ports": [
+            9090
+          ],
+          "mounts": [
+            "/social-network-microservices/config/jaeger-config.yml",
+            "/social-network-microservices/config/service-config.json"
+          ],
+          "command": [
+            "UserService"
+          ]
+        }
+      ],
+      "volumes": [
+        {
+          "name": "user-service-config",
+          "configMap": "user-service"
+        }
+      ],
+      "config_refs": {
+        "configmaps": [
+          "user-service"
+        ]
+      },
+      "pods": [
+        {
+          "name": "user-service-5fb4b9bccd-sn47w",
+          "phase": "Running",
+          "ready": "1/1",
+          "restarts": 0,
+          "created": "2026-10-18T17:01:39Z",
+          "started": "2026-10-18T17:01:39Z",
+          "ready_since": "2026-10-18T17:01:41Z",
+          "node": "kind-worker",
+          "ip": "10.244.162.161"
+        }
+      ],
+      "services": [
+        {
+          "name": "user-service",
+          "type": "ClusterIP",
+          "ports": [
+            "9090->9090/TCP"
+          ],
+          "ready_endpoints": 1,
+          "not_ready_endpoints": 0
+        }
+      ],
+      "log_signals": [
+        {
+          "count": 103,
+          "line": "user-service: [Error] File: /tmp/opentelemetry-cpp/exporters/otlp/src/otlp_grpc_exporter.cc:68 [OTLP TRACE GRPC Exporter] Export() failed with status_code: \"UNAVAILABLE\" error_message: \"DNS resolution failed for otel-collector:4317: C-ares\u2026",
+          "first_seen_seconds_ago": 136,
+          "last_seen_seconds_ago": 126,
+          "median_gap_seconds": 0.0,
+          "state": "stopped"
+        },
+        {
+          "count": 6,
+          "line": "user-service: [Error] File: /tmp/opentelemetry-cpp/exporters/otlp/src/otlp_grpc_exporter.cc:68 [OTLP TRACE GRPC Exporter] Export() failed with status_code: \"UNAVAILABLE\" error_message: \"DNS resolution failed for otel-collector:4317: C-ares\u2026",
+          "first_seen_seconds_ago": 126,
+          "last_seen_seconds_ago": 126,
+          "median_gap_seconds": 0.0,
+          "state": "stopped"
+        },
+        {
+          "count": 1,
+          "line": "user-service: [Error] File: /tmp/opentelemetry-cpp/exporters/otlp/src/otlp_grpc_log_record_exporter.cc:79 [OTLP LOG GRPC Exporter] Export() failed: DNS resolution failed for otel-collector:4317: C-ares status is not ARES_SUCCESS qtype=A na\u2026",
+          "first_seen_seconds_ago": 136,
+          "last_seen_seconds_ago": 136,
+          "state": "stopped"
+        }
+      ],
+      "resource_usage": [
+        {
+          "pod": "user-service-5fb4b9bccd-sn47w",
+          "container": "user-service",
+          "cpu": "4m",
+          "memory": "5Mi"
+        }
+      ],
+      "modified_seconds_ago": 143,
+      "config_objects": {
+        "configmap/user-service": {
+          "keys": [
+            "jaeger-config.yml",
+            "service-config.json"
+          ],
+          "last_update": "2026-10-18T17:01:36Z"
+        }
+      },
+      "stopped_error_lines": 110,
+      "warmup_log_errors_ignored": 1,
+      "healthy": true,
+      "signals": [],
+      "spec_flags": [],
+      "log_error_lines": null,
+      "_derived_signals": [],
+      "_derived": true,
+      "evidence_kinds": []
+    },
+    "deployment/user-timeline-mongodb": {
+      "kind": "Deployment",
+      "name": "user-timeline-mongodb",
+      "namespace": "social-network",
+      "created": "2026-10-18T17:01:36Z",
+      "modified": "2026-10-18T17:01:36Z",
+      "service_account": "default",
+      "replicas": {
+        "desired": 1,
+        "ready": 1,
+        "available": 1,
+        "updated": 1
+      },
+      "strategy": {
+        "type": "RollingUpdate",
+        "maxSurge": "25%",
+        "maxUnavailable": "25%"
+      },
+      "rollout": {
+        "progressDeadlineSeconds": 600
+      },
+      "containers": [
+        {
+          "name": "user-timeline-mongodb",
+          "init": false,
+          "image": "docker.io/library/mongo:4.4.6",
+          "ports": [
+            27017
+          ],
+          "mounts": [
+            "/social-network-microservices/config/mongod.conf"
+          ],
+          "args": [
+            "--config",
+            "/social-network-microservices/config/mongod.conf"
+          ]
+        }
+      ],
+      "volumes": [
+        {
+          "name": "user-timeline-mongodb-config",
+          "configMap": "user-timeline-mongodb"
+        }
+      ],
+      "config_refs": {
+        "configmaps": [
+          "user-timeline-mongodb"
+        ]
+      },
+      "pods": [
+        {
+          "name": "user-timeline-mongodb-658f54fd68-hxx5n",
+          "phase": "Running",
+          "ready": "1/1",
+          "restarts": 0,
+          "created": "2026-10-18T17:01:38Z",
+          "started": "2026-10-18T17:01:38Z",
+          "ready_since": "2026-10-18T17:01:38Z",
+          "node": "kind-worker",
+          "ip": "10.244.162.134"
+        }
+      ],
+      "services": [
+        {
+          "name": "user-timeline-mongodb",
+          "type": "ClusterIP",
+          "ports": [
+            "27017->27017/TCP"
+          ],
+          "ready_endpoints": 1,
+          "not_ready_endpoints": 0
+        }
+      ],
+      "resource_usage": [
+        {
+          "pod": "user-timeline-mongodb-658f54fd68-hxx5n",
+          "container": "user-timeline-mongodb",
+          "cpu": "7m",
+          "memory": "57Mi"
+        }
+      ],
+      "modified_seconds_ago": 143,
+      "config_objects": {
+        "configmap/user-timeline-mongodb": {
+          "keys": [
+            "mongod.conf"
+          ],
+          "last_update": "2026-10-18T17:01:36Z"
+        }
+      },
+      "healthy": true,
+      "signals": [],
+      "spec_flags": [],
+      "_derived_signals": [],
+      "_derived": true,
+      "evidence_kinds": []
+    },
+    "deployment/user-timeline-redis": {
+      "kind": "Deployment",
+      "name": "user-timeline-redis",
+      "namespace": "social-network",
+      "created": "2026-10-18T17:01:36Z",
+      "modified": "2026-10-18T17:01:36Z",
+      "service_account": "default",
+      "replicas": {
+        "desired": 1,
+        "ready": 1,
+        "available": 1,
+        "updated": 1
+      },
+      "strategy": {
+        "type": "RollingUpdate",
+        "maxSurge": "25%",
+        "maxUnavailable": "25%"
+      },
+      "rollout": {
+        "progressDeadlineSeconds": 600
+      },
+      "containers": [
+        {
+          "name": "user-timeline-redis",
+          "init": false,
+          "image": "docker.io/library/redis:6.2.4",
+          "ports": [
+            6379
+          ],
+          "mounts": [
+            "/social-network-microservices/config/redis.conf"
+          ],
+          "args": [
+            "/social-network-microservices/config/redis.conf"
+          ]
+        }
+      ],
+      "volumes": [
+        {
+          "name": "user-timeline-redis-config",
+          "configMap": "user-timeline-redis"
+        }
+      ],
+      "config_refs": {
+        "configmaps": [
+          "user-timeline-redis"
+        ]
+      },
+      "pods": [
+        {
+          "name": "user-timeline-redis-cbd5f6645-4ghbq",
+          "phase": "Running",
+          "ready": "1/1",
+          "restarts": 0,
+          "created": "2026-10-18T17:01:40Z",
+          "started": "2026-10-18T17:01:40Z",
+          "ready_since": "2026-10-18T17:01:42Z",
+          "node": "kind-worker",
+          "ip": "10.244.162.184"
+        }
+      ],
+      "services": [
+        {
+          "name": "user-timeline-redis",
+          "type": "ClusterIP",
+          "ports": [
+            "6379->6379/TCP"
+          ],
+          "ready_endpoints": 1,
+          "not_ready_endpoints": 0
+        }
+      ],
+      "resource_usage": [
+        {
+          "pod": "user-timeline-redis-cbd5f6645-4ghbq",
+          "container": "user-timeline-redis",
+          "cpu": "2m",
+          "memory": "12Mi"
+        }
+      ],
+      "modified_seconds_ago": 143,
+      "config_objects": {
+        "configmap/user-timeline-redis": {
+          "keys": [
+            "redis.conf"
+          ],
+          "last_update": "2026-10-18T17:01:36Z"
+        }
+      },
+      "healthy": true,
+      "signals": [],
+      "spec_flags": [],
+      "_derived_signals": [],
+      "_derived": true,
+      "evidence_kinds": []
+    },
+    "deployment/user-timeline-service": {
+      "kind": "Deployment",
+      "name": "user-timeline-service",
+      "namespace": "social-network",
+      "created": "2026-10-18T17:01:36Z",
+      "modified": "2026-10-18T17:01:36Z",
+      "service_account": "default",
+      "replicas": {
+        "desired": 1,
+        "ready": 1,
+        "available": 1,
+        "updated": 1
+      },
+      "strategy": {
+        "type": "RollingUpdate",
+        "maxSurge": "25%",
+        "maxUnavailable": "25%"
+      },
+      "rollout": {
+        "progressDeadlineSeconds": 600
+      },
+      "containers": [
+        {
+          "name": "user-timeline-service",
+          "init": false,
+          "image": "ghcr.io/sregym/social-network:sha-d2c036bc3d1138f5a0bdaffd3d87f37522c3461a@sha256:70287c4756f9187613e49409291927c342724e3974f93709b21595ed1cdf1d69",
+          "ports": [
+            9090
+          ],
+          "mounts": [
+            "/social-network-microservices/config/jaeger-config.yml",
+            "/social-network-microservices/config/service-config.json"
+          ],
+          "command": [
+            "UserTimelineService"
+          ]
+        }
+      ],
+      "volumes": [
+        {
+          "name": "user-timeline-service-config",
+          "configMap": "user-timeline-service"
+        }
+      ],
+      "config_refs": {
+        "configmaps": [
+          "user-timeline-service"
+        ]
+      },
+      "pods": [
+        {
+          "name": "user-timeline-service-6d5dd86b49-cvkjx",
+          "phase": "Running",
+          "ready": "1/1",
+          "restarts": 0,
+          "created": "2026-10-18T17:01:36Z",
+          "started": "2026-10-18T17:01:36Z",
+          "ready_since": "2026-10-18T17:01:38Z",
+          "node": "kind-worker2",
+          "ip": "10.244.110.154"
+        }
+      ],
+      "services": [
+        {
+          "name": "user-timeline-service",
+          "type": "ClusterIP",
+          "ports": [
+            "9090->9090/TCP"
+          ],
+          "ready_endpoints": 1,
+          "not_ready_endpoints": 0
+        }
+      ],
+      "log_signals": [
+        {
+          "count": 1,
+          "line": "user-timeline-service: [2026-Oct-18 17:01:39.061539] <error>: (utils_mongodb.h:76:CreateIndex) Error in createIndexes: No suitable servers found: `serverSelectionTimeoutMS` expired: [unknown connection error calling ismaster on 'user-timel\u2026",
+          "first_seen_seconds_ago": 142,
+          "last_seen_seconds_ago": 142,
+          "state": "stopped"
+        },
+        {
+          "count": 1,
+          "line": "user-timeline-service: [2026-Oct-18 17:01:39.061739] <error>: (UserTimelineService.cpp:103:main) Failed to create mongodb index, try again",
+          "first_seen_seconds_ago": 142,
+          "last_seen_seconds_ago": 142,
+          "state": "stopped"
+        }
+      ],
+      "resource_usage": [
+        {
+          "pod": "user-timeline-service-6d5dd86b49-cvkjx",
+          "container": "user-timeline-service",
+          "cpu": "1m",
+          "memory": "19Mi"
+        }
+      ],
+      "modified_seconds_ago": 143,
+      "config_objects": {
+        "configmap/user-timeline-service": {
+          "keys": [
+            "jaeger-config.yml",
+            "service-config.json"
+          ],
+          "last_update": "2026-10-18T17:01:36Z"
+        }
+      },
+      "stopped_error_lines": 2,
+      "warmup_log_errors_ignored": 2,
+      "healthy": true,
+      "signals": [],
+      "spec_flags": [],
+      "log_error_lines": null,
+      "_derived_signals": [],
+      "_derived": true,
+      "evidence_kinds": []
+    }
+  },
+  "collection_errors": [],
+  "collected_at": "2026-10-18T17:04:02+00:00"
+}

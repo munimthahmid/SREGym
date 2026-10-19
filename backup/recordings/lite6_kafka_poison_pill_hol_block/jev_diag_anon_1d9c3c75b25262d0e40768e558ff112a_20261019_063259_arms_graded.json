@@ -1,0 +1,544 @@
+{
+ "problem_id": "jev_diag_anon_1d9c3c75b25262d0e40768e558ff112a_20261019_063259",
+ "submit_arm": 0,
+ "order": [
+  0,
+  3,
+  2,
+  1
+ ],
+ "arms": [
+  {
+   "arm": 0,
+   "kind": "v2",
+   "model": "openrouter/typesafe/jev-1.13",
+   "position": 0,
+   "seconds": 6.9,
+   "requests": 4,
+   "input_tokens": 45706,
+   "cost_usd": 0.00192,
+   "error": null,
+   "investigation": {
+    "rounds": [
+     {
+      "candidates": [
+       "bad-input:deployment/orders-validator:orders-fulfillment",
+       "bad-input:deployment/orders-validator:orders-processed",
+       "bad-input:deployment/orders-validator:orders-validator",
+       "change:daemonset/otel-collector-agent:template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-19T12:32:24+06:00",
+       "change:deployment/astronomy-shop/order-stream",
+       "change:deployment/astronomy-shop/orders-validator"
+      ],
+      "probabilities": {
+       "bad-input:deployment/orders-validator:orders-fulfillment": 0.9450000000000001,
+       "bad-input:deployment/orders-validator:orders-processed": 0.005,
+       "bad-input:deployment/orders-validator:orders-validator": 0.015,
+       "change:daemonset/otel-collector-agent:template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-19T12:32:24+06:00": 0.02,
+       "change:deployment/astronomy-shop/order-stream": 0.0,
+       "change:deployment/astronomy-shop/orders-validator": 0.005,
+       "none_of_these": 0.01
+      },
+      "picks": [
+       "bad-input:deployment/orders-validator:orders-fulfillment",
+       "bad-input:deployment/orders-validator:orders-fulfillment"
+      ],
+      "route": "accept"
+     }
+    ],
+    "explanations": 13,
+    "winner": "bad-input:deployment/orders-validator:orders-fulfillment",
+    "pattern": "bad-input",
+    "key_fact": "log x1 (stopped, last seen 134s ago): orders-validator: 2026-10-19 06:32:55,489 ERROR record validation failed at offset=20: Expecting value: line 1 column 35 (char 34)",
+    "key_fact_probability": 0.98,
+    "fault_type": "data_or_traffic",
+    "fault_object": null,
+    "uncertain": false
+   },
+   "text": "Root cause: input source `orders-fulfillment` in namespace `astronomy-shop`.\nMechanism: One bad item in orders-fulfillment, which deployment/orders-validator reads, fails again and again and blocks the items behind it.\nConcrete details: deployment/orders-validator reads ORDERS_TOPIC=orders-fulfillment; 2026-10-19 06:34:55,505 ERROR partition remains paused at offset=20.\nObserved impact: deployment `orders-validator` in namespace `astronomy-shop`.\nKey evidence: log x1 (stopped, last seen 134s ago): orders-validator: 2026-10-19 06:32:55,489 ERROR record validation failed at offset=20: Expecting value: line 1 column 35 (char 34).\nFault type: data or traffic (the component's inputs or traffic pattern overwhelm or break it).\nEvidence:\n- deployment/orders-validator reads ORDERS_TOPIC=orders-fulfillment\n- 2026-10-19 06:34:55,505 ERROR partition remains paused at offset=20\n- deployment/orders-validator: created 133s ago, 48s after the workloads it calls; 78s before the first active symptom",
+   "grade": {
+    "judgment": "True",
+    "reasoning": "Verdict: True (composite=1.00). D1 Fault Localization: 1.00 | D2 Fault Characterization: 1.00 | D3 Scope Precision: 1.00. Weakest dimension: Fault Localization (1.00). Checklist details: [{\"id\": \"D1-Q1\", \"answer\": \"Yes\", \"evidence\": \"Identifies the fault origin as input source orders-fulfillment in namespace astronomy-shop; ORDERS_TOPIC=orders-fulfillment establishes the topic context.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q2\", \"answer\": \"Yes\", \"evidence\": \"Distinguishes orders-fulfillment as the root cause from orders-validator as the reader experiencing the impact.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q3\", \"answer\": \"Yes\", \"evidence\": \"Attributes the fault to a bad item in orders-fulfillment, rather than blaming a healthy consumer deployment.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q1\", \"answer\": \"Yes\", \"evidence\": \"Describes one bad item repeatedly failing and blocking subsequent items, supported by a parsing error and a paused partition.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q2\", \"answer\": \"Yes\", \"evidence\": \"Names ORDERS_TOPIC=orders-fulfillment and supplies the failing record's offset=20 and parsing error: Expecting value: line 1 column 35.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q3\", \"answer\": \"Yes\", \"evidence\": \"Classifies the fault as bad input data that breaks processing, consistent with an unprocessable poison-pill record.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q1\", \"answer\": \"Yes\", \"evidence\": \"Limits causal attribution to the bad item in orders-fulfillment and identifies orders-validator as its affected reader.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q2\", \"answer\": \"Yes\", \"evidence\": \"Includes both the orders-fulfillment topic and the affected orders-validator consumer workload in astronomy-shop.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q3\", \"answer\": \"Yes\", \"evidence\": \"States that the bad item blocks items behind it and that the partition remains paused at offset=20, consistent with head-of-line blocking.\", \"confidence\": \"High\"}]",
+    "success": true,
+    "accuracy": 100.0,
+    "composite_score": 1.0,
+    "dimensions": {
+     "D1": {
+      "name": "Fault Localization",
+      "score": 1.0
+     },
+     "D2": {
+      "name": "Fault Characterization",
+      "score": 1.0
+     },
+     "D3": {
+      "name": "Scope Precision",
+      "score": 1.0
+     }
+    },
+    "checklist": [
+     {
+      "id": "D1-Q1",
+      "answer": "Yes",
+      "evidence": "Identifies the fault origin as input source orders-fulfillment in namespace astronomy-shop; ORDERS_TOPIC=orders-fulfillment establishes the topic context.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q2",
+      "answer": "Yes",
+      "evidence": "Distinguishes orders-fulfillment as the root cause from orders-validator as the reader experiencing the impact.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q3",
+      "answer": "Yes",
+      "evidence": "Attributes the fault to a bad item in orders-fulfillment, rather than blaming a healthy consumer deployment.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q1",
+      "answer": "Yes",
+      "evidence": "Describes one bad item repeatedly failing and blocking subsequent items, supported by a parsing error and a paused partition.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q2",
+      "answer": "Yes",
+      "evidence": "Names ORDERS_TOPIC=orders-fulfillment and supplies the failing record's offset=20 and parsing error: Expecting value: line 1 column 35.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q3",
+      "answer": "Yes",
+      "evidence": "Classifies the fault as bad input data that breaks processing, consistent with an unprocessable poison-pill record.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q1",
+      "answer": "Yes",
+      "evidence": "Limits causal attribution to the bad item in orders-fulfillment and identifies orders-validator as its affected reader.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q2",
+      "answer": "Yes",
+      "evidence": "Includes both the orders-fulfillment topic and the affected orders-validator consumer workload in astronomy-shop.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q3",
+      "answer": "Yes",
+      "evidence": "States that the bad item blocks items behind it and that the partition remains paused at offset=20, consistent with head-of-line blocking.",
+      "confidence": "High"
+     }
+    ]
+   }
+  },
+  {
+   "arm": 1,
+   "kind": "v2",
+   "model": "openrouter/openai/gpt-6-luna-decisions",
+   "position": 3,
+   "seconds": 6.2,
+   "requests": 4,
+   "input_tokens": 30174,
+   "cost_usd": 0.003017,
+   "error": null,
+   "investigation": {
+    "rounds": [
+     {
+      "candidates": [
+       "bad-input:deployment/orders-validator:orders-fulfillment",
+       "bad-input:deployment/orders-validator:orders-processed",
+       "bad-input:deployment/orders-validator:orders-validator",
+       "change:daemonset/otel-collector-agent:template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-19T12:32:24+06:00",
+       "change:deployment/astronomy-shop/order-stream",
+       "change:deployment/astronomy-shop/orders-validator"
+      ],
+      "probabilities": {
+       "bad-input:deployment/orders-validator:orders-fulfillment": 0.745,
+       "bad-input:deployment/orders-validator:orders-processed": 0.02,
+       "bad-input:deployment/orders-validator:orders-validator": 0.14,
+       "change:daemonset/otel-collector-agent:template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-19T12:32:24+06:00": 0.01,
+       "change:deployment/astronomy-shop/order-stream": 0.025,
+       "change:deployment/astronomy-shop/orders-validator": 0.045,
+       "none_of_these": 0.015
+      },
+      "picks": [
+       "bad-input:deployment/orders-validator:orders-fulfillment",
+       "bad-input:deployment/orders-validator:orders-fulfillment"
+      ],
+      "route": "accept"
+     }
+    ],
+    "explanations": 13,
+    "winner": "bad-input:deployment/orders-validator:orders-fulfillment",
+    "pattern": "bad-input",
+    "key_fact": "log x1 (stopped, last seen 146s ago): orders-validator: 2026-10-19 06:32:55,489 ERROR record validation failed at offset=20: Expecting value: line 1 column 35 (char 34)",
+    "key_fact_probability": 0.59,
+    "fault_type": "data_or_traffic",
+    "fault_object": null,
+    "uncertain": false
+   },
+   "text": "Root cause: input source `orders-fulfillment` in namespace `astronomy-shop`.\nMechanism: One bad item in orders-fulfillment, which deployment/orders-validator reads, fails again and again and blocks the items behind it.\nConcrete details: deployment/orders-validator reads ORDERS_TOPIC=orders-fulfillment; 2026-10-19 06:35:10,506 ERROR partition remains paused at offset=20.\nObserved impact: deployment `orders-validator` in namespace `astronomy-shop`.\nKey evidence: log x1 (stopped, last seen 146s ago): orders-validator: 2026-10-19 06:32:55,489 ERROR record validation failed at offset=20: Expecting value: line 1 column 35 (char 34).\nFault type: data or traffic (the component's inputs or traffic pattern overwhelm or break it).\nEvidence:\n- deployment/orders-validator reads ORDERS_TOPIC=orders-fulfillment\n- 2026-10-19 06:35:10,506 ERROR partition remains paused at offset=20\n- deployment/orders-validator: created 133s ago, 48s after the workloads it calls; 78s before the first active symptom",
+   "grade": {
+    "judgment": "True",
+    "reasoning": "Verdict: True (composite=1.00). D1 Fault Localization: 1.00 | D2 Fault Characterization: 1.00 | D3 Scope Precision: 1.00. Weakest dimension: Fault Localization (1.00). Checklist details: [{\"id\": \"D1-Q1\", \"answer\": \"Yes\", \"evidence\": \"Names input source orders-fulfillment in astronomy-shop as the root cause, matching the targeted topic and namespace.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q2\", \"answer\": \"Yes\", \"evidence\": \"Distinguishes the bad item in orders-fulfillment as the origin from orders-validator as the affected reader.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q3\", \"answer\": \"Yes\", \"evidence\": \"Attributes the fault to the orders-fulfillment input source; orders-validator is identified as experiencing the impact.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q1\", \"answer\": \"Yes\", \"evidence\": \"Describes one bad item repeatedly failing and blocking subsequent items, consistent with poison-record head-of-line blocking.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q2\", \"answer\": \"Yes\", \"evidence\": \"Identifies ORDERS_TOPIC=orders-fulfillment and a record parsing failure, 'Expecting value,' at the offset where the partition remains paused.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q3\", \"answer\": \"Yes\", \"evidence\": \"Classifies the fault as bad input data breaking processing, consistent with an unprocessable record.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q1\", \"answer\": \"Yes\", \"evidence\": \"Limits causal attribution to the bad orders-fulfillment item and identifies orders-validator as the affected consumer.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q2\", \"answer\": \"Yes\", \"evidence\": \"Includes both orders-fulfillment and orders-validator in astronomy-shop, covering the fault source and affected consumer.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q3\", \"answer\": \"Yes\", \"evidence\": \"Reports a partition remaining paused at one offset and a bad item blocking items behind it, consistent with halted fulfillment processing.\", \"confidence\": \"High\"}]",
+    "success": true,
+    "accuracy": 100.0,
+    "composite_score": 1.0,
+    "dimensions": {
+     "D1": {
+      "name": "Fault Localization",
+      "score": 1.0
+     },
+     "D2": {
+      "name": "Fault Characterization",
+      "score": 1.0
+     },
+     "D3": {
+      "name": "Scope Precision",
+      "score": 1.0
+     }
+    },
+    "checklist": [
+     {
+      "id": "D1-Q1",
+      "answer": "Yes",
+      "evidence": "Names input source orders-fulfillment in astronomy-shop as the root cause, matching the targeted topic and namespace.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q2",
+      "answer": "Yes",
+      "evidence": "Distinguishes the bad item in orders-fulfillment as the origin from orders-validator as the affected reader.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q3",
+      "answer": "Yes",
+      "evidence": "Attributes the fault to the orders-fulfillment input source; orders-validator is identified as experiencing the impact.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q1",
+      "answer": "Yes",
+      "evidence": "Describes one bad item repeatedly failing and blocking subsequent items, consistent with poison-record head-of-line blocking.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q2",
+      "answer": "Yes",
+      "evidence": "Identifies ORDERS_TOPIC=orders-fulfillment and a record parsing failure, 'Expecting value,' at the offset where the partition remains paused.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q3",
+      "answer": "Yes",
+      "evidence": "Classifies the fault as bad input data breaking processing, consistent with an unprocessable record.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q1",
+      "answer": "Yes",
+      "evidence": "Limits causal attribution to the bad orders-fulfillment item and identifies orders-validator as the affected consumer.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q2",
+      "answer": "Yes",
+      "evidence": "Includes both orders-fulfillment and orders-validator in astronomy-shop, covering the fault source and affected consumer.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q3",
+      "answer": "Yes",
+      "evidence": "Reports a partition remaining paused at one offset and a bad item blocking items behind it, consistent with halted fulfillment processing.",
+      "confidence": "High"
+     }
+    ]
+   }
+  },
+  {
+   "arm": 2,
+   "kind": "v1",
+   "model": "openrouter/typesafe/jev-1.13",
+   "position": 2,
+   "seconds": 2.3,
+   "requests": 2,
+   "input_tokens": 37053,
+   "cost_usd": 0.001556,
+   "error": null,
+   "investigation": {
+    "steps": [
+     {
+      "step": 1,
+      "node": "investigate",
+      "component": "deployment/orders-validator",
+      "verdict": "origin",
+      "origin_p": 0.65,
+      "victim_p": 0.19,
+      "next": "deployment/kafka",
+      "next_p": 0.53,
+      "category": "data_or_traffic",
+      "spec_checks": [],
+      "blocked_input": {
+       "source": "logs",
+       "evidence": "2026-10-19 06:35:10,506 ERROR partition remains paused at offset=20",
+       "probability": 0.93,
+       "input": "env ORDERS_TOPIC=orders-fulfillment"
+      },
+      "key_evidence": "log x1 (stopped, last seen 142s ago): orders-validator: 2026-10-19 06:32:55,489 ERROR record validation failed at offset=20: Expecting value: line 1 column 35 (char 34)"
+     }
+    ],
+    "concluded": "deployment/orders-validator",
+    "fallback": null,
+    "triage_top": [
+     [
+      "deployment/orders-validator",
+      0.63
+     ],
+     [
+      "other",
+      0.15
+     ],
+     [
+      "deployment/order-stream",
+      0.09
+     ],
+     [
+      "daemonset/otel-collector-agent",
+      0.07
+     ],
+     [
+      "deployment/kafka",
+      0.04
+     ]
+    ]
+   },
+   "text": "Root cause: one input item fails processing repeatedly and blocks later input: 2026-10-19 06:35:10,506 ERROR partition remains paused at offset=20; the input comes from env ORDERS_TOPIC=orders-fulfillment. The blocked component is Deployment `orders-validator` in namespace `astronomy-shop`.\nMechanism: log x1 (stopped, last seen 142s ago): orders-validator: 2026-10-19 06:32:55,489 ERROR record validation failed at offset=20: Expecting value: line 1 column 35 (char 34).\nFault type: data or traffic (the component's inputs or traffic pattern overwhelm or break it).\nAbnormal state observed on this component:\n- created 133s ago, 48s after the workloads it calls; 78s before the first active symptom\n- 4 error-like log lines still occurring in the recent pod logs\n- container orders-validator: image ghcr.io/sregym/kafka-client:2.5.3-py3.12\nError-like log lines still occurring:\n- x1: orders-validator: 2026-10-19 06:34:10,499 ERROR partition remains paused at offset=20\n- x1: orders-validator: 2026-10-19 06:34:25,501 ERROR partition remains paused at offset=20\n- x1: orders-validator: 2026-10-19 06:34:40,503 ERROR partition remains paused at offset=20\n- x1: orders-validator: 2026-10-19 06:34:55,505 ERROR partition remains paused at offset=20\nClassification: Jev (typesafe/jev-1.13-20260917) confirmed this origin at investigation step 1 with probability 0.65 (triage probability 0.63).",
+   "grade": {
+    "judgment": "False",
+    "reasoning": "Verdict: False (composite=0.67). D1 Fault Localization: 0.00 | D2 Fault Characterization: 1.00 | D3 Scope Precision: 1.00. Weakest dimension: Fault Localization (0.00). Checklist details: [{\"id\": \"D1-Q1\", \"answer\": \"No\", \"evidence\": \"Diagnosis localizes the fault to Deployment orders-validator; the specified fault origin is Kafka topic/orders-fulfillment in astronomy-shop.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q2\", \"answer\": \"No\", \"evidence\": \"The topic is identified as the input source, but the diagnosis does not distinguish its faulty record from the affected orders-validator deployment.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q3\", \"answer\": \"No\", \"evidence\": \"Diagnosis selects the orders-validator deployment as the localized component rather than the specified Kafka topic containing the poison record.\", \"confidence\": \"Medium\"}, {\"id\": \"D2-Q1\", \"answer\": \"Yes\", \"evidence\": \"\\u201cOne input item fails processing repeatedly and blocks later input,\\u201d with a parsing error, matches poison-record head-of-line blocking.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q2\", \"answer\": \"Yes\", \"evidence\": \"Names ORDERS_TOPIC=orders-fulfillment and identifies a record parsing failure at offset=20, concretely locating the unprocessable input.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q3\", \"answer\": \"Yes\", \"evidence\": \"Classifies the fault as data or traffic and describes an input that breaks processing, consistent with a poison record.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q1\", \"answer\": \"Yes\", \"evidence\": \"Diagnosis discusses only orders-fulfillment and orders-validator, both involved in the ground-truth incident.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q2\", \"answer\": \"Yes\", \"evidence\": \"Mentions the orders-fulfillment topic and orders-validator in astronomy-shop, covering the fault-bearing resource and affected consumer workload.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q3\", \"answer\": \"Yes\", \"evidence\": \"Repeated \\u201cpartition remains paused at offset=20\\u201d and blocked later input describe the stated stalled processing and head-of-line blocking.\", \"confidence\": \"High\"}]",
+    "success": false,
+    "accuracy": 67.0,
+    "composite_score": 0.67,
+    "dimensions": {
+     "D1": {
+      "name": "Fault Localization",
+      "score": 0.0
+     },
+     "D2": {
+      "name": "Fault Characterization",
+      "score": 1.0
+     },
+     "D3": {
+      "name": "Scope Precision",
+      "score": 1.0
+     }
+    },
+    "checklist": [
+     {
+      "id": "D1-Q1",
+      "answer": "No",
+      "evidence": "Diagnosis localizes the fault to Deployment orders-validator; the specified fault origin is Kafka topic/orders-fulfillment in astronomy-shop.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q2",
+      "answer": "No",
+      "evidence": "The topic is identified as the input source, but the diagnosis does not distinguish its faulty record from the affected orders-validator deployment.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q3",
+      "answer": "No",
+      "evidence": "Diagnosis selects the orders-validator deployment as the localized component rather than the specified Kafka topic containing the poison record.",
+      "confidence": "Medium"
+     },
+     {
+      "id": "D2-Q1",
+      "answer": "Yes",
+      "evidence": "\u201cOne input item fails processing repeatedly and blocks later input,\u201d with a parsing error, matches poison-record head-of-line blocking.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q2",
+      "answer": "Yes",
+      "evidence": "Names ORDERS_TOPIC=orders-fulfillment and identifies a record parsing failure at offset=20, concretely locating the unprocessable input.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q3",
+      "answer": "Yes",
+      "evidence": "Classifies the fault as data or traffic and describes an input that breaks processing, consistent with a poison record.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q1",
+      "answer": "Yes",
+      "evidence": "Diagnosis discusses only orders-fulfillment and orders-validator, both involved in the ground-truth incident.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q2",
+      "answer": "Yes",
+      "evidence": "Mentions the orders-fulfillment topic and orders-validator in astronomy-shop, covering the fault-bearing resource and affected consumer workload.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q3",
+      "answer": "Yes",
+      "evidence": "Repeated \u201cpartition remains paused at offset=20\u201d and blocked later input describe the stated stalled processing and head-of-line blocking.",
+      "confidence": "High"
+     }
+    ]
+   }
+  },
+  {
+   "arm": 3,
+   "kind": "v1",
+   "model": "openrouter/openai/gpt-6-luna-decisions",
+   "position": 1,
+   "seconds": 2.5,
+   "requests": 2,
+   "input_tokens": 24717,
+   "cost_usd": 0.002472,
+   "error": null,
+   "investigation": {
+    "steps": [
+     {
+      "step": 1,
+      "node": "investigate",
+      "component": "deployment/orders-validator",
+      "verdict": "origin",
+      "origin_p": 0.9,
+      "victim_p": 0.06,
+      "next": "none",
+      "next_p": 0.42,
+      "category": "data_or_traffic",
+      "spec_checks": [],
+      "blocked_input": {
+       "source": "logs",
+       "evidence": "2026-10-19 06:35:10,506 ERROR partition remains paused at offset=20",
+       "probability": 0.99,
+       "input": "env ORDERS_TOPIC=orders-fulfillment"
+      },
+      "key_evidence": "ConfigMap orders-pipeline-scripts key consumer.py: \u23ce import json \u23ce import logging \u23ce import os \u23ce import signal \u23ce import time \u23ce \u23ce from confluent_kafka import Consumer, Producer \u23ce \u23ce logging.basicConfig(level=logging.INFO, format=\"%(asctime)s %(levelname)s %(message)s\") \u23ce log = logging.getLogger(\"orders-validator\") \u23ce \u23ce BOOTSTRAP = os.environ.get(\"KAFKA_BOOTSTRAP\", \"kafka:9092\") \u23ce TOPIC = os.environ.get(\"ORDERS_TOPIC\", \"orders-fulfillment\") \u23ce OUTPUT_T\u2026"
+     }
+    ],
+    "concluded": "deployment/orders-validator",
+    "fallback": null,
+    "triage_top": [
+     [
+      "deployment/orders-validator",
+      0.98
+     ],
+     [
+      "deployment/order-stream",
+      0.02
+     ],
+     [
+      "deployment/accounting",
+      0.0
+     ],
+     [
+      "deployment/ad",
+      0.0
+     ],
+     [
+      "deployment/cart",
+      0.0
+     ]
+    ]
+   },
+   "text": "Root cause: one input item fails processing repeatedly and blocks later input: 2026-10-19 06:35:10,506 ERROR partition remains paused at offset=20; the input comes from env ORDERS_TOPIC=orders-fulfillment. The blocked component is Deployment `orders-validator` in namespace `astronomy-shop`.\nMechanism: ConfigMap orders-pipeline-scripts key consumer.py: \u23ce import json \u23ce import logging \u23ce import os \u23ce import signal \u23ce import time \u23ce \u23ce from confluent_kafka import Consumer, Producer \u23ce \u23ce logging.basicConfig(level=logging.INFO, format=\"%(asctime)s %(levelname)s %(message)s\") \u23ce log = logging.getLogger(\"orders-validator\") \u23ce \u23ce BOOTSTRAP = os.environ.get(\"KAFKA_BOOTSTRAP\", \"kafka:9092\") \u23ce TOPIC = os.environ.get(\"ORDERS_TOPIC\", \"orders-fulfillment\") \u23ce OUTPUT_T\u2026.\nFault type: data or traffic (the component's inputs or traffic pattern overwhelm or break it).\nAbnormal state observed on this component:\n- created 133s ago, 48s after the workloads it calls; 78s before the first active symptom\n- 4 error-like log lines still occurring in the recent pod logs\n- container orders-validator: image ghcr.io/sregym/kafka-client:2.5.3-py3.12\nError-like log lines still occurring:\n- x1: orders-validator: 2026-10-19 06:34:10,499 ERROR partition remains paused at offset=20\n- x1: orders-validator: 2026-10-19 06:34:25,501 ERROR partition remains paused at offset=20\n- x1: orders-validator: 2026-10-19 06:34:40,503 ERROR partition remains paused at offset=20\n- x1: orders-validator: 2026-10-19 06:34:55,505 ERROR partition remains paused at offset=20\nClassification: Jev (openai/gpt-6-luna-decisions-20261006) confirmed this origin at investigation step 1 with probability 0.90 (triage probability 0.98).",
+   "grade": {
+    "judgment": "False",
+    "reasoning": "Verdict: False (composite=0.56). D1 Fault Localization: 0.00 | D2 Fault Characterization: 0.67 | D3 Scope Precision: 1.00. Weakest dimension: Fault Localization (0.00). Checklist details: [{\"id\": \"D1-Q1\", \"answer\": \"No\", \"evidence\": \"The diagnosis localizes the fault to Deployment orders-validator rather than the Kafka orders-fulfillment topic identified as the fault origin.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q2\", \"answer\": \"No\", \"evidence\": \"It identifies orders-validator as the confirmed origin without distinguishing the blocked consumer from the originating fault in the Kafka log.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q3\", \"answer\": \"No\", \"evidence\": \"The diagnosis treats the consumer deployment as the origin, although the ground truth places the fault in Kafka and says consumer pods remain healthy.\", \"confidence\": \"Medium\"}, {\"id\": \"D2-Q1\", \"answer\": \"Yes\", \"evidence\": \"\\u201cOne input item fails processing repeatedly and blocks later input\\u201d captures the poison-record head-of-line blocking mechanism, although deserialization failure is omitted.\", \"confidence\": \"Medium\"}, {\"id\": \"D2-Q2\", \"answer\": \"No\", \"evidence\": \"The topic and paused offset are named, but no malformed record content or concrete deserialization defect is identified.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q3\", \"answer\": \"Yes\", \"evidence\": \"The diagnosis classifies the fault as input data breaking processing, consistent with an unprocessable Kafka record.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q1\", \"answer\": \"Yes\", \"evidence\": \"The diagnosis confines the problem to orders-fulfillment input and orders-validator processing; it does not blame additional unrelated workloads.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q2\", \"answer\": \"Yes\", \"evidence\": \"It mentions the orders-fulfillment topic, Kafka connection configuration, and orders-validator in astronomy-shop.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q3\", \"answer\": \"Yes\", \"evidence\": \"Repeated \\u201cpartition remains paused at offset=20\\u201d messages and blocked later input match the stalled consumer and head-of-line blocking symptoms.\", \"confidence\": \"High\"}]",
+    "success": false,
+    "accuracy": 56.0,
+    "composite_score": 0.56,
+    "dimensions": {
+     "D1": {
+      "name": "Fault Localization",
+      "score": 0.0
+     },
+     "D2": {
+      "name": "Fault Characterization",
+      "score": 0.67
+     },
+     "D3": {
+      "name": "Scope Precision",
+      "score": 1.0
+     }
+    },
+    "checklist": [
+     {
+      "id": "D1-Q1",
+      "answer": "No",
+      "evidence": "The diagnosis localizes the fault to Deployment orders-validator rather than the Kafka orders-fulfillment topic identified as the fault origin.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q2",
+      "answer": "No",
+      "evidence": "It identifies orders-validator as the confirmed origin without distinguishing the blocked consumer from the originating fault in the Kafka log.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q3",
+      "answer": "No",
+      "evidence": "The diagnosis treats the consumer deployment as the origin, although the ground truth places the fault in Kafka and says consumer pods remain healthy.",
+      "confidence": "Medium"
+     },
+     {
+      "id": "D2-Q1",
+      "answer": "Yes",
+      "evidence": "\u201cOne input item fails processing repeatedly and blocks later input\u201d captures the poison-record head-of-line blocking mechanism, although deserialization failure is omitted.",
+      "confidence": "Medium"
+     },
+     {
+      "id": "D2-Q2",
+      "answer": "No",
+      "evidence": "The topic and paused offset are named, but no malformed record content or concrete deserialization defect is identified.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q3",
+      "answer": "Yes",
+      "evidence": "The diagnosis classifies the fault as input data breaking processing, consistent with an unprocessable Kafka record.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q1",
+      "answer": "Yes",
+      "evidence": "The diagnosis confines the problem to orders-fulfillment input and orders-validator processing; it does not blame additional unrelated workloads.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q2",
+      "answer": "Yes",
+      "evidence": "It mentions the orders-fulfillment topic, Kafka connection configuration, and orders-validator in astronomy-shop.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q3",
+      "answer": "Yes",
+      "evidence": "Repeated \u201cpartition remains paused at offset=20\u201d messages and blocked later input match the stalled consumer and head-of-line blocking symptoms.",
+      "confidence": "High"
+     }
+    ]
+   }
+  }
+ ],
+ "submission": {
+  "status": "200",
+  "message": "Submission received",
+  "stage": "diagnosis"
+ },
+ "judge": {
+  "model": "gpt-6-astra",
+  "backend": "codex",
+  "effort": "high"
+ }
+}

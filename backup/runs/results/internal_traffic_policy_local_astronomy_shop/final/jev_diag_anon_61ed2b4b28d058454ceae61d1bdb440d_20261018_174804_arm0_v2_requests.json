@@ -1,0 +1,374 @@
+[
+ {
+  "label": "decide:1",
+  "state": {
+   "application": {
+    "name": "OpenTelemetry Demo Astronomy Shop",
+    "description": "An online shopping platform built with a microservices architecture, showcasing OpenTelemetry instrumentation for distributed tracing across services.",
+    "namespaces": [
+     "astronomy-shop"
+    ]
+   },
+   "evidence": {
+    "deployment/frontend": {
+     "kind": "Deployment",
+     "name": "frontend",
+     "namespace": "astronomy-shop",
+     "healthy": false,
+     "signals": [
+      "spec modified 196s ago, 66s after this object was created (fields: nodeSelector); pod template changes: pod label pod-template-hash: 6859c775df -> 7f69f58fd9; pod nodeSelector: null -> {\"kubernetes.io/hostname\": \"kind-worker2\"}; 55s before the first active symptom"
+     ],
+     "template_changes": {
+      "revision": 2,
+      "changed_at": "2026-10-18T17:46:54Z",
+      "changes": [
+       "pod label pod-template-hash: 6859c775df -> 7f69f58fd9",
+       "pod nodeSelector: null -> {\"kubernetes.io/hostname\": \"kind-worker2\"}"
+      ]
+     }
+    },
+    "deployment/recommendation": {
+     "kind": "Deployment",
+     "name": "recommendation",
+     "namespace": "astronomy-shop",
+     "healthy": false,
+     "signals": [
+      "service recommendation has internalTrafficPolicy=Local: only endpoints on the client's own node receive traffic",
+      "service recommendation (internalTrafficPolicy=Local) has ready endpoints only on kind-worker; client deployment/frontend runs on kind-worker2, where calls to recommendation find no local endpoint",
+      "firing alert ServiceEndpointDown",
+      "Service recommendation was modified 191s ago, 71s after it was created (fields: spec.internalTrafficPolicy); 50s before the first active symptom",
+      "spec modified 230s ago, 32s after this object was created (fields: nodeSelector); pod template changes: pod label pod-template-hash: 5bb649dccb -> 74758c88; pod nodeSelector: null -> {\"kubernetes.io/hostname\": \"kind-worker\"}; 89s before the first active symptom"
+     ],
+     "template_changes": {
+      "revision": 2,
+      "changed_at": "2026-10-18T17:46:20Z",
+      "changes": [
+       "pod label pod-template-hash: 5bb649dccb -> 74758c88",
+       "pod nodeSelector: null -> {\"kubernetes.io/hostname\": \"kind-worker\"}"
+      ]
+     }
+    },
+    "daemonset/otel-collector-agent": {
+     "kind": "DaemonSet",
+     "name": "otel-collector-agent",
+     "namespace": "astronomy-shop",
+     "healthy": false,
+     "signals": [
+      "spec modified 244s ago, 18s after this object was created (fields: template.annotations.kubectl.kubernetes.io/restartedAt); pod template changes: template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-18T23:46:06+06:00; 103s before the first active symptom"
+     ],
+     "template_changes": {
+      "revision": 2,
+      "changed_at": "2026-10-18T17:46:06Z",
+      "changes": [
+       "template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-18T23:46:06+06:00"
+      ]
+     }
+    }
+   },
+   "cluster": {
+    "symptom_onset": "2026-10-18T17:47:49+00:00",
+    "recent_changes": [
+     {
+      "object": "service/astronomy-shop/recommendation",
+      "at": "2026-10-18T17:46:59Z",
+      "modified_after_creation_s": 71,
+      "fields": [
+       "spec.internalTrafficPolicy"
+      ],
+      "seconds_ago": 191,
+      "seconds_before_symptoms": 50
+     },
+     {
+      "object": "deployment/frontend",
+      "at": "2026-10-18T17:46:54Z",
+      "modified_after_creation_s": 66,
+      "fields": [
+       "nodeSelector"
+      ],
+      "seconds_ago": 196,
+      "seconds_before_symptoms": 55
+     },
+     {
+      "object": "deployment/recommendation",
+      "at": "2026-10-18T17:46:20Z",
+      "modified_after_creation_s": 32,
+      "fields": [
+       "nodeSelector"
+      ],
+      "seconds_ago": 230,
+      "seconds_before_symptoms": 89
+     },
+     {
+      "object": "daemonset/otel-collector-agent",
+      "at": "2026-10-18T17:46:06Z",
+      "modified_after_creation_s": 18,
+      "fields": [
+       "template.annotations.kubectl.kubernetes.io/restartedAt"
+      ],
+      "seconds_ago": 244,
+      "seconds_before_symptoms": 103,
+      "role": "observability"
+     },
+     {
+      "object": "configmap/kube-system/coredns",
+      "at": "2026-10-18T16:57:47Z",
+      "modified_after_creation_s": 29766,
+      "fields": [
+       "data.Corefile"
+      ],
+      "seconds_ago": 3143,
+      "seconds_before_symptoms": 3002
+     }
+    ],
+    "findings": [
+     {
+      "kind": "Service",
+      "name": "recommendation",
+      "namespace": "astronomy-shop",
+      "signal": "Service recommendation was modified 191s ago, 71s after it was created (fields: spec.internalTrafficPolicy); 50s before the first active symptom",
+      "components": [
+       "deployment/recommendation"
+      ]
+     },
+     {
+      "kind": "ConfigMap",
+      "name": "coredns",
+      "namespace": "kube-system",
+      "signal": "ConfigMap coredns was modified 3143s ago, 29766s after it was created (fields: data.Corefile); 3002s before the first active symptom"
+     }
+    ]
+   }
+  },
+  "questions": {
+   "best_explanation": {
+    "type": "choice",
+    "criteria": {
+     "o1": "Origin: deployment/astronomy-shop/frontend. deployment frontend was changed recently and breaks deployment/frontend, which it acts on. | Details: deployment frontend fields written: nodeSelector | Observed impact on: deployment/astronomy-shop/frontend | Checks: deployment/astronomy-shop/frontend was made before the symptoms began (supports); deployment/frontend shows symptoms of its own (supports)",
+     "o2": "Origin: daemonset/astronomy-shop/otel-collector-agent. The pod template change 'template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-18T23:46:06+06:00' in revision 2 of daemonset/otel-collector-agent breaks daemonset/otel-collector-agent. | Details: template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-18T23:46:06+06:00 | Observed impact on: daemonset/astronomy-shop/otel-collector-agent | Checks: revision 2 of daemonset/otel-collector-agent was made before the symptoms began (supports); daemonset/otel-collector-agent shows symptoms of its own (supports)",
+     "o3": "Origin: deployment/astronomy-shop/recommendation. The pod template change 'pod nodeSelector: null -> {\"kubernetes.io/hostname\": \"kind-worker\"}' in revision 2 of deployment/recommendation breaks deployment/recommendation. | Details: pod nodeSelector: null -> {\"kubernetes.io/hostname\": \"kind-worker\"} | Observed impact on: deployment/astronomy-shop/recommendation | Checks: revision 2 of deployment/recommendation was made before the symptoms began (supports); deployment/recommendation shows symptoms of its own (supports)",
+     "o4": "Origin: deployment/astronomy-shop/frontend. The pod template change 'pod nodeSelector: null -> {\"kubernetes.io/hostname\": \"kind-worker2\"}' in revision 2 of deployment/frontend breaks deployment/frontend. | Details: pod nodeSelector: null -> {\"kubernetes.io/hostname\": \"kind-worker2\"} | Observed impact on: deployment/astronomy-shop/frontend | Checks: revision 2 of deployment/frontend was made before the symptoms began (supports); deployment/frontend shows symptoms of its own (supports)",
+     "o5": "Origin: deployment/astronomy-shop/recommendation. deployment recommendation was changed recently and breaks deployment/recommendation, which it acts on. | Details: deployment recommendation fields written: nodeSelector | Observed impact on: deployment/astronomy-shop/recommendation | Checks: deployment/astronomy-shop/recommendation was made before the symptoms began (supports); deployment/recommendation shows symptoms of its own (supports)",
+     "o6": "Origin: service/astronomy-shop/recommendation. service recommendation was changed recently and breaks deployment/recommendation, which it acts on. | Details: service recommendation fields written: spec.internalTrafficPolicy; service recommendation has internalTrafficPolicy=Local: only endpoints on the client's own node receive traffic; service recommendation (internalTrafficPolicy=Local) has ready endpoints only on kind-worker; client deployment/frontend runs on kind-worker2, where calls to recommendation find no local endpoint; Service recommendation was modified 191s ago, 71s after it was created (fields: spec.internalTrafficPolicy); 50s before the first active symptom | Observed impact on: deployment/astronomy-shop/recommendation | Checks: service/astronomy-shop/recommendation was made before the symptoms began (supports); deployment/recommendation shows symptoms of its own (supports)",
+     "o7": "None of these explanations fits the evidence."
+    },
+    "instructions": {
+     "question": "Which explanation best accounts for all the observed symptoms in `evidence`?",
+     "how_to_decide": [
+      "Prefer the explanation whose chain is supported by the observed facts and explains the most symptoms; an explanation contradicted by a fact is unlikely.",
+      "A component that only fails because something it calls fails is a victim, not the origin.",
+      "Choose `o7` when none of the explanations fits the evidence."
+     ]
+    }
+   }
+  },
+  "model": "typesafe/jev-1.13-20260917",
+  "latency_ms": 559,
+  "usage": {
+   "input_tokens": 2876,
+   "output_tokens": 77,
+   "cost": 0.000120792
+  },
+  "answers": {
+   "best_explanation": {
+    "type": "choice",
+    "choice": "o6",
+    "confidence": 0.87,
+    "probabilities": {
+     "o1": 0.01,
+     "o2": 0.01,
+     "o3": 0.02,
+     "o4": 0.02,
+     "o5": 0.01,
+     "o6": 0.89,
+     "o7": 0.04
+    }
+   }
+  }
+ },
+ {
+  "label": "decide:2",
+  "state": {
+   "application": {
+    "name": "OpenTelemetry Demo Astronomy Shop",
+    "description": "An online shopping platform built with a microservices architecture, showcasing OpenTelemetry instrumentation for distributed tracing across services.",
+    "namespaces": [
+     "astronomy-shop"
+    ]
+   },
+   "evidence": {
+    "deployment/frontend": {
+     "kind": "Deployment",
+     "name": "frontend",
+     "namespace": "astronomy-shop",
+     "healthy": false,
+     "signals": [
+      "spec modified 196s ago, 66s after this object was created (fields: nodeSelector); pod template changes: pod label pod-template-hash: 6859c775df -> 7f69f58fd9; pod nodeSelector: null -> {\"kubernetes.io/hostname\": \"kind-worker2\"}; 55s before the first active symptom"
+     ],
+     "template_changes": {
+      "revision": 2,
+      "changed_at": "2026-10-18T17:46:54Z",
+      "changes": [
+       "pod label pod-template-hash: 6859c775df -> 7f69f58fd9",
+       "pod nodeSelector: null -> {\"kubernetes.io/hostname\": \"kind-worker2\"}"
+      ]
+     }
+    },
+    "deployment/recommendation": {
+     "kind": "Deployment",
+     "name": "recommendation",
+     "namespace": "astronomy-shop",
+     "healthy": false,
+     "signals": [
+      "service recommendation has internalTrafficPolicy=Local: only endpoints on the client's own node receive traffic",
+      "service recommendation (internalTrafficPolicy=Local) has ready endpoints only on kind-worker; client deployment/frontend runs on kind-worker2, where calls to recommendation find no local endpoint",
+      "firing alert ServiceEndpointDown",
+      "Service recommendation was modified 191s ago, 71s after it was created (fields: spec.internalTrafficPolicy); 50s before the first active symptom",
+      "spec modified 230s ago, 32s after this object was created (fields: nodeSelector); pod template changes: pod label pod-template-hash: 5bb649dccb -> 74758c88; pod nodeSelector: null -> {\"kubernetes.io/hostname\": \"kind-worker\"}; 89s before the first active symptom"
+     ],
+     "template_changes": {
+      "revision": 2,
+      "changed_at": "2026-10-18T17:46:20Z",
+      "changes": [
+       "pod label pod-template-hash: 5bb649dccb -> 74758c88",
+       "pod nodeSelector: null -> {\"kubernetes.io/hostname\": \"kind-worker\"}"
+      ]
+     }
+    },
+    "daemonset/otel-collector-agent": {
+     "kind": "DaemonSet",
+     "name": "otel-collector-agent",
+     "namespace": "astronomy-shop",
+     "healthy": false,
+     "signals": [
+      "spec modified 244s ago, 18s after this object was created (fields: template.annotations.kubectl.kubernetes.io/restartedAt); pod template changes: template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-18T23:46:06+06:00; 103s before the first active symptom"
+     ],
+     "template_changes": {
+      "revision": 2,
+      "changed_at": "2026-10-18T17:46:06Z",
+      "changes": [
+       "template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-18T23:46:06+06:00"
+      ]
+     }
+    }
+   },
+   "cluster": {
+    "symptom_onset": "2026-10-18T17:47:49+00:00",
+    "recent_changes": [
+     {
+      "object": "service/astronomy-shop/recommendation",
+      "at": "2026-10-18T17:46:59Z",
+      "modified_after_creation_s": 71,
+      "fields": [
+       "spec.internalTrafficPolicy"
+      ],
+      "seconds_ago": 191,
+      "seconds_before_symptoms": 50
+     },
+     {
+      "object": "deployment/frontend",
+      "at": "2026-10-18T17:46:54Z",
+      "modified_after_creation_s": 66,
+      "fields": [
+       "nodeSelector"
+      ],
+      "seconds_ago": 196,
+      "seconds_before_symptoms": 55
+     },
+     {
+      "object": "deployment/recommendation",
+      "at": "2026-10-18T17:46:20Z",
+      "modified_after_creation_s": 32,
+      "fields": [
+       "nodeSelector"
+      ],
+      "seconds_ago": 230,
+      "seconds_before_symptoms": 89
+     },
+     {
+      "object": "daemonset/otel-collector-agent",
+      "at": "2026-10-18T17:46:06Z",
+      "modified_after_creation_s": 18,
+      "fields": [
+       "template.annotations.kubectl.kubernetes.io/restartedAt"
+      ],
+      "seconds_ago": 244,
+      "seconds_before_symptoms": 103,
+      "role": "observability"
+     },
+     {
+      "object": "configmap/kube-system/coredns",
+      "at": "2026-10-18T16:57:47Z",
+      "modified_after_creation_s": 29766,
+      "fields": [
+       "data.Corefile"
+      ],
+      "seconds_ago": 3143,
+      "seconds_before_symptoms": 3002
+     }
+    ],
+    "findings": [
+     {
+      "kind": "Service",
+      "name": "recommendation",
+      "namespace": "astronomy-shop",
+      "signal": "Service recommendation was modified 191s ago, 71s after it was created (fields: spec.internalTrafficPolicy); 50s before the first active symptom",
+      "components": [
+       "deployment/recommendation"
+      ]
+     },
+     {
+      "kind": "ConfigMap",
+      "name": "coredns",
+      "namespace": "kube-system",
+      "signal": "ConfigMap coredns was modified 3143s ago, 29766s after it was created (fields: data.Corefile); 3002s before the first active symptom"
+     }
+    ]
+   }
+  },
+  "questions": {
+   "best_explanation": {
+    "type": "choice",
+    "criteria": {
+     "o1": "Origin: deployment/astronomy-shop/recommendation. The pod template change 'pod nodeSelector: null -> {\"kubernetes.io/hostname\": \"kind-worker\"}' in revision 2 of deployment/recommendation breaks deployment/recommendation. | Details: pod nodeSelector: null -> {\"kubernetes.io/hostname\": \"kind-worker\"} | Observed impact on: deployment/astronomy-shop/recommendation | Checks: revision 2 of deployment/recommendation was made before the symptoms began (supports); deployment/recommendation shows symptoms of its own (supports)",
+     "o2": "Origin: deployment/astronomy-shop/frontend. The pod template change 'pod nodeSelector: null -> {\"kubernetes.io/hostname\": \"kind-worker2\"}' in revision 2 of deployment/frontend breaks deployment/frontend. | Details: pod nodeSelector: null -> {\"kubernetes.io/hostname\": \"kind-worker2\"} | Observed impact on: deployment/astronomy-shop/frontend | Checks: revision 2 of deployment/frontend was made before the symptoms began (supports); deployment/frontend shows symptoms of its own (supports)",
+     "o3": "Origin: deployment/astronomy-shop/frontend. deployment frontend was changed recently and breaks deployment/frontend, which it acts on. | Details: deployment frontend fields written: nodeSelector | Observed impact on: deployment/astronomy-shop/frontend | Checks: deployment/astronomy-shop/frontend was made before the symptoms began (supports); deployment/frontend shows symptoms of its own (supports)",
+     "o4": "Origin: deployment/astronomy-shop/recommendation. deployment recommendation was changed recently and breaks deployment/recommendation, which it acts on. | Details: deployment recommendation fields written: nodeSelector | Observed impact on: deployment/astronomy-shop/recommendation | Checks: deployment/astronomy-shop/recommendation was made before the symptoms began (supports); deployment/recommendation shows symptoms of its own (supports)",
+     "o5": "None of these explanations fits the evidence.",
+     "o6": "Origin: daemonset/astronomy-shop/otel-collector-agent. The pod template change 'template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-18T23:46:06+06:00' in revision 2 of daemonset/otel-collector-agent breaks daemonset/otel-collector-agent. | Details: template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-18T23:46:06+06:00 | Observed impact on: daemonset/astronomy-shop/otel-collector-agent | Checks: revision 2 of daemonset/otel-collector-agent was made before the symptoms began (supports); daemonset/otel-collector-agent shows symptoms of its own (supports)",
+     "o7": "Origin: service/astronomy-shop/recommendation. service recommendation was changed recently and breaks deployment/recommendation, which it acts on. | Details: service recommendation fields written: spec.internalTrafficPolicy; service recommendation has internalTrafficPolicy=Local: only endpoints on the client's own node receive traffic; service recommendation (internalTrafficPolicy=Local) has ready endpoints only on kind-worker; client deployment/frontend runs on kind-worker2, where calls to recommendation find no local endpoint; Service recommendation was modified 191s ago, 71s after it was created (fields: spec.internalTrafficPolicy); 50s before the first active symptom | Observed impact on: deployment/astronomy-shop/recommendation | Checks: service/astronomy-shop/recommendation was made before the symptoms began (supports); deployment/recommendation shows symptoms of its own (supports)"
+    },
+    "instructions": {
+     "question": "Which explanation best accounts for all the observed symptoms in `evidence`?",
+     "how_to_decide": [
+      "Prefer the explanation whose chain is supported by the observed facts and explains the most symptoms; an explanation contradicted by a fact is unlikely.",
+      "A component that only fails because something it calls fails is a victim, not the origin.",
+      "Choose `o5` when none of the explanations fits the evidence."
+     ]
+    }
+   }
+  },
+  "model": "typesafe/jev-1.13-20260917",
+  "latency_ms": 526,
+  "usage": {
+   "input_tokens": 2876,
+   "output_tokens": 77,
+   "cost": 0.000120792
+  },
+  "answers": {
+   "best_explanation": {
+    "type": "choice",
+    "choice": "o7",
+    "confidence": 0.93,
+    "probabilities": {
+     "o1": 0.02,
+     "o2": 0.01,
+     "o3": 0.0,
+     "o4": 0.0,
+     "o5": 0.03,
+     "o6": 0.0,
+     "o7": 0.94
+    }
+   }
+  }
+ }
+]

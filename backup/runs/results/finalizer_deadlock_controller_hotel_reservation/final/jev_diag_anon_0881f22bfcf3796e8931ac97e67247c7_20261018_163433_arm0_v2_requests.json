@@ -1,0 +1,218 @@
+[
+ {
+  "label": "decide:1",
+  "state": {
+   "application": {
+    "name": "Hotel Reservation",
+    "description": "A hotel reservation application built with Go and gRPC, providing backend in-memory and persistent databases, a recommender system for hotel recommendations, and a functionality to place reservations.",
+    "namespaces": [
+     "hotel-reservation"
+    ]
+   },
+   "evidence": {
+    "deployment/cleanup-controller": {
+     "kind": "Deployment",
+     "name": "cleanup-controller",
+     "namespace": "hotel-reservation",
+     "healthy": false,
+     "signals": [
+      "service account hotel-reservation/cleanup-controller is bound to ClusterRole/configmap-cleanup-controller granting: configmaps [core]: get,list,watch",
+      "ConfigMap reservation-cleanup-token has been terminating for 127s, held by finalizer cleanup.reservations.io/pending-cleanup; linked to this component because its ClusterRole configmap-cleanup-controller covers configmaps and its logs show authorization denials; removing a finalizer requires patch or update on configmaps, which ClusterRole configmap-cleanup-controller does not grant (it grants get, list, watch)",
+      "logs report authorization denied (RBAC) (62 lines): controller: cleanup-controller reconciliation failed: Kubernetes API denied cleanup request with HTTP 403 Forbidden"
+     ]
+    },
+    "deployment/mongodb-geo": {
+     "kind": "Deployment",
+     "name": "mongodb-geo",
+     "namespace": "hotel-reservation",
+     "healthy": true,
+     "template_changes": {
+      "revision": 2,
+      "changed_at": "2026-10-18T16:34:15Z",
+      "changes": [
+       "pod label pod-template-hash: 78487c9767 -> 5ff578bcb8",
+       "volume failure-script added: {\"configMap\": {\"defaultMode\": 420, \"name\": \"failure-admin-geo\"}}",
+       "container hotel-reserv-geo-mongo mounts volume failure-script at /scripts"
+      ]
+     }
+    }
+   },
+   "cluster": {
+    "symptom_onset": "2026-10-18T16:34:33+00:00",
+    "recent_changes": [],
+    "findings": [
+     {
+      "kind": "ClusterRole",
+      "name": "configmap-cleanup-controller",
+      "signal": "bound workload deployment/cleanup-controller logs authorization denials (62 lines); bound via ClusterRoleBinding/configmap-cleanup-controller to deployment/cleanup-controller",
+      "components": [
+       "deployment/cleanup-controller"
+      ]
+     },
+     {
+      "kind": "ConfigMap",
+      "name": "reservation-cleanup-token",
+      "namespace": "hotel-reservation",
+      "signal": "terminating for 127s, held by finalizer cleanup.reservations.io/pending-cleanup",
+      "components": [
+       "deployment/cleanup-controller"
+      ]
+     }
+    ]
+   }
+  },
+  "questions": {
+   "best_explanation": {
+    "type": "choice",
+    "criteria": {
+     "o1": "Origin: deployment/hotel-reservation/mongodb-geo. The pod template change 'container hotel-reserv-geo-mongo mounts volume failure-script at /scripts' in revision 2 of deployment/mongodb-geo breaks deployment/mongodb-geo. | Details: container hotel-reserv-geo-mongo mounts volume failure-script at /scripts | Checks: revision 2 of deployment/mongodb-geo was made before the symptoms began (supports); deployment/mongodb-geo shows symptoms of its own (contradicts)",
+     "o2": "Origin: deployment/hotel-reservation/cleanup-controller. The fault is in this component; the mechanism is not established. | Observed impact on: deployment/hotel-reservation/cleanup-controller",
+     "o3": "Origin: configmap/hotel-reservation/reservation-cleanup-token. configmap reservation-cleanup-token acts on deployment/cleanup-controller: terminating for 127s, held by finalizer cleanup.reservations.io/pending-cleanup. | Details: terminating for 127s, held by finalizer cleanup.reservations.io/pending-cleanup; ConfigMap reservation-cleanup-token has been terminating for 127s, held by finalizer cleanup.reservations.io/pending-cleanup; linked to this component because its ClusterRole configmap-cleanup-controller covers configmaps and its logs show authorization denials; removing a finalizer requires patch or update on configmaps, which ClusterRole configmap-cleanup-controller does not grant (it grants get, list, watch) | Observed impact on: deployment/hotel-reservation/cleanup-controller | Checks: deployment/cleanup-controller shows symptoms of its own (supports)",
+     "o4": "Origin: clusterrole/configmap-cleanup-controller. clusterrole configmap-cleanup-controller acts on deployment/cleanup-controller: bound workload deployment/cleanup-controller logs authorization denials (62 lines); bound via ClusterRoleBinding/configmap-cleanup-controller to deployment/cleanup-controller. | Details: bound workload deployment/cleanup-controller logs authorization denials (62 lines); bound via ClusterRoleBinding/configmap-cleanup-controller to deployment/cleanup-controller; ConfigMap reservation-cleanup-token has been terminating for 127s, held by finalizer cleanup.reservations.io/pending-cleanup; linked to this component because its ClusterRole configmap-cleanup-controller covers configmaps and its logs show authorization denials; removing a finalizer requires patch or update on configmaps, which ClusterRole configmap-cleanup-controller does not grant (it grants get, list, watch) | Observed impact on: deployment/hotel-reservation/cleanup-controller | Checks: deployment/cleanup-controller shows symptoms of its own (supports)",
+     "o5": "Origin: deployment/hotel-reservation/mongodb-geo. The pod template changes in revision 2 of deployment/mongodb-geo, which only cause the fault together, break deployment/mongodb-geo. | Details: volume failure-script added: {\"configMap\": {\"defaultMode\": 420, \"name\": \"failure-admin-geo\"}}; container hotel-reserv-geo-mongo mounts volume failure-script at /scripts | Checks: revision 2 of deployment/mongodb-geo was made before the symptoms began (supports); deployment/mongodb-geo shows symptoms of its own (contradicts)",
+     "o6": "Origin: deployment/hotel-reservation/mongodb-geo. The pod template change 'volume failure-script added: {\"configMap\": {\"defaultMode\": 420, \"name\": \"failure-admin-geo\"}}' in revision 2 of deployment/mongodb-geo breaks deployment/mongodb-geo. | Details: volume failure-script added: {\"configMap\": {\"defaultMode\": 420, \"name\": \"failure-admin-geo\"}} | Checks: revision 2 of deployment/mongodb-geo was made before the symptoms began (supports); deployment/mongodb-geo shows symptoms of its own (contradicts)",
+     "o7": "None of these explanations fits the evidence."
+    },
+    "instructions": {
+     "question": "Which explanation best accounts for all the observed symptoms in `evidence`?",
+     "how_to_decide": [
+      "Prefer the explanation whose chain is supported by the observed facts and explains the most symptoms; an explanation contradicted by a fact is unlikely.",
+      "A component that only fails because something it calls fails is a victim, not the origin.",
+      "Choose `o7` when none of the explanations fits the evidence."
+     ]
+    }
+   }
+  },
+  "model": "typesafe/jev-1.13-20260917",
+  "latency_ms": 626,
+  "usage": {
+   "input_tokens": 2071,
+   "output_tokens": 77,
+   "cost": 8.6982e-05
+  },
+  "answers": {
+   "best_explanation": {
+    "type": "choice",
+    "choice": "o4",
+    "confidence": 0.94,
+    "probabilities": {
+     "o1": 0.0,
+     "o2": 0.0,
+     "o3": 0.05,
+     "o4": 0.95,
+     "o5": 0.0,
+     "o6": 0.0,
+     "o7": 0.0
+    }
+   }
+  }
+ },
+ {
+  "label": "decide:2",
+  "state": {
+   "application": {
+    "name": "Hotel Reservation",
+    "description": "A hotel reservation application built with Go and gRPC, providing backend in-memory and persistent databases, a recommender system for hotel recommendations, and a functionality to place reservations.",
+    "namespaces": [
+     "hotel-reservation"
+    ]
+   },
+   "evidence": {
+    "deployment/cleanup-controller": {
+     "kind": "Deployment",
+     "name": "cleanup-controller",
+     "namespace": "hotel-reservation",
+     "healthy": false,
+     "signals": [
+      "service account hotel-reservation/cleanup-controller is bound to ClusterRole/configmap-cleanup-controller granting: configmaps [core]: get,list,watch",
+      "ConfigMap reservation-cleanup-token has been terminating for 127s, held by finalizer cleanup.reservations.io/pending-cleanup; linked to this component because its ClusterRole configmap-cleanup-controller covers configmaps and its logs show authorization denials; removing a finalizer requires patch or update on configmaps, which ClusterRole configmap-cleanup-controller does not grant (it grants get, list, watch)",
+      "logs report authorization denied (RBAC) (62 lines): controller: cleanup-controller reconciliation failed: Kubernetes API denied cleanup request with HTTP 403 Forbidden"
+     ]
+    },
+    "deployment/mongodb-geo": {
+     "kind": "Deployment",
+     "name": "mongodb-geo",
+     "namespace": "hotel-reservation",
+     "healthy": true,
+     "template_changes": {
+      "revision": 2,
+      "changed_at": "2026-10-18T16:34:15Z",
+      "changes": [
+       "pod label pod-template-hash: 78487c9767 -> 5ff578bcb8",
+       "volume failure-script added: {\"configMap\": {\"defaultMode\": 420, \"name\": \"failure-admin-geo\"}}",
+       "container hotel-reserv-geo-mongo mounts volume failure-script at /scripts"
+      ]
+     }
+    }
+   },
+   "cluster": {
+    "symptom_onset": "2026-10-18T16:34:33+00:00",
+    "recent_changes": [],
+    "findings": [
+     {
+      "kind": "ClusterRole",
+      "name": "configmap-cleanup-controller",
+      "signal": "bound workload deployment/cleanup-controller logs authorization denials (62 lines); bound via ClusterRoleBinding/configmap-cleanup-controller to deployment/cleanup-controller",
+      "components": [
+       "deployment/cleanup-controller"
+      ]
+     },
+     {
+      "kind": "ConfigMap",
+      "name": "reservation-cleanup-token",
+      "namespace": "hotel-reservation",
+      "signal": "terminating for 127s, held by finalizer cleanup.reservations.io/pending-cleanup",
+      "components": [
+       "deployment/cleanup-controller"
+      ]
+     }
+    ]
+   }
+  },
+  "questions": {
+   "best_explanation": {
+    "type": "choice",
+    "criteria": {
+     "o1": "Origin: configmap/hotel-reservation/reservation-cleanup-token. configmap reservation-cleanup-token acts on deployment/cleanup-controller: terminating for 127s, held by finalizer cleanup.reservations.io/pending-cleanup. | Details: terminating for 127s, held by finalizer cleanup.reservations.io/pending-cleanup; ConfigMap reservation-cleanup-token has been terminating for 127s, held by finalizer cleanup.reservations.io/pending-cleanup; linked to this component because its ClusterRole configmap-cleanup-controller covers configmaps and its logs show authorization denials; removing a finalizer requires patch or update on configmaps, which ClusterRole configmap-cleanup-controller does not grant (it grants get, list, watch) | Observed impact on: deployment/hotel-reservation/cleanup-controller | Checks: deployment/cleanup-controller shows symptoms of its own (supports)",
+     "o2": "Origin: clusterrole/configmap-cleanup-controller. clusterrole configmap-cleanup-controller acts on deployment/cleanup-controller: bound workload deployment/cleanup-controller logs authorization denials (62 lines); bound via ClusterRoleBinding/configmap-cleanup-controller to deployment/cleanup-controller. | Details: bound workload deployment/cleanup-controller logs authorization denials (62 lines); bound via ClusterRoleBinding/configmap-cleanup-controller to deployment/cleanup-controller; ConfigMap reservation-cleanup-token has been terminating for 127s, held by finalizer cleanup.reservations.io/pending-cleanup; linked to this component because its ClusterRole configmap-cleanup-controller covers configmaps and its logs show authorization denials; removing a finalizer requires patch or update on configmaps, which ClusterRole configmap-cleanup-controller does not grant (it grants get, list, watch) | Observed impact on: deployment/hotel-reservation/cleanup-controller | Checks: deployment/cleanup-controller shows symptoms of its own (supports)",
+     "o3": "Origin: deployment/hotel-reservation/mongodb-geo. The pod template change 'container hotel-reserv-geo-mongo mounts volume failure-script at /scripts' in revision 2 of deployment/mongodb-geo breaks deployment/mongodb-geo. | Details: container hotel-reserv-geo-mongo mounts volume failure-script at /scripts | Checks: revision 2 of deployment/mongodb-geo was made before the symptoms began (supports); deployment/mongodb-geo shows symptoms of its own (contradicts)",
+     "o4": "Origin: deployment/hotel-reservation/mongodb-geo. The pod template changes in revision 2 of deployment/mongodb-geo, which only cause the fault together, break deployment/mongodb-geo. | Details: volume failure-script added: {\"configMap\": {\"defaultMode\": 420, \"name\": \"failure-admin-geo\"}}; container hotel-reserv-geo-mongo mounts volume failure-script at /scripts | Checks: revision 2 of deployment/mongodb-geo was made before the symptoms began (supports); deployment/mongodb-geo shows symptoms of its own (contradicts)",
+     "o5": "None of these explanations fits the evidence.",
+     "o6": "Origin: deployment/hotel-reservation/cleanup-controller. The fault is in this component; the mechanism is not established. | Observed impact on: deployment/hotel-reservation/cleanup-controller",
+     "o7": "Origin: deployment/hotel-reservation/mongodb-geo. The pod template change 'volume failure-script added: {\"configMap\": {\"defaultMode\": 420, \"name\": \"failure-admin-geo\"}}' in revision 2 of deployment/mongodb-geo breaks deployment/mongodb-geo. | Details: volume failure-script added: {\"configMap\": {\"defaultMode\": 420, \"name\": \"failure-admin-geo\"}} | Checks: revision 2 of deployment/mongodb-geo was made before the symptoms began (supports); deployment/mongodb-geo shows symptoms of its own (contradicts)"
+    },
+    "instructions": {
+     "question": "Which explanation best accounts for all the observed symptoms in `evidence`?",
+     "how_to_decide": [
+      "Prefer the explanation whose chain is supported by the observed facts and explains the most symptoms; an explanation contradicted by a fact is unlikely.",
+      "A component that only fails because something it calls fails is a victim, not the origin.",
+      "Choose `o5` when none of the explanations fits the evidence."
+     ]
+    }
+   }
+  },
+  "model": "typesafe/jev-1.13-20260917",
+  "latency_ms": 513,
+  "usage": {
+   "input_tokens": 2071,
+   "output_tokens": 77,
+   "cost": 8.6982e-05
+  },
+  "answers": {
+   "best_explanation": {
+    "type": "choice",
+    "choice": "o2",
+    "confidence": 0.94,
+    "probabilities": {
+     "o1": 0.05,
+     "o2": 0.95,
+     "o3": 0.0,
+     "o4": 0.0,
+     "o5": 0.0,
+     "o6": 0.0,
+     "o7": 0.0
+    }
+   }
+  }
+ }
+]

@@ -1,0 +1,1064 @@
+[
+ {
+  "label": "decide:1",
+  "state": {
+   "application": {
+    "name": "Hotel Reservation",
+    "description": "A hotel reservation application built with Go and gRPC, providing backend in-memory and persistent databases, a recommender system for hotel recommendations, and a functionality to place reservations.",
+    "namespaces": [
+     "hotel-reservation"
+    ]
+   },
+   "evidence": {
+    "deployment/rate": {
+     "kind": "Deployment",
+     "name": "rate",
+     "namespace": "hotel-reservation",
+     "healthy": false,
+     "signals": [
+      "errors logged by 1 other component(s) (deployment/search) name this component (connectivity or timeout, 60 lines, still occurring), e.g. '2026-10-18T13:17:56Z WRN services/search/server.go:252 > downstream request failed dependency=rate grpc_code=DeadlineExceeded'"
+     ],
+     "referenced_by_errors_from": [
+      "deployment/search"
+     ]
+    },
+    "deployment/search": {
+     "kind": "Deployment",
+     "name": "search",
+     "namespace": "hotel-reservation",
+     "healthy": false,
+     "errors_point_to": [
+      "deployment/rate"
+     ]
+    }
+   },
+   "cluster": {
+    "symptom_onset": "2026-10-18T13:17:54+00:00",
+    "recent_changes": [],
+    "findings": []
+   }
+  },
+  "questions": {
+   "best_explanation": {
+    "type": "choice",
+    "criteria": {
+     "o1": "Origin: deployment/hotel-reservation/rate. The fault is in this component; the mechanism is not established. | Observed impact on: deployment/hotel-reservation/rate, deployment/hotel-reservation/search",
+     "o2": "Origin: interaction/hotel-reservation/search--rate. Calls from deployment/search to deployment/rate time out; deployment/search retries them, and the retries add load that keeps deployment/rate saturated, so the failure sustains itself. | Together with: deployment/hotel-reservation/search, deployment/hotel-reservation/rate | Observed impact on: deployment/hotel-reservation/rate, deployment/hotel-reservation/search | Checks: errors of deployment/search on deployment/rate are timeouts or overload (supports)",
+     "o3": "Origin: deployment/hotel-reservation/rate. deployment/rate fails or rejects requests, so deployment/search fail when calling it. | Observed impact on: deployment/hotel-reservation/rate, deployment/hotel-reservation/search | Checks: still-occurring errors of deployment/search name deployment/rate (supports); deployment/rate shows failures of its own (supports)",
+     "o4": "None of these explanations fits the evidence.",
+     "o5": "Origin: deployment/hotel-reservation/search. The fault is in this component; the mechanism is not established. | Observed impact on: deployment/hotel-reservation/search"
+    },
+    "instructions": {
+     "question": "Which explanation best accounts for all the observed symptoms in `evidence`?",
+     "how_to_decide": [
+      "Prefer the explanation whose chain is supported by the observed facts and explains the most symptoms; an explanation contradicted by a fact is unlikely.",
+      "A component that only fails because something it calls fails is a victim, not the origin.",
+      "Choose `o4` when none of the explanations fits the evidence."
+     ]
+    }
+   }
+  },
+  "model": "openai/gpt-6-luna-decisions-20261006",
+  "latency_ms": 922,
+  "usage": {
+   "input_tokens": 688,
+   "output_tokens": 0,
+   "cost": 6.88e-05
+  },
+  "answers": {
+   "best_explanation": {
+    "type": "choice",
+    "choice": "o1",
+    "confidence": 0.61,
+    "probabilities": {
+     "o1": 0.69,
+     "o2": 0.03,
+     "o3": 0.19,
+     "o4": 0.08,
+     "o5": 0.01
+    }
+   }
+  }
+ },
+ {
+  "label": "decide:2",
+  "state": {
+   "application": {
+    "name": "Hotel Reservation",
+    "description": "A hotel reservation application built with Go and gRPC, providing backend in-memory and persistent databases, a recommender system for hotel recommendations, and a functionality to place reservations.",
+    "namespaces": [
+     "hotel-reservation"
+    ]
+   },
+   "evidence": {
+    "deployment/rate": {
+     "kind": "Deployment",
+     "name": "rate",
+     "namespace": "hotel-reservation",
+     "healthy": false,
+     "signals": [
+      "errors logged by 1 other component(s) (deployment/search) name this component (connectivity or timeout, 60 lines, still occurring), e.g. '2026-10-18T13:17:56Z WRN services/search/server.go:252 > downstream request failed dependency=rate grpc_code=DeadlineExceeded'"
+     ],
+     "referenced_by_errors_from": [
+      "deployment/search"
+     ]
+    },
+    "deployment/search": {
+     "kind": "Deployment",
+     "name": "search",
+     "namespace": "hotel-reservation",
+     "healthy": false,
+     "errors_point_to": [
+      "deployment/rate"
+     ]
+    }
+   },
+   "cluster": {
+    "symptom_onset": "2026-10-18T13:17:54+00:00",
+    "recent_changes": [],
+    "findings": []
+   }
+  },
+  "questions": {
+   "best_explanation": {
+    "type": "choice",
+    "criteria": {
+     "o1": "Origin: deployment/hotel-reservation/rate. deployment/rate fails or rejects requests, so deployment/search fail when calling it. | Observed impact on: deployment/hotel-reservation/rate, deployment/hotel-reservation/search | Checks: still-occurring errors of deployment/search name deployment/rate (supports); deployment/rate shows failures of its own (supports)",
+     "o2": "Origin: deployment/hotel-reservation/rate. The fault is in this component; the mechanism is not established. | Observed impact on: deployment/hotel-reservation/rate, deployment/hotel-reservation/search",
+     "o3": "Origin: interaction/hotel-reservation/search--rate. Calls from deployment/search to deployment/rate time out; deployment/search retries them, and the retries add load that keeps deployment/rate saturated, so the failure sustains itself. | Together with: deployment/hotel-reservation/search, deployment/hotel-reservation/rate | Observed impact on: deployment/hotel-reservation/rate, deployment/hotel-reservation/search | Checks: errors of deployment/search on deployment/rate are timeouts or overload (supports)",
+     "o4": "Origin: deployment/hotel-reservation/search. The fault is in this component; the mechanism is not established. | Observed impact on: deployment/hotel-reservation/search",
+     "o5": "None of these explanations fits the evidence."
+    },
+    "instructions": {
+     "question": "Which explanation best accounts for all the observed symptoms in `evidence`?",
+     "how_to_decide": [
+      "Prefer the explanation whose chain is supported by the observed facts and explains the most symptoms; an explanation contradicted by a fact is unlikely.",
+      "A component that only fails because something it calls fails is a victim, not the origin.",
+      "Choose `o5` when none of the explanations fits the evidence."
+     ]
+    }
+   }
+  },
+  "model": "openai/gpt-6-luna-decisions-20261006",
+  "latency_ms": 823,
+  "usage": {
+   "input_tokens": 688,
+   "output_tokens": 0,
+   "cost": 6.88e-05
+  },
+  "answers": {
+   "best_explanation": {
+    "type": "choice",
+    "choice": "o1",
+    "confidence": 0.5,
+    "probabilities": {
+     "o1": 0.6,
+     "o2": 0.34,
+     "o3": 0.04,
+     "o4": 0.01,
+     "o5": 0.01
+    }
+   }
+  }
+ },
+ {
+  "label": "decide:1",
+  "state": {
+   "application": {
+    "name": "Hotel Reservation",
+    "description": "A hotel reservation application built with Go and gRPC, providing backend in-memory and persistent databases, a recommender system for hotel recommendations, and a functionality to place reservations.",
+    "namespaces": [
+     "hotel-reservation"
+    ]
+   },
+   "evidence": {
+    "deployment/rate": {
+     "kind": "Deployment",
+     "name": "rate",
+     "namespace": "hotel-reservation",
+     "healthy": false,
+     "signals": [
+      "errors logged by 1 other component(s) (deployment/search) name this component (connectivity or timeout, 60 lines, still occurring), e.g. '2026-10-18T13:17:56Z WRN services/search/server.go:252 > downstream request failed dependency=rate grpc_code=DeadlineExceeded'"
+     ],
+     "referenced_by_errors_from": [
+      "deployment/search"
+     ],
+     "detail": {
+      "component": "deployment/rate",
+      "namespace": "hotel-reservation",
+      "workload": {
+       "created": "2026-10-18T13:14:13Z",
+       "last_spec_write": "2026-10-18T13:14:13Z",
+       "spec_writers": [
+        {
+         "manager": "kubectl-client-side-apply",
+         "op": "Update",
+         "time": "2026-10-18T13:14:13Z"
+        }
+       ],
+       "replicas": 1,
+       "strategy": {
+        "rollingUpdate": {
+         "maxSurge": "25%",
+         "maxUnavailable": "25%"
+        },
+        "type": "RollingUpdate"
+       },
+       "dns_policy": "ClusterFirst",
+       "restart_policy": "Always",
+       "containers": [
+        {
+         "name": "hotel-reserv-rate",
+         "image": "ghcr.io/sregym/hotel-reservation:sha-d2c036bc3d1138f5a0bdaffd3d87f37522c3461a@sha256:1c685e1c4c304f327952397b3a99c54dadb086607774d71f222b200ec0d2e65e",
+         "command": [
+          "rate"
+         ],
+         "env": [
+          {
+           "name": "JAEGER_SAMPLE_RATIO",
+           "value": "1"
+          },
+          {
+           "name": "RATE_BACKEND_QPS_LIMIT",
+           "value": "20"
+          },
+          {
+           "name": "RATE_QUEUE_CAPACITY",
+           "value": "256"
+          }
+         ],
+         "ports": [
+          {
+           "port": 8084
+          },
+          {
+           "port": 9091,
+           "name": "metrics"
+          }
+         ],
+         "resources": {
+          "limits": {
+           "cpu": "1"
+          },
+          "requests": {
+           "cpu": "100m"
+          }
+         }
+        }
+       ],
+       "template_labels": {
+        "io.kompose.service": "rate"
+       }
+      },
+      "pods": [
+       {
+        "name": "rate-65b695969b-w2cvv",
+        "node": "kind-worker2",
+        "phase": "Running",
+        "started": "2026-10-18T13:14:13Z",
+        "ready_since": "2026-10-18T13:14:15Z",
+        "conditions": [
+         "PodReadyToStartContainers=True",
+         "Initialized=True",
+         "Ready=True",
+         "ContainersReady=True",
+         "PodScheduled=True"
+        ],
+        "containers": [
+         {
+          "name": "hotel-reserv-rate",
+          "ready": true,
+          "restarts": 0,
+          "state": {
+           "running": {
+            "startedAt": "2026-10-18T13:14:15Z"
+           }
+          }
+         }
+        ]
+       }
+      ],
+      "events": [
+       {
+        "type": "Normal",
+        "reason": "Pulled",
+        "count": 1,
+        "object": "pod/rate-65b695969b-w2cvv",
+        "last": "2026-10-18T13:14:15Z",
+        "message": "Container image \"ghcr.io/sregym/hotel-reservation:sha-d2c036bc3d1138f5a0bdaffd3d87f37522c3461a@sha256:1c685e1c4c304f327952397b3a99c54dadb086607774d71f222b200ec0d2e65e\" already present on machine"
+       },
+       {
+        "type": "Normal",
+        "reason": "Created",
+        "count": 1,
+        "object": "pod/rate-65b695969b-w2cvv",
+        "last": "2026-10-18T13:14:15Z",
+        "message": "Created container: hotel-reserv-rate"
+       },
+       {
+        "type": "Normal",
+        "reason": "Started",
+        "count": 1,
+        "object": "pod/rate-65b695969b-w2cvv",
+        "last": "2026-10-18T13:14:15Z",
+        "message": "Started container hotel-reserv-rate"
+       },
+       {
+        "type": "Normal",
+        "reason": "SuccessfulCreate",
+        "count": 1,
+        "object": "replicaset/rate-65b695969b",
+        "last": "2026-10-18T13:14:13Z",
+        "message": "Created pod: rate-65b695969b-w2cvv"
+       },
+       {
+        "type": "Normal",
+        "reason": "Scheduled",
+        "count": 1,
+        "object": "pod/rate-65b695969b-w2cvv",
+        "last": "2026-10-18T13:14:13.810297Z",
+        "message": "Successfully assigned hotel-reservation/rate-65b695969b-w2cvv to kind-worker2"
+       }
+      ],
+      "logs": {
+       "total_lines": 24,
+       "error_lines": 0,
+       "error_lines_still_occurring": 0,
+       "error_lines_stopped": 0,
+       "telemetry_export_error_lines": 0,
+       "tail": [
+        "2026-10-18T13:14:25.230428811Z 2026-10-18T13:14:25Z INF cmd/rate/main.go:46 > Successfull",
+        "2026-10-18T13:14:25.230438710Z 2026-10-18T13:14:25Z INF cmd/rate/main.go:51 > Read target port: 8084",
+        "2026-10-18T13:14:25.230477682Z 2026-10-18T13:14:25Z INF cmd/rate/main.go:52 > Read consul address: consul:8500",
+        "2026-10-18T13:14:25.230489489Z 2026-10-18T13:14:25Z INF cmd/rate/main.go:53 > Read jaeger address: jaeger:6831",
+        "2026-10-18T13:14:25.230505832Z 2026-10-18T13:14:25Z INF cmd/rate/main.go:61 > Initializing jaeger agent [service name: rate | host: jaeger:6831]...",
+        "2026-10-18T13:14:25.230651866Z 2026-10-18T13:14:25Z INF tracing/tracer.go:26 > Jaeger client: adjusted sample ratio 1.000000",
+        "2026-10-18T13:14:25.232086448Z 2026-10-18T13:14:25Z INF cmd/rate/main.go:66 > Jaeger agent initialized",
+        "2026-10-18T13:14:25.232104068Z 2026-10-18T13:14:25Z INF cmd/rate/main.go:68 > Initializing consul agent [host: consul:8500]...",
+        "2026-10-18T13:14:25.232137141Z 2026-10-18T13:14:25Z INF cmd/rate/main.go:73 > Consul agent initialized",
+        "2026-10-18T13:14:25.232160852Z 2026-10-18T13:14:25Z INF cmd/rate/main.go:85 > Starting server...",
+        "2026-10-18T13:14:25.233508791Z 2026-10-18T13:14:25Z INF registry/registry.go:91 > Trying to register service [ name: srv-rate, id: ce909f9d-2225-4684-9f7b-fb97c35abbe6, address: 10.244.110.161:8084 ]",
+        "2026-10-18T13:14:25.247937667Z 2026-10-18T13:14:25Z INF services/rate/server.go:168 > Successfully registered in consul"
+       ]
+      },
+      "called_by_with_errors": {
+       "deployment/search": {
+        "connectivity or timeout": 60
+       }
+      }
+     }
+    },
+    "deployment/search": {
+     "kind": "Deployment",
+     "name": "search",
+     "namespace": "hotel-reservation",
+     "healthy": false,
+     "errors_point_to": [
+      "deployment/rate"
+     ],
+     "detail": {
+      "component": "deployment/search",
+      "namespace": "hotel-reservation",
+      "workload": {
+       "created": "2026-10-18T13:14:13Z",
+       "last_spec_write": "2026-10-18T13:14:13Z",
+       "spec_writers": [
+        {
+         "manager": "kubectl-client-side-apply",
+         "op": "Update",
+         "time": "2026-10-18T13:14:13Z"
+        }
+       ],
+       "replicas": 1,
+       "strategy": {
+        "rollingUpdate": {
+         "maxSurge": "25%",
+         "maxUnavailable": "25%"
+        },
+        "type": "RollingUpdate"
+       },
+       "dns_policy": "ClusterFirst",
+       "restart_policy": "Always",
+       "containers": [
+        {
+         "name": "hotel-reserv-search",
+         "image": "ghcr.io/sregym/hotel-reservation:sha-d2c036bc3d1138f5a0bdaffd3d87f37522c3461a@sha256:1c685e1c4c304f327952397b3a99c54dadb086607774d71f222b200ec0d2e65e",
+         "command": [
+          "search"
+         ],
+         "env": [
+          {
+           "name": "JAEGER_SAMPLE_RATIO",
+           "value": "1"
+          },
+          {
+           "name": "RATE_RPC_TIMEOUT_MS",
+           "value": "750"
+          },
+          {
+           "name": "RATE_RPC_MAX_ATTEMPTS",
+           "value": "3"
+          },
+          {
+           "name": "RATE_RPC_INITIAL_BACKOFF_MS",
+           "value": "50"
+          },
+          {
+           "name": "RATE_RPC_BACKOFF_MULTIPLIER",
+           "value": "2.0"
+          },
+          {
+           "name": "RATE_RPC_JITTER",
+           "value": "0.2"
+          }
+         ],
+         "ports": [
+          {
+           "port": 8082
+          },
+          {
+           "port": 9092,
+           "name": "metrics"
+          }
+         ],
+         "resources": {
+          "limits": {
+           "cpu": "1"
+          },
+          "requests": {
+           "cpu": "100m"
+          }
+         }
+        }
+       ],
+       "template_labels": {
+        "io.kompose.service": "search"
+       }
+      },
+      "pods": [
+       {
+        "name": "search-745f56dccd-w28hz",
+        "node": "kind-worker2",
+        "phase": "Running",
+        "started": "2026-10-18T13:14:15Z",
+        "ready_since": "2026-10-18T13:14:16Z",
+        "conditions": [
+         "PodReadyToStartContainers=True",
+         "Initialized=True",
+         "Ready=True",
+         "ContainersReady=True",
+         "PodScheduled=True"
+        ],
+        "containers": [
+         {
+          "name": "hotel-reserv-search",
+          "ready": true,
+          "restarts": 0,
+          "state": {
+           "running": {
+            "startedAt": "2026-10-18T13:14:16Z"
+           }
+          }
+         }
+        ]
+       }
+      ],
+      "events": [
+       {
+        "type": "Normal",
+        "reason": "Pulled",
+        "count": 1,
+        "object": "pod/search-745f56dccd-w28hz",
+        "last": "2026-10-18T13:14:16Z",
+        "message": "Container image \"ghcr.io/sregym/hotel-reservation:sha-d2c036bc3d1138f5a0bdaffd3d87f37522c3461a@sha256:1c685e1c4c304f327952397b3a99c54dadb086607774d71f222b200ec0d2e65e\" already present on machine"
+       },
+       {
+        "type": "Normal",
+        "reason": "Created",
+        "count": 1,
+        "object": "pod/search-745f56dccd-w28hz",
+        "last": "2026-10-18T13:14:16Z",
+        "message": "Created container: hotel-reserv-search"
+       },
+       {
+        "type": "Normal",
+        "reason": "Started",
+        "count": 1,
+        "object": "pod/search-745f56dccd-w28hz",
+        "last": "2026-10-18T13:14:16Z",
+        "message": "Started container hotel-reserv-search"
+       },
+       {
+        "type": "Normal",
+        "reason": "SuccessfulCreate",
+        "count": 1,
+        "object": "replicaset/search-745f56dccd",
+        "last": "2026-10-18T13:14:15Z",
+        "message": "Created pod: search-745f56dccd-w28hz"
+       },
+       {
+        "type": "Normal",
+        "reason": "Scheduled",
+        "count": 1,
+        "object": "pod/search-745f56dccd-w28hz",
+        "last": "2026-10-18T13:14:15.357193Z",
+        "message": "Successfully assigned hotel-reservation/search-745f56dccd-w28hz to kind-worker2"
+       }
+      ],
+      "logs": {
+       "total_lines": 300,
+       "error_lines": 0,
+       "error_lines_still_occurring": 0,
+       "error_lines_stopped": 0,
+       "telemetry_export_error_lines": 300,
+       "telemetry_error_samples": [
+        {
+         "count": 8,
+         "line": "hotel-reserv-search: 2026-10-18T13:18:10Z WRN services/search/server.go:252 > downstream request failed dependency=rate grpc_code=DeadlineExceeded",
+         "first_seen_seconds_ago": 8,
+         "last_seen_seconds_ago": 7,
+         "median_gap_seconds": 0.1,
+         "state": "ongoing"
+        },
+        {
+         "count": 8,
+         "line": "hotel-reserv-search: 2026-10-18T13:18:14Z WRN services/search/server.go:252 > downstream request failed dependency=rate grpc_code=DeadlineExceeded",
+         "first_seen_seconds_ago": 4,
+         "last_seen_seconds_ago": 3,
+         "median_gap_seconds": 0.1,
+         "state": "ongoing"
+        },
+        {
+         "count": 8,
+         "line": "hotel-reserv-search: 2026-10-18T13:18:15Z WRN services/search/server.go:252 > downstream request failed dependency=rate grpc_code=DeadlineExceeded",
+         "first_seen_seconds_ago": 3,
+         "last_seen_seconds_ago": 2,
+         "median_gap_seconds": 0.1,
+         "state": "ongoing"
+        }
+       ],
+       "tail": [
+        "2026-10-18T13:18:17.021053240Z 2026-10-18T13:18:17Z WRN services/search/server.go:252 > downstream request failed dependency=rate grpc_code=ResourceExhausted",
+        "2026-10-18T13:18:17.033287500Z 2026-10-18T13:18:17Z WRN services/search/server.go:252 > downstream request failed dependency=rate grpc_code=DeadlineExceeded",
+        "2026-10-18T13:18:17.133559525Z 2026-10-18T13:18:17Z WRN services/search/server.go:252 > downstream request failed dependency=rate grpc_code=DeadlineExceeded",
+        "2026-10-18T13:18:17.293793849Z 2026-10-18T13:18:17Z WRN services/search/server.go:252 > downstream request failed dependency=rate grpc_code=DeadlineExceeded",
+        "2026-10-18T13:18:17.295880522Z 2026-10-18T13:18:17Z WRN services/search/server.go:252 > downstream request failed dependency=rate grpc_code=DeadlineExceeded",
+        "2026-10-18T13:18:17.412149860Z 2026-10-18T13:18:17Z WRN services/search/server.go:252 > downstream request failed dependency=rate grpc_code=DeadlineExceeded",
+        "2026-10-18T13:18:17.669842388Z 2026-10-18T13:18:17Z WRN services/search/server.go:252 > downstream request failed dependency=rate grpc_code=DeadlineExceeded",
+        "2026-10-18T13:18:18.151246349Z 2026-10-18T13:18:18Z WRN services/search/server.go:252 > downstream request failed dependency=rate grpc_code=ResourceExhausted",
+        "2026-10-18T13:18:18.276448357Z 2026-10-18T13:18:18Z WRN services/search/server.go:252 > downstream request failed dependency=rate grpc_code=DeadlineExceeded",
+        "2026-10-18T13:18:18.425773938Z 2026-10-18T13:18:18Z WRN services/search/server.go:252 > downstream request failed dependency=rate grpc_code=ResourceExhausted",
+        "2026-10-18T13:18:18.426915648Z 2026-10-18T13:18:18Z WRN services/search/server.go:252 > downstream request failed dependency=rate grpc_code=DeadlineExceeded",
+        "2026-10-18T13:18:18.532044658Z 2026-10-18T13:18:18Z WRN services/search/server.go:252 > downstream request failed dependency=rate grpc_code=DeadlineExceeded"
+       ]
+      },
+      "calls": {
+       "deployment/rate": {
+        "kind": "Deployment",
+        "pods_ready": "1/1",
+        "restarts": 0,
+        "looks_healthy_on_its_own": true
+       }
+      }
+     }
+    }
+   },
+   "cluster": {
+    "symptom_onset": "2026-10-18T13:17:54+00:00",
+    "recent_changes": [],
+    "findings": []
+   }
+  },
+  "questions": {
+   "best_explanation": {
+    "type": "choice",
+    "criteria": {
+     "o1": "Origin: interaction/hotel-reservation/search--rate. Calls from deployment/search to deployment/rate time out; deployment/search retries them, and the retries add load that keeps deployment/rate saturated, so the failure sustains itself. | Details: deployment/search RATE_RPC_TIMEOUT_MS=750; deployment/search RATE_RPC_MAX_ATTEMPTS=3; deployment/search RATE_RPC_INITIAL_BACKOFF_MS=50; deployment/search RATE_RPC_BACKOFF_MULTIPLIER=2.0; deployment/search RATE_RPC_JITTER=0.2; deployment/rate RATE_BACKEND_QPS_LIMIT=20; deployment/rate RATE_QUEUE_CAPACITY=256 | Together with: deployment/hotel-reservation/search, deployment/hotel-reservation/rate | Observed impact on: deployment/hotel-reservation/rate, deployment/hotel-reservation/search | Checks: errors of deployment/search on deployment/rate are timeouts or overload (supports)",
+     "o2": "Origin: deployment/hotel-reservation/rate. deployment/rate fails or rejects requests, so deployment/search fail when calling it. | Observed impact on: deployment/hotel-reservation/rate, deployment/hotel-reservation/search | Checks: still-occurring errors of deployment/search name deployment/rate (supports); deployment/rate shows failures of its own (supports)",
+     "o3": "None of these explanations fits the evidence.",
+     "o4": "Origin: deployment/hotel-reservation/rate. The fault is in this component; the mechanism is not established. | Observed impact on: deployment/hotel-reservation/rate, deployment/hotel-reservation/search",
+     "o5": "Origin: deployment/hotel-reservation/search. The fault is in this component; the mechanism is not established. | Observed impact on: deployment/hotel-reservation/search"
+    },
+    "instructions": {
+     "question": "Which explanation best accounts for all the observed symptoms in `evidence`?",
+     "how_to_decide": [
+      "Prefer the explanation whose chain is supported by the observed facts and explains the most symptoms; an explanation contradicted by a fact is unlikely.",
+      "A component that only fails because something it calls fails is a victim, not the origin.",
+      "Choose `o3` when none of the explanations fits the evidence."
+     ]
+    }
+   }
+  },
+  "model": "openai/gpt-6-luna-decisions-20261006",
+  "latency_ms": 882,
+  "usage": {
+   "input_tokens": 4049,
+   "output_tokens": 0,
+   "cost": 0.0004049
+  },
+  "answers": {
+   "best_explanation": {
+    "type": "choice",
+    "choice": "o1",
+    "confidence": 0.65,
+    "probabilities": {
+     "o1": 0.72,
+     "o2": 0.08,
+     "o3": 0.07,
+     "o4": 0.07,
+     "o5": 0.06
+    }
+   }
+  }
+ },
+ {
+  "label": "decide:2",
+  "state": {
+   "application": {
+    "name": "Hotel Reservation",
+    "description": "A hotel reservation application built with Go and gRPC, providing backend in-memory and persistent databases, a recommender system for hotel recommendations, and a functionality to place reservations.",
+    "namespaces": [
+     "hotel-reservation"
+    ]
+   },
+   "evidence": {
+    "deployment/rate": {
+     "kind": "Deployment",
+     "name": "rate",
+     "namespace": "hotel-reservation",
+     "healthy": false,
+     "signals": [
+      "errors logged by 1 other component(s) (deployment/search) name this component (connectivity or timeout, 60 lines, still occurring), e.g. '2026-10-18T13:17:56Z WRN services/search/server.go:252 > downstream request failed dependency=rate grpc_code=DeadlineExceeded'"
+     ],
+     "referenced_by_errors_from": [
+      "deployment/search"
+     ],
+     "detail": {
+      "component": "deployment/rate",
+      "namespace": "hotel-reservation",
+      "workload": {
+       "created": "2026-10-18T13:14:13Z",
+       "last_spec_write": "2026-10-18T13:14:13Z",
+       "spec_writers": [
+        {
+         "manager": "kubectl-client-side-apply",
+         "op": "Update",
+         "time": "2026-10-18T13:14:13Z"
+        }
+       ],
+       "replicas": 1,
+       "strategy": {
+        "rollingUpdate": {
+         "maxSurge": "25%",
+         "maxUnavailable": "25%"
+        },
+        "type": "RollingUpdate"
+       },
+       "dns_policy": "ClusterFirst",
+       "restart_policy": "Always",
+       "containers": [
+        {
+         "name": "hotel-reserv-rate",
+         "image": "ghcr.io/sregym/hotel-reservation:sha-d2c036bc3d1138f5a0bdaffd3d87f37522c3461a@sha256:1c685e1c4c304f327952397b3a99c54dadb086607774d71f222b200ec0d2e65e",
+         "command": [
+          "rate"
+         ],
+         "env": [
+          {
+           "name": "JAEGER_SAMPLE_RATIO",
+           "value": "1"
+          },
+          {
+           "name": "RATE_BACKEND_QPS_LIMIT",
+           "value": "20"
+          },
+          {
+           "name": "RATE_QUEUE_CAPACITY",
+           "value": "256"
+          }
+         ],
+         "ports": [
+          {
+           "port": 8084
+          },
+          {
+           "port": 9091,
+           "name": "metrics"
+          }
+         ],
+         "resources": {
+          "limits": {
+           "cpu": "1"
+          },
+          "requests": {
+           "cpu": "100m"
+          }
+         }
+        }
+       ],
+       "template_labels": {
+        "io.kompose.service": "rate"
+       }
+      },
+      "pods": [
+       {
+        "name": "rate-65b695969b-w2cvv",
+        "node": "kind-worker2",
+        "phase": "Running",
+        "started": "2026-10-18T13:14:13Z",
+        "ready_since": "2026-10-18T13:14:15Z",
+        "conditions": [
+         "PodReadyToStartContainers=True",
+         "Initialized=True",
+         "Ready=True",
+         "ContainersReady=True",
+         "PodScheduled=True"
+        ],
+        "containers": [
+         {
+          "name": "hotel-reserv-rate",
+          "ready": true,
+          "restarts": 0,
+          "state": {
+           "running": {
+            "startedAt": "2026-10-18T13:14:15Z"
+           }
+          }
+         }
+        ]
+       }
+      ],
+      "events": [
+       {
+        "type": "Normal",
+        "reason": "Pulled",
+        "count": 1,
+        "object": "pod/rate-65b695969b-w2cvv",
+        "last": "2026-10-18T13:14:15Z",
+        "message": "Container image \"ghcr.io/sregym/hotel-reservation:sha-d2c036bc3d1138f5a0bdaffd3d87f37522c3461a@sha256:1c685e1c4c304f327952397b3a99c54dadb086607774d71f222b200ec0d2e65e\" already present on machine"
+       },
+       {
+        "type": "Normal",
+        "reason": "Created",
+        "count": 1,
+        "object": "pod/rate-65b695969b-w2cvv",
+        "last": "2026-10-18T13:14:15Z",
+        "message": "Created container: hotel-reserv-rate"
+       },
+       {
+        "type": "Normal",
+        "reason": "Started",
+        "count": 1,
+        "object": "pod/rate-65b695969b-w2cvv",
+        "last": "2026-10-18T13:14:15Z",
+        "message": "Started container hotel-reserv-rate"
+       },
+       {
+        "type": "Normal",
+        "reason": "SuccessfulCreate",
+        "count": 1,
+        "object": "replicaset/rate-65b695969b",
+        "last": "2026-10-18T13:14:13Z",
+        "message": "Created pod: rate-65b695969b-w2cvv"
+       },
+       {
+        "type": "Normal",
+        "reason": "Scheduled",
+        "count": 1,
+        "object": "pod/rate-65b695969b-w2cvv",
+        "last": "2026-10-18T13:14:13.810297Z",
+        "message": "Successfully assigned hotel-reservation/rate-65b695969b-w2cvv to kind-worker2"
+       }
+      ],
+      "logs": {
+       "total_lines": 24,
+       "error_lines": 0,
+       "error_lines_still_occurring": 0,
+       "error_lines_stopped": 0,
+       "telemetry_export_error_lines": 0,
+       "tail": [
+        "2026-10-18T13:14:25.230428811Z 2026-10-18T13:14:25Z INF cmd/rate/main.go:46 > Successfull",
+        "2026-10-18T13:14:25.230438710Z 2026-10-18T13:14:25Z INF cmd/rate/main.go:51 > Read target port: 8084",
+        "2026-10-18T13:14:25.230477682Z 2026-10-18T13:14:25Z INF cmd/rate/main.go:52 > Read consul address: consul:8500",
+        "2026-10-18T13:14:25.230489489Z 2026-10-18T13:14:25Z INF cmd/rate/main.go:53 > Read jaeger address: jaeger:6831",
+        "2026-10-18T13:14:25.230505832Z 2026-10-18T13:14:25Z INF cmd/rate/main.go:61 > Initializing jaeger agent [service name: rate | host: jaeger:6831]...",
+        "2026-10-18T13:14:25.230651866Z 2026-10-18T13:14:25Z INF tracing/tracer.go:26 > Jaeger client: adjusted sample ratio 1.000000",
+        "2026-10-18T13:14:25.232086448Z 2026-10-18T13:14:25Z INF cmd/rate/main.go:66 > Jaeger agent initialized",
+        "2026-10-18T13:14:25.232104068Z 2026-10-18T13:14:25Z INF cmd/rate/main.go:68 > Initializing consul agent [host: consul:8500]...",
+        "2026-10-18T13:14:25.232137141Z 2026-10-18T13:14:25Z INF cmd/rate/main.go:73 > Consul agent initialized",
+        "2026-10-18T13:14:25.232160852Z 2026-10-18T13:14:25Z INF cmd/rate/main.go:85 > Starting server...",
+        "2026-10-18T13:14:25.233508791Z 2026-10-18T13:14:25Z INF registry/registry.go:91 > Trying to register service [ name: srv-rate, id: ce909f9d-2225-4684-9f7b-fb97c35abbe6, address: 10.244.110.161:8084 ]",
+        "2026-10-18T13:14:25.247937667Z 2026-10-18T13:14:25Z INF services/rate/server.go:168 > Successfully registered in consul"
+       ]
+      },
+      "called_by_with_errors": {
+       "deployment/search": {
+        "connectivity or timeout": 60
+       }
+      }
+     }
+    },
+    "deployment/search": {
+     "kind": "Deployment",
+     "name": "search",
+     "namespace": "hotel-reservation",
+     "healthy": false,
+     "errors_point_to": [
+      "deployment/rate"
+     ],
+     "detail": {
+      "component": "deployment/search",
+      "namespace": "hotel-reservation",
+      "workload": {
+       "created": "2026-10-18T13:14:13Z",
+       "last_spec_write": "2026-10-18T13:14:13Z",
+       "spec_writers": [
+        {
+         "manager": "kubectl-client-side-apply",
+         "op": "Update",
+         "time": "2026-10-18T13:14:13Z"
+        }
+       ],
+       "replicas": 1,
+       "strategy": {
+        "rollingUpdate": {
+         "maxSurge": "25%",
+         "maxUnavailable": "25%"
+        },
+        "type": "RollingUpdate"
+       },
+       "dns_policy": "ClusterFirst",
+       "restart_policy": "Always",
+       "containers": [
+        {
+         "name": "hotel-reserv-search",
+         "image": "ghcr.io/sregym/hotel-reservation:sha-d2c036bc3d1138f5a0bdaffd3d87f37522c3461a@sha256:1c685e1c4c304f327952397b3a99c54dadb086607774d71f222b200ec0d2e65e",
+         "command": [
+          "search"
+         ],
+         "env": [
+          {
+           "name": "JAEGER_SAMPLE_RATIO",
+           "value": "1"
+          },
+          {
+           "name": "RATE_RPC_TIMEOUT_MS",
+           "value": "750"
+          },
+          {
+           "name": "RATE_RPC_MAX_ATTEMPTS",
+           "value": "3"
+          },
+          {
+           "name": "RATE_RPC_INITIAL_BACKOFF_MS",
+           "value": "50"
+          },
+          {
+           "name": "RATE_RPC_BACKOFF_MULTIPLIER",
+           "value": "2.0"
+          },
+          {
+           "name": "RATE_RPC_JITTER",
+           "value": "0.2"
+          }
+         ],
+         "ports": [
+          {
+           "port": 8082
+          },
+          {
+           "port": 9092,
+           "name": "metrics"
+          }
+         ],
+         "resources": {
+          "limits": {
+           "cpu": "1"
+          },
+          "requests": {
+           "cpu": "100m"
+          }
+         }
+        }
+       ],
+       "template_labels": {
+        "io.kompose.service": "search"
+       }
+      },
+      "pods": [
+       {
+        "name": "search-745f56dccd-w28hz",
+        "node": "kind-worker2",
+        "phase": "Running",
+        "started": "2026-10-18T13:14:15Z",
+        "ready_since": "2026-10-18T13:14:16Z",
+        "conditions": [
+         "PodReadyToStartContainers=True",
+         "Initialized=True",
+         "Ready=True",
+         "ContainersReady=True",
+         "PodScheduled=True"
+        ],
+        "containers": [
+         {
+          "name": "hotel-reserv-search",
+          "ready": true,
+          "restarts": 0,
+          "state": {
+           "running": {
+            "startedAt": "2026-10-18T13:14:16Z"
+           }
+          }
+         }
+        ]
+       }
+      ],
+      "events": [
+       {
+        "type": "Normal",
+        "reason": "Pulled",
+        "count": 1,
+        "object": "pod/search-745f56dccd-w28hz",
+        "last": "2026-10-18T13:14:16Z",
+        "message": "Container image \"ghcr.io/sregym/hotel-reservation:sha-d2c036bc3d1138f5a0bdaffd3d87f37522c3461a@sha256:1c685e1c4c304f327952397b3a99c54dadb086607774d71f222b200ec0d2e65e\" already present on machine"
+       },
+       {
+        "type": "Normal",
+        "reason": "Created",
+        "count": 1,
+        "object": "pod/search-745f56dccd-w28hz",
+        "last": "2026-10-18T13:14:16Z",
+        "message": "Created container: hotel-reserv-search"
+       },
+       {
+        "type": "Normal",
+        "reason": "Started",
+        "count": 1,
+        "object": "pod/search-745f56dccd-w28hz",
+        "last": "2026-10-18T13:14:16Z",
+        "message": "Started container hotel-reserv-search"
+       },
+       {
+        "type": "Normal",
+        "reason": "SuccessfulCreate",
+        "count": 1,
+        "object": "replicaset/search-745f56dccd",
+        "last": "2026-10-18T13:14:15Z",
+        "message": "Created pod: search-745f56dccd-w28hz"
+       },
+       {
+        "type": "Normal",
+        "reason": "Scheduled",
+        "count": 1,
+        "object": "pod/search-745f56dccd-w28hz",
+        "last": "2026-10-18T13:14:15.357193Z",
+        "message": "Successfully assigned hotel-reservation/search-745f56dccd-w28hz to kind-worker2"
+       }
+      ],
+      "logs": {
+       "total_lines": 300,
+       "error_lines": 0,
+       "error_lines_still_occurring": 0,
+       "error_lines_stopped": 0,
+       "telemetry_export_error_lines": 300,
+       "telemetry_error_samples": [
+        {
+         "count": 8,
+         "line": "hotel-reserv-search: 2026-10-18T13:18:10Z WRN services/search/server.go:252 > downstream request failed dependency=rate grpc_code=DeadlineExceeded",
+         "first_seen_seconds_ago": 8,
+         "last_seen_seconds_ago": 7,
+         "median_gap_seconds": 0.1,
+         "state": "ongoing"
+        },
+        {
+         "count": 8,
+         "line": "hotel-reserv-search: 2026-10-18T13:18:14Z WRN services/search/server.go:252 > downstream request failed dependency=rate grpc_code=DeadlineExceeded",
+         "first_seen_seconds_ago": 4,
+         "last_seen_seconds_ago": 3,
+         "median_gap_seconds": 0.1,
+         "state": "ongoing"
+        },
+        {
+         "count": 8,
+         "line": "hotel-reserv-search: 2026-10-18T13:18:15Z WRN services/search/server.go:252 > downstream request failed dependency=rate grpc_code=DeadlineExceeded",
+         "first_seen_seconds_ago": 3,
+         "last_seen_seconds_ago": 2,
+         "median_gap_seconds": 0.1,
+         "state": "ongoing"
+        }
+       ],
+       "tail": [
+        "2026-10-18T13:18:17.021053240Z 2026-10-18T13:18:17Z WRN services/search/server.go:252 > downstream request failed dependency=rate grpc_code=ResourceExhausted",
+        "2026-10-18T13:18:17.033287500Z 2026-10-18T13:18:17Z WRN services/search/server.go:252 > downstream request failed dependency=rate grpc_code=DeadlineExceeded",
+        "2026-10-18T13:18:17.133559525Z 2026-10-18T13:18:17Z WRN services/search/server.go:252 > downstream request failed dependency=rate grpc_code=DeadlineExceeded",
+        "2026-10-18T13:18:17.293793849Z 2026-10-18T13:18:17Z WRN services/search/server.go:252 > downstream request failed dependency=rate grpc_code=DeadlineExceeded",
+        "2026-10-18T13:18:17.295880522Z 2026-10-18T13:18:17Z WRN services/search/server.go:252 > downstream request failed dependency=rate grpc_code=DeadlineExceeded",
+        "2026-10-18T13:18:17.412149860Z 2026-10-18T13:18:17Z WRN services/search/server.go:252 > downstream request failed dependency=rate grpc_code=DeadlineExceeded",
+        "2026-10-18T13:18:17.669842388Z 2026-10-18T13:18:17Z WRN services/search/server.go:252 > downstream request failed dependency=rate grpc_code=DeadlineExceeded",
+        "2026-10-18T13:18:18.151246349Z 2026-10-18T13:18:18Z WRN services/search/server.go:252 > downstream request failed dependency=rate grpc_code=ResourceExhausted",
+        "2026-10-18T13:18:18.276448357Z 2026-10-18T13:18:18Z WRN services/search/server.go:252 > downstream request failed dependency=rate grpc_code=DeadlineExceeded",
+        "2026-10-18T13:18:18.425773938Z 2026-10-18T13:18:18Z WRN services/search/server.go:252 > downstream request failed dependency=rate grpc_code=ResourceExhausted",
+        "2026-10-18T13:18:18.426915648Z 2026-10-18T13:18:18Z WRN services/search/server.go:252 > downstream request failed dependency=rate grpc_code=DeadlineExceeded",
+        "2026-10-18T13:18:18.532044658Z 2026-10-18T13:18:18Z WRN services/search/server.go:252 > downstream request failed dependency=rate grpc_code=DeadlineExceeded"
+       ]
+      },
+      "calls": {
+       "deployment/rate": {
+        "kind": "Deployment",
+        "pods_ready": "1/1",
+        "restarts": 0,
+        "looks_healthy_on_its_own": true
+       }
+      }
+     }
+    }
+   },
+   "cluster": {
+    "symptom_onset": "2026-10-18T13:17:54+00:00",
+    "recent_changes": [],
+    "findings": []
+   }
+  },
+  "questions": {
+   "best_explanation": {
+    "type": "choice",
+    "criteria": {
+     "o1": "Origin: deployment/hotel-reservation/rate. The fault is in this component; the mechanism is not established. | Observed impact on: deployment/hotel-reservation/rate, deployment/hotel-reservation/search",
+     "o2": "Origin: deployment/hotel-reservation/rate. deployment/rate fails or rejects requests, so deployment/search fail when calling it. | Observed impact on: deployment/hotel-reservation/rate, deployment/hotel-reservation/search | Checks: still-occurring errors of deployment/search name deployment/rate (supports); deployment/rate shows failures of its own (supports)",
+     "o3": "Origin: deployment/hotel-reservation/search. The fault is in this component; the mechanism is not established. | Observed impact on: deployment/hotel-reservation/search",
+     "o4": "Origin: interaction/hotel-reservation/search--rate. Calls from deployment/search to deployment/rate time out; deployment/search retries them, and the retries add load that keeps deployment/rate saturated, so the failure sustains itself. | Details: deployment/search RATE_RPC_TIMEOUT_MS=750; deployment/search RATE_RPC_MAX_ATTEMPTS=3; deployment/search RATE_RPC_INITIAL_BACKOFF_MS=50; deployment/search RATE_RPC_BACKOFF_MULTIPLIER=2.0; deployment/search RATE_RPC_JITTER=0.2; deployment/rate RATE_BACKEND_QPS_LIMIT=20; deployment/rate RATE_QUEUE_CAPACITY=256 | Together with: deployment/hotel-reservation/search, deployment/hotel-reservation/rate | Observed impact on: deployment/hotel-reservation/rate, deployment/hotel-reservation/search | Checks: errors of deployment/search on deployment/rate are timeouts or overload (supports)",
+     "o5": "None of these explanations fits the evidence."
+    },
+    "instructions": {
+     "question": "Which explanation best accounts for all the observed symptoms in `evidence`?",
+     "how_to_decide": [
+      "Prefer the explanation whose chain is supported by the observed facts and explains the most symptoms; an explanation contradicted by a fact is unlikely.",
+      "A component that only fails because something it calls fails is a victim, not the origin.",
+      "Choose `o5` when none of the explanations fits the evidence."
+     ]
+    }
+   }
+  },
+  "model": "openai/gpt-6-luna-decisions-20261006",
+  "latency_ms": 639,
+  "usage": {
+   "input_tokens": 4049,
+   "output_tokens": 0,
+   "cost": 0.0004049
+  },
+  "answers": {
+   "best_explanation": {
+    "type": "choice",
+    "choice": "o1",
+    "confidence": 0.3,
+    "probabilities": {
+     "o1": 0.44,
+     "o2": 0.04,
+     "o3": 0.0,
+     "o4": 0.38,
+     "o5": 0.14
+    }
+   }
+  }
+ }
+]

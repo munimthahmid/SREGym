@@ -1,0 +1,344 @@
+[
+ {
+  "label": "decide:1",
+  "state": {
+   "application": {
+    "name": "Hotel Reservation",
+    "description": "A hotel reservation application built with Go and gRPC, providing backend in-memory and persistent databases, a recommender system for hotel recommendations, and a functionality to place reservations.",
+    "namespaces": [
+     "hotel-reservation"
+    ]
+   },
+   "evidence": {
+    "deployment/frontend": {
+     "kind": "Deployment",
+     "name": "frontend",
+     "namespace": "hotel-reservation",
+     "healthy": false,
+     "signals": [
+      "service frontend selects pods of 2 different workloads (also deployment/search) through selector {'service-route': 'frontend'}; its selector is broader than this workload, so traffic is spread across unrelated pods; deployment/search does not expose targetPort 5000 (its containers expose [8082, 9092])",
+      "Service frontend was modified 133s ago, 150s after it was created (fields: spec.selector); 124s after the first active symptom",
+      "spec modified 136s ago, 147s after this object was created (fields: template.labels.service-route); pod template changes: pod label pod-template-hash: bc766b7fc -> 86c6c7c8cb; pod label service-route added: frontend; 121s after the first active symptom"
+     ],
+     "template_changes": {
+      "revision": 2,
+      "changed_at": "2026-10-18T12:55:25Z",
+      "changes": [
+       "pod label pod-template-hash: bc766b7fc -> 86c6c7c8cb",
+       "pod label service-route added: frontend"
+      ]
+     }
+    },
+    "deployment/search": {
+     "kind": "Deployment",
+     "name": "search",
+     "namespace": "hotel-reservation",
+     "healthy": false,
+     "signals": [
+      "service frontend selects pods of 2 different workloads (also deployment/frontend) through selector {'service-route': 'frontend'}; its selector is broader than this workload, so traffic is spread across unrelated pods; deployment/search does not expose targetPort 5000 (its containers expose [8082, 9092])",
+      "Service frontend was modified 133s ago, 150s after it was created (fields: spec.selector); 124s after the first active symptom",
+      "spec modified 134s ago, 149s after this object was created (fields: template.labels.service-route); pod template changes: pod label pod-template-hash: 7d996cf85b -> 698fd87cf5; pod label service-route added: frontend; 123s after the first active symptom"
+     ],
+     "template_changes": {
+      "revision": 2,
+      "changed_at": "2026-10-18T12:55:27Z",
+      "changes": [
+       "pod label pod-template-hash: 7d996cf85b -> 698fd87cf5",
+       "pod label service-route added: frontend"
+      ]
+     }
+    },
+    "deployment/geo": {
+     "kind": "Deployment",
+     "name": "geo",
+     "namespace": "hotel-reservation",
+     "healthy": false,
+     "signals": [
+      "warning events: BackOff x7"
+     ]
+    },
+    "deployment/rate": {
+     "kind": "Deployment",
+     "name": "rate",
+     "namespace": "hotel-reservation",
+     "healthy": false,
+     "signals": [
+      "warning events: BackOff x7"
+     ]
+    },
+    "deployment/reservation": {
+     "kind": "Deployment",
+     "name": "reservation",
+     "namespace": "hotel-reservation",
+     "healthy": false,
+     "signals": [
+      "warning events: BackOff x7"
+     ]
+    }
+   },
+   "cluster": {
+    "symptom_onset": "2026-10-18T12:53:24+00:00",
+    "recent_changes": [
+     {
+      "object": "service/hotel-reservation/frontend",
+      "at": "2026-10-18T12:55:28Z",
+      "modified_after_creation_s": 150,
+      "fields": [
+       "spec.selector"
+      ],
+      "seconds_ago": 133,
+      "seconds_before_symptoms": -124
+     },
+     {
+      "object": "deployment/search",
+      "at": "2026-10-18T12:55:27Z",
+      "modified_after_creation_s": 149,
+      "fields": [
+       "template.labels.service-route"
+      ],
+      "seconds_ago": 134,
+      "seconds_before_symptoms": -123
+     },
+     {
+      "object": "deployment/frontend",
+      "at": "2026-10-18T12:55:25Z",
+      "modified_after_creation_s": 147,
+      "fields": [
+       "template.labels.service-route"
+      ],
+      "seconds_ago": 136,
+      "seconds_before_symptoms": -121
+     }
+    ],
+    "findings": [
+     {
+      "kind": "Service",
+      "name": "frontend",
+      "namespace": "hotel-reservation",
+      "signal": "Service frontend was modified 133s ago, 150s after it was created (fields: spec.selector); 124s after the first active symptom",
+      "components": [
+       "deployment/frontend",
+       "deployment/search"
+      ]
+     }
+    ]
+   }
+  },
+  "questions": {
+   "best_explanation": {
+    "type": "choice",
+    "criteria": {
+     "o1": "Origin: deployment/hotel-reservation/reservation. The fault is in this component; the mechanism is not established. | Observed impact on: deployment/hotel-reservation/reservation",
+     "o2": "Origin: deployment/hotel-reservation/geo. The fault is in this component; the mechanism is not established. | Observed impact on: deployment/hotel-reservation/geo",
+     "o3": "Origin: deployment/hotel-reservation/frontend. The fault is in this component; the mechanism is not established. | Observed impact on: deployment/hotel-reservation/frontend",
+     "o4": "Origin: service/hotel-reservation/frontend. service frontend acts on deployment/frontend, deployment/search: Service frontend was modified 133s ago, 150s after it was created (fields: spec.selector); 124s after the first active symptom. | Details: Service frontend was modified 133s ago, 150s after it was created (fields: spec.selector); 124s after the first active symptom | Observed impact on: deployment/hotel-reservation/frontend, deployment/hotel-reservation/search | Checks: deployment/frontend shows symptoms of its own (supports); deployment/search shows symptoms of its own (supports)",
+     "o5": "Origin: deployment/hotel-reservation/search. The fault is in this component; the mechanism is not established. | Observed impact on: deployment/hotel-reservation/search",
+     "o6": "Origin: deployment/hotel-reservation/rate. The fault is in this component; the mechanism is not established. | Observed impact on: deployment/hotel-reservation/rate",
+     "o7": "None of these explanations fits the evidence."
+    },
+    "instructions": {
+     "question": "Which explanation best accounts for all the observed symptoms in `evidence`?",
+     "how_to_decide": [
+      "Prefer the explanation whose chain is supported by the observed facts and explains the most symptoms; an explanation contradicted by a fact is unlikely.",
+      "A component that only fails because something it calls fails is a victim, not the origin.",
+      "Choose `o7` when none of the explanations fits the evidence."
+     ]
+    }
+   }
+  },
+  "model": "typesafe/jev-1.13-20260917",
+  "latency_ms": 1324,
+  "usage": {
+   "input_tokens": 2103,
+   "output_tokens": 77,
+   "cost": 8.8326e-05
+  },
+  "answers": {
+   "best_explanation": {
+    "type": "choice",
+    "choice": "o4",
+    "confidence": 0.81,
+    "probabilities": {
+     "o1": 0.0,
+     "o2": 0.0,
+     "o3": 0.01,
+     "o4": 0.84,
+     "o5": 0.0,
+     "o6": 0.0,
+     "o7": 0.15
+    }
+   }
+  }
+ },
+ {
+  "label": "decide:2",
+  "state": {
+   "application": {
+    "name": "Hotel Reservation",
+    "description": "A hotel reservation application built with Go and gRPC, providing backend in-memory and persistent databases, a recommender system for hotel recommendations, and a functionality to place reservations.",
+    "namespaces": [
+     "hotel-reservation"
+    ]
+   },
+   "evidence": {
+    "deployment/frontend": {
+     "kind": "Deployment",
+     "name": "frontend",
+     "namespace": "hotel-reservation",
+     "healthy": false,
+     "signals": [
+      "service frontend selects pods of 2 different workloads (also deployment/search) through selector {'service-route': 'frontend'}; its selector is broader than this workload, so traffic is spread across unrelated pods; deployment/search does not expose targetPort 5000 (its containers expose [8082, 9092])",
+      "Service frontend was modified 133s ago, 150s after it was created (fields: spec.selector); 124s after the first active symptom",
+      "spec modified 136s ago, 147s after this object was created (fields: template.labels.service-route); pod template changes: pod label pod-template-hash: bc766b7fc -> 86c6c7c8cb; pod label service-route added: frontend; 121s after the first active symptom"
+     ],
+     "template_changes": {
+      "revision": 2,
+      "changed_at": "2026-10-18T12:55:25Z",
+      "changes": [
+       "pod label pod-template-hash: bc766b7fc -> 86c6c7c8cb",
+       "pod label service-route added: frontend"
+      ]
+     }
+    },
+    "deployment/search": {
+     "kind": "Deployment",
+     "name": "search",
+     "namespace": "hotel-reservation",
+     "healthy": false,
+     "signals": [
+      "service frontend selects pods of 2 different workloads (also deployment/frontend) through selector {'service-route': 'frontend'}; its selector is broader than this workload, so traffic is spread across unrelated pods; deployment/search does not expose targetPort 5000 (its containers expose [8082, 9092])",
+      "Service frontend was modified 133s ago, 150s after it was created (fields: spec.selector); 124s after the first active symptom",
+      "spec modified 134s ago, 149s after this object was created (fields: template.labels.service-route); pod template changes: pod label pod-template-hash: 7d996cf85b -> 698fd87cf5; pod label service-route added: frontend; 123s after the first active symptom"
+     ],
+     "template_changes": {
+      "revision": 2,
+      "changed_at": "2026-10-18T12:55:27Z",
+      "changes": [
+       "pod label pod-template-hash: 7d996cf85b -> 698fd87cf5",
+       "pod label service-route added: frontend"
+      ]
+     }
+    },
+    "deployment/geo": {
+     "kind": "Deployment",
+     "name": "geo",
+     "namespace": "hotel-reservation",
+     "healthy": false,
+     "signals": [
+      "warning events: BackOff x7"
+     ]
+    },
+    "deployment/rate": {
+     "kind": "Deployment",
+     "name": "rate",
+     "namespace": "hotel-reservation",
+     "healthy": false,
+     "signals": [
+      "warning events: BackOff x7"
+     ]
+    },
+    "deployment/reservation": {
+     "kind": "Deployment",
+     "name": "reservation",
+     "namespace": "hotel-reservation",
+     "healthy": false,
+     "signals": [
+      "warning events: BackOff x7"
+     ]
+    }
+   },
+   "cluster": {
+    "symptom_onset": "2026-10-18T12:53:24+00:00",
+    "recent_changes": [
+     {
+      "object": "service/hotel-reservation/frontend",
+      "at": "2026-10-18T12:55:28Z",
+      "modified_after_creation_s": 150,
+      "fields": [
+       "spec.selector"
+      ],
+      "seconds_ago": 133,
+      "seconds_before_symptoms": -124
+     },
+     {
+      "object": "deployment/search",
+      "at": "2026-10-18T12:55:27Z",
+      "modified_after_creation_s": 149,
+      "fields": [
+       "template.labels.service-route"
+      ],
+      "seconds_ago": 134,
+      "seconds_before_symptoms": -123
+     },
+     {
+      "object": "deployment/frontend",
+      "at": "2026-10-18T12:55:25Z",
+      "modified_after_creation_s": 147,
+      "fields": [
+       "template.labels.service-route"
+      ],
+      "seconds_ago": 136,
+      "seconds_before_symptoms": -121
+     }
+    ],
+    "findings": [
+     {
+      "kind": "Service",
+      "name": "frontend",
+      "namespace": "hotel-reservation",
+      "signal": "Service frontend was modified 133s ago, 150s after it was created (fields: spec.selector); 124s after the first active symptom",
+      "components": [
+       "deployment/frontend",
+       "deployment/search"
+      ]
+     }
+    ]
+   }
+  },
+  "questions": {
+   "best_explanation": {
+    "type": "choice",
+    "criteria": {
+     "o1": "Origin: deployment/hotel-reservation/frontend. The fault is in this component; the mechanism is not established. | Observed impact on: deployment/hotel-reservation/frontend",
+     "o2": "Origin: service/hotel-reservation/frontend. service frontend acts on deployment/frontend, deployment/search: Service frontend was modified 133s ago, 150s after it was created (fields: spec.selector); 124s after the first active symptom. | Details: Service frontend was modified 133s ago, 150s after it was created (fields: spec.selector); 124s after the first active symptom | Observed impact on: deployment/hotel-reservation/frontend, deployment/hotel-reservation/search | Checks: deployment/frontend shows symptoms of its own (supports); deployment/search shows symptoms of its own (supports)",
+     "o3": "Origin: deployment/hotel-reservation/reservation. The fault is in this component; the mechanism is not established. | Observed impact on: deployment/hotel-reservation/reservation",
+     "o4": "Origin: deployment/hotel-reservation/search. The fault is in this component; the mechanism is not established. | Observed impact on: deployment/hotel-reservation/search",
+     "o5": "None of these explanations fits the evidence.",
+     "o6": "Origin: deployment/hotel-reservation/geo. The fault is in this component; the mechanism is not established. | Observed impact on: deployment/hotel-reservation/geo",
+     "o7": "Origin: deployment/hotel-reservation/rate. The fault is in this component; the mechanism is not established. | Observed impact on: deployment/hotel-reservation/rate"
+    },
+    "instructions": {
+     "question": "Which explanation best accounts for all the observed symptoms in `evidence`?",
+     "how_to_decide": [
+      "Prefer the explanation whose chain is supported by the observed facts and explains the most symptoms; an explanation contradicted by a fact is unlikely.",
+      "A component that only fails because something it calls fails is a victim, not the origin.",
+      "Choose `o5` when none of the explanations fits the evidence."
+     ]
+    }
+   }
+  },
+  "model": "typesafe/jev-1.13-20260917",
+  "latency_ms": 577,
+  "usage": {
+   "input_tokens": 2103,
+   "output_tokens": 77,
+   "cost": 8.8326e-05
+  },
+  "answers": {
+   "best_explanation": {
+    "type": "choice",
+    "choice": "o2",
+    "confidence": 0.82,
+    "probabilities": {
+     "o1": 0.0,
+     "o2": 0.85,
+     "o3": 0.0,
+     "o4": 0.0,
+     "o5": 0.15,
+     "o6": 0.0,
+     "o7": 0.0
+    }
+   }
+  }
+ }
+]

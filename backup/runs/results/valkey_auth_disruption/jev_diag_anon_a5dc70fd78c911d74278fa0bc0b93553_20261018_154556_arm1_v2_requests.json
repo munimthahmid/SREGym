@@ -1,0 +1,298 @@
+[
+ {
+  "label": "decide:1",
+  "state": {
+   "application": {
+    "name": "OpenTelemetry Demo Astronomy Shop",
+    "description": "An online shopping platform built with a microservices architecture, showcasing OpenTelemetry instrumentation for distributed tracing across services.",
+    "namespaces": [
+     "astronomy-shop"
+    ]
+   },
+   "evidence": {
+    "deployment/cart": {
+     "kind": "Deployment",
+     "name": "cart",
+     "namespace": "astronomy-shop",
+     "healthy": false,
+     "signals": [
+      "only 0 of 1 desired replicas are ready",
+      "pod cart-74587775fc-c2mjq: container cart waiting in CrashLoopBackOff",
+      "pod cart-74587775fc-c2mjq: container cart restarted 4 times",
+      "warning events: BackOff x10",
+      "service cart selects this component but has 0 ready endpoints",
+      "firing alert KubePodNotReady",
+      "firing alert DeploymentNotReady",
+      "pod cart-74587775fc-c2mjq: container cart restarted 1 more time(s) in the last 48s"
+     ],
+     "errors_point_to": [
+      "deployment/valkey-cart"
+     ],
+     "referenced_by_errors_from": [
+      "deployment/frontend"
+     ]
+    },
+    "deployment/frontend": {
+     "kind": "Deployment",
+     "name": "frontend",
+     "namespace": "astronomy-shop",
+     "healthy": false,
+     "errors_point_to": [
+      "deployment/cart",
+      "deployment/checkout"
+     ]
+    },
+    "deployment/checkout": {
+     "kind": "Deployment",
+     "name": "checkout",
+     "namespace": "astronomy-shop",
+     "healthy": false,
+     "signals": [
+      "errors logged by 1 other component(s) (deployment/frontend) name this component (connectivity or timeout, 14 lines, still occurring), e.g. 'Error: 13 INTERNAL: cart failure: failed to get user cart during checkout: rpc error: code = Unavailable desc = connection error: desc = \"transport: Error while'"
+     ],
+     "referenced_by_errors_from": [
+      "deployment/frontend"
+     ]
+    },
+    "deployment/valkey-cart": {
+     "kind": "Deployment",
+     "name": "valkey-cart",
+     "namespace": "astronomy-shop",
+     "healthy": false,
+     "signals": [
+      "errors logged by 1 other component(s) (deployment/cart) name this component (connectivity or timeout, 1 lines, still occurring), e.g. 'Unhandled exception. System.ApplicationException: Wasn't able to connect to redis'"
+     ],
+     "referenced_by_errors_from": [
+      "deployment/cart"
+     ]
+    },
+    "daemonset/otel-collector-agent": {
+     "kind": "DaemonSet",
+     "name": "otel-collector-agent",
+     "namespace": "astronomy-shop",
+     "healthy": false,
+     "signals": [
+      "spec modified 149s ago, 18s after this object was created (fields: template.annotations.kubectl.kubernetes.io/restartedAt); pod template changes: template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-18T21:45:33+06:00; 22s before the first active symptom"
+     ],
+     "template_changes": {
+      "revision": 2,
+      "changed_at": "2026-10-18T15:45:33Z",
+      "changes": [
+       "template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-18T21:45:33+06:00"
+      ]
+     }
+    }
+   },
+   "cluster": {
+    "symptom_onset": "2026-10-18T15:45:55+00:00",
+    "recent_changes": [
+     {
+      "object": "daemonset/otel-collector-agent",
+      "at": "2026-10-18T15:45:33Z",
+      "modified_after_creation_s": 18,
+      "fields": [
+       "template.annotations.kubectl.kubernetes.io/restartedAt"
+      ],
+      "seconds_ago": 149,
+      "seconds_before_symptoms": 22,
+      "role": "observability"
+     }
+    ],
+    "findings": []
+   }
+  },
+  "questions": {
+   "best_explanation": {
+    "type": "choice",
+    "criteria": {
+     "o1": "Origin: daemonset/astronomy-shop/otel-collector-agent. daemonset otel-collector-agent was changed recently and breaks daemonset/otel-collector-agent, which it acts on. | Details: daemonset otel-collector-agent fields written: template.annotations.kubectl.kubernetes.io/restartedAt | Observed impact on: daemonset/astronomy-shop/otel-collector-agent | Checks: daemonset/astronomy-shop/otel-collector-agent was made before the symptoms began (supports); daemonset/otel-collector-agent shows symptoms of its own (supports)",
+     "o2": "Origin: deployment/astronomy-shop/valkey-cart. deployment/valkey-cart fails or rejects requests, so deployment/cart fail when calling it. | Observed impact on: deployment/astronomy-shop/cart, deployment/astronomy-shop/valkey-cart | Checks: still-occurring errors of deployment/cart name deployment/valkey-cart (supports); deployment/valkey-cart shows failures of its own (supports)",
+     "o3": "Origin: deployment/astronomy-shop/checkout. deployment/checkout fails or rejects requests, so deployment/frontend fail when calling it. | Observed impact on: deployment/astronomy-shop/checkout, deployment/astronomy-shop/frontend | Checks: still-occurring errors of deployment/frontend name deployment/checkout (supports); deployment/checkout shows failures of its own (supports)",
+     "o4": "Origin: deployment/astronomy-shop/cart. deployment/cart fails or rejects requests, so deployment/frontend fail when calling it. | Observed impact on: deployment/astronomy-shop/cart, deployment/astronomy-shop/frontend | Checks: still-occurring errors of deployment/frontend name deployment/cart (supports); deployment/cart shows failures of its own (supports)",
+     "o5": "Origin: interaction/astronomy-shop/frontend--cart. Calls from deployment/frontend to deployment/cart time out; deployment/frontend retries them, and the retries add load that keeps deployment/cart saturated, so the failure sustains itself. | Together with: deployment/astronomy-shop/frontend, deployment/astronomy-shop/cart | Observed impact on: deployment/astronomy-shop/cart, deployment/astronomy-shop/frontend | Checks: errors of deployment/frontend on deployment/cart are timeouts or overload (supports)",
+     "o6": "Origin: daemonset/astronomy-shop/otel-collector-agent. The pod template change 'template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-18T21:45:33+06:00' in revision 2 of daemonset/otel-collector-agent breaks daemonset/otel-collector-agent. | Details: template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-18T21:45:33+06:00 | Observed impact on: daemonset/astronomy-shop/otel-collector-agent | Checks: revision 2 of daemonset/otel-collector-agent was made before the symptoms began (supports); daemonset/otel-collector-agent shows symptoms of its own (supports)",
+     "o7": "None of these explanations fits the evidence."
+    },
+    "instructions": {
+     "question": "Which explanation best accounts for all the observed symptoms in `evidence`?",
+     "how_to_decide": [
+      "Prefer the explanation whose chain is supported by the observed facts and explains the most symptoms; an explanation contradicted by a fact is unlikely.",
+      "A component that only fails because something it calls fails is a victim, not the origin.",
+      "Choose `o7` when none of the explanations fits the evidence."
+     ]
+    }
+   }
+  },
+  "model": "openai/gpt-6-luna-decisions-20261006",
+  "latency_ms": 756,
+  "usage": {
+   "input_tokens": 1516,
+   "output_tokens": 0,
+   "cost": 0.0001516
+  },
+  "answers": {
+   "best_explanation": {
+    "type": "choice",
+    "choice": "o2",
+    "confidence": 0.84,
+    "probabilities": {
+     "o1": 0.04,
+     "o2": 0.86,
+     "o3": 0.04,
+     "o4": 0.01,
+     "o5": 0.02,
+     "o6": 0.01,
+     "o7": 0.02
+    }
+   }
+  }
+ },
+ {
+  "label": "decide:2",
+  "state": {
+   "application": {
+    "name": "OpenTelemetry Demo Astronomy Shop",
+    "description": "An online shopping platform built with a microservices architecture, showcasing OpenTelemetry instrumentation for distributed tracing across services.",
+    "namespaces": [
+     "astronomy-shop"
+    ]
+   },
+   "evidence": {
+    "deployment/cart": {
+     "kind": "Deployment",
+     "name": "cart",
+     "namespace": "astronomy-shop",
+     "healthy": false,
+     "signals": [
+      "only 0 of 1 desired replicas are ready",
+      "pod cart-74587775fc-c2mjq: container cart waiting in CrashLoopBackOff",
+      "pod cart-74587775fc-c2mjq: container cart restarted 4 times",
+      "warning events: BackOff x10",
+      "service cart selects this component but has 0 ready endpoints",
+      "firing alert KubePodNotReady",
+      "firing alert DeploymentNotReady",
+      "pod cart-74587775fc-c2mjq: container cart restarted 1 more time(s) in the last 48s"
+     ],
+     "errors_point_to": [
+      "deployment/valkey-cart"
+     ],
+     "referenced_by_errors_from": [
+      "deployment/frontend"
+     ]
+    },
+    "deployment/frontend": {
+     "kind": "Deployment",
+     "name": "frontend",
+     "namespace": "astronomy-shop",
+     "healthy": false,
+     "errors_point_to": [
+      "deployment/cart",
+      "deployment/checkout"
+     ]
+    },
+    "deployment/checkout": {
+     "kind": "Deployment",
+     "name": "checkout",
+     "namespace": "astronomy-shop",
+     "healthy": false,
+     "signals": [
+      "errors logged by 1 other component(s) (deployment/frontend) name this component (connectivity or timeout, 14 lines, still occurring), e.g. 'Error: 13 INTERNAL: cart failure: failed to get user cart during checkout: rpc error: code = Unavailable desc = connection error: desc = \"transport: Error while'"
+     ],
+     "referenced_by_errors_from": [
+      "deployment/frontend"
+     ]
+    },
+    "deployment/valkey-cart": {
+     "kind": "Deployment",
+     "name": "valkey-cart",
+     "namespace": "astronomy-shop",
+     "healthy": false,
+     "signals": [
+      "errors logged by 1 other component(s) (deployment/cart) name this component (connectivity or timeout, 1 lines, still occurring), e.g. 'Unhandled exception. System.ApplicationException: Wasn't able to connect to redis'"
+     ],
+     "referenced_by_errors_from": [
+      "deployment/cart"
+     ]
+    },
+    "daemonset/otel-collector-agent": {
+     "kind": "DaemonSet",
+     "name": "otel-collector-agent",
+     "namespace": "astronomy-shop",
+     "healthy": false,
+     "signals": [
+      "spec modified 149s ago, 18s after this object was created (fields: template.annotations.kubectl.kubernetes.io/restartedAt); pod template changes: template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-18T21:45:33+06:00; 22s before the first active symptom"
+     ],
+     "template_changes": {
+      "revision": 2,
+      "changed_at": "2026-10-18T15:45:33Z",
+      "changes": [
+       "template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-18T21:45:33+06:00"
+      ]
+     }
+    }
+   },
+   "cluster": {
+    "symptom_onset": "2026-10-18T15:45:55+00:00",
+    "recent_changes": [
+     {
+      "object": "daemonset/otel-collector-agent",
+      "at": "2026-10-18T15:45:33Z",
+      "modified_after_creation_s": 18,
+      "fields": [
+       "template.annotations.kubectl.kubernetes.io/restartedAt"
+      ],
+      "seconds_ago": 149,
+      "seconds_before_symptoms": 22,
+      "role": "observability"
+     }
+    ],
+    "findings": []
+   }
+  },
+  "questions": {
+   "best_explanation": {
+    "type": "choice",
+    "criteria": {
+     "o1": "Origin: deployment/astronomy-shop/checkout. deployment/checkout fails or rejects requests, so deployment/frontend fail when calling it. | Observed impact on: deployment/astronomy-shop/checkout, deployment/astronomy-shop/frontend | Checks: still-occurring errors of deployment/frontend name deployment/checkout (supports); deployment/checkout shows failures of its own (supports)",
+     "o2": "Origin: deployment/astronomy-shop/cart. deployment/cart fails or rejects requests, so deployment/frontend fail when calling it. | Observed impact on: deployment/astronomy-shop/cart, deployment/astronomy-shop/frontend | Checks: still-occurring errors of deployment/frontend name deployment/cart (supports); deployment/cart shows failures of its own (supports)",
+     "o3": "Origin: daemonset/astronomy-shop/otel-collector-agent. daemonset otel-collector-agent was changed recently and breaks daemonset/otel-collector-agent, which it acts on. | Details: daemonset otel-collector-agent fields written: template.annotations.kubectl.kubernetes.io/restartedAt | Observed impact on: daemonset/astronomy-shop/otel-collector-agent | Checks: daemonset/astronomy-shop/otel-collector-agent was made before the symptoms began (supports); daemonset/otel-collector-agent shows symptoms of its own (supports)",
+     "o4": "Origin: interaction/astronomy-shop/frontend--cart. Calls from deployment/frontend to deployment/cart time out; deployment/frontend retries them, and the retries add load that keeps deployment/cart saturated, so the failure sustains itself. | Together with: deployment/astronomy-shop/frontend, deployment/astronomy-shop/cart | Observed impact on: deployment/astronomy-shop/cart, deployment/astronomy-shop/frontend | Checks: errors of deployment/frontend on deployment/cart are timeouts or overload (supports)",
+     "o5": "None of these explanations fits the evidence.",
+     "o6": "Origin: deployment/astronomy-shop/valkey-cart. deployment/valkey-cart fails or rejects requests, so deployment/cart fail when calling it. | Observed impact on: deployment/astronomy-shop/cart, deployment/astronomy-shop/valkey-cart | Checks: still-occurring errors of deployment/cart name deployment/valkey-cart (supports); deployment/valkey-cart shows failures of its own (supports)",
+     "o7": "Origin: daemonset/astronomy-shop/otel-collector-agent. The pod template change 'template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-18T21:45:33+06:00' in revision 2 of daemonset/otel-collector-agent breaks daemonset/otel-collector-agent. | Details: template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-18T21:45:33+06:00 | Observed impact on: daemonset/astronomy-shop/otel-collector-agent | Checks: revision 2 of daemonset/otel-collector-agent was made before the symptoms began (supports); daemonset/otel-collector-agent shows symptoms of its own (supports)"
+    },
+    "instructions": {
+     "question": "Which explanation best accounts for all the observed symptoms in `evidence`?",
+     "how_to_decide": [
+      "Prefer the explanation whose chain is supported by the observed facts and explains the most symptoms; an explanation contradicted by a fact is unlikely.",
+      "A component that only fails because something it calls fails is a victim, not the origin.",
+      "Choose `o5` when none of the explanations fits the evidence."
+     ]
+    }
+   }
+  },
+  "model": "openai/gpt-6-luna-decisions-20261006",
+  "latency_ms": 650,
+  "usage": {
+   "input_tokens": 1516,
+   "output_tokens": 0,
+   "cost": 0.0001516
+  },
+  "answers": {
+   "best_explanation": {
+    "type": "choice",
+    "choice": "o6",
+    "confidence": 0.64,
+    "probabilities": {
+     "o1": 0.02,
+     "o2": 0.1,
+     "o3": 0.03,
+     "o4": 0.02,
+     "o5": 0.06,
+     "o6": 0.69,
+     "o7": 0.08
+    }
+   }
+  }
+ }
+]

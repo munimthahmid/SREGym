@@ -1,0 +1,241 @@
+{
+ "problem_id": "unschedulable_incorrect_port_assignment",
+ "source": "lite6_unschedulable_incorrect_port_assignment",
+ "replay": true,
+ "arms": [
+  {
+   "arm": 0,
+   "kind": "v1",
+   "model": "typesafe/jev-1.13",
+   "position": 0,
+   "seconds": 1.2,
+   "requests": 2,
+   "input_tokens": 35543,
+   "error": null,
+   "model_failed": false,
+   "component": "deployment/checkout",
+   "investigation": {
+    "steps": [
+     {
+      "step": 1,
+      "node": "investigate",
+      "component": "deployment/checkout",
+      "verdict": "origin",
+      "origin_p": 0.98,
+      "victim_p": 0.0,
+      "next": "deployment/product-catalog",
+      "next_p": 0.63,
+      "category": "scheduling_constraint",
+      "spec_checks": [
+       "env PRODUCT_CATALOG_ADDR='product-catalog:8082' addresses Service product-catalog on port 8082; that Service exposes ports [8080] (component deployment/product-catalog)",
+       "service checkout has no ready endpoints"
+      ],
+      "blocked_input": null,
+      "key_evidence": "workload node_selector: {'kubernetes.io/hostname': 'extra-node'}"
+     }
+    ],
+    "concluded": "deployment/checkout",
+    "fallback": null,
+    "triage_top": [
+     [
+      "deployment/checkout",
+      0.94
+     ],
+     [
+      "deployment/product-catalog",
+      0.03
+     ],
+     [
+      "daemonset/otel-collector-agent",
+      0.02
+     ],
+     [
+      "other",
+      0.01
+     ],
+     [
+      "deployment/accounting",
+      0.0
+     ]
+    ]
+   },
+   "text": "Root cause component: Deployment `checkout` in namespace `astronomy-shop`.\nMechanism: workload node_selector: {'kubernetes.io/hostname': 'extra-node'}.\nFault type: scheduling constraint (no node satisfies the pod's placement constraints).\nConfiguration mismatches found by code:\n- env PRODUCT_CATALOG_ADDR='product-catalog:8082' addresses Service product-catalog on port 8082; that Service exposes ports [8080] (component deployment/product-catalog)\nAbnormal state observed on this component:\n- only 0 of 1 desired replicas are ready\n- pod checkout-54579c864c-ct9gf: pod phase Pending\n- pod checkout-54579c864c-ct9gf: pod unschedulable: 0/4 nodes are available: 1 node(s) had untolerated taint {node-role.kubernetes.io/control-plane: }, 3 node(s) didn't match Pod's node affinity/selector. preemp\u2026\n- pod checkout-c69887c97-lgzm7: pod phase Pending\n- pod checkout-c69887c97-lgzm7: pod unschedulable: 0/4 nodes are available: 1 node(s) had untolerated taint {node-role.kubernetes.io/control-plane: }, 3 node(s) didn't match Pod's node affinity/selector. preemp\u2026\n- warning events: FailedScheduling x2\n- service checkout selects this component but has 0 ready endpoints\n- pod checkout-54579c864c-ct9gf is still in pod phase Pending after another 0s\n- pod checkout-c69887c97-lgzm7 is still in pod phase Pending after another 0s\n- created 82s ago, 32s after the workloads it calls; 0s before the first active symptom\nNotable spec settings:\n- nodeSelector set: {'kubernetes.io/hostname': 'extra-node'}\n- Available=False (MinimumReplicasUnavailable)\n- container wait-for-kafka: image busybox:latest\n- container checkout: image ghcr.io/open-telemetry/demo:2.2.0-checkout, limits {'memory': '20Mi'}\nWarning events:\n- FailedScheduling x1 on pod/checkout-c69887c97-lgzm7: 0/4 nodes are available: 1 node(s) had untolerated taint {node-role.kubernetes.io/control-plane: }, 3 node(s) didn't match Pod's node affinity/selector. preemption: 0/4 nodes are available: 4 Preemption is not helpful for scheduling.\n- FailedScheduling x1 on pod/checkout-54579c864c-ct9gf: 0/4 nodes are available: 1 node(s) had untolerated taint {node-role.kubernetes.io/control-plane: }, 3 node(s) didn't match Pod's node affinity/selector. preemption: 0/4 nodes are available: 4 Preemption is not helpful for scheduling.\nClassification: Jev (typesafe/jev-1.13-20260917) confirmed this origin at investigation step 1 with probability 0.98 (triage probability 0.94)."
+  },
+  {
+   "arm": 1,
+   "kind": "v1",
+   "model": "openai/gpt-6-luna-decisions",
+   "position": 1,
+   "seconds": 1.4,
+   "requests": 2,
+   "input_tokens": 23789,
+   "error": null,
+   "model_failed": false,
+   "component": "deployment/checkout",
+   "investigation": {
+    "steps": [
+     {
+      "step": 1,
+      "node": "investigate",
+      "component": "deployment/checkout",
+      "verdict": "origin",
+      "origin_p": 0.95,
+      "victim_p": 0.04,
+      "next": "none",
+      "next_p": 0.47,
+      "category": "scheduling_constraint",
+      "spec_checks": [
+       "env PRODUCT_CATALOG_ADDR='product-catalog:8082' addresses Service product-catalog on port 8082; that Service exposes ports [8080] (component deployment/product-catalog)",
+       "service checkout has no ready endpoints"
+      ],
+      "blocked_input": null,
+      "key_evidence": "workload node_selector: {'kubernetes.io/hostname': 'extra-node'}"
+     }
+    ],
+    "concluded": "deployment/checkout",
+    "fallback": null,
+    "triage_top": [
+     [
+      "deployment/checkout",
+      0.99
+     ],
+     [
+      "daemonset/otel-collector-agent",
+      0.01
+     ],
+     [
+      "deployment/accounting",
+      0.0
+     ],
+     [
+      "deployment/ad",
+      0.0
+     ],
+     [
+      "deployment/cart",
+      0.0
+     ]
+    ]
+   },
+   "text": "Root cause component: Deployment `checkout` in namespace `astronomy-shop`.\nMechanism: workload node_selector: {'kubernetes.io/hostname': 'extra-node'}.\nFault type: scheduling constraint (no node satisfies the pod's placement constraints).\nConfiguration mismatches found by code:\n- env PRODUCT_CATALOG_ADDR='product-catalog:8082' addresses Service product-catalog on port 8082; that Service exposes ports [8080] (component deployment/product-catalog)\nAbnormal state observed on this component:\n- only 0 of 1 desired replicas are ready\n- pod checkout-54579c864c-ct9gf: pod phase Pending\n- pod checkout-54579c864c-ct9gf: pod unschedulable: 0/4 nodes are available: 1 node(s) had untolerated taint {node-role.kubernetes.io/control-plane: }, 3 node(s) didn't match Pod's node affinity/selector. preemp\u2026\n- pod checkout-c69887c97-lgzm7: pod phase Pending\n- pod checkout-c69887c97-lgzm7: pod unschedulable: 0/4 nodes are available: 1 node(s) had untolerated taint {node-role.kubernetes.io/control-plane: }, 3 node(s) didn't match Pod's node affinity/selector. preemp\u2026\n- warning events: FailedScheduling x2\n- service checkout selects this component but has 0 ready endpoints\n- pod checkout-54579c864c-ct9gf is still in pod phase Pending after another 0s\n- pod checkout-c69887c97-lgzm7 is still in pod phase Pending after another 0s\n- created 82s ago, 32s after the workloads it calls; 0s before the first active symptom\nNotable spec settings:\n- nodeSelector set: {'kubernetes.io/hostname': 'extra-node'}\n- Available=False (MinimumReplicasUnavailable)\n- container wait-for-kafka: image busybox:latest\n- container checkout: image ghcr.io/open-telemetry/demo:2.2.0-checkout, limits {'memory': '20Mi'}\nWarning events:\n- FailedScheduling x1 on pod/checkout-c69887c97-lgzm7: 0/4 nodes are available: 1 node(s) had untolerated taint {node-role.kubernetes.io/control-plane: }, 3 node(s) didn't match Pod's node affinity/selector. preemption: 0/4 nodes are available: 4 Preemption is not helpful for scheduling.\n- FailedScheduling x1 on pod/checkout-54579c864c-ct9gf: 0/4 nodes are available: 1 node(s) had untolerated taint {node-role.kubernetes.io/control-plane: }, 3 node(s) didn't match Pod's node affinity/selector. preemption: 0/4 nodes are available: 4 Preemption is not helpful for scheduling.\nClassification: Jev (openai/gpt-6-luna-decisions-20261006) confirmed this origin at investigation step 1 with probability 0.95 (triage probability 0.99)."
+  },
+  {
+   "arm": 2,
+   "kind": "v2",
+   "model": "typesafe/jev-1.13",
+   "position": 2,
+   "seconds": 1.3,
+   "requests": 2,
+   "input_tokens": 35483,
+   "error": null,
+   "model_failed": false,
+   "component": "deployment/checkout",
+   "investigation": {
+    "steps": [
+     {
+      "step": 1,
+      "node": "investigate",
+      "component": "deployment/checkout",
+      "verdict": "origin",
+      "origin_p": 0.97,
+      "victim_p": 0.01,
+      "next": "deployment/product-catalog",
+      "next_p": 0.63,
+      "category": "scheduling_constraint",
+      "spec_checks": [
+       "env PRODUCT_CATALOG_ADDR='product-catalog:8082' addresses Service product-catalog on port 8082; that Service exposes ports [8080] (component deployment/product-catalog)",
+       "service checkout has no ready endpoints"
+      ],
+      "blocked_input": null,
+      "key_evidence": "workload node_selector: {'kubernetes.io/hostname': 'extra-node'}"
+     }
+    ],
+    "concluded": "deployment/checkout",
+    "fallback": null,
+    "triage_top": [
+     [
+      "deployment/checkout",
+      0.95
+     ],
+     [
+      "deployment/product-catalog",
+      0.04
+     ],
+     [
+      "other",
+      0.01
+     ],
+     [
+      "deployment/accounting",
+      0.0
+     ],
+     [
+      "deployment/ad",
+      0.0
+     ]
+    ],
+    "second": null
+   },
+   "text": "Root cause: Deployment `checkout` in namespace `astronomy-shop`: workload node_selector: {'kubernetes.io/hostname': 'extra-node'}.\nMechanism: warning events: FailedScheduling x2.\nDetails: container checkout env PRODUCT_CATALOG_ADDR: product-catalog:8080 -> product-catalog:8082; env PRODUCT_CATALOG_ADDR='product-catalog:8082' addresses Service product-catalog on port 8082; that Service exposes ports [8080] (component deployment/product-catalog); service checkout has no ready endpoints.\nEffect: only 0 of 1 desired replicas are ready; pod checkout-54579c864c-ct9gf: pod phase Pending.\nObserved: pod checkout-54579c864c-ct9gf: pod unschedulable: 0/4 nodes are available: 1 node(s) had untolerated taint {node-role.kubernetes.io/control-plane: }, 3 node(s) didn't match Pod's node affinity/selector. preemp\u2026; pod checkout-c69887c97-lgzm7: pod phase Pending; pod checkout-c69887c97-lgzm7: pod unschedulable: 0/4 nodes are available: 1 node(s) had untolerated taint {node-role.kubernetes.io/control-plane: }, 3 node(s) didn't match Pod's node affinity/selector. preemp\u2026; service checkout selects this component but has 0 ready endpoints; pod checkout-54579c864c-ct9gf is still in pod phase Pending after another 0s."
+  },
+  {
+   "arm": 3,
+   "kind": "v2",
+   "model": "openai/gpt-6-luna-decisions",
+   "position": 3,
+   "seconds": 1.3,
+   "requests": 2,
+   "input_tokens": 23779,
+   "error": null,
+   "model_failed": false,
+   "component": "deployment/checkout",
+   "investigation": {
+    "steps": [
+     {
+      "step": 1,
+      "node": "investigate",
+      "component": "deployment/checkout",
+      "verdict": "origin",
+      "origin_p": 0.94,
+      "victim_p": 0.04,
+      "next": "none",
+      "next_p": 0.51,
+      "category": "scheduling_constraint",
+      "spec_checks": [
+       "env PRODUCT_CATALOG_ADDR='product-catalog:8082' addresses Service product-catalog on port 8082; that Service exposes ports [8080] (component deployment/product-catalog)",
+       "service checkout has no ready endpoints"
+      ],
+      "blocked_input": null,
+      "key_evidence": "workload node_selector: {'kubernetes.io/hostname': 'extra-node'}"
+     }
+    ],
+    "concluded": "deployment/checkout",
+    "fallback": null,
+    "triage_top": [
+     [
+      "deployment/checkout",
+      0.94
+     ],
+     [
+      "deployment/frontend",
+      0.02
+     ],
+     [
+      "deployment/cart",
+      0.01
+     ],
+     [
+      "deployment/currency",
+      0.01
+     ],
+     [
+      "daemonset/otel-collector-agent",
+      0.01
+     ]
+    ],
+    "second": null
+   },
+   "text": "Root cause: Deployment `checkout` in namespace `astronomy-shop`: workload node_selector: {'kubernetes.io/hostname': 'extra-node'}.\nMechanism: warning events: FailedScheduling x2.\nDetails: container checkout env PRODUCT_CATALOG_ADDR: product-catalog:8080 -> product-catalog:8082; env PRODUCT_CATALOG_ADDR='product-catalog:8082' addresses Service product-catalog on port 8082; that Service exposes ports [8080] (component deployment/product-catalog); service checkout has no ready endpoints.\nEffect: only 0 of 1 desired replicas are ready; pod checkout-54579c864c-ct9gf: pod phase Pending.\nObserved: pod checkout-54579c864c-ct9gf: pod unschedulable: 0/4 nodes are available: 1 node(s) had untolerated taint {node-role.kubernetes.io/control-plane: }, 3 node(s) didn't match Pod's node affinity/selector. preemp\u2026; pod checkout-c69887c97-lgzm7: pod phase Pending; pod checkout-c69887c97-lgzm7: pod unschedulable: 0/4 nodes are available: 1 node(s) had untolerated taint {node-role.kubernetes.io/control-plane: }, 3 node(s) didn't match Pod's node affinity/selector. preemp\u2026; service checkout selects this component but has 0 ready endpoints; pod checkout-54579c864c-ct9gf is still in pod phase Pending after another 0s."
+  }
+ ]
+}

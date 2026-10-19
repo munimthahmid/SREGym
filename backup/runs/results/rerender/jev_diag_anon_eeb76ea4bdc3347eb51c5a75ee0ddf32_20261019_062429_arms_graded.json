@@ -1,0 +1,148 @@
+{
+ "problem_id": "jev_diag_anon_eeb76ea4bdc3347eb51c5a75ee0ddf32_20261019_062429",
+ "submit_arm": 0,
+ "order": [
+  2,
+  3,
+  0,
+  1
+ ],
+ "arms": [
+  {
+   "arm": 1,
+   "kind": "v2",
+   "model": "openrouter/openai/gpt-6-luna-decisions",
+   "position": 3,
+   "seconds": 5.5,
+   "requests": 4,
+   "input_tokens": 30278,
+   "cost_usd": 0.003028,
+   "error": null,
+   "investigation": {
+    "rounds": [
+     {
+      "candidates": [
+       "change:deployment/frontend-proxy:container frontend-proxy env FRONTEND_HOST: frontend -> localhost",
+       "change:deployment/frontend-proxy:container frontend-proxy env FRONTEND_HOST is now defined 2 times: frontend, localhost",
+       "change:deployment/frontend-proxy:together",
+       "change:daemonset/otel-collector-agent:template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-19T12:24:11+06:00",
+       "change:deployment/astronomy-shop/frontend-proxy",
+       "change:daemonset/astronomy-shop/otel-collector-agent"
+      ],
+      "probabilities": {
+       "change:deployment/frontend-proxy:container frontend-proxy env FRONTEND_HOST: frontend -> localhost": 0.41000000000000003,
+       "change:deployment/frontend-proxy:container frontend-proxy env FRONTEND_HOST is now defined 2 times: frontend, localhost": 0.14500000000000002,
+       "change:deployment/frontend-proxy:together": 0.2,
+       "change:daemonset/otel-collector-agent:template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-19T12:24:11+06:00": 0.015,
+       "change:deployment/astronomy-shop/frontend-proxy": 0.1,
+       "change:daemonset/astronomy-shop/otel-collector-agent": 0.075,
+       "none_of_these": 0.05500000000000001
+      },
+      "picks": [
+       "change:deployment/frontend-proxy:container frontend-proxy env FRONTEND_HOST: frontend -> localhost",
+       "change:deployment/frontend-proxy:container frontend-proxy env FRONTEND_HOST: frontend -> localhost"
+      ],
+      "route": "check"
+     }
+    ],
+    "explanations": 9,
+    "winner": "change:deployment/frontend-proxy:container frontend-proxy env FRONTEND_HOST: frontend -> localhost",
+    "pattern": "change",
+    "key_fact": "pod template changed in revision 2: container frontend-proxy env FRONTEND_HOST is now defined 2 times: frontend, localhost",
+    "key_fact_probability": 0.48,
+    "fault_type": "config_value",
+    "fault_object": null,
+    "uncertain": true
+   },
+   "text": "Root cause: deployment `frontend-proxy` in namespace `astronomy-shop`.\nMechanism: pod template changed in revision 2: container frontend-proxy env FRONTEND_HOST is now defined 2 times: frontend, localhost.\nHow it fails: The pod template change 'container frontend-proxy env FRONTEND_HOST: frontend -> localhost' in revision 2 of deployment/frontend-proxy breaks deployment/frontend-proxy.\nConcrete details: container frontend-proxy env FRONTEND_HOST: frontend -> localhost.\nObserved impact: deployment `frontend-proxy` in namespace `astronomy-shop`.\nFault type: config value (a wrong, missing, or shadowed value in this component's own configuration).\nEvidence:\n- container frontend-proxy env FRONTEND_HOST: frontend -> localhost\n- container frontend-proxy defines env var FRONTEND_HOST 2 times: 'frontend', then 'localhost'; the last value ('localhost') is the one the container sees\n- pod frontend-proxy-7b7cd5fb4-vjnnv: container frontend-proxy was OOMKilled\n- pod frontend-proxy-7b7cd5fb4-vjnnv: container frontend-proxy restarted 3 times\n- deployment/frontend-proxy: container frontend-proxy defines env var FRONTEND_HOST 2 times: 'frontend', then 'localhost'; the last value ('localhost') is the one the container sees\nConfidence: low; the investigation budget ended before the leading explanation was confirmed.",
+   "text_before_rerender": "Root cause: deployment `frontend-proxy` in namespace `astronomy-shop`.\nMechanism: The pod template change 'container frontend-proxy env FRONTEND_HOST: frontend -> localhost' in revision 2 of deployment/frontend-proxy breaks deployment/frontend-proxy.\nConcrete details: container frontend-proxy env FRONTEND_HOST: frontend -> localhost.\nObserved impact: deployment `frontend-proxy` in namespace `astronomy-shop`.\nKey evidence: pod template changed in revision 2: container frontend-proxy env FRONTEND_HOST is now defined 2 times: frontend, localhost.\nFault type: config value (a wrong, missing, or shadowed value in this component's own configuration).\nEvidence:\n- container frontend-proxy env FRONTEND_HOST: frontend -> localhost\n- container frontend-proxy defines env var FRONTEND_HOST 2 times: 'frontend', then 'localhost'; the last value ('localhost') is the one the container sees\n- pod frontend-proxy-7b7cd5fb4-vjnnv: container frontend-proxy was OOMKilled\n- pod frontend-proxy-7b7cd5fb4-vjnnv: container frontend-proxy restarted 3 times\n- deployment/frontend-proxy: container frontend-proxy defines env var FRONTEND_HOST 2 times: 'frontend', then 'localhost'; the last value ('localhost') is the one the container sees\nConfidence: low; the investigation budget ended before the leading explanation was confirmed.",
+   "grade": {
+    "judgment": "True",
+    "reasoning": "Verdict: True (composite=0.89). D1 Fault Localization: 1.00 | D2 Fault Characterization: 1.00 | D3 Scope Precision: 0.67. Weakest dimension: Scope Precision (0.67). Checklist details: [{\"id\": \"D1-Q1\", \"answer\": \"Yes\", \"evidence\": \"Names deployment frontend-proxy in namespace astronomy-shop as the root cause, matching the fault specification.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q2\", \"answer\": \"Yes\", \"evidence\": \"Locates the fault in frontend-proxy's own container environment configuration rather than a secondary component.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q3\", \"answer\": \"Yes\", \"evidence\": \"Blames only deployment frontend-proxy, the component identified in the ground truth.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q1\", \"answer\": \"Yes\", \"evidence\": \"States FRONTEND_HOST is defined twice and the last value, localhost, is the value the container sees.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q2\", \"answer\": \"Yes\", \"evidence\": \"Identifies container frontend-proxy, environment variable FRONTEND_HOST, and ordered values frontend followed by localhost.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q3\", \"answer\": \"Yes\", \"evidence\": \"Explicitly attributes the fault to a wrong or shadowed configuration value; OOMKilled is listed as evidence, not the causal mechanism.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q1\", \"answer\": \"Yes\", \"evidence\": \"Attributes the fault exclusively to frontend-proxy and its container configuration.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q2\", \"answer\": \"Yes\", \"evidence\": \"Includes deployment frontend-proxy in astronomy-shop, the sole component identified as faulty or affected in the ground truth.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q3\", \"answer\": \"No\", \"evidence\": \"Reports OOMKilled and three restarts but omits wrong-upstream routing and the ground-truth symptom of a pod remaining Running and Ready.\", \"confidence\": \"High\"}]",
+    "success": true,
+    "accuracy": 89.0,
+    "composite_score": 0.89,
+    "dimensions": {
+     "D1": {
+      "name": "Fault Localization",
+      "score": 1.0
+     },
+     "D2": {
+      "name": "Fault Characterization",
+      "score": 1.0
+     },
+     "D3": {
+      "name": "Scope Precision",
+      "score": 0.67
+     }
+    },
+    "checklist": [
+     {
+      "id": "D1-Q1",
+      "answer": "Yes",
+      "evidence": "Names deployment frontend-proxy in namespace astronomy-shop as the root cause, matching the fault specification.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q2",
+      "answer": "Yes",
+      "evidence": "Locates the fault in frontend-proxy's own container environment configuration rather than a secondary component.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q3",
+      "answer": "Yes",
+      "evidence": "Blames only deployment frontend-proxy, the component identified in the ground truth.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q1",
+      "answer": "Yes",
+      "evidence": "States FRONTEND_HOST is defined twice and the last value, localhost, is the value the container sees.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q2",
+      "answer": "Yes",
+      "evidence": "Identifies container frontend-proxy, environment variable FRONTEND_HOST, and ordered values frontend followed by localhost.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q3",
+      "answer": "Yes",
+      "evidence": "Explicitly attributes the fault to a wrong or shadowed configuration value; OOMKilled is listed as evidence, not the causal mechanism.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q1",
+      "answer": "Yes",
+      "evidence": "Attributes the fault exclusively to frontend-proxy and its container configuration.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q2",
+      "answer": "Yes",
+      "evidence": "Includes deployment frontend-proxy in astronomy-shop, the sole component identified as faulty or affected in the ground truth.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q3",
+      "answer": "No",
+      "evidence": "Reports OOMKilled and three restarts but omits wrong-upstream routing and the ground-truth symptom of a pod remaining Running and Ready.",
+      "confidence": "High"
+     }
+    ]
+   }
+  }
+ ],
+ "submission": {
+  "status": "200",
+  "message": "Submission received",
+  "stage": "diagnosis"
+ },
+ "judge": {
+  "model": "gpt-6-astra",
+  "backend": "codex",
+  "effort": "high"
+ }
+}

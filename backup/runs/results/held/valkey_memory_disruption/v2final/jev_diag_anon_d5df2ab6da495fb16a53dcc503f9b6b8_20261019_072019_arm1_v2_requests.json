@@ -1,0 +1,2388 @@
+[
+ {
+  "label": "decide:1",
+  "state": {
+   "application": {
+    "name": "OpenTelemetry Demo Astronomy Shop",
+    "description": "An online shopping platform built with a microservices architecture, showcasing OpenTelemetry instrumentation for distributed tracing across services.",
+    "namespaces": [
+     "astronomy-shop"
+    ]
+   },
+   "evidence": {
+    "daemonset/otel-collector-agent": {
+     "kind": "DaemonSet",
+     "name": "otel-collector-agent",
+     "namespace": "astronomy-shop",
+     "healthy": false,
+     "signals": [
+      "spec modified 147s ago, 19s after this object was created (fields: template.annotations.kubectl.kubernetes.io/restartedAt); pod template changes: template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-19T13:19:59+06:00; 17s before the first active symptom"
+     ],
+     "template_changes": {
+      "revision": 2,
+      "changed_at": "2026-10-19T07:19:59Z",
+      "changes": [
+       "template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-19T13:19:59+06:00"
+      ]
+     },
+     "detail": {
+      "component": "daemonset/otel-collector-agent",
+      "namespace": "astronomy-shop",
+      "workload": {
+       "created": "2026-10-19T07:19:40Z",
+       "last_spec_write": "2026-10-19T07:19:59Z",
+       "spec_writers": [
+        {
+         "manager": "helm",
+         "op": "Apply",
+         "time": "2026-10-19T07:19:40Z"
+        },
+        {
+         "manager": "kubectl-rollout",
+         "op": "Update",
+         "time": "2026-10-19T07:19:59Z"
+        }
+       ],
+       "strategy": {
+        "rollingUpdate": {
+         "maxSurge": 0,
+         "maxUnavailable": 1
+        },
+        "type": "RollingUpdate"
+       },
+       "service_account": "otel-collector",
+       "dns_policy": "ClusterFirst",
+       "restart_policy": "Always",
+       "containers": [
+        {
+         "name": "opentelemetry-collector",
+         "image": "otel/opentelemetry-collector-contrib:0.142.0",
+         "args": [
+          "--config=/conf/relay.yaml"
+         ],
+         "env": [
+          {
+           "name": "MY_POD_IP",
+           "from": "field:status.podIP"
+          },
+          {
+           "name": "K8S_NODE_NAME",
+           "from": "field:spec.nodeName"
+          },
+          {
+           "name": "K8S_NODE_IP",
+           "from": "field:status.hostIP"
+          },
+          {
+           "name": "GOMEMLIMIT",
+           "value": "160MiB"
+          }
+         ],
+         "ports": [
+          {
+           "port": 6831,
+           "name": "jaeger-compact"
+          },
+          {
+           "port": 14250,
+           "name": "jaeger-grpc"
+          },
+          {
+           "port": 14268,
+           "name": "jaeger-thrift"
+          },
+          {
+           "port": 8888,
+           "name": "metrics"
+          },
+          {
+           "port": 4317,
+           "name": "otlp"
+          },
+          {
+           "port": 4318,
+           "name": "otlp-http"
+          },
+          {
+           "port": 9411,
+           "name": "zipkin"
+          }
+         ],
+         "resources": {
+          "limits": {
+           "memory": "200Mi"
+          }
+         },
+         "probes": {
+          "readiness": {
+           "failureThreshold": 3,
+           "httpGet": {
+            "path": "/",
+            "port": 13133,
+            "scheme": "HTTP"
+           },
+           "periodSeconds": 10,
+           "successThreshold": 1,
+           "timeoutSeconds": 1
+          },
+          "liveness": {
+           "failureThreshold": 3,
+           "httpGet": {
+            "path": "/",
+            "port": 13133,
+            "scheme": "HTTP"
+           },
+           "periodSeconds": 10,
+           "successThreshold": 1,
+           "timeoutSeconds": 1
+          }
+         },
+         "volume_mounts": [
+          {
+           "name": "opentelemetry-collector-configmap",
+           "path": "/conf"
+          },
+          {
+           "name": "hostfs",
+           "path": "/hostfs"
+          }
+         ]
+        }
+       ],
+       "volumes": [
+        {
+         "name": "opentelemetry-collector-configmap",
+         "configMap": {
+          "defaultMode": 420,
+          "items": [
+           {
+            "key": "relay",
+            "path": "relay.yaml"
+           }
+          ],
+          "name": "otel-collector-agent"
+         }
+        },
+        {
+         "name": "hostfs",
+         "hostPath": {
+          "path": "/",
+          "type": ""
+         }
+        }
+       ],
+       "template_labels": {
+        "app.kubernetes.io/instance": "astronomy-shop",
+        "app.kubernetes.io/name": "opentelemetry-collector",
+        "component": "agent-collector"
+       }
+      },
+      "pods": [
+       {
+        "name": "otel-collector-agent-k6g2t",
+        "node": "kind-worker3",
+        "phase": "Running",
+        "started": "2026-10-19T07:20:05Z",
+        "ready_since": "2026-10-19T07:20:07Z",
+        "conditions": [
+         "PodReadyToStartContainers=True",
+         "Initialized=True",
+         "Ready=True",
+         "ContainersReady=True",
+         "PodScheduled=True"
+        ],
+        "containers": [
+         {
+          "name": "opentelemetry-collector",
+          "ready": true,
+          "restarts": 0,
+          "state": {
+           "running": {
+            "startedAt": "2026-10-19T07:20:06Z"
+           }
+          }
+         }
+        ]
+       },
+       {
+        "name": "otel-collector-agent-pvvlt",
+        "node": "kind-worker",
+        "phase": "Running",
+        "started": "2026-10-19T07:20:03Z",
+        "ready_since": "2026-10-19T07:20:05Z",
+        "conditions": [
+         "PodReadyToStartContainers=True",
+         "Initialized=True",
+         "Ready=True",
+         "ContainersReady=True",
+         "PodScheduled=True"
+        ],
+        "containers": [
+         {
+          "name": "opentelemetry-collector",
+          "ready": true,
+          "restarts": 0,
+          "state": {
+           "running": {
+            "startedAt": "2026-10-19T07:20:03Z"
+           }
+          }
+         }
+        ]
+       },
+       {
+        "name": "otel-collector-agent-w4tzz",
+        "node": "kind-worker2",
+        "phase": "Running",
+        "started": "2026-10-19T07:19:59Z",
+        "ready_since": "2026-10-19T07:20:01Z",
+        "conditions": [
+         "PodReadyToStartContainers=True",
+         "Initialized=True",
+         "Ready=True",
+         "ContainersReady=True",
+         "PodScheduled=True"
+        ],
+        "containers": [
+         {
+          "name": "opentelemetry-collector",
+          "ready": true,
+          "restarts": 0,
+          "state": {
+           "running": {
+            "startedAt": "2026-10-19T07:20:00Z"
+           }
+          }
+         }
+        ]
+       }
+      ],
+      "events": [
+       {
+        "type": "Normal",
+        "reason": "Pulled",
+        "count": 1,
+        "object": "pod/otel-collector-agent-k6g2t",
+        "last": "2026-10-19T07:20:06Z",
+        "message": "Container image \"otel/opentelemetry-collector-contrib:0.142.0\" already present on machine"
+       },
+       {
+        "type": "Normal",
+        "reason": "Created",
+        "count": 1,
+        "object": "pod/otel-collector-agent-k6g2t",
+        "last": "2026-10-19T07:20:06Z",
+        "message": "Created container: opentelemetry-collector"
+       },
+       {
+        "type": "Normal",
+        "reason": "Started",
+        "count": 1,
+        "object": "pod/otel-collector-agent-k6g2t",
+        "last": "2026-10-19T07:20:06Z",
+        "message": "Started container opentelemetry-collector"
+       },
+       {
+        "type": "Normal",
+        "reason": "Killing",
+        "count": 1,
+        "object": "pod/otel-collector-agent-zvn7n",
+        "last": "2026-10-19T07:20:05Z",
+        "message": "Stopping container opentelemetry-collector"
+       },
+       {
+        "type": "Normal",
+        "reason": "SuccessfulDelete",
+        "count": 1,
+        "object": "daemonset/otel-collector-agent",
+        "last": "2026-10-19T07:20:05Z",
+        "message": "Deleted pod: otel-collector-agent-zvn7n"
+       },
+       {
+        "type": "Normal",
+        "reason": "SuccessfulCreate",
+        "count": 1,
+        "object": "daemonset/otel-collector-agent",
+        "last": "2026-10-19T07:20:05Z",
+        "message": "Created pod: otel-collector-agent-k6g2t"
+       },
+       {
+        "type": "Normal",
+        "reason": "Scheduled",
+        "count": 1,
+        "object": "pod/otel-collector-agent-k6g2t",
+        "last": "2026-10-19T07:20:05.750854Z",
+        "message": "Successfully assigned astronomy-shop/otel-collector-agent-k6g2t to kind-worker3"
+       },
+       {
+        "type": "Normal",
+        "reason": "Pulled",
+        "count": 1,
+        "object": "pod/otel-collector-agent-pvvlt",
+        "last": "2026-10-19T07:20:03Z",
+        "message": "Container image \"otel/opentelemetry-collector-contrib:0.142.0\" already present on machine"
+       },
+       {
+        "type": "Normal",
+        "reason": "Created",
+        "count": 1,
+        "object": "pod/otel-collector-agent-pvvlt",
+        "last": "2026-10-19T07:20:03Z",
+        "message": "Created container: opentelemetry-collector"
+       },
+       {
+        "type": "Normal",
+        "reason": "Started",
+        "count": 1,
+        "object": "pod/otel-collector-agent-pvvlt",
+        "last": "2026-10-19T07:20:03Z",
+        "message": "Started container opentelemetry-collector"
+       },
+       {
+        "type": "Normal",
+        "reason": "SuccessfulCreate",
+        "count": 1,
+        "object": "daemonset/otel-collector-agent",
+        "last": "2026-10-19T07:20:03Z",
+        "message": "Created pod: otel-collector-agent-pvvlt"
+       },
+       {
+        "type": "Normal",
+        "reason": "Scheduled",
+        "count": 1,
+        "object": "pod/otel-collector-agent-pvvlt",
+        "last": "2026-10-19T07:20:03.130647Z",
+        "message": "Successfully assigned astronomy-shop/otel-collector-agent-pvvlt to kind-worker"
+       },
+       {
+        "type": "Normal",
+        "reason": "Killing",
+        "count": 1,
+        "object": "pod/otel-collector-agent-nf95t",
+        "last": "2026-10-19T07:20:01Z",
+        "message": "Stopping container opentelemetry-collector"
+       },
+       {
+        "type": "Normal",
+        "reason": "SuccessfulDelete",
+        "count": 1,
+        "object": "daemonset/otel-collector-agent",
+        "last": "2026-10-19T07:20:01Z",
+        "message": "Deleted pod: otel-collector-agent-nf95t"
+       },
+       {
+        "type": "Normal",
+        "reason": "Pulled",
+        "count": 1,
+        "object": "pod/otel-collector-agent-w4tzz",
+        "last": "2026-10-19T07:20:00Z",
+        "message": "Container image \"otel/opentelemetry-collector-contrib:0.142.0\" already present on machine"
+       }
+      ],
+      "logs": {
+       "total_lines": 600,
+       "error_lines": 0,
+       "error_lines_still_occurring": 0,
+       "error_lines_stopped": 0,
+       "telemetry_export_error_lines": 48,
+       "telemetry_error_samples": [
+        {
+         "count": 1,
+         "line": "opentelemetry-collector: 2026-10-19T07:21:38.020Z info Metrics {\"resource\": {\"service.instance.id\": \"9e1bce43-d7a5-4194-8582-79f100e70b41\", \"service.name\": \"otelcol-contrib\", \"service.version\": \"0.142.0\"}, \"otelcol.component.id\": \"debug\", \u2026",
+         "first_seen_seconds_ago": 59,
+         "last_seen_seconds_ago": 59,
+         "state": "ongoing"
+        },
+        {
+         "count": 1,
+         "line": "opentelemetry-collector: 2026-10-19T07:21:48.006Z error kubeletstatsreceiver@v0.142.0/scraper.go:106 call to /stats/summary endpoint failed {\"resource\": {\"service.instance.id\": \"9e1bce43-d7a5-4194-8582-79f100e70b41\", \"service.name\": \"otelc\u2026",
+         "first_seen_seconds_ago": 49,
+         "last_seen_seconds_ago": 49,
+         "state": "ongoing"
+        },
+        {
+         "count": 1,
+         "line": "opentelemetry-collector: 2026-10-19T07:21:48.006Z error scraperhelper@v0.142.0/obs_metrics.go:61 Error scraping metrics {\"resource\": {\"service.instance.id\": \"9e1bce43-d7a5-4194-8582-79f100e70b41\", \"service.name\": \"otelcol-contrib\", \"servic\u2026",
+         "first_seen_seconds_ago": 49,
+         "last_seen_seconds_ago": 49,
+         "state": "ongoing"
+        }
+       ],
+       "tail": [
+        "2026-10-19T07:22:31.413095915Z 2026-10-19T07:22:31.412Z info Logs {\"resource\": {\"service.instance.id\": \"eb164816-00fe-460f-ae50-ca346e14dbfb\", \"service.name\": \"otelcol-contrib\", \"service.version\": \"0\u2026",
+        "2026-10-19T07:22:31.413180627Z 2026-10-19T07:22:31.412Z info Traces {\"resource\": {\"service.instance.id\": \"eb164816-00fe-460f-ae50-ca346e14dbfb\", \"service.name\": \"otelcol-contrib\", \"service.version\": \u2026",
+        "2026-10-19T07:22:31.814183829Z 2026-10-19T07:22:31.813Z info Traces {\"resource\": {\"service.instance.id\": \"eb164816-00fe-460f-ae50-ca346e14dbfb\", \"service.name\": \"otelcol-contrib\", \"service.version\": \u2026",
+        "2026-10-19T07:22:33.018789548Z 2026-10-19T07:22:33.018Z info Traces {\"resource\": {\"service.instance.id\": \"eb164816-00fe-460f-ae50-ca346e14dbfb\", \"service.name\": \"otelcol-contrib\", \"service.version\": \u2026",
+        "2026-10-19T07:22:33.219202000Z 2026-10-19T07:22:33.218Z info Logs {\"resource\": {\"service.instance.id\": \"eb164816-00fe-460f-ae50-ca346e14dbfb\", \"service.name\": \"otelcol-contrib\", \"service.version\": \"0\u2026",
+        "2026-10-19T07:22:34.022228510Z 2026-10-19T07:22:34.022Z info Logs {\"resource\": {\"service.instance.id\": \"eb164816-00fe-460f-ae50-ca346e14dbfb\", \"service.name\": \"otelcol-contrib\", \"service.version\": \"0\u2026",
+        "2026-10-19T07:22:34.405897364Z 2026-10-19T07:22:34.405Z info Metrics {\"resource\": {\"service.instance.id\": \"eb164816-00fe-460f-ae50-ca346e14dbfb\", \"service.name\": \"otelcol-contrib\", \"service.version\":\u2026",
+        "2026-10-19T07:22:35.408508272Z 2026-10-19T07:22:35.408Z info Metrics {\"resource\": {\"service.instance.id\": \"eb164816-00fe-460f-ae50-ca346e14dbfb\", \"service.name\": \"otelcol-contrib\", \"service.version\":\u2026",
+        "2026-10-19T07:22:36.027128472Z 2026-10-19T07:22:36.027Z info Traces {\"resource\": {\"service.instance.id\": \"eb164816-00fe-460f-ae50-ca346e14dbfb\", \"service.name\": \"otelcol-contrib\", \"service.version\": \u2026",
+        "2026-10-19T07:22:36.428137607Z 2026-10-19T07:22:36.428Z info Logs {\"resource\": {\"service.instance.id\": \"eb164816-00fe-460f-ae50-ca346e14dbfb\", \"service.name\": \"otelcol-contrib\", \"service.version\": \"0\u2026",
+        "2026-10-19T07:22:36.428162460Z 2026-10-19T07:22:36.428Z info Traces {\"resource\": {\"service.instance.id\": \"eb164816-00fe-460f-ae50-ca346e14dbfb\", \"service.name\": \"otelcol-contrib\", \"service.version\": \u2026",
+        "2026-10-19T07:22:37.030570362Z 2026-10-19T07:22:37.030Z info Logs {\"resource\": {\"service.instance.id\": \"eb164816-00fe-460f-ae50-ca346e14dbfb\", \"service.name\": \"otelcol-contrib\", \"service.version\": \"0\u2026"
+       ]
+      },
+      "template_changes": {
+       "revision": 2,
+       "changed_at": "2026-10-19T07:19:59Z",
+       "changes": [
+        "template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-19T13:19:59+06:00"
+       ]
+      },
+      "clients": [
+       "deployment/accounting",
+       "deployment/ad",
+       "deployment/cart",
+       "deployment/checkout",
+       "deployment/currency",
+       "deployment/email",
+       "deployment/flagd",
+       "deployment/fraud-detection",
+       "deployment/frontend",
+       "deployment/frontend-proxy",
+       "deployment/image-provider",
+       "deployment/kafka",
+       "deployment/llm",
+       "deployment/payment",
+       "deployment/product-catalog",
+       "deployment/product-reviews",
+       "deployment/quote",
+       "deployment/recommendation",
+       "deployment/shipping"
+      ],
+      "configmaps": {
+       "otel-collector-agent": {
+        "last_update": "2026-10-19T07:19:40Z",
+        "keys": [
+         "relay"
+        ],
+        "data": {
+         "relay": "connectors: \u23ce spanmetrics: {} \u23ce exporters: \u23ce debug: {} \u23ce opensearch: \u23ce http: \u23ce endpoint: http://opensearch:9200 \u23ce tls: \u23ce insecure: true \u23ce logs_index: otel-logs \u23ce logs_index_time_format: yyyy-MM-dd \u23ce otlp/jaeger: \u23ce endpoint: jaeger:4317 \u23ce sending_queue: \u23ce batch: null \u23ce tls: \u23ce insecure: true \u23ce otlphttp/prometheus: \u23ce endpoint: http://prometheus:9090/api/v1/otlp \u23ce sending_queue: \u23ce batch: null \u23ce tls: \u2026"
+        }
+       }
+      },
+      "rbac": {
+       "service_account": "astronomy-shop/otel-collector",
+       "bindings": [
+        "ClusterRoleBinding/otel-collector -> ClusterRole/otel-collector"
+       ],
+       "can_i": [
+        "selfsubjectreviews.authentication.k8s.io [] [] [create]",
+        "selfsubjectaccessreviews.authorization.k8s.io [] [] [create]",
+        "selfsubjectrulesreviews.authorization.k8s.io [] [] [create]",
+        "leases.coordination.k8s.io [] [] [get list watch create update patch delete]",
+        "events [] [] [get list watch]",
+        "namespaces/status [] [] [get list watch]",
+        "nodes/spec [] [] [get list watch]",
+        "nodes [] [] [get list watch]",
+        "pods/status [] [] [get list watch]",
+        "replicationcontrollers/status [] [] [get list watch]",
+        "replicationcontrollers [] [] [get list watch]",
+        "resourcequotas [] [] [get list watch]",
+        "services [] [] [get list watch]"
+       ],
+       "roles": [
+        {
+         "kind": "ClusterRole",
+         "name": "otel-collector",
+         "bindings": [
+          "ClusterRoleBinding/otel-collector"
+         ],
+         "service_accounts": [
+          "astronomy-shop/otel-collector"
+         ],
+         "components": [
+          "daemonset/otel-collector-agent"
+         ],
+         "rules": [
+          "leases [coordination.k8s.io]: get,list,watch,create,update,patch,delete",
+          "pods,namespaces [core]: get,watch,list",
+          "replicasets [apps]: get,list,watch",
+          "replicasets [extensions]: get,list,watch",
+          "events,namespaces,namespaces/status,nodes,nodes/spec,pods,pods/status,replicationcontrollers,replicationcontrollers/status,resourcequotas,services [core]: get,list,watch",
+          "daemonsets,deployments,replicasets,statefulsets [apps]: get,list,watch",
+          "daemonsets,deployments,replicasets [extensions]: get,list,watch",
+          "jobs,cronjobs [batch]: get,list,watch"
+         ],
+         "created": "2026-10-19T07:19:40Z",
+         "modified": "2026-10-19T07:19:40Z"
+        }
+       ]
+      }
+     }
+    },
+    "job/valkey-memory-flood": {
+     "kind": "Job",
+     "name": "valkey-memory-flood",
+     "namespace": "astronomy-shop",
+     "healthy": false,
+     "signals": [
+      "job has 1 active pod(s) and has not completed"
+     ],
+     "detail": {
+      "component": "job/valkey-memory-flood",
+      "namespace": "astronomy-shop",
+      "workload": {
+       "created": "2026-10-19T07:20:13Z",
+       "last_spec_write": "2026-10-19T07:20:13Z",
+       "spec_writers": [
+        {
+         "manager": "OpenAPI-Generator",
+         "op": "Update",
+         "time": "2026-10-19T07:20:13Z"
+        }
+       ],
+       "dns_policy": "ClusterFirst",
+       "restart_policy": "Never",
+       "containers": [
+        {
+         "name": "flooder",
+         "image": "ghcr.io/sregym/redis-client:8.1.0-py3.10",
+         "command": [
+          "python3",
+          "-c",
+          "import base64; exec(base64.b64decode('aW1wb3J0IHJlZGlzCmltcG9ydCB0aHJlYWRpbmcKaW1wb3J0IHRpbWUKCmRlZiBmbG9vZF9yZWRpcygpOgogICAgY2xpZW50ID0gcmVkaXMuUmVkaXMoaG9zdD0ndmFsa2V5LWNhcnQnLCBwb3J0PTYzNzkpCiAgICB3aGlsZSBUcnVlOgogICAgICAgIHRyeToKICAgICAgICAgICAgcGF5bG9hZCA9ICd4JyAqIDEwMDAwMDAKICAgICAgICAgICAgY2xpZW50LnNldChmImtleV97dGltZS50aW1lKCl9IiwgcGF5bG9hZCkKICAgICAgICBleGNlcHQgRXhjZXB0aW9uIGFzIGU6CiAgICAgICAgICAgIHByaW50KGYiRXJyb3I6IHtlfSIpCiAgICAgICAgICAgIHRpbWUuc2xlZXAoMSkKCnRocmVhZHMgPSBbXQpmb3IgXyBpbiByYW5nZSgxMCk6CiAgICB0ID0gdGhyZWFkaW5nLlRocmVhZCh0YXJnZXQ9Zmxvb2RfcmVkaXMpCiAgICB0LnN0YXJ0KCkKICAgIHRocmVhZHMuYXBwZW5kKHQpCgpmb3IgdCBpbiB0aHJlYWRzOgogICAgdC5qb2luKCk='))"
+         ]
+        }
+       ],
+       "template_labels": {
+        "batch.kubernetes.io/controller-uid": "fd3bd9cb-9f8a-4a93-8739-d40107fd7c73",
+        "batch.kubernetes.io/job-name": "valkey-memory-flood",
+        "controller-uid": "fd3bd9cb-9f8a-4a93-8739-d40107fd7c73",
+        "job-name": "valkey-memory-flood"
+       }
+      },
+      "pods": [
+       {
+        "name": "valkey-memory-flood-k7hxp",
+        "node": "kind-worker3",
+        "phase": "Running",
+        "started": "2026-10-19T07:20:13Z",
+        "ready_since": "2026-10-19T07:20:13Z",
+        "conditions": [
+         "PodReadyToStartContainers=True",
+         "Initialized=True",
+         "Ready=True",
+         "ContainersReady=True",
+         "PodScheduled=True"
+        ],
+        "containers": [
+         {
+          "name": "flooder",
+          "ready": true,
+          "restarts": 0,
+          "state": {
+           "running": {
+            "startedAt": "2026-10-19T07:20:13Z"
+           }
+          }
+         }
+        ]
+       }
+      ],
+      "events": [
+       {
+        "type": "Normal",
+        "reason": "Pulled",
+        "count": 1,
+        "object": "pod/valkey-memory-flood-k7hxp",
+        "last": "2026-10-19T07:20:13Z",
+        "message": "Container image \"ghcr.io/sregym/redis-client:8.1.0-py3.10\" already present on machine"
+       },
+       {
+        "type": "Normal",
+        "reason": "Created",
+        "count": 1,
+        "object": "pod/valkey-memory-flood-k7hxp",
+        "last": "2026-10-19T07:20:13Z",
+        "message": "Created container: flooder"
+       },
+       {
+        "type": "Normal",
+        "reason": "Started",
+        "count": 1,
+        "object": "pod/valkey-memory-flood-k7hxp",
+        "last": "2026-10-19T07:20:13Z",
+        "message": "Started container flooder"
+       },
+       {
+        "type": "Normal",
+        "reason": "SuccessfulCreate",
+        "count": 1,
+        "object": "job/valkey-memory-flood",
+        "last": "2026-10-19T07:20:13Z",
+        "message": "Created pod: valkey-memory-flood-k7hxp"
+       },
+       {
+        "type": "Normal",
+        "reason": "Scheduled",
+        "count": 1,
+        "object": "pod/valkey-memory-flood-k7hxp",
+        "last": "2026-10-19T07:20:13.182872Z",
+        "message": "Successfully assigned astronomy-shop/valkey-memory-flood-k7hxp to kind-worker3"
+       }
+      ],
+      "logs": {
+       "total_lines": 0,
+       "error_lines": 0,
+       "error_lines_still_occurring": 0,
+       "error_lines_stopped": 0,
+       "telemetry_export_error_lines": 0
+      }
+     }
+    },
+    "deployment/valkey-cart": {
+     "kind": "Deployment",
+     "name": "valkey-cart",
+     "namespace": "astronomy-shop",
+     "healthy": false,
+     "signals": [
+      "only 0 of 1 desired replicas are ready",
+      "pod valkey-cart-859985f49d-dxcvn: container valkey-cart waiting in CrashLoopBackOff",
+      "pod valkey-cart-859985f49d-dxcvn: container valkey-cart was OOMKilled",
+      "pod valkey-cart-859985f49d-dxcvn: container valkey-cart restarted 4 times",
+      "warning events: BackOff x10",
+      "service valkey-cart selects this component but has 0 ready endpoints",
+      "firing alert KubePodNotReady",
+      "pod valkey-cart-859985f49d-dxcvn: container valkey-cart restarted 1 more time(s) in the last 49s"
+     ],
+     "detail": {
+      "component": "deployment/valkey-cart",
+      "namespace": "astronomy-shop",
+      "workload": {
+       "created": "2026-10-19T07:19:40Z",
+       "last_spec_write": "2026-10-19T07:19:40Z",
+       "spec_writers": [
+        {
+         "manager": "helm",
+         "op": "Apply",
+         "time": "2026-10-19T07:19:40Z"
+        }
+       ],
+       "replicas": 1,
+       "strategy": {
+        "rollingUpdate": {
+         "maxSurge": "25%",
+         "maxUnavailable": "25%"
+        },
+        "type": "RollingUpdate"
+       },
+       "service_account": "astronomy-shop",
+       "dns_policy": "ClusterFirst",
+       "restart_policy": "Always",
+       "containers": [
+        {
+         "name": "valkey-cart",
+         "image": "valkey/valkey:9.0.1-alpine3.23",
+         "ports": [
+          {
+           "port": 6379,
+           "name": "valkey-cart"
+          }
+         ],
+         "resources": {
+          "limits": {
+           "memory": "64Mi"
+          }
+         }
+        }
+       ],
+       "template_labels": {
+        "app.kubernetes.io/component": "valkey-cart",
+        "app.kubernetes.io/name": "valkey-cart",
+        "app.kubernetes.io/version": "2.2.0",
+        "opentelemetry.io/name": "valkey-cart"
+       }
+      },
+      "pods": [
+       {
+        "name": "valkey-cart-859985f49d-dxcvn",
+        "node": "kind-worker3",
+        "phase": "Running",
+        "started": "2026-10-19T07:19:41Z",
+        "conditions": [
+         "PodReadyToStartContainers=True",
+         "Initialized=True",
+         "Ready=False (ContainersNotReady: containers with unready status: [valkey-cart])",
+         "ContainersReady=False (ContainersNotReady: containers with unready status: [valkey-cart])",
+         "PodScheduled=True"
+        ],
+        "containers": [
+         {
+          "name": "valkey-cart",
+          "ready": false,
+          "restarts": 4,
+          "state": {
+           "waiting": {
+            "message": "back-off 1m20s restarting failed container=valkey-cart pod=valkey-cart-859985f49d-dxcvn_astronomy-shop(4e9af488-ddd4-4358-8e02-50cd6f57b25b)",
+            "reason": "CrashLoopBackOff"
+           }
+          },
+          "last_state": {
+           "terminated": {
+            "containerID": "containerd://8841d62b41854f54a8e5d33a95b4a3413e0d482d395971fca3e54c09d2e0d2ed",
+            "exitCode": 137,
+            "finishedAt": "2026-10-19T07:21:40Z",
+            "reason": "OOMKilled",
+            "startedAt": "2026-10-19T07:21:39Z"
+           }
+          }
+         }
+        ]
+       }
+      ],
+      "events": [
+       {
+        "type": "Warning",
+        "reason": "BackOff",
+        "count": 11,
+        "object": "pod/valkey-cart-859985f49d-dxcvn",
+        "last": "2026-10-19T07:22:31Z",
+        "message": "Back-off restarting failed container valkey-cart in pod valkey-cart-859985f49d-dxcvn_astronomy-shop(4e9af488-ddd4-4358-8e02-50cd6f57b25b)"
+       },
+       {
+        "type": "Normal",
+        "reason": "Pulled",
+        "count": 5,
+        "object": "pod/valkey-cart-859985f49d-dxcvn",
+        "last": "2026-10-19T07:21:39Z",
+        "message": "Container image \"valkey/valkey:9.0.1-alpine3.23\" already present on machine"
+       },
+       {
+        "type": "Normal",
+        "reason": "Created",
+        "count": 5,
+        "object": "pod/valkey-cart-859985f49d-dxcvn",
+        "last": "2026-10-19T07:21:39Z",
+        "message": "Created container: valkey-cart"
+       },
+       {
+        "type": "Normal",
+        "reason": "Started",
+        "count": 5,
+        "object": "pod/valkey-cart-859985f49d-dxcvn",
+        "last": "2026-10-19T07:21:39Z",
+        "message": "Started container valkey-cart"
+       },
+       {
+        "type": "Normal",
+        "reason": "SuccessfulCreate",
+        "count": 1,
+        "object": "replicaset/valkey-cart-859985f49d",
+        "last": "2026-10-19T07:19:41Z",
+        "message": "Created pod: valkey-cart-859985f49d-dxcvn"
+       },
+       {
+        "type": "Normal",
+        "reason": "Scheduled",
+        "count": 1,
+        "object": "pod/valkey-cart-859985f49d-dxcvn",
+        "last": "2026-10-19T07:19:41.057197Z",
+        "message": "Successfully assigned astronomy-shop/valkey-cart-859985f49d-dxcvn to kind-worker3"
+       }
+      ],
+      "logs": {
+       "total_lines": 7,
+       "error_lines": 0,
+       "error_lines_still_occurring": 0,
+       "error_lines_stopped": 0,
+       "telemetry_export_error_lines": 0,
+       "tail": [
+        "2026-10-19T07:21:39.348262385Z 1:M 19 Oct 2026 07:21:39.348 * oO0OoO0OoO0Oo Valkey is starting oO0OoO0OoO0Oo",
+        "2026-10-19T07:21:39.348290274Z 1:M 19 Oct 2026 07:21:39.348 * Valkey version=9.0.1, bits=64, commit=00000000, modified=0, pid=1, just started",
+        "2026-10-19T07:21:39.348294052Z 1:M 19 Oct 2026 07:21:39.348 # Warning: no config file specified, using the default config. In order to specify a config file use valkey-server /path/to/valkey.conf",
+        "2026-10-19T07:21:39.348487097Z 1:M 19 Oct 2026 07:21:39.348 * monotonic clock: POSIX clock_gettime",
+        "2026-10-19T07:21:39.349375565Z 1:M 19 Oct 2026 07:21:39.349 * Running mode=standalone, port=6379.",
+        "2026-10-19T07:21:39.349648312Z 1:M 19 Oct 2026 07:21:39.349 * Server initialized",
+        "2026-10-19T07:21:39.350102077Z 1:M 19 Oct 2026 07:21:39.350 * Ready to accept connections tcp"
+       ],
+       "previous_container_logs": {
+        "valkey-cart-859985f49d-dxcvn/valkey-cart": [
+         "1:M 19 Oct 2026 07:21:39.348 * oO0OoO0OoO0Oo Valkey is starting oO0OoO0OoO0Oo",
+         "1:M 19 Oct 2026 07:21:39.348 * Valkey version=9.0.1, bits=64, commit=00000000, modified=0, pid=1, just started",
+         "1:M 19 Oct 2026 07:21:39.348 # Warning: no config file specified, using the default config. In order to specify a config file use valkey-server /path/to/valkey.conf",
+         "1:M 19 Oct 2026 07:21:39.348 * monotonic clock: POSIX clock_gettime",
+         "1:M 19 Oct 2026 07:21:39.349 * Running mode=standalone, port=6379.",
+         "1:M 19 Oct 2026 07:21:39.349 * Server initialized",
+         "1:M 19 Oct 2026 07:21:39.350 * Ready to accept connections tcp"
+        ]
+       }
+      },
+      "clients": [
+       "deployment/cart"
+      ],
+      "service_checks": [
+       "service valkey-cart has no ready endpoints"
+      ],
+      "rbac": {
+       "service_account": "astronomy-shop/astronomy-shop",
+       "can_i": [
+        "selfsubjectreviews.authentication.k8s.io [] [] [create]",
+        "selfsubjectaccessreviews.authorization.k8s.io [] [] [create]",
+        "selfsubjectrulesreviews.authorization.k8s.io [] [] [create]",
+        "[/.well-known/openid-configuration/] [] [get]",
+        "[/.well-known/openid-configuration] [] [get]",
+        "[/api/*] [] [get]",
+        "[/api] [] [get]",
+        "[/apis/*] [] [get]",
+        "[/apis] [] [get]",
+        "[/healthz] [] [get]",
+        "[/healthz] [] [get]",
+        "[/livez] [] [get]",
+        "[/livez] [] [get]"
+       ]
+      }
+     }
+    }
+   },
+   "cluster": {
+    "symptom_onset": "2026-10-19T07:20:16+00:00",
+    "recent_changes": [
+     {
+      "object": "daemonset/otel-collector-agent",
+      "at": "2026-10-19T07:19:59Z",
+      "modified_after_creation_s": 19,
+      "fields": [
+       "template.annotations.kubectl.kubernetes.io/restartedAt"
+      ],
+      "seconds_ago": 147,
+      "seconds_before_symptoms": 17,
+      "role": "observability"
+     }
+    ],
+    "findings": []
+   }
+  },
+  "questions": {
+   "best_explanation": {
+    "type": "choice",
+    "criteria": {
+     "o1": "Origin: deployment/astronomy-shop/valkey-cart. The fault is in this component; the mechanism is not established. | Observed impact on: deployment/astronomy-shop/valkey-cart",
+     "o2": "Origin: job/astronomy-shop/valkey-memory-flood. job/astronomy-shop/valkey-memory-flood appeared 33s after the rest of the application and 3s before the first symptom; what it does to the failing components is not visible in the collected evidence. | Details: job has 1 active pod(s) and has not completed | Observed impact on: job/astronomy-shop/valkey-memory-flood | Checks: job/astronomy-shop/valkey-memory-flood appeared just before the symptoms (supports)",
+     "o3": "Origin: daemonset/astronomy-shop/otel-collector-agent. daemonset otel-collector-agent was changed recently and breaks daemonset/otel-collector-agent, which it acts on. | Details: daemonset otel-collector-agent fields written: template.annotations.kubectl.kubernetes.io/restartedAt | Observed impact on: daemonset/astronomy-shop/otel-collector-agent | Checks: daemonset/astronomy-shop/otel-collector-agent was made before the symptoms began (supports); daemonset/otel-collector-agent shows symptoms of its own (supports)",
+     "o4": "Origin: daemonset/astronomy-shop/otel-collector-agent. The pod template change 'template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-19T13:19:59+06:00' in revision 2 of daemonset/otel-collector-agent breaks daemonset/otel-collector-agent. | Details: template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-19T13:19:59+06:00 | Observed impact on: daemonset/astronomy-shop/otel-collector-agent | Checks: revision 2 of daemonset/otel-collector-agent was made before the symptoms began (supports); daemonset/otel-collector-agent shows symptoms of its own (supports)",
+     "o5": "Origin: job/astronomy-shop/valkey-memory-flood. The fault is in this component; the mechanism is not established. | Observed impact on: job/astronomy-shop/valkey-memory-flood",
+     "o6": "Origin: job/astronomy-shop/valkey-memory-flood. job/astronomy-shop/valkey-memory-flood has a wrong setting of its own: job has 1 active pod(s) and has not completed | Details: job has 1 active pod(s) and has not completed | Observed impact on: job/astronomy-shop/valkey-memory-flood | Checks: job/astronomy-shop/valkey-memory-flood shows symptoms of its own (supports)",
+     "o7": "None of these explanations fits the evidence."
+    },
+    "instructions": {
+     "question": "Which explanation best accounts for all the observed symptoms in `evidence`?",
+     "how_to_decide": [
+      "Prefer the explanation whose chain is supported by the observed facts and explains the most symptoms; an explanation contradicted by a fact is unlikely.",
+      "A component that only fails because something it calls fails is a victim, not the origin.",
+      "Choose `o7` when none of the explanations fits the evidence."
+     ]
+    }
+   }
+  },
+  "model": "openai/gpt-6-luna-decisions-20261006",
+  "latency_ms": 741,
+  "usage": {
+   "input_tokens": 8151,
+   "output_tokens": 0,
+   "cost": 0.0008151
+  },
+  "answers": {
+   "best_explanation": {
+    "type": "choice",
+    "choice": "o1",
+    "confidence": 0.22,
+    "probabilities": {
+     "o1": 0.33,
+     "o2": 0.25,
+     "o3": 0.07,
+     "o4": 0.03,
+     "o5": 0.18,
+     "o6": 0.06,
+     "o7": 0.08
+    }
+   }
+  }
+ },
+ {
+  "label": "decide:2",
+  "state": {
+   "application": {
+    "name": "OpenTelemetry Demo Astronomy Shop",
+    "description": "An online shopping platform built with a microservices architecture, showcasing OpenTelemetry instrumentation for distributed tracing across services.",
+    "namespaces": [
+     "astronomy-shop"
+    ]
+   },
+   "evidence": {
+    "daemonset/otel-collector-agent": {
+     "kind": "DaemonSet",
+     "name": "otel-collector-agent",
+     "namespace": "astronomy-shop",
+     "healthy": false,
+     "signals": [
+      "spec modified 147s ago, 19s after this object was created (fields: template.annotations.kubectl.kubernetes.io/restartedAt); pod template changes: template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-19T13:19:59+06:00; 17s before the first active symptom"
+     ],
+     "template_changes": {
+      "revision": 2,
+      "changed_at": "2026-10-19T07:19:59Z",
+      "changes": [
+       "template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-19T13:19:59+06:00"
+      ]
+     },
+     "detail": {
+      "component": "daemonset/otel-collector-agent",
+      "namespace": "astronomy-shop",
+      "workload": {
+       "created": "2026-10-19T07:19:40Z",
+       "last_spec_write": "2026-10-19T07:19:59Z",
+       "spec_writers": [
+        {
+         "manager": "helm",
+         "op": "Apply",
+         "time": "2026-10-19T07:19:40Z"
+        },
+        {
+         "manager": "kubectl-rollout",
+         "op": "Update",
+         "time": "2026-10-19T07:19:59Z"
+        }
+       ],
+       "strategy": {
+        "rollingUpdate": {
+         "maxSurge": 0,
+         "maxUnavailable": 1
+        },
+        "type": "RollingUpdate"
+       },
+       "service_account": "otel-collector",
+       "dns_policy": "ClusterFirst",
+       "restart_policy": "Always",
+       "containers": [
+        {
+         "name": "opentelemetry-collector",
+         "image": "otel/opentelemetry-collector-contrib:0.142.0",
+         "args": [
+          "--config=/conf/relay.yaml"
+         ],
+         "env": [
+          {
+           "name": "MY_POD_IP",
+           "from": "field:status.podIP"
+          },
+          {
+           "name": "K8S_NODE_NAME",
+           "from": "field:spec.nodeName"
+          },
+          {
+           "name": "K8S_NODE_IP",
+           "from": "field:status.hostIP"
+          },
+          {
+           "name": "GOMEMLIMIT",
+           "value": "160MiB"
+          }
+         ],
+         "ports": [
+          {
+           "port": 6831,
+           "name": "jaeger-compact"
+          },
+          {
+           "port": 14250,
+           "name": "jaeger-grpc"
+          },
+          {
+           "port": 14268,
+           "name": "jaeger-thrift"
+          },
+          {
+           "port": 8888,
+           "name": "metrics"
+          },
+          {
+           "port": 4317,
+           "name": "otlp"
+          },
+          {
+           "port": 4318,
+           "name": "otlp-http"
+          },
+          {
+           "port": 9411,
+           "name": "zipkin"
+          }
+         ],
+         "resources": {
+          "limits": {
+           "memory": "200Mi"
+          }
+         },
+         "probes": {
+          "readiness": {
+           "failureThreshold": 3,
+           "httpGet": {
+            "path": "/",
+            "port": 13133,
+            "scheme": "HTTP"
+           },
+           "periodSeconds": 10,
+           "successThreshold": 1,
+           "timeoutSeconds": 1
+          },
+          "liveness": {
+           "failureThreshold": 3,
+           "httpGet": {
+            "path": "/",
+            "port": 13133,
+            "scheme": "HTTP"
+           },
+           "periodSeconds": 10,
+           "successThreshold": 1,
+           "timeoutSeconds": 1
+          }
+         },
+         "volume_mounts": [
+          {
+           "name": "opentelemetry-collector-configmap",
+           "path": "/conf"
+          },
+          {
+           "name": "hostfs",
+           "path": "/hostfs"
+          }
+         ]
+        }
+       ],
+       "volumes": [
+        {
+         "name": "opentelemetry-collector-configmap",
+         "configMap": {
+          "defaultMode": 420,
+          "items": [
+           {
+            "key": "relay",
+            "path": "relay.yaml"
+           }
+          ],
+          "name": "otel-collector-agent"
+         }
+        },
+        {
+         "name": "hostfs",
+         "hostPath": {
+          "path": "/",
+          "type": ""
+         }
+        }
+       ],
+       "template_labels": {
+        "app.kubernetes.io/instance": "astronomy-shop",
+        "app.kubernetes.io/name": "opentelemetry-collector",
+        "component": "agent-collector"
+       }
+      },
+      "pods": [
+       {
+        "name": "otel-collector-agent-k6g2t",
+        "node": "kind-worker3",
+        "phase": "Running",
+        "started": "2026-10-19T07:20:05Z",
+        "ready_since": "2026-10-19T07:20:07Z",
+        "conditions": [
+         "PodReadyToStartContainers=True",
+         "Initialized=True",
+         "Ready=True",
+         "ContainersReady=True",
+         "PodScheduled=True"
+        ],
+        "containers": [
+         {
+          "name": "opentelemetry-collector",
+          "ready": true,
+          "restarts": 0,
+          "state": {
+           "running": {
+            "startedAt": "2026-10-19T07:20:06Z"
+           }
+          }
+         }
+        ]
+       },
+       {
+        "name": "otel-collector-agent-pvvlt",
+        "node": "kind-worker",
+        "phase": "Running",
+        "started": "2026-10-19T07:20:03Z",
+        "ready_since": "2026-10-19T07:20:05Z",
+        "conditions": [
+         "PodReadyToStartContainers=True",
+         "Initialized=True",
+         "Ready=True",
+         "ContainersReady=True",
+         "PodScheduled=True"
+        ],
+        "containers": [
+         {
+          "name": "opentelemetry-collector",
+          "ready": true,
+          "restarts": 0,
+          "state": {
+           "running": {
+            "startedAt": "2026-10-19T07:20:03Z"
+           }
+          }
+         }
+        ]
+       },
+       {
+        "name": "otel-collector-agent-w4tzz",
+        "node": "kind-worker2",
+        "phase": "Running",
+        "started": "2026-10-19T07:19:59Z",
+        "ready_since": "2026-10-19T07:20:01Z",
+        "conditions": [
+         "PodReadyToStartContainers=True",
+         "Initialized=True",
+         "Ready=True",
+         "ContainersReady=True",
+         "PodScheduled=True"
+        ],
+        "containers": [
+         {
+          "name": "opentelemetry-collector",
+          "ready": true,
+          "restarts": 0,
+          "state": {
+           "running": {
+            "startedAt": "2026-10-19T07:20:00Z"
+           }
+          }
+         }
+        ]
+       }
+      ],
+      "events": [
+       {
+        "type": "Normal",
+        "reason": "Pulled",
+        "count": 1,
+        "object": "pod/otel-collector-agent-k6g2t",
+        "last": "2026-10-19T07:20:06Z",
+        "message": "Container image \"otel/opentelemetry-collector-contrib:0.142.0\" already present on machine"
+       },
+       {
+        "type": "Normal",
+        "reason": "Created",
+        "count": 1,
+        "object": "pod/otel-collector-agent-k6g2t",
+        "last": "2026-10-19T07:20:06Z",
+        "message": "Created container: opentelemetry-collector"
+       },
+       {
+        "type": "Normal",
+        "reason": "Started",
+        "count": 1,
+        "object": "pod/otel-collector-agent-k6g2t",
+        "last": "2026-10-19T07:20:06Z",
+        "message": "Started container opentelemetry-collector"
+       },
+       {
+        "type": "Normal",
+        "reason": "Killing",
+        "count": 1,
+        "object": "pod/otel-collector-agent-zvn7n",
+        "last": "2026-10-19T07:20:05Z",
+        "message": "Stopping container opentelemetry-collector"
+       },
+       {
+        "type": "Normal",
+        "reason": "SuccessfulDelete",
+        "count": 1,
+        "object": "daemonset/otel-collector-agent",
+        "last": "2026-10-19T07:20:05Z",
+        "message": "Deleted pod: otel-collector-agent-zvn7n"
+       },
+       {
+        "type": "Normal",
+        "reason": "SuccessfulCreate",
+        "count": 1,
+        "object": "daemonset/otel-collector-agent",
+        "last": "2026-10-19T07:20:05Z",
+        "message": "Created pod: otel-collector-agent-k6g2t"
+       },
+       {
+        "type": "Normal",
+        "reason": "Scheduled",
+        "count": 1,
+        "object": "pod/otel-collector-agent-k6g2t",
+        "last": "2026-10-19T07:20:05.750854Z",
+        "message": "Successfully assigned astronomy-shop/otel-collector-agent-k6g2t to kind-worker3"
+       },
+       {
+        "type": "Normal",
+        "reason": "Pulled",
+        "count": 1,
+        "object": "pod/otel-collector-agent-pvvlt",
+        "last": "2026-10-19T07:20:03Z",
+        "message": "Container image \"otel/opentelemetry-collector-contrib:0.142.0\" already present on machine"
+       },
+       {
+        "type": "Normal",
+        "reason": "Created",
+        "count": 1,
+        "object": "pod/otel-collector-agent-pvvlt",
+        "last": "2026-10-19T07:20:03Z",
+        "message": "Created container: opentelemetry-collector"
+       },
+       {
+        "type": "Normal",
+        "reason": "Started",
+        "count": 1,
+        "object": "pod/otel-collector-agent-pvvlt",
+        "last": "2026-10-19T07:20:03Z",
+        "message": "Started container opentelemetry-collector"
+       },
+       {
+        "type": "Normal",
+        "reason": "SuccessfulCreate",
+        "count": 1,
+        "object": "daemonset/otel-collector-agent",
+        "last": "2026-10-19T07:20:03Z",
+        "message": "Created pod: otel-collector-agent-pvvlt"
+       },
+       {
+        "type": "Normal",
+        "reason": "Scheduled",
+        "count": 1,
+        "object": "pod/otel-collector-agent-pvvlt",
+        "last": "2026-10-19T07:20:03.130647Z",
+        "message": "Successfully assigned astronomy-shop/otel-collector-agent-pvvlt to kind-worker"
+       },
+       {
+        "type": "Normal",
+        "reason": "Killing",
+        "count": 1,
+        "object": "pod/otel-collector-agent-nf95t",
+        "last": "2026-10-19T07:20:01Z",
+        "message": "Stopping container opentelemetry-collector"
+       },
+       {
+        "type": "Normal",
+        "reason": "SuccessfulDelete",
+        "count": 1,
+        "object": "daemonset/otel-collector-agent",
+        "last": "2026-10-19T07:20:01Z",
+        "message": "Deleted pod: otel-collector-agent-nf95t"
+       },
+       {
+        "type": "Normal",
+        "reason": "Pulled",
+        "count": 1,
+        "object": "pod/otel-collector-agent-w4tzz",
+        "last": "2026-10-19T07:20:00Z",
+        "message": "Container image \"otel/opentelemetry-collector-contrib:0.142.0\" already present on machine"
+       }
+      ],
+      "logs": {
+       "total_lines": 600,
+       "error_lines": 0,
+       "error_lines_still_occurring": 0,
+       "error_lines_stopped": 0,
+       "telemetry_export_error_lines": 48,
+       "telemetry_error_samples": [
+        {
+         "count": 1,
+         "line": "opentelemetry-collector: 2026-10-19T07:21:38.020Z info Metrics {\"resource\": {\"service.instance.id\": \"9e1bce43-d7a5-4194-8582-79f100e70b41\", \"service.name\": \"otelcol-contrib\", \"service.version\": \"0.142.0\"}, \"otelcol.component.id\": \"debug\", \u2026",
+         "first_seen_seconds_ago": 59,
+         "last_seen_seconds_ago": 59,
+         "state": "ongoing"
+        },
+        {
+         "count": 1,
+         "line": "opentelemetry-collector: 2026-10-19T07:21:48.006Z error kubeletstatsreceiver@v0.142.0/scraper.go:106 call to /stats/summary endpoint failed {\"resource\": {\"service.instance.id\": \"9e1bce43-d7a5-4194-8582-79f100e70b41\", \"service.name\": \"otelc\u2026",
+         "first_seen_seconds_ago": 49,
+         "last_seen_seconds_ago": 49,
+         "state": "ongoing"
+        },
+        {
+         "count": 1,
+         "line": "opentelemetry-collector: 2026-10-19T07:21:48.006Z error scraperhelper@v0.142.0/obs_metrics.go:61 Error scraping metrics {\"resource\": {\"service.instance.id\": \"9e1bce43-d7a5-4194-8582-79f100e70b41\", \"service.name\": \"otelcol-contrib\", \"servic\u2026",
+         "first_seen_seconds_ago": 49,
+         "last_seen_seconds_ago": 49,
+         "state": "ongoing"
+        }
+       ],
+       "tail": [
+        "2026-10-19T07:22:31.413095915Z 2026-10-19T07:22:31.412Z info Logs {\"resource\": {\"service.instance.id\": \"eb164816-00fe-460f-ae50-ca346e14dbfb\", \"service.name\": \"otelcol-contrib\", \"service.version\": \"0\u2026",
+        "2026-10-19T07:22:31.413180627Z 2026-10-19T07:22:31.412Z info Traces {\"resource\": {\"service.instance.id\": \"eb164816-00fe-460f-ae50-ca346e14dbfb\", \"service.name\": \"otelcol-contrib\", \"service.version\": \u2026",
+        "2026-10-19T07:22:31.814183829Z 2026-10-19T07:22:31.813Z info Traces {\"resource\": {\"service.instance.id\": \"eb164816-00fe-460f-ae50-ca346e14dbfb\", \"service.name\": \"otelcol-contrib\", \"service.version\": \u2026",
+        "2026-10-19T07:22:33.018789548Z 2026-10-19T07:22:33.018Z info Traces {\"resource\": {\"service.instance.id\": \"eb164816-00fe-460f-ae50-ca346e14dbfb\", \"service.name\": \"otelcol-contrib\", \"service.version\": \u2026",
+        "2026-10-19T07:22:33.219202000Z 2026-10-19T07:22:33.218Z info Logs {\"resource\": {\"service.instance.id\": \"eb164816-00fe-460f-ae50-ca346e14dbfb\", \"service.name\": \"otelcol-contrib\", \"service.version\": \"0\u2026",
+        "2026-10-19T07:22:34.022228510Z 2026-10-19T07:22:34.022Z info Logs {\"resource\": {\"service.instance.id\": \"eb164816-00fe-460f-ae50-ca346e14dbfb\", \"service.name\": \"otelcol-contrib\", \"service.version\": \"0\u2026",
+        "2026-10-19T07:22:34.405897364Z 2026-10-19T07:22:34.405Z info Metrics {\"resource\": {\"service.instance.id\": \"eb164816-00fe-460f-ae50-ca346e14dbfb\", \"service.name\": \"otelcol-contrib\", \"service.version\":\u2026",
+        "2026-10-19T07:22:35.408508272Z 2026-10-19T07:22:35.408Z info Metrics {\"resource\": {\"service.instance.id\": \"eb164816-00fe-460f-ae50-ca346e14dbfb\", \"service.name\": \"otelcol-contrib\", \"service.version\":\u2026",
+        "2026-10-19T07:22:36.027128472Z 2026-10-19T07:22:36.027Z info Traces {\"resource\": {\"service.instance.id\": \"eb164816-00fe-460f-ae50-ca346e14dbfb\", \"service.name\": \"otelcol-contrib\", \"service.version\": \u2026",
+        "2026-10-19T07:22:36.428137607Z 2026-10-19T07:22:36.428Z info Logs {\"resource\": {\"service.instance.id\": \"eb164816-00fe-460f-ae50-ca346e14dbfb\", \"service.name\": \"otelcol-contrib\", \"service.version\": \"0\u2026",
+        "2026-10-19T07:22:36.428162460Z 2026-10-19T07:22:36.428Z info Traces {\"resource\": {\"service.instance.id\": \"eb164816-00fe-460f-ae50-ca346e14dbfb\", \"service.name\": \"otelcol-contrib\", \"service.version\": \u2026",
+        "2026-10-19T07:22:37.030570362Z 2026-10-19T07:22:37.030Z info Logs {\"resource\": {\"service.instance.id\": \"eb164816-00fe-460f-ae50-ca346e14dbfb\", \"service.name\": \"otelcol-contrib\", \"service.version\": \"0\u2026"
+       ]
+      },
+      "template_changes": {
+       "revision": 2,
+       "changed_at": "2026-10-19T07:19:59Z",
+       "changes": [
+        "template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-19T13:19:59+06:00"
+       ]
+      },
+      "clients": [
+       "deployment/accounting",
+       "deployment/ad",
+       "deployment/cart",
+       "deployment/checkout",
+       "deployment/currency",
+       "deployment/email",
+       "deployment/flagd",
+       "deployment/fraud-detection",
+       "deployment/frontend",
+       "deployment/frontend-proxy",
+       "deployment/image-provider",
+       "deployment/kafka",
+       "deployment/llm",
+       "deployment/payment",
+       "deployment/product-catalog",
+       "deployment/product-reviews",
+       "deployment/quote",
+       "deployment/recommendation",
+       "deployment/shipping"
+      ],
+      "configmaps": {
+       "otel-collector-agent": {
+        "last_update": "2026-10-19T07:19:40Z",
+        "keys": [
+         "relay"
+        ],
+        "data": {
+         "relay": "connectors: \u23ce spanmetrics: {} \u23ce exporters: \u23ce debug: {} \u23ce opensearch: \u23ce http: \u23ce endpoint: http://opensearch:9200 \u23ce tls: \u23ce insecure: true \u23ce logs_index: otel-logs \u23ce logs_index_time_format: yyyy-MM-dd \u23ce otlp/jaeger: \u23ce endpoint: jaeger:4317 \u23ce sending_queue: \u23ce batch: null \u23ce tls: \u23ce insecure: true \u23ce otlphttp/prometheus: \u23ce endpoint: http://prometheus:9090/api/v1/otlp \u23ce sending_queue: \u23ce batch: null \u23ce tls: \u2026"
+        }
+       }
+      },
+      "rbac": {
+       "service_account": "astronomy-shop/otel-collector",
+       "bindings": [
+        "ClusterRoleBinding/otel-collector -> ClusterRole/otel-collector"
+       ],
+       "can_i": [
+        "selfsubjectreviews.authentication.k8s.io [] [] [create]",
+        "selfsubjectaccessreviews.authorization.k8s.io [] [] [create]",
+        "selfsubjectrulesreviews.authorization.k8s.io [] [] [create]",
+        "leases.coordination.k8s.io [] [] [get list watch create update patch delete]",
+        "events [] [] [get list watch]",
+        "namespaces/status [] [] [get list watch]",
+        "nodes/spec [] [] [get list watch]",
+        "nodes [] [] [get list watch]",
+        "pods/status [] [] [get list watch]",
+        "replicationcontrollers/status [] [] [get list watch]",
+        "replicationcontrollers [] [] [get list watch]",
+        "resourcequotas [] [] [get list watch]",
+        "services [] [] [get list watch]"
+       ],
+       "roles": [
+        {
+         "kind": "ClusterRole",
+         "name": "otel-collector",
+         "bindings": [
+          "ClusterRoleBinding/otel-collector"
+         ],
+         "service_accounts": [
+          "astronomy-shop/otel-collector"
+         ],
+         "components": [
+          "daemonset/otel-collector-agent"
+         ],
+         "rules": [
+          "leases [coordination.k8s.io]: get,list,watch,create,update,patch,delete",
+          "pods,namespaces [core]: get,watch,list",
+          "replicasets [apps]: get,list,watch",
+          "replicasets [extensions]: get,list,watch",
+          "events,namespaces,namespaces/status,nodes,nodes/spec,pods,pods/status,replicationcontrollers,replicationcontrollers/status,resourcequotas,services [core]: get,list,watch",
+          "daemonsets,deployments,replicasets,statefulsets [apps]: get,list,watch",
+          "daemonsets,deployments,replicasets [extensions]: get,list,watch",
+          "jobs,cronjobs [batch]: get,list,watch"
+         ],
+         "created": "2026-10-19T07:19:40Z",
+         "modified": "2026-10-19T07:19:40Z"
+        }
+       ]
+      }
+     }
+    },
+    "job/valkey-memory-flood": {
+     "kind": "Job",
+     "name": "valkey-memory-flood",
+     "namespace": "astronomy-shop",
+     "healthy": false,
+     "signals": [
+      "job has 1 active pod(s) and has not completed"
+     ],
+     "detail": {
+      "component": "job/valkey-memory-flood",
+      "namespace": "astronomy-shop",
+      "workload": {
+       "created": "2026-10-19T07:20:13Z",
+       "last_spec_write": "2026-10-19T07:20:13Z",
+       "spec_writers": [
+        {
+         "manager": "OpenAPI-Generator",
+         "op": "Update",
+         "time": "2026-10-19T07:20:13Z"
+        }
+       ],
+       "dns_policy": "ClusterFirst",
+       "restart_policy": "Never",
+       "containers": [
+        {
+         "name": "flooder",
+         "image": "ghcr.io/sregym/redis-client:8.1.0-py3.10",
+         "command": [
+          "python3",
+          "-c",
+          "import base64; exec(base64.b64decode('aW1wb3J0IHJlZGlzCmltcG9ydCB0aHJlYWRpbmcKaW1wb3J0IHRpbWUKCmRlZiBmbG9vZF9yZWRpcygpOgogICAgY2xpZW50ID0gcmVkaXMuUmVkaXMoaG9zdD0ndmFsa2V5LWNhcnQnLCBwb3J0PTYzNzkpCiAgICB3aGlsZSBUcnVlOgogICAgICAgIHRyeToKICAgICAgICAgICAgcGF5bG9hZCA9ICd4JyAqIDEwMDAwMDAKICAgICAgICAgICAgY2xpZW50LnNldChmImtleV97dGltZS50aW1lKCl9IiwgcGF5bG9hZCkKICAgICAgICBleGNlcHQgRXhjZXB0aW9uIGFzIGU6CiAgICAgICAgICAgIHByaW50KGYiRXJyb3I6IHtlfSIpCiAgICAgICAgICAgIHRpbWUuc2xlZXAoMSkKCnRocmVhZHMgPSBbXQpmb3IgXyBpbiByYW5nZSgxMCk6CiAgICB0ID0gdGhyZWFkaW5nLlRocmVhZCh0YXJnZXQ9Zmxvb2RfcmVkaXMpCiAgICB0LnN0YXJ0KCkKICAgIHRocmVhZHMuYXBwZW5kKHQpCgpmb3IgdCBpbiB0aHJlYWRzOgogICAgdC5qb2luKCk='))"
+         ]
+        }
+       ],
+       "template_labels": {
+        "batch.kubernetes.io/controller-uid": "fd3bd9cb-9f8a-4a93-8739-d40107fd7c73",
+        "batch.kubernetes.io/job-name": "valkey-memory-flood",
+        "controller-uid": "fd3bd9cb-9f8a-4a93-8739-d40107fd7c73",
+        "job-name": "valkey-memory-flood"
+       }
+      },
+      "pods": [
+       {
+        "name": "valkey-memory-flood-k7hxp",
+        "node": "kind-worker3",
+        "phase": "Running",
+        "started": "2026-10-19T07:20:13Z",
+        "ready_since": "2026-10-19T07:20:13Z",
+        "conditions": [
+         "PodReadyToStartContainers=True",
+         "Initialized=True",
+         "Ready=True",
+         "ContainersReady=True",
+         "PodScheduled=True"
+        ],
+        "containers": [
+         {
+          "name": "flooder",
+          "ready": true,
+          "restarts": 0,
+          "state": {
+           "running": {
+            "startedAt": "2026-10-19T07:20:13Z"
+           }
+          }
+         }
+        ]
+       }
+      ],
+      "events": [
+       {
+        "type": "Normal",
+        "reason": "Pulled",
+        "count": 1,
+        "object": "pod/valkey-memory-flood-k7hxp",
+        "last": "2026-10-19T07:20:13Z",
+        "message": "Container image \"ghcr.io/sregym/redis-client:8.1.0-py3.10\" already present on machine"
+       },
+       {
+        "type": "Normal",
+        "reason": "Created",
+        "count": 1,
+        "object": "pod/valkey-memory-flood-k7hxp",
+        "last": "2026-10-19T07:20:13Z",
+        "message": "Created container: flooder"
+       },
+       {
+        "type": "Normal",
+        "reason": "Started",
+        "count": 1,
+        "object": "pod/valkey-memory-flood-k7hxp",
+        "last": "2026-10-19T07:20:13Z",
+        "message": "Started container flooder"
+       },
+       {
+        "type": "Normal",
+        "reason": "SuccessfulCreate",
+        "count": 1,
+        "object": "job/valkey-memory-flood",
+        "last": "2026-10-19T07:20:13Z",
+        "message": "Created pod: valkey-memory-flood-k7hxp"
+       },
+       {
+        "type": "Normal",
+        "reason": "Scheduled",
+        "count": 1,
+        "object": "pod/valkey-memory-flood-k7hxp",
+        "last": "2026-10-19T07:20:13.182872Z",
+        "message": "Successfully assigned astronomy-shop/valkey-memory-flood-k7hxp to kind-worker3"
+       }
+      ],
+      "logs": {
+       "total_lines": 0,
+       "error_lines": 0,
+       "error_lines_still_occurring": 0,
+       "error_lines_stopped": 0,
+       "telemetry_export_error_lines": 0
+      }
+     }
+    },
+    "deployment/valkey-cart": {
+     "kind": "Deployment",
+     "name": "valkey-cart",
+     "namespace": "astronomy-shop",
+     "healthy": false,
+     "signals": [
+      "only 0 of 1 desired replicas are ready",
+      "pod valkey-cart-859985f49d-dxcvn: container valkey-cart waiting in CrashLoopBackOff",
+      "pod valkey-cart-859985f49d-dxcvn: container valkey-cart was OOMKilled",
+      "pod valkey-cart-859985f49d-dxcvn: container valkey-cart restarted 4 times",
+      "warning events: BackOff x10",
+      "service valkey-cart selects this component but has 0 ready endpoints",
+      "firing alert KubePodNotReady",
+      "pod valkey-cart-859985f49d-dxcvn: container valkey-cart restarted 1 more time(s) in the last 49s"
+     ],
+     "detail": {
+      "component": "deployment/valkey-cart",
+      "namespace": "astronomy-shop",
+      "workload": {
+       "created": "2026-10-19T07:19:40Z",
+       "last_spec_write": "2026-10-19T07:19:40Z",
+       "spec_writers": [
+        {
+         "manager": "helm",
+         "op": "Apply",
+         "time": "2026-10-19T07:19:40Z"
+        }
+       ],
+       "replicas": 1,
+       "strategy": {
+        "rollingUpdate": {
+         "maxSurge": "25%",
+         "maxUnavailable": "25%"
+        },
+        "type": "RollingUpdate"
+       },
+       "service_account": "astronomy-shop",
+       "dns_policy": "ClusterFirst",
+       "restart_policy": "Always",
+       "containers": [
+        {
+         "name": "valkey-cart",
+         "image": "valkey/valkey:9.0.1-alpine3.23",
+         "ports": [
+          {
+           "port": 6379,
+           "name": "valkey-cart"
+          }
+         ],
+         "resources": {
+          "limits": {
+           "memory": "64Mi"
+          }
+         }
+        }
+       ],
+       "template_labels": {
+        "app.kubernetes.io/component": "valkey-cart",
+        "app.kubernetes.io/name": "valkey-cart",
+        "app.kubernetes.io/version": "2.2.0",
+        "opentelemetry.io/name": "valkey-cart"
+       }
+      },
+      "pods": [
+       {
+        "name": "valkey-cart-859985f49d-dxcvn",
+        "node": "kind-worker3",
+        "phase": "Running",
+        "started": "2026-10-19T07:19:41Z",
+        "conditions": [
+         "PodReadyToStartContainers=True",
+         "Initialized=True",
+         "Ready=False (ContainersNotReady: containers with unready status: [valkey-cart])",
+         "ContainersReady=False (ContainersNotReady: containers with unready status: [valkey-cart])",
+         "PodScheduled=True"
+        ],
+        "containers": [
+         {
+          "name": "valkey-cart",
+          "ready": false,
+          "restarts": 4,
+          "state": {
+           "waiting": {
+            "message": "back-off 1m20s restarting failed container=valkey-cart pod=valkey-cart-859985f49d-dxcvn_astronomy-shop(4e9af488-ddd4-4358-8e02-50cd6f57b25b)",
+            "reason": "CrashLoopBackOff"
+           }
+          },
+          "last_state": {
+           "terminated": {
+            "containerID": "containerd://8841d62b41854f54a8e5d33a95b4a3413e0d482d395971fca3e54c09d2e0d2ed",
+            "exitCode": 137,
+            "finishedAt": "2026-10-19T07:21:40Z",
+            "reason": "OOMKilled",
+            "startedAt": "2026-10-19T07:21:39Z"
+           }
+          }
+         }
+        ]
+       }
+      ],
+      "events": [
+       {
+        "type": "Warning",
+        "reason": "BackOff",
+        "count": 11,
+        "object": "pod/valkey-cart-859985f49d-dxcvn",
+        "last": "2026-10-19T07:22:31Z",
+        "message": "Back-off restarting failed container valkey-cart in pod valkey-cart-859985f49d-dxcvn_astronomy-shop(4e9af488-ddd4-4358-8e02-50cd6f57b25b)"
+       },
+       {
+        "type": "Normal",
+        "reason": "Pulled",
+        "count": 5,
+        "object": "pod/valkey-cart-859985f49d-dxcvn",
+        "last": "2026-10-19T07:21:39Z",
+        "message": "Container image \"valkey/valkey:9.0.1-alpine3.23\" already present on machine"
+       },
+       {
+        "type": "Normal",
+        "reason": "Created",
+        "count": 5,
+        "object": "pod/valkey-cart-859985f49d-dxcvn",
+        "last": "2026-10-19T07:21:39Z",
+        "message": "Created container: valkey-cart"
+       },
+       {
+        "type": "Normal",
+        "reason": "Started",
+        "count": 5,
+        "object": "pod/valkey-cart-859985f49d-dxcvn",
+        "last": "2026-10-19T07:21:39Z",
+        "message": "Started container valkey-cart"
+       },
+       {
+        "type": "Normal",
+        "reason": "SuccessfulCreate",
+        "count": 1,
+        "object": "replicaset/valkey-cart-859985f49d",
+        "last": "2026-10-19T07:19:41Z",
+        "message": "Created pod: valkey-cart-859985f49d-dxcvn"
+       },
+       {
+        "type": "Normal",
+        "reason": "Scheduled",
+        "count": 1,
+        "object": "pod/valkey-cart-859985f49d-dxcvn",
+        "last": "2026-10-19T07:19:41.057197Z",
+        "message": "Successfully assigned astronomy-shop/valkey-cart-859985f49d-dxcvn to kind-worker3"
+       }
+      ],
+      "logs": {
+       "total_lines": 7,
+       "error_lines": 0,
+       "error_lines_still_occurring": 0,
+       "error_lines_stopped": 0,
+       "telemetry_export_error_lines": 0,
+       "tail": [
+        "2026-10-19T07:21:39.348262385Z 1:M 19 Oct 2026 07:21:39.348 * oO0OoO0OoO0Oo Valkey is starting oO0OoO0OoO0Oo",
+        "2026-10-19T07:21:39.348290274Z 1:M 19 Oct 2026 07:21:39.348 * Valkey version=9.0.1, bits=64, commit=00000000, modified=0, pid=1, just started",
+        "2026-10-19T07:21:39.348294052Z 1:M 19 Oct 2026 07:21:39.348 # Warning: no config file specified, using the default config. In order to specify a config file use valkey-server /path/to/valkey.conf",
+        "2026-10-19T07:21:39.348487097Z 1:M 19 Oct 2026 07:21:39.348 * monotonic clock: POSIX clock_gettime",
+        "2026-10-19T07:21:39.349375565Z 1:M 19 Oct 2026 07:21:39.349 * Running mode=standalone, port=6379.",
+        "2026-10-19T07:21:39.349648312Z 1:M 19 Oct 2026 07:21:39.349 * Server initialized",
+        "2026-10-19T07:21:39.350102077Z 1:M 19 Oct 2026 07:21:39.350 * Ready to accept connections tcp"
+       ],
+       "previous_container_logs": {
+        "valkey-cart-859985f49d-dxcvn/valkey-cart": [
+         "1:M 19 Oct 2026 07:21:39.348 * oO0OoO0OoO0Oo Valkey is starting oO0OoO0OoO0Oo",
+         "1:M 19 Oct 2026 07:21:39.348 * Valkey version=9.0.1, bits=64, commit=00000000, modified=0, pid=1, just started",
+         "1:M 19 Oct 2026 07:21:39.348 # Warning: no config file specified, using the default config. In order to specify a config file use valkey-server /path/to/valkey.conf",
+         "1:M 19 Oct 2026 07:21:39.348 * monotonic clock: POSIX clock_gettime",
+         "1:M 19 Oct 2026 07:21:39.349 * Running mode=standalone, port=6379.",
+         "1:M 19 Oct 2026 07:21:39.349 * Server initialized",
+         "1:M 19 Oct 2026 07:21:39.350 * Ready to accept connections tcp"
+        ]
+       }
+      },
+      "clients": [
+       "deployment/cart"
+      ],
+      "service_checks": [
+       "service valkey-cart has no ready endpoints"
+      ],
+      "rbac": {
+       "service_account": "astronomy-shop/astronomy-shop",
+       "can_i": [
+        "selfsubjectreviews.authentication.k8s.io [] [] [create]",
+        "selfsubjectaccessreviews.authorization.k8s.io [] [] [create]",
+        "selfsubjectrulesreviews.authorization.k8s.io [] [] [create]",
+        "[/.well-known/openid-configuration/] [] [get]",
+        "[/.well-known/openid-configuration] [] [get]",
+        "[/api/*] [] [get]",
+        "[/api] [] [get]",
+        "[/apis/*] [] [get]",
+        "[/apis] [] [get]",
+        "[/healthz] [] [get]",
+        "[/healthz] [] [get]",
+        "[/livez] [] [get]",
+        "[/livez] [] [get]"
+       ]
+      }
+     }
+    }
+   },
+   "cluster": {
+    "symptom_onset": "2026-10-19T07:20:16+00:00",
+    "recent_changes": [
+     {
+      "object": "daemonset/otel-collector-agent",
+      "at": "2026-10-19T07:19:59Z",
+      "modified_after_creation_s": 19,
+      "fields": [
+       "template.annotations.kubectl.kubernetes.io/restartedAt"
+      ],
+      "seconds_ago": 147,
+      "seconds_before_symptoms": 17,
+      "role": "observability"
+     }
+    ],
+    "findings": []
+   }
+  },
+  "questions": {
+   "best_explanation": {
+    "type": "choice",
+    "criteria": {
+     "o1": "Origin: daemonset/astronomy-shop/otel-collector-agent. daemonset otel-collector-agent was changed recently and breaks daemonset/otel-collector-agent, which it acts on. | Details: daemonset otel-collector-agent fields written: template.annotations.kubectl.kubernetes.io/restartedAt | Observed impact on: daemonset/astronomy-shop/otel-collector-agent | Checks: daemonset/astronomy-shop/otel-collector-agent was made before the symptoms began (supports); daemonset/otel-collector-agent shows symptoms of its own (supports)",
+     "o2": "Origin: daemonset/astronomy-shop/otel-collector-agent. The pod template change 'template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-19T13:19:59+06:00' in revision 2 of daemonset/otel-collector-agent breaks daemonset/otel-collector-agent. | Details: template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-19T13:19:59+06:00 | Observed impact on: daemonset/astronomy-shop/otel-collector-agent | Checks: revision 2 of daemonset/otel-collector-agent was made before the symptoms began (supports); daemonset/otel-collector-agent shows symptoms of its own (supports)",
+     "o3": "Origin: deployment/astronomy-shop/valkey-cart. The fault is in this component; the mechanism is not established. | Observed impact on: deployment/astronomy-shop/valkey-cart",
+     "o4": "Origin: job/astronomy-shop/valkey-memory-flood. The fault is in this component; the mechanism is not established. | Observed impact on: job/astronomy-shop/valkey-memory-flood",
+     "o5": "None of these explanations fits the evidence.",
+     "o6": "Origin: job/astronomy-shop/valkey-memory-flood. job/astronomy-shop/valkey-memory-flood appeared 33s after the rest of the application and 3s before the first symptom; what it does to the failing components is not visible in the collected evidence. | Details: job has 1 active pod(s) and has not completed | Observed impact on: job/astronomy-shop/valkey-memory-flood | Checks: job/astronomy-shop/valkey-memory-flood appeared just before the symptoms (supports)",
+     "o7": "Origin: job/astronomy-shop/valkey-memory-flood. job/astronomy-shop/valkey-memory-flood has a wrong setting of its own: job has 1 active pod(s) and has not completed | Details: job has 1 active pod(s) and has not completed | Observed impact on: job/astronomy-shop/valkey-memory-flood | Checks: job/astronomy-shop/valkey-memory-flood shows symptoms of its own (supports)"
+    },
+    "instructions": {
+     "question": "Which explanation best accounts for all the observed symptoms in `evidence`?",
+     "how_to_decide": [
+      "Prefer the explanation whose chain is supported by the observed facts and explains the most symptoms; an explanation contradicted by a fact is unlikely.",
+      "A component that only fails because something it calls fails is a victim, not the origin.",
+      "Choose `o5` when none of the explanations fits the evidence."
+     ]
+    }
+   }
+  },
+  "model": "openai/gpt-6-luna-decisions-20261006",
+  "latency_ms": 884,
+  "usage": {
+   "input_tokens": 8151,
+   "output_tokens": 0,
+   "cost": 0.0008151
+  },
+  "answers": {
+   "best_explanation": {
+    "type": "choice",
+    "choice": "o4",
+    "confidence": 0.38,
+    "probabilities": {
+     "o1": 0.04,
+     "o2": 0.02,
+     "o3": 0.09,
+     "o4": 0.47,
+     "o5": 0.13,
+     "o6": 0.17,
+     "o7": 0.08
+    }
+   }
+  }
+ },
+ {
+  "label": "characterize:1",
+  "state": {
+   "application": {
+    "name": "OpenTelemetry Demo Astronomy Shop",
+    "description": "An online shopping platform built with a microservices architecture, showcasing OpenTelemetry instrumentation for distributed tracing across services.",
+    "namespaces": [
+     "astronomy-shop"
+    ]
+   },
+   "component": {
+    "kind": "Job",
+    "name": "valkey-memory-flood",
+    "namespace": "astronomy-shop",
+    "healthy": false,
+    "signals": [
+     "job has 1 active pod(s) and has not completed"
+    ],
+    "detail": {
+     "component": "job/valkey-memory-flood",
+     "namespace": "astronomy-shop",
+     "workload": {
+      "created": "2026-10-19T07:20:13Z",
+      "last_spec_write": "2026-10-19T07:20:13Z",
+      "spec_writers": [
+       {
+        "manager": "OpenAPI-Generator",
+        "op": "Update",
+        "time": "2026-10-19T07:20:13Z"
+       }
+      ],
+      "dns_policy": "ClusterFirst",
+      "restart_policy": "Never",
+      "containers": [
+       {
+        "name": "flooder",
+        "image": "ghcr.io/sregym/redis-client:8.1.0-py3.10",
+        "command": [
+         "python3",
+         "-c",
+         "import base64; exec(base64.b64decode('aW1wb3J0IHJlZGlzCmltcG9ydCB0aHJlYWRpbmcKaW1wb3J0IHRpbWUKCmRlZiBmbG9vZF9yZWRpcygpOgogICAgY2xpZW50ID0gcmVkaXMuUmVkaXMoaG9zdD0ndmFsa2V5LWNhcnQnLCBwb3J0PTYzNzkpCiAgICB3aGlsZSBUcnVlOgogICAgICAgIHRyeToKICAgICAgICAgICAgcGF5bG9hZCA9ICd4JyAqIDEwMDAwMDAKICAgICAgICAgICAgY2xpZW50LnNldChmImtleV97dGltZS50aW1lKCl9IiwgcGF5bG9hZCkKICAgICAgICBleGNlcHQgRXhjZXB0aW9uIGFzIGU6CiAgICAgICAgICAgIHByaW50KGYiRXJyb3I6IHtlfSIpCiAgICAgICAgICAgIHRpbWUuc2xlZXAoMSkKCnRocmVhZHMgPSBbXQpmb3IgXyBpbiByYW5nZSgxMCk6CiAgICB0ID0gdGhyZWFkaW5nLlRocmVhZCh0YXJnZXQ9Zmxvb2RfcmVkaXMpCiAgICB0LnN0YXJ0KCkKICAgIHRocmVhZHMuYXBwZW5kKHQpCgpmb3IgdCBpbiB0aHJlYWRzOgogICAgdC5qb2luKCk='))"
+        ]
+       }
+      ],
+      "template_labels": {
+       "batch.kubernetes.io/controller-uid": "fd3bd9cb-9f8a-4a93-8739-d40107fd7c73",
+       "batch.kubernetes.io/job-name": "valkey-memory-flood",
+       "controller-uid": "fd3bd9cb-9f8a-4a93-8739-d40107fd7c73",
+       "job-name": "valkey-memory-flood"
+      }
+     },
+     "pods": [
+      {
+       "name": "valkey-memory-flood-k7hxp",
+       "node": "kind-worker3",
+       "phase": "Running",
+       "started": "2026-10-19T07:20:13Z",
+       "ready_since": "2026-10-19T07:20:13Z",
+       "conditions": [
+        "PodReadyToStartContainers=True",
+        "Initialized=True",
+        "Ready=True",
+        "ContainersReady=True",
+        "PodScheduled=True"
+       ],
+       "containers": [
+        {
+         "name": "flooder",
+         "ready": true,
+         "restarts": 0,
+         "state": {
+          "running": {
+           "startedAt": "2026-10-19T07:20:13Z"
+          }
+         }
+        }
+       ]
+      }
+     ],
+     "events": [
+      {
+       "type": "Normal",
+       "reason": "Pulled",
+       "count": 1,
+       "object": "pod/valkey-memory-flood-k7hxp",
+       "last": "2026-10-19T07:20:13Z",
+       "message": "Container image \"ghcr.io/sregym/redis-client:8.1.0-py3.10\" already present on machine"
+      },
+      {
+       "type": "Normal",
+       "reason": "Created",
+       "count": 1,
+       "object": "pod/valkey-memory-flood-k7hxp",
+       "last": "2026-10-19T07:20:13Z",
+       "message": "Created container: flooder"
+      },
+      {
+       "type": "Normal",
+       "reason": "Started",
+       "count": 1,
+       "object": "pod/valkey-memory-flood-k7hxp",
+       "last": "2026-10-19T07:20:13Z",
+       "message": "Started container flooder"
+      },
+      {
+       "type": "Normal",
+       "reason": "SuccessfulCreate",
+       "count": 1,
+       "object": "job/valkey-memory-flood",
+       "last": "2026-10-19T07:20:13Z",
+       "message": "Created pod: valkey-memory-flood-k7hxp"
+      },
+      {
+       "type": "Normal",
+       "reason": "Scheduled",
+       "count": 1,
+       "object": "pod/valkey-memory-flood-k7hxp",
+       "last": "2026-10-19T07:20:13.182872Z",
+       "message": "Successfully assigned astronomy-shop/valkey-memory-flood-k7hxp to kind-worker3"
+      }
+     ],
+     "logs": {
+      "total_lines": 0,
+      "error_lines": 0,
+      "error_lines_still_occurring": 0,
+      "error_lines_stopped": 0,
+      "telemetry_export_error_lines": 0
+     }
+    }
+   },
+   "evidence": [
+    {
+     "id": "f1",
+     "text": "container flooder command: python3 -c import base64; exec(base64.b64decode('aW1wb3J0IHJlZGlzCmltcG9ydCB0aHJlYWRpbmcKaW1wb3J0IHRpbWUKCmRlZiBmbG9vZF9yZWRpcygpOgogICAgY2xpZW50ID0gcmVkaXMuUmVkaXMoaG9zdD0ndmFsa2V5LWNhcnQnLCBwb3J0PTYzNzkpCiAgICB3aGlsZSBUcnVlOgogICAgICAgIHRyeToKICAgICAgICAgICAgcGF5bG9hZCA9ICd4JyAqIDEwMDAwMDAKICAgICAgICAgICAgY2xpZW50LnNldChmImtleV97dGltZS50aW1lKCl9IiwgcGF5bG9hZCkKICAgICAgICBleGNlcHQgRXhjZXB0aW9uIGFzIGU6CiAgICAgICAgICAgIHByaW50KGYiRXJyb3I6IHtlfSIpCiAgICAgICAgICAgIHRpbWUuc2xlZXAoMSkKCnRocmVhZHMgPSB"
+    },
+    {
+     "id": "f2",
+     "text": "job has 1 active pod(s) and has not completed"
+    },
+    {
+     "id": "f3",
+     "text": "container flooder image ghcr.io/sregym/redis-client:8.1.0-py3.10 resources none"
+    }
+   ]
+  },
+  "questions": {
+   "fault_category": {
+    "type": "choice",
+    "criteria": {
+     "config_value": {
+      "what": "A wrong, missing, duplicated, or shadowed value in the component's own spec or configuration files: environment variables, command arguments, an address or port it uses to reach another component, config file content, or a setting that makes it consume more CPU or memory than before.",
+      "not_for": "Credentials (credentials_or_auth), probes (health_probe_config), resources (resource_limits), DNS settings (dns_resolution), a Service object's selector or ports (service_routing)."
+     },
+     "credentials_or_auth": {
+      "what": "Authentication between components fails: rotated or wrong credentials in a Secret, a password or auth requirement changed on a backend, stale credentials in running pods.",
+      "not_for": "Kubernetes API authorization (rbac_permission)."
+     },
+     "image_or_binary": {
+      "what": "The container image or binary is wrong: bad image name or tag, ImagePullBackOff, exec format error, a binary that crashes immediately regardless of configuration.",
+      "not_for": "A crash caused by a config value or a failing dependency."
+     },
+     "resource_limits": {
+      "what": "CPU or memory requests or limits set too low for the workload's normal needs: throttling, OOMKilled, eviction, or a request too large to schedule.",
+      "not_for": "A namespace quota that rejects pods, or values rewritten at admission (admission_or_namespace_policy); a configuration change that makes the workload consume more (config_value)."
+     },
+     "scheduling_constraint": {
+      "what": "Pods cannot be placed: nodeSelector, affinity, anti-affinity, tolerations, or taints that no node satisfies, or a volume that cannot be bound on any eligible node.",
+      "not_for": "Pods rejected before scheduling by a quota or webhook (admission_or_namespace_policy)."
+     },
+     "rollout_or_replica_config": {
+      "what": "Replica or rollout settings that stop the workload from running: replicas set to zero, a rolling update strategy that takes every pod down or can never progress, HPA misconfiguration.",
+      "not_for": "Pods that exist but fail for another reason."
+     },
+     "health_probe_config": {
+      "what": "A readiness, liveness, or startup probe points at the wrong path, port, or command, so healthy containers are reported not ready or are restarted.",
+      "not_for": "Probes that fail because the application really is broken."
+     },
+     "service_routing": {
+      "what": "A Service sends traffic to the wrong place or nowhere: its selector matches the wrong pods or none, or its port or targetPort does not match the pods' container ports.",
+      "not_for": "A client configured with the wrong address or port (config_value)."
+     },
+     "network_policy": {
+      "what": "A NetworkPolicy blocks traffic to or from the component.",
+      "not_for": "Traffic that reaches the component and is then rejected or fails."
+     },
+     "traffic_policy": {
+      "what": "A Service traffic policy (internalTrafficPolicy or externalTrafficPolicy set to Local) or session affinity restricts which endpoints receive traffic, so some clients reach no endpoint.",
+      "not_for": "A selector or port mismatch (service_routing)."
+     },
+     "dns_resolution": {
+      "what": "Name resolution fails or returns wrong answers: the pod's dnsPolicy, dnsConfig, or hostAliases, or the cluster DNS (CoreDNS) configuration.",
+      "not_for": "A name that resolves but whose backend refuses connections."
+     },
+     "storage_volume": {
+      "what": "Persistent volume problems: PVC Pending or Lost, a volume mounted twice or at the wrong path, mount failures, disk full.",
+      "not_for": "ConfigMap or Secret mounts with wrong content (config_value)."
+     },
+     "job_lifecycle": {
+      "what": "A Job or CronJob does not complete or runs wrongly: a sidecar keeps the pod alive after the main container exits, jobs pile up, restartPolicy or backoffLimit or schedule is wrong.",
+      "not_for": "A job whose main container itself fails for another category's reason."
+     },
+     "admission_or_namespace_policy": {
+      "what": "An admission webhook or namespace policy rejects or rewrites pods: a webhook with no backend and failurePolicy Fail, a mutating webhook injecting bad values, a ResourceQuota or LimitRange that rejects pods.",
+      "not_for": "Scheduling failures of pods that were admitted (scheduling_constraint)."
+     },
+     "rbac_permission": {
+      "what": "The component is denied Kubernetes API operations it needs (403 forbidden) because a Role, ClusterRole, or binding was removed or narrowed.",
+      "not_for": "Authentication between application components (credentials_or_auth)."
+     },
+     "data_or_traffic": {
+      "what": "The component's inputs are the problem: a poison message it cannot process, a retry or timeout feedback loop, a load pattern or a request filter that saturates it.",
+      "not_for": "Failures explained by the component's own spec or a Kubernetes object."
+     },
+     "code_bug": {
+      "what": "The component runs with correct configuration, resources, and inputs, and still fails because of its own logic.",
+      "not_for": "Anything explained by another category."
+     },
+     "other": {
+      "what": "None of the categories above describes the fault."
+     }
+    },
+    "instructions": {
+     "question": "Which category names the cause of the fault in `component`?",
+     "how_to_decide": [
+      "Pods Pending, not ready, restarting, or terminating are symptoms. Choose the category of what made them so: a probe pointing at the wrong port is health_probe_config, a quota rejection is admission_or_namespace_policy, a nodeSelector no node matches is scheduling_constraint, a NetworkPolicy is network_policy.",
+      "Judge from `component.signals`, `component.spec_flags`, `component.warning_events`, `component.log_findings`, `component.previous_container_logs`, and `component.containers`.",
+      "A limit is the cause only if the limit is too low for the workload's normal needs; when a recent change (see `component.template_changes`) makes the workload consume more, the change is the cause."
+     ]
+    }
+   },
+   "key_evidence": {
+    "type": "choice",
+    "criteria": {
+     "f1": "container flooder command: python3 -c import base64; exec(base64.b64decode('aW1wb3J0IHJlZGlzCmltcG9ydCB0aHJlYWRpbmcKaW1wb3J0IHRpbWUKCmRlZiBmbG9vZF9yZWRpcygpOgogICAgY2xpZW50ID0gcmVkaXMuUmVkaXMoaG9zdD0ndmFsa2V5LWNhcnQnLCBwb3J0PTYzNzkpCiAgICB3aGlsZSBUcnVlOgogICAgICAgIHRyeToKICAgICAgICAgICAgcGF5bG9hZCA9ICd4JyAqIDEwMDAwMDAKICAgICAgICAgICAgY2xpZW50LnNldChmImtleV97dGltZS50aW1lKCl9IiwgcGF5bG9hZCkKICAgICAgICBleGNlcHQgRXhjZXB0aW9uIGFzIGU6CiAgICAgICAgICAgIHByaW50KGYiRXJyb3I6IHtlfSIpCiAgICAgICAgICAgIHRpbWUuc2xlZXAoMSkKCnRocmVhZHMgPSB",
+     "f2": "job has 1 active pod(s) and has not completed",
+     "f3": "container flooder image ghcr.io/sregym/redis-client:8.1.0-py3.10 resources none"
+    },
+    "instructions": {
+     "question": "Which single item in `evidence` most directly reveals the mechanism of the fault in `component`?",
+     "how_to_decide": [
+      "Prefer an item that names a configuration, policy, object, or change (a duplicated env var, a NetworkPolicy, a quota rejection message, a probe target, a modified Secret) over an item that only describes a state (Pending, terminating, not ready, restarts, replicas).",
+      "Prefer an item with a specific value or object name over a generic one.",
+      "Each option id names one item in `evidence`."
+     ]
+    }
+   }
+  },
+  "model": "openai/gpt-6-luna-decisions-20261006",
+  "latency_ms": 522,
+  "usage": {
+   "input_tokens": 3353,
+   "output_tokens": 0,
+   "cost": 0.0003353
+  },
+  "answers": {
+   "fault_category": {
+    "type": "choice",
+    "choice": "data_or_traffic",
+    "confidence": 0.35,
+    "probabilities": {
+     "config_value": 0.18,
+     "credentials_or_auth": 0.01,
+     "image_or_binary": 0.02,
+     "resource_limits": 0.01,
+     "scheduling_constraint": 0.01,
+     "rollout_or_replica_config": 0.01,
+     "health_probe_config": 0.01,
+     "service_routing": 0.01,
+     "network_policy": 0.01,
+     "traffic_policy": 0.01,
+     "dns_resolution": 0.01,
+     "storage_volume": 0.0,
+     "job_lifecycle": 0.17,
+     "admission_or_namespace_policy": 0.01,
+     "rbac_permission": 0.02,
+     "data_or_traffic": 0.39,
+     "code_bug": 0.02,
+     "other": 0.1
+    }
+   },
+   "key_evidence": {
+    "type": "choice",
+    "choice": "f1",
+    "confidence": 1.0,
+    "probabilities": {
+     "f1": 1.0,
+     "f2": 0.0,
+     "f3": 0.0
+    }
+   }
+  }
+ },
+ {
+  "label": "characterize:2",
+  "state": {
+   "application": {
+    "name": "OpenTelemetry Demo Astronomy Shop",
+    "description": "An online shopping platform built with a microservices architecture, showcasing OpenTelemetry instrumentation for distributed tracing across services.",
+    "namespaces": [
+     "astronomy-shop"
+    ]
+   },
+   "component": {
+    "kind": "Job",
+    "name": "valkey-memory-flood",
+    "namespace": "astronomy-shop",
+    "healthy": false,
+    "signals": [
+     "job has 1 active pod(s) and has not completed"
+    ],
+    "detail": {
+     "component": "job/valkey-memory-flood",
+     "namespace": "astronomy-shop",
+     "workload": {
+      "created": "2026-10-19T07:20:13Z",
+      "last_spec_write": "2026-10-19T07:20:13Z",
+      "spec_writers": [
+       {
+        "manager": "OpenAPI-Generator",
+        "op": "Update",
+        "time": "2026-10-19T07:20:13Z"
+       }
+      ],
+      "dns_policy": "ClusterFirst",
+      "restart_policy": "Never",
+      "containers": [
+       {
+        "name": "flooder",
+        "image": "ghcr.io/sregym/redis-client:8.1.0-py3.10",
+        "command": [
+         "python3",
+         "-c",
+         "import base64; exec(base64.b64decode('aW1wb3J0IHJlZGlzCmltcG9ydCB0aHJlYWRpbmcKaW1wb3J0IHRpbWUKCmRlZiBmbG9vZF9yZWRpcygpOgogICAgY2xpZW50ID0gcmVkaXMuUmVkaXMoaG9zdD0ndmFsa2V5LWNhcnQnLCBwb3J0PTYzNzkpCiAgICB3aGlsZSBUcnVlOgogICAgICAgIHRyeToKICAgICAgICAgICAgcGF5bG9hZCA9ICd4JyAqIDEwMDAwMDAKICAgICAgICAgICAgY2xpZW50LnNldChmImtleV97dGltZS50aW1lKCl9IiwgcGF5bG9hZCkKICAgICAgICBleGNlcHQgRXhjZXB0aW9uIGFzIGU6CiAgICAgICAgICAgIHByaW50KGYiRXJyb3I6IHtlfSIpCiAgICAgICAgICAgIHRpbWUuc2xlZXAoMSkKCnRocmVhZHMgPSBbXQpmb3IgXyBpbiByYW5nZSgxMCk6CiAgICB0ID0gdGhyZWFkaW5nLlRocmVhZCh0YXJnZXQ9Zmxvb2RfcmVkaXMpCiAgICB0LnN0YXJ0KCkKICAgIHRocmVhZHMuYXBwZW5kKHQpCgpmb3IgdCBpbiB0aHJlYWRzOgogICAgdC5qb2luKCk='))"
+        ]
+       }
+      ],
+      "template_labels": {
+       "batch.kubernetes.io/controller-uid": "fd3bd9cb-9f8a-4a93-8739-d40107fd7c73",
+       "batch.kubernetes.io/job-name": "valkey-memory-flood",
+       "controller-uid": "fd3bd9cb-9f8a-4a93-8739-d40107fd7c73",
+       "job-name": "valkey-memory-flood"
+      }
+     },
+     "pods": [
+      {
+       "name": "valkey-memory-flood-k7hxp",
+       "node": "kind-worker3",
+       "phase": "Running",
+       "started": "2026-10-19T07:20:13Z",
+       "ready_since": "2026-10-19T07:20:13Z",
+       "conditions": [
+        "PodReadyToStartContainers=True",
+        "Initialized=True",
+        "Ready=True",
+        "ContainersReady=True",
+        "PodScheduled=True"
+       ],
+       "containers": [
+        {
+         "name": "flooder",
+         "ready": true,
+         "restarts": 0,
+         "state": {
+          "running": {
+           "startedAt": "2026-10-19T07:20:13Z"
+          }
+         }
+        }
+       ]
+      }
+     ],
+     "events": [
+      {
+       "type": "Normal",
+       "reason": "Pulled",
+       "count": 1,
+       "object": "pod/valkey-memory-flood-k7hxp",
+       "last": "2026-10-19T07:20:13Z",
+       "message": "Container image \"ghcr.io/sregym/redis-client:8.1.0-py3.10\" already present on machine"
+      },
+      {
+       "type": "Normal",
+       "reason": "Created",
+       "count": 1,
+       "object": "pod/valkey-memory-flood-k7hxp",
+       "last": "2026-10-19T07:20:13Z",
+       "message": "Created container: flooder"
+      },
+      {
+       "type": "Normal",
+       "reason": "Started",
+       "count": 1,
+       "object": "pod/valkey-memory-flood-k7hxp",
+       "last": "2026-10-19T07:20:13Z",
+       "message": "Started container flooder"
+      },
+      {
+       "type": "Normal",
+       "reason": "SuccessfulCreate",
+       "count": 1,
+       "object": "job/valkey-memory-flood",
+       "last": "2026-10-19T07:20:13Z",
+       "message": "Created pod: valkey-memory-flood-k7hxp"
+      },
+      {
+       "type": "Normal",
+       "reason": "Scheduled",
+       "count": 1,
+       "object": "pod/valkey-memory-flood-k7hxp",
+       "last": "2026-10-19T07:20:13.182872Z",
+       "message": "Successfully assigned astronomy-shop/valkey-memory-flood-k7hxp to kind-worker3"
+      }
+     ],
+     "logs": {
+      "total_lines": 0,
+      "error_lines": 0,
+      "error_lines_still_occurring": 0,
+      "error_lines_stopped": 0,
+      "telemetry_export_error_lines": 0
+     }
+    }
+   },
+   "evidence": [
+    {
+     "id": "f1",
+     "text": "container flooder image ghcr.io/sregym/redis-client:8.1.0-py3.10 resources none"
+    },
+    {
+     "id": "f2",
+     "text": "job has 1 active pod(s) and has not completed"
+    },
+    {
+     "id": "f3",
+     "text": "container flooder command: python3 -c import base64; exec(base64.b64decode('aW1wb3J0IHJlZGlzCmltcG9ydCB0aHJlYWRpbmcKaW1wb3J0IHRpbWUKCmRlZiBmbG9vZF9yZWRpcygpOgogICAgY2xpZW50ID0gcmVkaXMuUmVkaXMoaG9zdD0ndmFsa2V5LWNhcnQnLCBwb3J0PTYzNzkpCiAgICB3aGlsZSBUcnVlOgogICAgICAgIHRyeToKICAgICAgICAgICAgcGF5bG9hZCA9ICd4JyAqIDEwMDAwMDAKICAgICAgICAgICAgY2xpZW50LnNldChmImtleV97dGltZS50aW1lKCl9IiwgcGF5bG9hZCkKICAgICAgICBleGNlcHQgRXhjZXB0aW9uIGFzIGU6CiAgICAgICAgICAgIHByaW50KGYiRXJyb3I6IHtlfSIpCiAgICAgICAgICAgIHRpbWUuc2xlZXAoMSkKCnRocmVhZHMgPSB"
+    }
+   ]
+  },
+  "questions": {
+   "fault_category": {
+    "type": "choice",
+    "criteria": {
+     "config_value": {
+      "what": "A wrong, missing, duplicated, or shadowed value in the component's own spec or configuration files: environment variables, command arguments, an address or port it uses to reach another component, config file content, or a setting that makes it consume more CPU or memory than before.",
+      "not_for": "Credentials (credentials_or_auth), probes (health_probe_config), resources (resource_limits), DNS settings (dns_resolution), a Service object's selector or ports (service_routing)."
+     },
+     "credentials_or_auth": {
+      "what": "Authentication between components fails: rotated or wrong credentials in a Secret, a password or auth requirement changed on a backend, stale credentials in running pods.",
+      "not_for": "Kubernetes API authorization (rbac_permission)."
+     },
+     "image_or_binary": {
+      "what": "The container image or binary is wrong: bad image name or tag, ImagePullBackOff, exec format error, a binary that crashes immediately regardless of configuration.",
+      "not_for": "A crash caused by a config value or a failing dependency."
+     },
+     "resource_limits": {
+      "what": "CPU or memory requests or limits set too low for the workload's normal needs: throttling, OOMKilled, eviction, or a request too large to schedule.",
+      "not_for": "A namespace quota that rejects pods, or values rewritten at admission (admission_or_namespace_policy); a configuration change that makes the workload consume more (config_value)."
+     },
+     "scheduling_constraint": {
+      "what": "Pods cannot be placed: nodeSelector, affinity, anti-affinity, tolerations, or taints that no node satisfies, or a volume that cannot be bound on any eligible node.",
+      "not_for": "Pods rejected before scheduling by a quota or webhook (admission_or_namespace_policy)."
+     },
+     "rollout_or_replica_config": {
+      "what": "Replica or rollout settings that stop the workload from running: replicas set to zero, a rolling update strategy that takes every pod down or can never progress, HPA misconfiguration.",
+      "not_for": "Pods that exist but fail for another reason."
+     },
+     "health_probe_config": {
+      "what": "A readiness, liveness, or startup probe points at the wrong path, port, or command, so healthy containers are reported not ready or are restarted.",
+      "not_for": "Probes that fail because the application really is broken."
+     },
+     "service_routing": {
+      "what": "A Service sends traffic to the wrong place or nowhere: its selector matches the wrong pods or none, or its port or targetPort does not match the pods' container ports.",
+      "not_for": "A client configured with the wrong address or port (config_value)."
+     },
+     "network_policy": {
+      "what": "A NetworkPolicy blocks traffic to or from the component.",
+      "not_for": "Traffic that reaches the component and is then rejected or fails."
+     },
+     "traffic_policy": {
+      "what": "A Service traffic policy (internalTrafficPolicy or externalTrafficPolicy set to Local) or session affinity restricts which endpoints receive traffic, so some clients reach no endpoint.",
+      "not_for": "A selector or port mismatch (service_routing)."
+     },
+     "dns_resolution": {
+      "what": "Name resolution fails or returns wrong answers: the pod's dnsPolicy, dnsConfig, or hostAliases, or the cluster DNS (CoreDNS) configuration.",
+      "not_for": "A name that resolves but whose backend refuses connections."
+     },
+     "storage_volume": {
+      "what": "Persistent volume problems: PVC Pending or Lost, a volume mounted twice or at the wrong path, mount failures, disk full.",
+      "not_for": "ConfigMap or Secret mounts with wrong content (config_value)."
+     },
+     "job_lifecycle": {
+      "what": "A Job or CronJob does not complete or runs wrongly: a sidecar keeps the pod alive after the main container exits, jobs pile up, restartPolicy or backoffLimit or schedule is wrong.",
+      "not_for": "A job whose main container itself fails for another category's reason."
+     },
+     "admission_or_namespace_policy": {
+      "what": "An admission webhook or namespace policy rejects or rewrites pods: a webhook with no backend and failurePolicy Fail, a mutating webhook injecting bad values, a ResourceQuota or LimitRange that rejects pods.",
+      "not_for": "Scheduling failures of pods that were admitted (scheduling_constraint)."
+     },
+     "rbac_permission": {
+      "what": "The component is denied Kubernetes API operations it needs (403 forbidden) because a Role, ClusterRole, or binding was removed or narrowed.",
+      "not_for": "Authentication between application components (credentials_or_auth)."
+     },
+     "data_or_traffic": {
+      "what": "The component's inputs are the problem: a poison message it cannot process, a retry or timeout feedback loop, a load pattern or a request filter that saturates it.",
+      "not_for": "Failures explained by the component's own spec or a Kubernetes object."
+     },
+     "code_bug": {
+      "what": "The component runs with correct configuration, resources, and inputs, and still fails because of its own logic.",
+      "not_for": "Anything explained by another category."
+     },
+     "other": {
+      "what": "None of the categories above describes the fault."
+     }
+    },
+    "instructions": {
+     "question": "Which category names the cause of the fault in `component`?",
+     "how_to_decide": [
+      "Pods Pending, not ready, restarting, or terminating are symptoms. Choose the category of what made them so: a probe pointing at the wrong port is health_probe_config, a quota rejection is admission_or_namespace_policy, a nodeSelector no node matches is scheduling_constraint, a NetworkPolicy is network_policy.",
+      "Judge from `component.signals`, `component.spec_flags`, `component.warning_events`, `component.log_findings`, `component.previous_container_logs`, and `component.containers`.",
+      "A limit is the cause only if the limit is too low for the workload's normal needs; when a recent change (see `component.template_changes`) makes the workload consume more, the change is the cause."
+     ]
+    }
+   },
+   "key_evidence": {
+    "type": "choice",
+    "criteria": {
+     "f1": "container flooder image ghcr.io/sregym/redis-client:8.1.0-py3.10 resources none",
+     "f2": "job has 1 active pod(s) and has not completed",
+     "f3": "container flooder command: python3 -c import base64; exec(base64.b64decode('aW1wb3J0IHJlZGlzCmltcG9ydCB0aHJlYWRpbmcKaW1wb3J0IHRpbWUKCmRlZiBmbG9vZF9yZWRpcygpOgogICAgY2xpZW50ID0gcmVkaXMuUmVkaXMoaG9zdD0ndmFsa2V5LWNhcnQnLCBwb3J0PTYzNzkpCiAgICB3aGlsZSBUcnVlOgogICAgICAgIHRyeToKICAgICAgICAgICAgcGF5bG9hZCA9ICd4JyAqIDEwMDAwMDAKICAgICAgICAgICAgY2xpZW50LnNldChmImtleV97dGltZS50aW1lKCl9IiwgcGF5bG9hZCkKICAgICAgICBleGNlcHQgRXhjZXB0aW9uIGFzIGU6CiAgICAgICAgICAgIHByaW50KGYiRXJyb3I6IHtlfSIpCiAgICAgICAgICAgIHRpbWUuc2xlZXAoMSkKCnRocmVhZHMgPSB"
+    },
+    "instructions": {
+     "question": "Which single item in `evidence` most directly reveals the mechanism of the fault in `component`?",
+     "how_to_decide": [
+      "Prefer an item that names a configuration, policy, object, or change (a duplicated env var, a NetworkPolicy, a quota rejection message, a probe target, a modified Secret) over an item that only describes a state (Pending, terminating, not ready, restarts, replicas).",
+      "Prefer an item with a specific value or object name over a generic one.",
+      "Each option id names one item in `evidence`."
+     ]
+    }
+   }
+  },
+  "model": "openai/gpt-6-luna-decisions-20261006",
+  "latency_ms": 656,
+  "usage": {
+   "input_tokens": 3353,
+   "output_tokens": 0,
+   "cost": 0.0003353
+  },
+  "answers": {
+   "fault_category": {
+    "type": "choice",
+    "choice": "job_lifecycle",
+    "confidence": 0.24,
+    "probabilities": {
+     "config_value": 0.2,
+     "credentials_or_auth": 0.01,
+     "image_or_binary": 0.01,
+     "resource_limits": 0.02,
+     "scheduling_constraint": 0.01,
+     "rollout_or_replica_config": 0.01,
+     "health_probe_config": 0.01,
+     "service_routing": 0.01,
+     "network_policy": 0.01,
+     "traffic_policy": 0.01,
+     "dns_resolution": 0.01,
+     "storage_volume": 0.01,
+     "job_lifecycle": 0.28,
+     "admission_or_namespace_policy": 0.01,
+     "rbac_permission": 0.01,
+     "data_or_traffic": 0.26,
+     "code_bug": 0.03,
+     "other": 0.09
+    }
+   },
+   "key_evidence": {
+    "type": "choice",
+    "choice": "f3",
+    "confidence": 0.96,
+    "probabilities": {
+     "f1": 0.02,
+     "f2": 0.01,
+     "f3": 0.97
+    }
+   }
+  }
+ }
+]

@@ -1,0 +1,217 @@
+{
+ "problem_id": "jev_diag_anon_0ac35472bc85452fc0eef454c255bc73_20261018_170156",
+ "submit_arm": 0,
+ "order": [
+  3,
+  1,
+  2,
+  0
+ ],
+ "arms": [
+  {
+   "arm": 0,
+   "kind": "v2",
+   "model": "openrouter/typesafe/jev-1.13",
+   "position": 3,
+   "seconds": 1.3,
+   "requests": 2,
+   "input_tokens": 6064,
+   "cost_usd": 0.000255,
+   "error": null,
+   "investigation": {
+    "rounds": [
+     {
+      "candidates": [
+       "change:deployment/nginx-thrift:container nginx-thrift limits.memory: unset -> 256Mi",
+       "change:deployment/nginx-thrift:container nginx-thrift requests.memory: unset -> 128Mi",
+       "change:deployment/nginx-thrift:together",
+       "change:mutatingwebhookconfiguration/gatekeeper-mutating-webhook-configuration",
+       "partial:deployment/nginx-thrift",
+       "acts-on:mutatingwebhookconfiguration/cert-manager-webhook:mutating webhook webhook.cert-manager.io rewrites objects ma"
+      ],
+      "probabilities": {
+       "change:deployment/nginx-thrift:container nginx-thrift limits.memory: unset -> 256Mi": 0.01,
+       "change:deployment/nginx-thrift:container nginx-thrift requests.memory: unset -> 128Mi": 0.005,
+       "change:deployment/nginx-thrift:together": 0.01,
+       "change:mutatingwebhookconfiguration/gatekeeper-mutating-webhook-configuration": 0.965,
+       "partial:deployment/nginx-thrift": 0.0,
+       "acts-on:mutatingwebhookconfiguration/cert-manager-webhook:mutating webhook webhook.cert-manager.io rewrites objects ma": 0.0,
+       "none_of_these": 0.01
+      },
+      "picks": [
+       "change:mutatingwebhookconfiguration/gatekeeper-mutating-webhook-configuration",
+       "change:mutatingwebhookconfiguration/gatekeeper-mutating-webhook-configuration"
+      ],
+      "route": "accept"
+     }
+    ],
+    "explanations": 10,
+    "winner": "change:mutatingwebhookconfiguration/gatekeeper-mutating-webhook-configuration",
+    "pattern": "acts-on",
+    "uncertain": false
+   },
+   "text": "Root cause: mutatingwebhookconfiguration `gatekeeper-mutating-webhook-configuration`.\nMechanism: mutatingwebhookconfiguration gatekeeper-mutating-webhook-configuration was created recently and breaks deployment/nginx-thrift, which it acts on.\nConcrete details: mutating webhook mutation.gatekeeper.sh rewrites objects matching CREATE pods; MutatingWebhookConfiguration gatekeeper-mutating-webhook-configuration was created 135s ago, 11s after the workloads it intercepts; 8s before the first active symptom; rewrites pods of deployment/nginx-thrift at admission (container nginx-thrift limits.memory 16Mi, template 256Mi).\nObserved impact: deployment `nginx-thrift` in namespace `social-network`.\nEvidence:\n- mutating webhook mutation.gatekeeper.sh rewrites objects matching CREATE pods; MutatingWebhookConfiguration gatekeeper-mutating-webhook-configuration was created 135s ago, 11s after the workloads it intercepts; 8s before the first active symptom\n- rewrites pods of deployment/nginx-thrift at admission (container nginx-thrift limits.memory 16Mi, template 256Mi)\n- deployment/nginx-thrift: only 0 of 1 desired replicas are ready"
+  },
+  {
+   "arm": 1,
+   "kind": "v2",
+   "model": "openrouter/openai/gpt-6-luna-decisions",
+   "position": 1,
+   "seconds": 1.1,
+   "requests": 2,
+   "input_tokens": 4244,
+   "cost_usd": 0.000424,
+   "error": null,
+   "investigation": {
+    "rounds": [
+     {
+      "candidates": [
+       "change:deployment/nginx-thrift:container nginx-thrift limits.memory: unset -> 256Mi",
+       "change:deployment/nginx-thrift:container nginx-thrift requests.memory: unset -> 128Mi",
+       "change:deployment/nginx-thrift:together",
+       "change:mutatingwebhookconfiguration/gatekeeper-mutating-webhook-configuration",
+       "partial:deployment/nginx-thrift",
+       "acts-on:mutatingwebhookconfiguration/cert-manager-webhook:mutating webhook webhook.cert-manager.io rewrites objects ma"
+      ],
+      "probabilities": {
+       "change:deployment/nginx-thrift:container nginx-thrift limits.memory: unset -> 256Mi": 0.0,
+       "change:deployment/nginx-thrift:container nginx-thrift requests.memory: unset -> 128Mi": 0.0,
+       "change:deployment/nginx-thrift:together": 0.005,
+       "change:mutatingwebhookconfiguration/gatekeeper-mutating-webhook-configuration": 0.985,
+       "partial:deployment/nginx-thrift": 0.005,
+       "acts-on:mutatingwebhookconfiguration/cert-manager-webhook:mutating webhook webhook.cert-manager.io rewrites objects ma": 0.0,
+       "none_of_these": 0.005
+      },
+      "picks": [
+       "change:mutatingwebhookconfiguration/gatekeeper-mutating-webhook-configuration",
+       "change:mutatingwebhookconfiguration/gatekeeper-mutating-webhook-configuration"
+      ],
+      "route": "accept"
+     }
+    ],
+    "explanations": 10,
+    "winner": "change:mutatingwebhookconfiguration/gatekeeper-mutating-webhook-configuration",
+    "pattern": "acts-on",
+    "uncertain": false
+   },
+   "text": "Root cause: mutatingwebhookconfiguration `gatekeeper-mutating-webhook-configuration`.\nMechanism: mutatingwebhookconfiguration gatekeeper-mutating-webhook-configuration was created recently and breaks deployment/nginx-thrift, which it acts on.\nConcrete details: mutating webhook mutation.gatekeeper.sh rewrites objects matching CREATE pods; MutatingWebhookConfiguration gatekeeper-mutating-webhook-configuration was created 135s ago, 11s after the workloads it intercepts; 8s before the first active symptom; rewrites pods of deployment/nginx-thrift at admission (container nginx-thrift limits.memory 16Mi, template 256Mi).\nObserved impact: deployment `nginx-thrift` in namespace `social-network`.\nEvidence:\n- mutating webhook mutation.gatekeeper.sh rewrites objects matching CREATE pods; MutatingWebhookConfiguration gatekeeper-mutating-webhook-configuration was created 135s ago, 11s after the workloads it intercepts; 8s before the first active symptom\n- rewrites pods of deployment/nginx-thrift at admission (container nginx-thrift limits.memory 16Mi, template 256Mi)\n- deployment/nginx-thrift: only 0 of 1 desired replicas are ready"
+  },
+  {
+   "arm": 2,
+   "kind": "v1",
+   "model": "openrouter/typesafe/jev-1.13",
+   "position": 2,
+   "seconds": 2.7,
+   "requests": 2,
+   "input_tokens": 31537,
+   "cost_usd": 0.001325,
+   "error": null,
+   "investigation": {
+    "steps": [
+     {
+      "step": 1,
+      "node": "investigate",
+      "component": "deployment/nginx-thrift",
+      "verdict": "origin",
+      "origin_p": 0.99,
+      "victim_p": 0.01,
+      "next": "none",
+      "next_p": 0.96,
+      "category": "admission_or_namespace_policy",
+      "spec_checks": [
+       "service nginx-thrift has no ready endpoints"
+      ],
+      "blocked_input": null,
+      "key_evidence": "pod nginx-thrift-6c5bcfcb8f-cmr7j: container nginx-thrift limits.memory 16Mi, template 256Mi; container nginx-thrift requests.memory 16Mi, template 128Mi \u2014 the running pod differs from the pod template of its revision, so it was changed at admission; mutating webhooks whose rules and selectors match these pods: gatekeeper-mutating-webhook-configuration"
+     }
+    ],
+    "concluded": "deployment/nginx-thrift",
+    "fallback": null,
+    "triage_top": [
+     [
+      "other",
+      0.6
+     ],
+     [
+      "deployment/nginx-thrift",
+      0.4
+     ],
+     [
+      "deployment/compose-post-service",
+      0.0
+     ],
+     [
+      "deployment/home-timeline-redis",
+      0.0
+     ],
+     [
+      "deployment/home-timeline-service",
+      0.0
+     ]
+    ]
+   },
+   "text": "Root cause object: MutatingWebhookConfiguration `gatekeeper-mutating-webhook-configuration`, acting on Deployment `nginx-thrift` in namespace `social-network`.\nWhat the object does: rewrites pods of deployment/nginx-thrift at admission (container nginx-thrift limits.memory 16Mi, template 256Mi).\nMechanism: pod nginx-thrift-6c5bcfcb8f-cmr7j: container nginx-thrift limits.memory 16Mi, template 256Mi; container nginx-thrift requests.memory 16Mi, template 128Mi \u2014 the running pod differs from the pod template of its revision, so it was changed at admission; mutating webhooks whose rules and selectors match these pods: gatekeeper-mutating-webhook-configuration.\nFault type: admission webhook (MutatingWebhookConfiguration `gatekeeper-mutating-webhook-configuration` rejects or rewrites this workload's pods).\nAbnormal state observed on this component:\n- only 0 of 1 desired replicas are ready\n- pod nginx-thrift-6c5bcfcb8f-cmr7j: container nginx-thrift waiting in CrashLoopBackOff\n- pod nginx-thrift-6c5bcfcb8f-cmr7j: container nginx-thrift was OOMKilled\n- pod nginx-thrift-6c5bcfcb8f-cmr7j: container nginx-thrift restarted 4 times\n- warning events: BackOff x10\n- service nginx-thrift selects this component but has 0 ready endpoints\n- firing alert DeploymentNotReady\n- pod nginx-thrift-6c5bcfcb8f-cmr7j: container nginx-thrift restarted 1 more time(s) in the last 48s\n- warning event BackOff on pod/nginx-thrift-6c5bcfcb8f-cmr7j repeated 3 more time(s) in the last 48s\n- MutatingWebhookConfiguration gatekeeper-mutating-webhook-configuration was created 135s ago, 11s after the workloads it intercepts; 8s before the first active symptom\nNotable spec settings:\n- Available=False (MinimumReplicasUnavailable)\n- container alpine-container: image ghcr.io/sregym/social-network-assets:v1\n- container nginx-thrift: image docker.io/yg397/openresty-thrift:xenial, limits {'memory': '256Mi'}\nWarning events:\n- BackOff x10 on pod/nginx-thrift-6c5bcfcb8f-cmr7j: Back-off restarting failed container nginx-thrift in pod nginx-thrift-6c5bcfcb8f-cmr7j_social-network(7e4ab3c6-3182-409c-95ad-a23cf543f9e0)\nFiring alerts on this component: DeploymentNotReady.\nClassification: Jev (typesafe/jev-1.13-20260917) confirmed this origin at investigation step 1 with probability 0.99 (triage probability 0.40)."
+  },
+  {
+   "arm": 3,
+   "kind": "v1",
+   "model": "openrouter/openai/gpt-6-luna-decisions",
+   "position": 0,
+   "seconds": 3.4,
+   "requests": 2,
+   "input_tokens": 21962,
+   "cost_usd": 0.002196,
+   "error": null,
+   "investigation": {
+    "steps": [
+     {
+      "step": 1,
+      "node": "investigate",
+      "component": "deployment/nginx-thrift",
+      "verdict": "origin",
+      "origin_p": 0.99,
+      "victim_p": 0.01,
+      "next": "none",
+      "next_p": 0.78,
+      "category": "admission_or_namespace_policy",
+      "spec_checks": [
+       "service nginx-thrift has no ready endpoints"
+      ],
+      "blocked_input": null,
+      "key_evidence": "pod nginx-thrift-6c5bcfcb8f-cmr7j: container nginx-thrift limits.memory 16Mi, template 256Mi; container nginx-thrift requests.memory 16Mi, template 128Mi \u2014 the running pod differs from the pod template of its revision, so it was changed at admission; mutating webhooks whose rules and selectors match these pods: gatekeeper-mutating-webhook-configuration"
+     }
+    ],
+    "concluded": "deployment/nginx-thrift",
+    "fallback": null,
+    "triage_top": [
+     [
+      "deployment/nginx-thrift",
+      0.93
+     ],
+     [
+      "other",
+      0.07
+     ],
+     [
+      "deployment/compose-post-service",
+      0.0
+     ],
+     [
+      "deployment/home-timeline-redis",
+      0.0
+     ],
+     [
+      "deployment/home-timeline-service",
+      0.0
+     ]
+    ]
+   },
+   "text": "Root cause object: MutatingWebhookConfiguration `gatekeeper-mutating-webhook-configuration`, acting on Deployment `nginx-thrift` in namespace `social-network`.\nWhat the object does: rewrites pods of deployment/nginx-thrift at admission (container nginx-thrift limits.memory 16Mi, template 256Mi).\nMechanism: pod nginx-thrift-6c5bcfcb8f-cmr7j: container nginx-thrift limits.memory 16Mi, template 256Mi; container nginx-thrift requests.memory 16Mi, template 128Mi \u2014 the running pod differs from the pod template of its revision, so it was changed at admission; mutating webhooks whose rules and selectors match these pods: gatekeeper-mutating-webhook-configuration.\nFault type: admission webhook (MutatingWebhookConfiguration `gatekeeper-mutating-webhook-configuration` rejects or rewrites this workload's pods).\nAbnormal state observed on this component:\n- only 0 of 1 desired replicas are ready\n- pod nginx-thrift-6c5bcfcb8f-cmr7j: container nginx-thrift waiting in CrashLoopBackOff\n- pod nginx-thrift-6c5bcfcb8f-cmr7j: container nginx-thrift was OOMKilled\n- pod nginx-thrift-6c5bcfcb8f-cmr7j: container nginx-thrift restarted 4 times\n- warning events: BackOff x10\n- service nginx-thrift selects this component but has 0 ready endpoints\n- firing alert DeploymentNotReady\n- pod nginx-thrift-6c5bcfcb8f-cmr7j: container nginx-thrift restarted 1 more time(s) in the last 48s\n- warning event BackOff on pod/nginx-thrift-6c5bcfcb8f-cmr7j repeated 3 more time(s) in the last 48s\n- MutatingWebhookConfiguration gatekeeper-mutating-webhook-configuration was created 135s ago, 11s after the workloads it intercepts; 8s before the first active symptom\nNotable spec settings:\n- Available=False (MinimumReplicasUnavailable)\n- container alpine-container: image ghcr.io/sregym/social-network-assets:v1\n- container nginx-thrift: image docker.io/yg397/openresty-thrift:xenial, limits {'memory': '256Mi'}\nWarning events:\n- BackOff x10 on pod/nginx-thrift-6c5bcfcb8f-cmr7j: Back-off restarting failed container nginx-thrift in pod nginx-thrift-6c5bcfcb8f-cmr7j_social-network(7e4ab3c6-3182-409c-95ad-a23cf543f9e0)\nFiring alerts on this component: DeploymentNotReady.\nClassification: Jev (openai/gpt-6-luna-decisions-20261006) confirmed this origin at investigation step 1 with probability 0.99 (triage probability 0.93)."
+  }
+ ],
+ "submission": {
+  "status": "200",
+  "message": "Submission received",
+  "stage": "diagnosis"
+ }
+}

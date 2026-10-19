@@ -1,0 +1,544 @@
+{
+ "problem_id": "finalizer_deadlock_controller_hotel_reservation",
+ "source": "lite6_finalizer_deadlock_controller_hotel_reservation",
+ "replay": true,
+ "arms": [
+  {
+   "arm": 0,
+   "kind": "v1",
+   "model": "typesafe/jev-1.13",
+   "position": 0,
+   "seconds": 1.3,
+   "requests": 2,
+   "input_tokens": 28268,
+   "error": null,
+   "component": "deployment/cleanup-controller",
+   "investigation": {
+    "steps": [
+     {
+      "step": 1,
+      "node": "investigate",
+      "component": "deployment/cleanup-controller",
+      "verdict": "origin",
+      "origin_p": 0.99,
+      "victim_p": 0.01,
+      "next": "none",
+      "next_p": 0.96,
+      "category": "rbac_permission",
+      "spec_checks": [],
+      "blocked_input": {
+       "source": "logs",
+       "evidence": "cleanup-controller reconciliation failed: Kubernetes API denied cleanup request with HTTP 403 Forbidden",
+       "probability": 0.78
+      },
+      "key_evidence": "ConfigMap reservation-cleanup-token has been terminating for 78s, held by finalizer cleanup.reservations.io/pending-cleanup; linked to this component because its ClusterRole configmap-cleanup-controller covers configmaps and its logs show authorization denials; removing a finalizer requires patch or update on configmaps, which ClusterRole configmap-cleanup-controller does not grant (it grants get, list, watch)"
+     }
+    ],
+    "concluded": "deployment/cleanup-controller",
+    "fallback": null,
+    "triage_top": [
+     [
+      "other",
+      0.67
+     ],
+     [
+      "deployment/cleanup-controller",
+      0.28
+     ],
+     [
+      "deployment/consul",
+      0.02
+     ],
+     [
+      "deployment/mongodb-geo",
+      0.02
+     ],
+     [
+      "deployment/frontend",
+      0.0
+     ]
+    ]
+   },
+   "text": "Root cause object: ClusterRole `configmap-cleanup-controller`, acting on Deployment `cleanup-controller` in namespace `hotel-reservation`.\nWhat the object does: bound workload deployment/cleanup-controller logs authorization denials (63 lines); bound via ClusterRoleBinding/configmap-cleanup-controller to deployment/cleanup-controller.\nMechanism: ConfigMap reservation-cleanup-token has been terminating for 78s, held by finalizer cleanup.reservations.io/pending-cleanup; linked to this component because its ClusterRole configmap-cleanup-controller covers configmaps and its logs show authorization denials; removing a finalizer requires patch or update on configmaps, which ClusterRole configmap-cleanup-controller does not grant (it grants get, list, watch).\nFault type: rbac permission (the component is denied Kubernetes API operations it needs).\nAbnormal state observed on this component:\n- service account hotel-reservation/cleanup-controller is bound to ClusterRole/configmap-cleanup-controller granting: configmaps [core]: get,list,watch\n- logs report authorization denied (RBAC) (63 lines): controller: cleanup-controller reconciliation failed: Kubernetes API denied cleanup request with HTTP 403 Forbidden\n- 63 error-like log lines still occurring in the recent pod logs\nImpact on other components:\n- ConfigMap reservation-cleanup-token has been terminating for 78s, held by finalizer cleanup.reservations.io/pending-cleanup; removing a finalizer requires patch or update on configmaps, which ClusterRole configmap-cleanup-controller does not grant (it grants get, list, watch)\n- container controller: image python:3.12-alpine\nError-like log lines still occurring:\n- x63: controller: cleanup-controller reconciliation failed: Kubernetes API denied cleanup request with HTTP 403 Forbidden\nClassification: Jev (typesafe/jev-1.13-20260917) confirmed this origin at investigation step 1 with probability 0.99 (triage probability 0.28).",
+   "grade": {
+    "judgment": "True",
+    "reasoning": "Verdict: True (composite=1.00). D1 Fault Localization: 1.00 | D2 Fault Characterization: 1.00 | D3 Scope Precision: 1.00. Weakest dimension: Fault Localization (1.00). Checklist details: [{\"id\": \"D1-Q1\", \"answer\": \"Yes\", \"evidence\": \"Names ClusterRole configmap-cleanup-controller as the root cause and identifies ConfigMap reservation-cleanup-token and deployment cleanup-controller in hotel-reservation.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q2\", \"answer\": \"Yes\", \"evidence\": \"Identifies the ClusterRole's missing permissions as the origin and the ConfigMap's blocked deletion as the resulting impact.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q3\", \"answer\": \"Yes\", \"evidence\": \"Blames ClusterRole configmap-cleanup-controller, matching the ground-truth faulty RBAC component.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q1\", \"answer\": \"Yes\", \"evidence\": \"Explains that the ClusterRole lacks patch or update permission on ConfigMaps, preventing finalizer removal.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q2\", \"answer\": \"Yes\", \"evidence\": \"Specifies read-only grants get,list,watch and names ConfigMap reservation-cleanup-token and finalizer cleanup.reservations.io/pending-cleanup.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q3\", \"answer\": \"Yes\", \"evidence\": \"Classifies the fault as RBAC permission denial and cites HTTP 403 Forbidden during controller reconciliation.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q1\", \"answer\": \"Yes\", \"evidence\": \"Attributes the fault to the ClusterRole permissions; the controller and terminating ConfigMap are described as affected components.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q2\", \"answer\": \"Yes\", \"evidence\": \"Includes ClusterRole configmap-cleanup-controller, ConfigMap reservation-cleanup-token, Deployment cleanup-controller, and ServiceAccount hotel-reservation/cleanup-controller.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q3\", \"answer\": \"Yes\", \"evidence\": \"Describes the ConfigMap stuck terminating behind its cleanup finalizer and repeated HTTP 403 Forbidden errors blocking controller reconciliation.\", \"confidence\": \"High\"}]",
+    "success": true,
+    "accuracy": 100.0,
+    "composite_score": 1.0,
+    "dimensions": {
+     "D1": {
+      "name": "Fault Localization",
+      "score": 1.0
+     },
+     "D2": {
+      "name": "Fault Characterization",
+      "score": 1.0
+     },
+     "D3": {
+      "name": "Scope Precision",
+      "score": 1.0
+     }
+    },
+    "checklist": [
+     {
+      "id": "D1-Q1",
+      "answer": "Yes",
+      "evidence": "Names ClusterRole configmap-cleanup-controller as the root cause and identifies ConfigMap reservation-cleanup-token and deployment cleanup-controller in hotel-reservation.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q2",
+      "answer": "Yes",
+      "evidence": "Identifies the ClusterRole's missing permissions as the origin and the ConfigMap's blocked deletion as the resulting impact.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q3",
+      "answer": "Yes",
+      "evidence": "Blames ClusterRole configmap-cleanup-controller, matching the ground-truth faulty RBAC component.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q1",
+      "answer": "Yes",
+      "evidence": "Explains that the ClusterRole lacks patch or update permission on ConfigMaps, preventing finalizer removal.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q2",
+      "answer": "Yes",
+      "evidence": "Specifies read-only grants get,list,watch and names ConfigMap reservation-cleanup-token and finalizer cleanup.reservations.io/pending-cleanup.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q3",
+      "answer": "Yes",
+      "evidence": "Classifies the fault as RBAC permission denial and cites HTTP 403 Forbidden during controller reconciliation.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q1",
+      "answer": "Yes",
+      "evidence": "Attributes the fault to the ClusterRole permissions; the controller and terminating ConfigMap are described as affected components.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q2",
+      "answer": "Yes",
+      "evidence": "Includes ClusterRole configmap-cleanup-controller, ConfigMap reservation-cleanup-token, Deployment cleanup-controller, and ServiceAccount hotel-reservation/cleanup-controller.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q3",
+      "answer": "Yes",
+      "evidence": "Describes the ConfigMap stuck terminating behind its cleanup finalizer and repeated HTTP 403 Forbidden errors blocking controller reconciliation.",
+      "confidence": "High"
+     }
+    ]
+   }
+  },
+  {
+   "arm": 1,
+   "kind": "v1",
+   "model": "openai/gpt-6-luna-decisions",
+   "position": 1,
+   "seconds": 1.3,
+   "requests": 2,
+   "input_tokens": 18854,
+   "error": null,
+   "component": "deployment/cleanup-controller",
+   "investigation": {
+    "steps": [
+     {
+      "step": 1,
+      "node": "investigate",
+      "component": "deployment/cleanup-controller",
+      "verdict": "origin",
+      "origin_p": 0.99,
+      "victim_p": 0.01,
+      "next": "none",
+      "next_p": 0.42,
+      "category": "rbac_permission",
+      "spec_checks": [],
+      "blocked_input": null,
+      "key_evidence": "service account hotel-reservation/cleanup-controller is bound to ClusterRole/configmap-cleanup-controller granting: configmaps [core]: get,list,watch"
+     }
+    ],
+    "concluded": "deployment/cleanup-controller",
+    "fallback": null,
+    "triage_top": [
+     [
+      "deployment/cleanup-controller",
+      0.6
+     ],
+     [
+      "other",
+      0.36
+     ],
+     [
+      "deployment/consul",
+      0.01
+     ],
+     [
+      "deployment/frontend",
+      0.01
+     ],
+     [
+      "deployment/memcached-rate",
+      0.01
+     ]
+    ]
+   },
+   "text": "Root cause object: ClusterRole `configmap-cleanup-controller`, acting on Deployment `cleanup-controller` in namespace `hotel-reservation`.\nWhat the object does: bound workload deployment/cleanup-controller logs authorization denials (63 lines); bound via ClusterRoleBinding/configmap-cleanup-controller to deployment/cleanup-controller.\nMechanism: service account hotel-reservation/cleanup-controller is bound to ClusterRole/configmap-cleanup-controller granting: configmaps [core]: get,list,watch.\nFault type: rbac permission (the component is denied Kubernetes API operations it needs).\nAbnormal state observed on this component:\n- ConfigMap reservation-cleanup-token has been terminating for 78s, held by finalizer cleanup.reservations.io/pending-cleanup; linked to this component because its ClusterRole configmap-cleanup-controller covers configmaps and its logs show authorization denials; removing a finalizer requires patch or update on configmaps, which ClusterRole configmap-cleanup-controller does not grant (it grants get, list, watch)\n- logs report authorization denied (RBAC) (63 lines): controller: cleanup-controller reconciliation failed: Kubernetes API denied cleanup request with HTTP 403 Forbidden\n- 63 error-like log lines still occurring in the recent pod logs\nImpact on other components:\n- ConfigMap reservation-cleanup-token has been terminating for 78s, held by finalizer cleanup.reservations.io/pending-cleanup; removing a finalizer requires patch or update on configmaps, which ClusterRole configmap-cleanup-controller does not grant (it grants get, list, watch)\n- container controller: image python:3.12-alpine\nError-like log lines still occurring:\n- x63: controller: cleanup-controller reconciliation failed: Kubernetes API denied cleanup request with HTTP 403 Forbidden\nClassification: Jev (openai/gpt-6-luna-decisions-20261006) confirmed this origin at investigation step 1 with probability 0.99 (triage probability 0.60).",
+   "grade": {
+    "judgment": "True",
+    "reasoning": "Verdict: True (composite=1.00). D1 Fault Localization: 1.00 | D2 Fault Characterization: 1.00 | D3 Scope Precision: 1.00. Weakest dimension: Fault Localization (1.00). Checklist details: [{\"id\": \"D1-Q1\", \"answer\": \"Yes\", \"evidence\": \"Diagnosis names ClusterRole configmap-cleanup-controller as the root cause and identifies ConfigMap reservation-cleanup-token and namespace hotel-reservation.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q2\", \"answer\": \"Yes\", \"evidence\": \"Diagnosis identifies missing ClusterRole permissions as the origin and the ConfigMap's blocked finalizer removal as the resulting impact.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q3\", \"answer\": \"Yes\", \"evidence\": \"Diagnosis attributes the fault to the matching ClusterRole configmap-cleanup-controller, without naming a different component as the origin.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q1\", \"answer\": \"Yes\", \"evidence\": \"Diagnosis states the controller's ClusterRole grants only get, list, watch and lacks patch or update permissions needed to remove ConfigMap finalizers.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q2\", \"answer\": \"Yes\", \"evidence\": \"Concrete details include configmaps permissions get,list,watch, missing patch permission, ConfigMap reservation-cleanup-token, and finalizer cleanup.reservations.io/pending-cleanup.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q3\", \"answer\": \"Yes\", \"evidence\": \"Diagnosis explicitly classifies the fault as RBAC permission denial and cites HTTP 403 Forbidden, consistent with the ground truth.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q1\", \"answer\": \"Yes\", \"evidence\": \"Diagnosis blames the ClusterRole permissions; the controller and ConfigMap are described as affected. The container image is listed without causal attribution.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q2\", \"answer\": \"Yes\", \"evidence\": \"Diagnosis includes ClusterRole configmap-cleanup-controller, Deployment cleanup-controller, ServiceAccount hotel-reservation/cleanup-controller, and ConfigMap reservation-cleanup-token.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q3\", \"answer\": \"Yes\", \"evidence\": \"Diagnosis describes the ConfigMap stuck terminating behind its finalizer and repeated controller HTTP 403 errors preventing finalizer removal.\", \"confidence\": \"High\"}]",
+    "success": true,
+    "accuracy": 100.0,
+    "composite_score": 1.0,
+    "dimensions": {
+     "D1": {
+      "name": "Fault Localization",
+      "score": 1.0
+     },
+     "D2": {
+      "name": "Fault Characterization",
+      "score": 1.0
+     },
+     "D3": {
+      "name": "Scope Precision",
+      "score": 1.0
+     }
+    },
+    "checklist": [
+     {
+      "id": "D1-Q1",
+      "answer": "Yes",
+      "evidence": "Diagnosis names ClusterRole configmap-cleanup-controller as the root cause and identifies ConfigMap reservation-cleanup-token and namespace hotel-reservation.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q2",
+      "answer": "Yes",
+      "evidence": "Diagnosis identifies missing ClusterRole permissions as the origin and the ConfigMap's blocked finalizer removal as the resulting impact.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q3",
+      "answer": "Yes",
+      "evidence": "Diagnosis attributes the fault to the matching ClusterRole configmap-cleanup-controller, without naming a different component as the origin.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q1",
+      "answer": "Yes",
+      "evidence": "Diagnosis states the controller's ClusterRole grants only get, list, watch and lacks patch or update permissions needed to remove ConfigMap finalizers.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q2",
+      "answer": "Yes",
+      "evidence": "Concrete details include configmaps permissions get,list,watch, missing patch permission, ConfigMap reservation-cleanup-token, and finalizer cleanup.reservations.io/pending-cleanup.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q3",
+      "answer": "Yes",
+      "evidence": "Diagnosis explicitly classifies the fault as RBAC permission denial and cites HTTP 403 Forbidden, consistent with the ground truth.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q1",
+      "answer": "Yes",
+      "evidence": "Diagnosis blames the ClusterRole permissions; the controller and ConfigMap are described as affected. The container image is listed without causal attribution.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q2",
+      "answer": "Yes",
+      "evidence": "Diagnosis includes ClusterRole configmap-cleanup-controller, Deployment cleanup-controller, ServiceAccount hotel-reservation/cleanup-controller, and ConfigMap reservation-cleanup-token.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q3",
+      "answer": "Yes",
+      "evidence": "Diagnosis describes the ConfigMap stuck terminating behind its finalizer and repeated controller HTTP 403 errors preventing finalizer removal.",
+      "confidence": "High"
+     }
+    ]
+   }
+  },
+  {
+   "arm": 2,
+   "kind": "v2",
+   "model": "typesafe/jev-1.13",
+   "position": 2,
+   "seconds": 1.2,
+   "requests": 2,
+   "input_tokens": 28629,
+   "error": null,
+   "component": "deployment/cleanup-controller",
+   "investigation": {
+    "steps": [
+     {
+      "step": 1,
+      "node": "investigate",
+      "component": "deployment/cleanup-controller",
+      "verdict": "origin",
+      "origin_p": 0.99,
+      "victim_p": 0.01,
+      "next": "none",
+      "next_p": 0.92,
+      "category": "rbac_permission",
+      "spec_checks": [],
+      "blocked_input": {
+       "source": "logs",
+       "evidence": "cleanup-controller reconciliation failed: Kubernetes API denied cleanup request with HTTP 403 Forbidden",
+       "probability": 0.8
+      },
+      "key_evidence": "ConfigMap reservation-cleanup-token has been terminating for 78s, held by finalizer cleanup.reservations.io/pending-cleanup; linked to this component because its ClusterRole configmap-cleanup-controller covers configmaps and its logs show authorization denials; removing a finalizer requires patch or update on configmaps, which ClusterRole configmap-cleanup-controller does not grant (it grants get, list, watch)"
+     }
+    ],
+    "concluded": "deployment/cleanup-controller",
+    "fallback": null,
+    "triage_top": [
+     [
+      "other",
+      0.5
+     ],
+     [
+      "deployment/cleanup-controller",
+      0.23
+     ],
+     [
+      "deployment/mongodb-rate",
+      0.2
+     ],
+     [
+      "deployment/mongodb-geo",
+      0.05
+     ],
+     [
+      "deployment/consul",
+      0.02
+     ]
+    ]
+   },
+   "text": "Root cause: ClusterRole `configmap-cleanup-controller`, acting on Deployment `cleanup-controller` in namespace `hotel-reservation`: ConfigMap reservation-cleanup-token has been terminating for 78s, held by finalizer cleanup.reservations.io/pending-cleanup; linked to this component because its ClusterRole configmap-cleanup-controller covers configmaps and its logs show authorization denials; removing a finalizer requires patch or update on configmaps, which ClusterRole configmap-cleanup-controller does not grant (it grants get, list, watch).\nMechanism: bound workload deployment/cleanup-controller logs authorization denials (63 lines); bound via ClusterRoleBinding/configmap-cleanup-controller to deployment/cleanup-controller; the component logs \"cleanup-controller reconciliation failed: Kubernetes API denied cleanup request with HTTP 403 Forbidden\".\nEffect: ConfigMap reservation-cleanup-token has been terminating for 78s, held by finalizer cleanup.reservations.io/pending-cleanup; linked to this component because its ClusterRole configmap-cleanup-controller covers configmaps and its logs show authorization denials; removing a finalizer requires patch or update on configmaps, which ClusterRole configmap-cleanup-controller does not grant (it grants get, list, watch).",
+   "grade": {
+    "judgment": "True",
+    "reasoning": "Verdict: True (composite=0.89). D1 Fault Localization: 1.00 | D2 Fault Characterization: 1.00 | D3 Scope Precision: 0.67. Weakest dimension: Scope Precision (0.67). Checklist details: [{\"id\": \"D1-Q1\", \"answer\": \"Yes\", \"evidence\": \"Names ClusterRole configmap-cleanup-controller and ConfigMap reservation-cleanup-token, with namespace hotel-reservation.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q2\", \"answer\": \"Yes\", \"evidence\": \"Identifies missing ClusterRole permissions as the cause and the terminating ConfigMap as the resulting effect.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q3\", \"answer\": \"Yes\", \"evidence\": \"Attributes the fault to ClusterRole configmap-cleanup-controller, matching the specified fault origin.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q1\", \"answer\": \"Yes\", \"evidence\": \"States the ClusterRole lacks patch or update permissions on ConfigMaps, preventing finalizer removal.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q2\", \"answer\": \"Yes\", \"evidence\": \"Specifies read-only verbs get, list, watch and finalizer cleanup.reservations.io/pending-cleanup on reservation-cleanup-token.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q3\", \"answer\": \"Yes\", \"evidence\": \"Consistently describes an RBAC authorization failure, supported by HTTP 403 Forbidden controller logs.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q1\", \"answer\": \"Yes\", \"evidence\": \"Blames the deficient ClusterRole and describes its effects on cleanup-controller and reservation-cleanup-token without blaming unrelated components.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q2\", \"answer\": \"No\", \"evidence\": \"Names the ClusterRole, Deployment, and ConfigMap but omits ServiceAccount cleanup-controller, explicitly identified in the ground truth.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q3\", \"answer\": \"Yes\", \"evidence\": \"Describes reservation-cleanup-token stuck terminating because its finalizer cannot be removed, with controller reconciliation receiving HTTP 403 Forbidden.\", \"confidence\": \"High\"}]",
+    "success": true,
+    "accuracy": 89.0,
+    "composite_score": 0.89,
+    "dimensions": {
+     "D1": {
+      "name": "Fault Localization",
+      "score": 1.0
+     },
+     "D2": {
+      "name": "Fault Characterization",
+      "score": 1.0
+     },
+     "D3": {
+      "name": "Scope Precision",
+      "score": 0.67
+     }
+    },
+    "checklist": [
+     {
+      "id": "D1-Q1",
+      "answer": "Yes",
+      "evidence": "Names ClusterRole configmap-cleanup-controller and ConfigMap reservation-cleanup-token, with namespace hotel-reservation.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q2",
+      "answer": "Yes",
+      "evidence": "Identifies missing ClusterRole permissions as the cause and the terminating ConfigMap as the resulting effect.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q3",
+      "answer": "Yes",
+      "evidence": "Attributes the fault to ClusterRole configmap-cleanup-controller, matching the specified fault origin.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q1",
+      "answer": "Yes",
+      "evidence": "States the ClusterRole lacks patch or update permissions on ConfigMaps, preventing finalizer removal.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q2",
+      "answer": "Yes",
+      "evidence": "Specifies read-only verbs get, list, watch and finalizer cleanup.reservations.io/pending-cleanup on reservation-cleanup-token.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q3",
+      "answer": "Yes",
+      "evidence": "Consistently describes an RBAC authorization failure, supported by HTTP 403 Forbidden controller logs.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q1",
+      "answer": "Yes",
+      "evidence": "Blames the deficient ClusterRole and describes its effects on cleanup-controller and reservation-cleanup-token without blaming unrelated components.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q2",
+      "answer": "No",
+      "evidence": "Names the ClusterRole, Deployment, and ConfigMap but omits ServiceAccount cleanup-controller, explicitly identified in the ground truth.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q3",
+      "answer": "Yes",
+      "evidence": "Describes reservation-cleanup-token stuck terminating because its finalizer cannot be removed, with controller reconciliation receiving HTTP 403 Forbidden.",
+      "confidence": "High"
+     }
+    ]
+   }
+  },
+  {
+   "arm": 3,
+   "kind": "v2",
+   "model": "openai/gpt-6-luna-decisions",
+   "position": 3,
+   "seconds": 2.2,
+   "requests": 2,
+   "input_tokens": 19123,
+   "error": null,
+   "component": "deployment/cleanup-controller",
+   "investigation": {
+    "steps": [
+     {
+      "step": 1,
+      "node": "investigate",
+      "component": "deployment/cleanup-controller",
+      "verdict": "origin",
+      "origin_p": 0.98,
+      "victim_p": 0.01,
+      "next": "none",
+      "next_p": 0.67,
+      "category": "rbac_permission",
+      "spec_checks": [],
+      "blocked_input": null,
+      "key_evidence": "service account hotel-reservation/cleanup-controller is bound to ClusterRole/configmap-cleanup-controller granting: configmaps [core]: get,list,watch"
+     }
+    ],
+    "concluded": "deployment/cleanup-controller",
+    "fallback": null,
+    "triage_top": [
+     [
+      "deployment/cleanup-controller",
+      0.82
+     ],
+     [
+      "deployment/mongodb-geo",
+      0.07
+     ],
+     [
+      "deployment/mongodb-rate",
+      0.06
+     ],
+     [
+      "other",
+      0.04
+     ],
+     [
+      "deployment/consul",
+      0.01
+     ]
+    ]
+   },
+   "text": "Root cause: ClusterRole `configmap-cleanup-controller`, acting on Deployment `cleanup-controller` in namespace `hotel-reservation`: service account hotel-reservation/cleanup-controller is bound to ClusterRole/configmap-cleanup-controller granting: configmaps [core]: get,list,watch.\nMechanism: bound workload deployment/cleanup-controller logs authorization denials (63 lines); bound via ClusterRoleBinding/configmap-cleanup-controller to deployment/cleanup-controller; the component logs \"cleanup-controller reconciliation failed: Kubernetes API denied cleanup request with HTTP 403 Forbidden\".\nEffect: ConfigMap reservation-cleanup-token has been terminating for 78s, held by finalizer cleanup.reservations.io/pending-cleanup; linked to this component because its ClusterRole configmap-cleanup-controller covers configmaps and its logs show authorization denials; removing a finalizer requires patch or update on configmaps, which ClusterRole configmap-cleanup-controller does not grant (it grants get, list, watch).",
+   "grade": {
+    "judgment": "True",
+    "reasoning": "Verdict: True (composite=1.00). D1 Fault Localization: 1.00 | D2 Fault Characterization: 1.00 | D3 Scope Precision: 1.00. Weakest dimension: Fault Localization (1.00). Checklist details: [{\"id\": \"D1-Q1\", \"answer\": \"Yes\", \"evidence\": \"Names ClusterRole configmap-cleanup-controller as the root cause and identifies ConfigMap reservation-cleanup-token and namespace hotel-reservation.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q2\", \"answer\": \"Yes\", \"evidence\": \"Distinguishes the ClusterRole's missing write permissions from the resulting controller authorization denials and ConfigMap deletion blockage.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q3\", \"answer\": \"Yes\", \"evidence\": \"Attributes the fault to ClusterRole configmap-cleanup-controller, matching the ground-truth fault origin.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q1\", \"answer\": \"Yes\", \"evidence\": \"Identifies read-only ConfigMap permissions preventing the controller from removing the finalizer.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q2\", \"answer\": \"Yes\", \"evidence\": \"Specifies configmaps permissions get,list,watch, missing patch or update, and finalizer cleanup.reservations.io/pending-cleanup.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q3\", \"answer\": \"Yes\", \"evidence\": \"Consistently attributes the failure to insufficient RBAC permissions and HTTP 403 Forbidden authorization denials.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q1\", \"answer\": \"Yes\", \"evidence\": \"Limits causal attribution to the controller's ClusterRole permissions; the binding describes the authorization relationship without being blamed as independently faulty.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q2\", \"answer\": \"Yes\", \"evidence\": \"Includes ClusterRole configmap-cleanup-controller, ConfigMap reservation-cleanup-token, Deployment cleanup-controller, and ServiceAccount hotel-reservation/cleanup-controller.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q3\", \"answer\": \"Yes\", \"evidence\": \"Describes repeated HTTP 403 Forbidden errors and ConfigMap reservation-cleanup-token stuck terminating because its finalizer cannot be removed.\", \"confidence\": \"High\"}]",
+    "success": true,
+    "accuracy": 100.0,
+    "composite_score": 1.0,
+    "dimensions": {
+     "D1": {
+      "name": "Fault Localization",
+      "score": 1.0
+     },
+     "D2": {
+      "name": "Fault Characterization",
+      "score": 1.0
+     },
+     "D3": {
+      "name": "Scope Precision",
+      "score": 1.0
+     }
+    },
+    "checklist": [
+     {
+      "id": "D1-Q1",
+      "answer": "Yes",
+      "evidence": "Names ClusterRole configmap-cleanup-controller as the root cause and identifies ConfigMap reservation-cleanup-token and namespace hotel-reservation.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q2",
+      "answer": "Yes",
+      "evidence": "Distinguishes the ClusterRole's missing write permissions from the resulting controller authorization denials and ConfigMap deletion blockage.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q3",
+      "answer": "Yes",
+      "evidence": "Attributes the fault to ClusterRole configmap-cleanup-controller, matching the ground-truth fault origin.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q1",
+      "answer": "Yes",
+      "evidence": "Identifies read-only ConfigMap permissions preventing the controller from removing the finalizer.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q2",
+      "answer": "Yes",
+      "evidence": "Specifies configmaps permissions get,list,watch, missing patch or update, and finalizer cleanup.reservations.io/pending-cleanup.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q3",
+      "answer": "Yes",
+      "evidence": "Consistently attributes the failure to insufficient RBAC permissions and HTTP 403 Forbidden authorization denials.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q1",
+      "answer": "Yes",
+      "evidence": "Limits causal attribution to the controller's ClusterRole permissions; the binding describes the authorization relationship without being blamed as independently faulty.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q2",
+      "answer": "Yes",
+      "evidence": "Includes ClusterRole configmap-cleanup-controller, ConfigMap reservation-cleanup-token, Deployment cleanup-controller, and ServiceAccount hotel-reservation/cleanup-controller.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q3",
+      "answer": "Yes",
+      "evidence": "Describes repeated HTTP 403 Forbidden errors and ConfigMap reservation-cleanup-token stuck terminating because its finalizer cannot be removed.",
+      "confidence": "High"
+     }
+    ]
+   }
+  }
+ ],
+ "judge": {
+  "model": "gpt-6-astra",
+  "backend": "codex",
+  "effort": "high"
+ }
+}

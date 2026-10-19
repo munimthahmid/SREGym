@@ -1,0 +1,544 @@
+{
+ "problem_id": "namespace_memory_limit",
+ "source": "lite6_namespace_memory_limit",
+ "replay": true,
+ "arms": [
+  {
+   "arm": 0,
+   "kind": "v1",
+   "model": "typesafe/jev-1.13",
+   "position": 0,
+   "seconds": 1.1,
+   "requests": 2,
+   "input_tokens": 25786,
+   "error": null,
+   "component": "deployment/search",
+   "investigation": {
+    "steps": [
+     {
+      "step": 1,
+      "node": "investigate",
+      "component": "deployment/search",
+      "verdict": "origin",
+      "origin_p": 0.98,
+      "victim_p": 0.01,
+      "next": "none",
+      "next_p": 0.99,
+      "category": "admission_or_namespace_policy",
+      "spec_checks": [
+       "service search has no ready endpoints"
+      ],
+      "blocked_input": null,
+      "key_evidence": "ResourceQuota memory-limit-quota requires memory on every pod and this workload's containers declare none, so the API server rejects its new pods"
+     }
+    ],
+    "concluded": "deployment/search",
+    "fallback": null,
+    "triage_top": [
+     [
+      "other",
+      0.98
+     ],
+     [
+      "deployment/search",
+      0.02
+     ],
+     [
+      "deployment/consul",
+      0.0
+     ],
+     [
+      "deployment/frontend",
+      0.0
+     ],
+     [
+      "deployment/geo",
+      0.0
+     ]
+    ]
+   },
+   "text": "Root cause object: ResourceQuota `memory-limit-quota` in namespace `hotel-reservation`, acting on Deployment `search` in namespace `hotel-reservation`.\nWhat the object does: rejects pods of deployment/search (missing memory); ResourceQuota memory-limit-quota was created 78s ago, 13s after the workloads in its namespace; 1s before the first active symptom.\nMechanism: ResourceQuota memory-limit-quota requires memory on every pod and this workload's containers declare none, so the API server rejects its new pods.\nFault type: namespace policy (ResourceQuota `memory-limit-quota` rejects or alters this workload's pods).\nAbnormal state observed on this component:\n- only 0 of 1 desired replicas are ready\n- no pods exist for this workload\n- warning events: FailedCreate x11\n- service search selects this component but has 0 ready endpoints\nNotable spec settings:\n- Available=False (MinimumReplicasUnavailable)\n- container hotel-reserv-search: image ghcr.io/sregym/hotel-reservation:sha-d2c036bc3d1138f5a0bdaffd3d87f37522c3461a@sha256:1c685e1c4c304f327952397b3a99c54dadb086607774d71f222b200ec0d2e65e, limits {'cpu': '1'}\nWarning events:\n- FailedCreate x6 on replicaset/search-7d996cf85b: (combined from similar events): Error creating: pods \"search-7d996cf85b-ths42\" is forbidden: failed quota: memory-limit-quota: must specify memory for: hotel-reserv-search\n- FailedCreate x1 on replicaset/search-7d996cf85b: Error creating: pods \"search-7d996cf85b-jmzt7\" is forbidden: failed quota: memory-limit-quota: must specify memory for: hotel-reserv-search\n- FailedCreate x1 on replicaset/search-7d996cf85b: Error creating: pods \"search-7d996cf85b-xlf4p\" is forbidden: failed quota: memory-limit-quota: must specify memory for: hotel-reserv-search\n- FailedCreate x1 on replicaset/search-7d996cf85b: Error creating: pods \"search-7d996cf85b-9tjt7\" is forbidden: failed quota: memory-limit-quota: must specify memory for: hotel-reserv-search\nClassification: Jev (typesafe/jev-1.13-20260917) confirmed this origin at investigation step 1 with probability 0.98 (triage probability 0.02).",
+   "grade": {
+    "judgment": "True",
+    "reasoning": "Verdict: True (composite=0.89). D1 Fault Localization: 1.00 | D2 Fault Characterization: 1.00 | D3 Scope Precision: 0.67. Weakest dimension: Scope Precision (0.67). Checklist details: [{\"id\": \"D1-Q1\", \"answer\": \"Yes\", \"evidence\": \"Names ResourceQuota `memory-limit-quota` in namespace `hotel-reservation` as the root cause object, matching the fault specification.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q2\", \"answer\": \"Yes\", \"evidence\": \"Identifies the ResourceQuota as the origin and Deployment `search` as the workload whose new pods it rejects.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q3\", \"answer\": \"Yes\", \"evidence\": \"Blames the specified ResourceQuota; no unrelated healthy component is identified as the fault origin.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q1\", \"answer\": \"Yes\", \"evidence\": \"States the quota requires memory declarations and the workload declares none, causing API server rejection of new pods.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q2\", \"answer\": \"Yes\", \"evidence\": \"Quotes `failed quota: memory-limit-quota: must specify memory for: hotel-reserv-search` and shows container limits containing only CPU.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q3\", \"answer\": \"Yes\", \"evidence\": \"Classifies the fault as namespace ResourceQuota policy and explains admission rejection for missing memory declarations.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q1\", \"answer\": \"Yes\", \"evidence\": \"Attributes the fault to the quota and missing declarations on `search`; names no uninvolved components as causes.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q2\", \"answer\": \"No\", \"evidence\": \"Describes the impact on `search` but does not identify other noncompliant workloads as vulnerable on restart.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q3\", \"answer\": \"Yes\", \"evidence\": \"Reports new pod rejection with `must specify memory`, FailedCreate events, and zero ready replicas, consistent with the ground-truth admission failure.\", \"confidence\": \"High\"}]",
+    "success": true,
+    "accuracy": 89.0,
+    "composite_score": 0.89,
+    "dimensions": {
+     "D1": {
+      "name": "Fault Localization",
+      "score": 1.0
+     },
+     "D2": {
+      "name": "Fault Characterization",
+      "score": 1.0
+     },
+     "D3": {
+      "name": "Scope Precision",
+      "score": 0.67
+     }
+    },
+    "checklist": [
+     {
+      "id": "D1-Q1",
+      "answer": "Yes",
+      "evidence": "Names ResourceQuota `memory-limit-quota` in namespace `hotel-reservation` as the root cause object, matching the fault specification.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q2",
+      "answer": "Yes",
+      "evidence": "Identifies the ResourceQuota as the origin and Deployment `search` as the workload whose new pods it rejects.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q3",
+      "answer": "Yes",
+      "evidence": "Blames the specified ResourceQuota; no unrelated healthy component is identified as the fault origin.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q1",
+      "answer": "Yes",
+      "evidence": "States the quota requires memory declarations and the workload declares none, causing API server rejection of new pods.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q2",
+      "answer": "Yes",
+      "evidence": "Quotes `failed quota: memory-limit-quota: must specify memory for: hotel-reserv-search` and shows container limits containing only CPU.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q3",
+      "answer": "Yes",
+      "evidence": "Classifies the fault as namespace ResourceQuota policy and explains admission rejection for missing memory declarations.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q1",
+      "answer": "Yes",
+      "evidence": "Attributes the fault to the quota and missing declarations on `search`; names no uninvolved components as causes.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q2",
+      "answer": "No",
+      "evidence": "Describes the impact on `search` but does not identify other noncompliant workloads as vulnerable on restart.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q3",
+      "answer": "Yes",
+      "evidence": "Reports new pod rejection with `must specify memory`, FailedCreate events, and zero ready replicas, consistent with the ground-truth admission failure.",
+      "confidence": "High"
+     }
+    ]
+   }
+  },
+  {
+   "arm": 1,
+   "kind": "v1",
+   "model": "openai/gpt-6-luna-decisions",
+   "position": 1,
+   "seconds": 1.3,
+   "requests": 2,
+   "input_tokens": 17241,
+   "error": null,
+   "component": "deployment/search",
+   "investigation": {
+    "steps": [
+     {
+      "step": 1,
+      "node": "investigate",
+      "component": "deployment/search",
+      "verdict": "origin",
+      "origin_p": 0.97,
+      "victim_p": 0.02,
+      "next": "none",
+      "next_p": 0.89,
+      "category": "admission_or_namespace_policy",
+      "spec_checks": [
+       "service search has no ready endpoints"
+      ],
+      "blocked_input": null,
+      "key_evidence": "ResourceQuota memory-limit-quota requires memory on every pod and this workload's containers declare none, so the API server rejects its new pods"
+     }
+    ],
+    "concluded": "deployment/search",
+    "fallback": null,
+    "triage_top": [
+     [
+      "other",
+      0.95
+     ],
+     [
+      "deployment/search",
+      0.03
+     ],
+     [
+      "deployment/frontend",
+      0.01
+     ],
+     [
+      "deployment/user",
+      0.01
+     ],
+     [
+      "deployment/consul",
+      0.0
+     ]
+    ]
+   },
+   "text": "Root cause object: ResourceQuota `memory-limit-quota` in namespace `hotel-reservation`, acting on Deployment `search` in namespace `hotel-reservation`.\nWhat the object does: rejects pods of deployment/search (missing memory); ResourceQuota memory-limit-quota was created 78s ago, 13s after the workloads in its namespace; 1s before the first active symptom.\nMechanism: ResourceQuota memory-limit-quota requires memory on every pod and this workload's containers declare none, so the API server rejects its new pods.\nFault type: namespace policy (ResourceQuota `memory-limit-quota` rejects or alters this workload's pods).\nAbnormal state observed on this component:\n- only 0 of 1 desired replicas are ready\n- no pods exist for this workload\n- warning events: FailedCreate x11\n- service search selects this component but has 0 ready endpoints\nNotable spec settings:\n- Available=False (MinimumReplicasUnavailable)\n- container hotel-reserv-search: image ghcr.io/sregym/hotel-reservation:sha-d2c036bc3d1138f5a0bdaffd3d87f37522c3461a@sha256:1c685e1c4c304f327952397b3a99c54dadb086607774d71f222b200ec0d2e65e, limits {'cpu': '1'}\nWarning events:\n- FailedCreate x6 on replicaset/search-7d996cf85b: (combined from similar events): Error creating: pods \"search-7d996cf85b-ths42\" is forbidden: failed quota: memory-limit-quota: must specify memory for: hotel-reserv-search\n- FailedCreate x1 on replicaset/search-7d996cf85b: Error creating: pods \"search-7d996cf85b-jmzt7\" is forbidden: failed quota: memory-limit-quota: must specify memory for: hotel-reserv-search\n- FailedCreate x1 on replicaset/search-7d996cf85b: Error creating: pods \"search-7d996cf85b-xlf4p\" is forbidden: failed quota: memory-limit-quota: must specify memory for: hotel-reserv-search\n- FailedCreate x1 on replicaset/search-7d996cf85b: Error creating: pods \"search-7d996cf85b-9tjt7\" is forbidden: failed quota: memory-limit-quota: must specify memory for: hotel-reserv-search\nClassification: Jev (openai/gpt-6-luna-decisions-20261006) confirmed this origin at investigation step 1 with probability 0.97 (triage probability 0.03).",
+   "grade": {
+    "judgment": "True",
+    "reasoning": "Verdict: True (composite=0.89). D1 Fault Localization: 1.00 | D2 Fault Characterization: 1.00 | D3 Scope Precision: 0.67. Weakest dimension: Scope Precision (0.67). Checklist details: [{\"id\": \"D1-Q1\", \"answer\": \"Yes\", \"evidence\": \"Names ResourceQuota `memory-limit-quota` in namespace `hotel-reservation` as the root cause object.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q2\", \"answer\": \"Yes\", \"evidence\": \"Identifies the ResourceQuota as the origin and Deployment `search` as the workload whose new pods it rejects.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q3\", \"answer\": \"Yes\", \"evidence\": \"Attributes the fault to the exact ResourceQuota identified in the ground truth, without blaming a different origin.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q1\", \"answer\": \"Yes\", \"evidence\": \"Explains that the quota requires memory declarations, the workload's containers declare none, and the API server rejects new pods.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q2\", \"answer\": \"Yes\", \"evidence\": \"Quotes admission failure: `failed quota: memory-limit-quota: must specify memory for: hotel-reserv-search`; reports container limits containing only CPU.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q3\", \"answer\": \"Yes\", \"evidence\": \"Classifies the fault as namespace policy enforcement by ResourceQuota, consistent with the ground-truth admission rejection.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q1\", \"answer\": \"Yes\", \"evidence\": \"Blames only the ResourceQuota and missing memory declarations on `search`; reports empty service endpoints as a symptom.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q2\", \"answer\": \"No\", \"evidence\": \"Although it says the quota requires memory on every pod, it does not identify other noncompliant workloads as vulnerable on restart.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q3\", \"answer\": \"Yes\", \"evidence\": \"Describes rejected new `search` pods, FailedCreate events, and zero ready replicas, consistent with replacement-pod admission failure.\", \"confidence\": \"High\"}]",
+    "success": true,
+    "accuracy": 89.0,
+    "composite_score": 0.89,
+    "dimensions": {
+     "D1": {
+      "name": "Fault Localization",
+      "score": 1.0
+     },
+     "D2": {
+      "name": "Fault Characterization",
+      "score": 1.0
+     },
+     "D3": {
+      "name": "Scope Precision",
+      "score": 0.67
+     }
+    },
+    "checklist": [
+     {
+      "id": "D1-Q1",
+      "answer": "Yes",
+      "evidence": "Names ResourceQuota `memory-limit-quota` in namespace `hotel-reservation` as the root cause object.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q2",
+      "answer": "Yes",
+      "evidence": "Identifies the ResourceQuota as the origin and Deployment `search` as the workload whose new pods it rejects.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q3",
+      "answer": "Yes",
+      "evidence": "Attributes the fault to the exact ResourceQuota identified in the ground truth, without blaming a different origin.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q1",
+      "answer": "Yes",
+      "evidence": "Explains that the quota requires memory declarations, the workload's containers declare none, and the API server rejects new pods.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q2",
+      "answer": "Yes",
+      "evidence": "Quotes admission failure: `failed quota: memory-limit-quota: must specify memory for: hotel-reserv-search`; reports container limits containing only CPU.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q3",
+      "answer": "Yes",
+      "evidence": "Classifies the fault as namespace policy enforcement by ResourceQuota, consistent with the ground-truth admission rejection.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q1",
+      "answer": "Yes",
+      "evidence": "Blames only the ResourceQuota and missing memory declarations on `search`; reports empty service endpoints as a symptom.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q2",
+      "answer": "No",
+      "evidence": "Although it says the quota requires memory on every pod, it does not identify other noncompliant workloads as vulnerable on restart.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q3",
+      "answer": "Yes",
+      "evidence": "Describes rejected new `search` pods, FailedCreate events, and zero ready replicas, consistent with replacement-pod admission failure.",
+      "confidence": "High"
+     }
+    ]
+   }
+  },
+  {
+   "arm": 2,
+   "kind": "v2",
+   "model": "typesafe/jev-1.13",
+   "position": 2,
+   "seconds": 1.2,
+   "requests": 2,
+   "input_tokens": 26138,
+   "error": null,
+   "component": "deployment/search",
+   "investigation": {
+    "steps": [
+     {
+      "step": 1,
+      "node": "investigate",
+      "component": "deployment/search",
+      "verdict": "origin",
+      "origin_p": 0.98,
+      "victim_p": 0.01,
+      "next": "none",
+      "next_p": 0.85,
+      "category": "admission_or_namespace_policy",
+      "spec_checks": [
+       "service search has no ready endpoints"
+      ],
+      "blocked_input": null,
+      "key_evidence": "ResourceQuota memory-limit-quota requires memory on every pod and this workload's containers declare none, so the API server rejects its new pods"
+     }
+    ],
+    "concluded": "deployment/search",
+    "fallback": null,
+    "triage_top": [
+     [
+      "other",
+      0.95
+     ],
+     [
+      "deployment/search",
+      0.03
+     ],
+     [
+      "deployment/mongodb-geo",
+      0.02
+     ],
+     [
+      "deployment/consul",
+      0.0
+     ],
+     [
+      "deployment/frontend",
+      0.0
+     ]
+    ]
+   },
+   "text": "Root cause: ResourceQuota `memory-limit-quota` in namespace `hotel-reservation`, acting on Deployment `search` in namespace `hotel-reservation`: ResourceQuota memory-limit-quota requires memory on every pod and this workload's containers declare none, so the API server rejects its new pods.\nMechanism: rejects pods of deployment/search (missing memory); ResourceQuota memory-limit-quota was created 78s ago, 13s after the workloads in its namespace; 1s before the first active symptom.\nDetails: service search has no ready endpoints.\nEffect: only 0 of 1 desired replicas are ready; service search selects this component but has 0 ready endpoints.",
+   "grade": {
+    "judgment": "True",
+    "reasoning": "Verdict: True (composite=0.89). D1 Fault Localization: 1.00 | D2 Fault Characterization: 1.00 | D3 Scope Precision: 0.67. Weakest dimension: Scope Precision (0.67). Checklist details: [{\"id\": \"D1-Q1\", \"answer\": \"Yes\", \"evidence\": \"Names ResourceQuota `memory-limit-quota` in namespace `hotel-reservation`, matching the specified fault origin.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q2\", \"answer\": \"Yes\", \"evidence\": \"Identifies the ResourceQuota as the cause and Deployment `search` as the workload whose new pods are rejected.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q3\", \"answer\": \"Yes\", \"evidence\": \"Attributes the fault to the specified ResourceQuota, without identifying an unrelated healthy component as the origin.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q1\", \"answer\": \"Yes\", \"evidence\": \"States that the quota requires memory declarations and the API server rejects new pods because the workload's containers declare none.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q2\", \"answer\": \"Yes\", \"evidence\": \"Specifies quota `memory-limit-quota`, its memory requirement, and missing container memory declarations in Deployment `search`.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q3\", \"answer\": \"Yes\", \"evidence\": \"Consistently describes quota admission rejection for missing memory declarations, matching the ground-truth fault type.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q1\", \"answer\": \"Yes\", \"evidence\": \"Names only the quota and affected `search` deployment and service; no uninvolved components are blamed.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q2\", \"answer\": \"No\", \"evidence\": \"Describes `search` and the quota's universal requirement but does not identify other noncompliant workloads as vulnerable on restart.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q3\", \"answer\": \"Yes\", \"evidence\": \"Reports rejection of new `search` pods, zero ready replicas, and no ready service endpoints, consistent with replacement pod admission failure.\", \"confidence\": \"High\"}]",
+    "success": true,
+    "accuracy": 89.0,
+    "composite_score": 0.89,
+    "dimensions": {
+     "D1": {
+      "name": "Fault Localization",
+      "score": 1.0
+     },
+     "D2": {
+      "name": "Fault Characterization",
+      "score": 1.0
+     },
+     "D3": {
+      "name": "Scope Precision",
+      "score": 0.67
+     }
+    },
+    "checklist": [
+     {
+      "id": "D1-Q1",
+      "answer": "Yes",
+      "evidence": "Names ResourceQuota `memory-limit-quota` in namespace `hotel-reservation`, matching the specified fault origin.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q2",
+      "answer": "Yes",
+      "evidence": "Identifies the ResourceQuota as the cause and Deployment `search` as the workload whose new pods are rejected.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q3",
+      "answer": "Yes",
+      "evidence": "Attributes the fault to the specified ResourceQuota, without identifying an unrelated healthy component as the origin.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q1",
+      "answer": "Yes",
+      "evidence": "States that the quota requires memory declarations and the API server rejects new pods because the workload's containers declare none.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q2",
+      "answer": "Yes",
+      "evidence": "Specifies quota `memory-limit-quota`, its memory requirement, and missing container memory declarations in Deployment `search`.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q3",
+      "answer": "Yes",
+      "evidence": "Consistently describes quota admission rejection for missing memory declarations, matching the ground-truth fault type.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q1",
+      "answer": "Yes",
+      "evidence": "Names only the quota and affected `search` deployment and service; no uninvolved components are blamed.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q2",
+      "answer": "No",
+      "evidence": "Describes `search` and the quota's universal requirement but does not identify other noncompliant workloads as vulnerable on restart.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q3",
+      "answer": "Yes",
+      "evidence": "Reports rejection of new `search` pods, zero ready replicas, and no ready service endpoints, consistent with replacement pod admission failure.",
+      "confidence": "High"
+     }
+    ]
+   }
+  },
+  {
+   "arm": 3,
+   "kind": "v2",
+   "model": "openai/gpt-6-luna-decisions",
+   "position": 3,
+   "seconds": 1.2,
+   "requests": 2,
+   "input_tokens": 17525,
+   "error": null,
+   "component": "deployment/search",
+   "investigation": {
+    "steps": [
+     {
+      "step": 1,
+      "node": "investigate",
+      "component": "deployment/search",
+      "verdict": "origin",
+      "origin_p": 0.97,
+      "victim_p": 0.01,
+      "next": "none",
+      "next_p": 0.62,
+      "category": "admission_or_namespace_policy",
+      "spec_checks": [
+       "service search has no ready endpoints"
+      ],
+      "blocked_input": null,
+      "key_evidence": "ResourceQuota memory-limit-quota requires memory on every pod and this workload's containers declare none, so the API server rejects its new pods"
+     }
+    ],
+    "concluded": "deployment/search",
+    "fallback": null,
+    "triage_top": [
+     [
+      "other",
+      0.82
+     ],
+     [
+      "deployment/search",
+      0.08
+     ],
+     [
+      "deployment/mongodb-geo",
+      0.03
+     ],
+     [
+      "deployment/mongodb-rate",
+      0.03
+     ],
+     [
+      "deployment/frontend",
+      0.01
+     ]
+    ]
+   },
+   "text": "Root cause: ResourceQuota `memory-limit-quota` in namespace `hotel-reservation`, acting on Deployment `search` in namespace `hotel-reservation`: ResourceQuota memory-limit-quota requires memory on every pod and this workload's containers declare none, so the API server rejects its new pods.\nMechanism: rejects pods of deployment/search (missing memory); ResourceQuota memory-limit-quota was created 78s ago, 13s after the workloads in its namespace; 1s before the first active symptom.\nDetails: service search has no ready endpoints.\nEffect: only 0 of 1 desired replicas are ready; service search selects this component but has 0 ready endpoints.",
+   "grade": {
+    "judgment": "True",
+    "reasoning": "Verdict: True (composite=0.89). D1 Fault Localization: 1.00 | D2 Fault Characterization: 1.00 | D3 Scope Precision: 0.67. Weakest dimension: Scope Precision (0.67). Checklist details: [{\"id\": \"D1-Q1\", \"answer\": \"Yes\", \"evidence\": \"Names ResourceQuota `memory-limit-quota` in namespace `hotel-reservation` as the root cause, matching the fault specification.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q2\", \"answer\": \"Yes\", \"evidence\": \"Identifies the ResourceQuota as the cause and Deployment `search` as the workload whose new pods are rejected.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q3\", \"answer\": \"Yes\", \"evidence\": \"Attributes the fault to the specified ResourceQuota; describes search's missing endpoints as an effect.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q1\", \"answer\": \"Yes\", \"evidence\": \"States the quota requires memory declarations, containers declare none, and the API server rejects new pods.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q2\", \"answer\": \"Yes\", \"evidence\": \"Specifies quota `memory-limit-quota`, the required memory declarations, and their absence from search's containers.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q3\", \"answer\": \"Yes\", \"evidence\": \"Consistently describes admission rejection caused by missing memory declarations under the ResourceQuota.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q1\", \"answer\": \"Yes\", \"evidence\": \"Attributes the cause to the quota and missing memory declarations on search; blames no unrelated components.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q2\", \"answer\": \"No\", \"evidence\": \"Describes search's rejection but does not mention other noncompliant workloads remaining vulnerable on restart.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q3\", \"answer\": \"Yes\", \"evidence\": \"Reports rejection of new search pods, zero ready replicas, and no ready service endpoints, consistent with replacement pod admission failure.\", \"confidence\": \"High\"}]",
+    "success": true,
+    "accuracy": 89.0,
+    "composite_score": 0.89,
+    "dimensions": {
+     "D1": {
+      "name": "Fault Localization",
+      "score": 1.0
+     },
+     "D2": {
+      "name": "Fault Characterization",
+      "score": 1.0
+     },
+     "D3": {
+      "name": "Scope Precision",
+      "score": 0.67
+     }
+    },
+    "checklist": [
+     {
+      "id": "D1-Q1",
+      "answer": "Yes",
+      "evidence": "Names ResourceQuota `memory-limit-quota` in namespace `hotel-reservation` as the root cause, matching the fault specification.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q2",
+      "answer": "Yes",
+      "evidence": "Identifies the ResourceQuota as the cause and Deployment `search` as the workload whose new pods are rejected.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q3",
+      "answer": "Yes",
+      "evidence": "Attributes the fault to the specified ResourceQuota; describes search's missing endpoints as an effect.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q1",
+      "answer": "Yes",
+      "evidence": "States the quota requires memory declarations, containers declare none, and the API server rejects new pods.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q2",
+      "answer": "Yes",
+      "evidence": "Specifies quota `memory-limit-quota`, the required memory declarations, and their absence from search's containers.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q3",
+      "answer": "Yes",
+      "evidence": "Consistently describes admission rejection caused by missing memory declarations under the ResourceQuota.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q1",
+      "answer": "Yes",
+      "evidence": "Attributes the cause to the quota and missing memory declarations on search; blames no unrelated components.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q2",
+      "answer": "No",
+      "evidence": "Describes search's rejection but does not mention other noncompliant workloads remaining vulnerable on restart.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q3",
+      "answer": "Yes",
+      "evidence": "Reports rejection of new search pods, zero ready replicas, and no ready service endpoints, consistent with replacement pod admission failure.",
+      "confidence": "High"
+     }
+    ]
+   }
+  }
+ ],
+ "judge": {
+  "model": "gpt-6-astra",
+  "backend": "codex",
+  "effort": "high"
+ }
+}

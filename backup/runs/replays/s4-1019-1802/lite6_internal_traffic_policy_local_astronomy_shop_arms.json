@@ -1,0 +1,123 @@
+{
+ "problem_id": "internal_traffic_policy_local_astronomy_shop",
+ "source": "lite6_internal_traffic_policy_local_astronomy_shop",
+ "replay": true,
+ "arms": [
+  {
+   "arm": 0,
+   "kind": "v2",
+   "model": "typesafe/jev-1.13",
+   "position": 0,
+   "seconds": 2.1,
+   "requests": 2,
+   "input_tokens": 35099,
+   "error": null,
+   "model_failed": false,
+   "component": "deployment/recommendation",
+   "investigation": {
+    "steps": [
+     {
+      "step": 1,
+      "node": "investigate",
+      "component": "deployment/recommendation",
+      "verdict": "origin",
+      "origin_p": 1.0,
+      "victim_p": 0.0,
+      "next": "none",
+      "next_p": 0.8,
+      "category": "traffic_policy",
+      "spec_checks": [
+       "service recommendation has internalTrafficPolicy=Local and ready endpoints only on kind-worker; client deployment/frontend on kind-worker2, where it has no local endpoint"
+      ],
+      "blocked_input": null,
+      "key_evidence": "service recommendation has internalTrafficPolicy=Local: only endpoints on the client's own node receive traffic"
+     }
+    ],
+    "concluded": "deployment/recommendation",
+    "fallback": null,
+    "triage_top": [
+     [
+      "deployment/recommendation",
+      0.97
+     ],
+     [
+      "other",
+      0.02
+     ],
+     [
+      "deployment/frontend",
+      0.01
+     ],
+     [
+      "deployment/accounting",
+      0.0
+     ],
+     [
+      "deployment/ad",
+      0.0
+     ]
+    ],
+    "second": null
+   },
+   "text": "Root cause: Service `recommendation` in namespace `astronomy-shop` (selecting Deployment `recommendation` in namespace `astronomy-shop`): service recommendation has internalTrafficPolicy=Local: only endpoints on the client's own node receive traffic.\nMechanism: Service recommendation was modified 141s ago, 69s after it was created (fields: spec.internalTrafficPolicy).\nDetails: pod nodeSelector: null -> {\"kubernetes.io/hostname\": \"kind-worker\"}; service recommendation has internalTrafficPolicy=Local and ready endpoints only on kind-worker; client deployment/frontend on kind-worker2, where it has no local endpoint.\nEffect: service recommendation (internalTrafficPolicy=Local) has ready endpoints only on kind-worker; client deployment/frontend runs on kind-worker2, where calls to recommendation find no local endpoint.\nObserved: spec modified 181s ago, 29s after this object was created (fields: nodeSelector); pod template changes: pod nodeSelector: null -> {\"kubernetes.io/hostname\": \"kind-worker\"}."
+  },
+  {
+   "arm": 1,
+   "kind": "v2",
+   "model": "openai/gpt-6-luna-decisions",
+   "position": 1,
+   "seconds": 2.3,
+   "requests": 2,
+   "input_tokens": 23376,
+   "error": null,
+   "model_failed": false,
+   "component": "deployment/recommendation",
+   "investigation": {
+    "steps": [
+     {
+      "step": 1,
+      "node": "investigate",
+      "component": "deployment/recommendation",
+      "verdict": "origin",
+      "origin_p": 0.98,
+      "victim_p": 0.01,
+      "next": "deployment/frontend",
+      "next_p": 0.74,
+      "category": "traffic_policy",
+      "spec_checks": [
+       "service recommendation has internalTrafficPolicy=Local and ready endpoints only on kind-worker; client deployment/frontend on kind-worker2, where it has no local endpoint"
+      ],
+      "blocked_input": null,
+      "key_evidence": "service recommendation has internalTrafficPolicy=Local: only endpoints on the client's own node receive traffic"
+     }
+    ],
+    "concluded": "deployment/recommendation",
+    "fallback": null,
+    "triage_top": [
+     [
+      "deployment/recommendation",
+      0.99
+     ],
+     [
+      "deployment/shipping",
+      0.01
+     ],
+     [
+      "deployment/accounting",
+      0.0
+     ],
+     [
+      "deployment/ad",
+      0.0
+     ],
+     [
+      "deployment/cart",
+      0.0
+     ]
+    ],
+    "second": null
+   },
+   "text": "Root cause: Service `recommendation` in namespace `astronomy-shop` (selecting Deployment `recommendation` in namespace `astronomy-shop`): service recommendation has internalTrafficPolicy=Local: only endpoints on the client's own node receive traffic.\nMechanism: Service recommendation was modified 141s ago, 69s after it was created (fields: spec.internalTrafficPolicy).\nDetails: pod nodeSelector: null -> {\"kubernetes.io/hostname\": \"kind-worker\"}; service recommendation has internalTrafficPolicy=Local and ready endpoints only on kind-worker; client deployment/frontend on kind-worker2, where it has no local endpoint.\nEffect: service recommendation (internalTrafficPolicy=Local) has ready endpoints only on kind-worker; client deployment/frontend runs on kind-worker2, where calls to recommendation find no local endpoint.\nObserved: spec modified 181s ago, 29s after this object was created (fields: nodeSelector); pod template changes: pod nodeSelector: null -> {\"kubernetes.io/hostname\": \"kind-worker\"}."
+  }
+ ]
+}

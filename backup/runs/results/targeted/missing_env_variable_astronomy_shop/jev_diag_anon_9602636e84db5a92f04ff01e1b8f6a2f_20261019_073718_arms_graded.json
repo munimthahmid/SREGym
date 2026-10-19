@@ -1,0 +1,674 @@
+{
+ "problem_id": "jev_diag_anon_9602636e84db5a92f04ff01e1b8f6a2f_20261019_073718",
+ "submit_arm": 0,
+ "order": [
+  2,
+  3,
+  0,
+  1
+ ],
+ "arms": [
+  {
+   "arm": 0,
+   "kind": "v2",
+   "model": "openrouter/typesafe/jev-1.13",
+   "position": 2,
+   "seconds": 9.2,
+   "requests": 4,
+   "input_tokens": 57810,
+   "cost_usd": 0.002428,
+   "error": null,
+   "investigation": {
+    "rounds": [
+     {
+      "candidates": [
+       "dependency:daemonset/otel-collector-agent",
+       "bad-input:deployment/frontend:otel-collector",
+       "bad-input:deployment/frontend:cumulative",
+       "bad-input:deployment/frontend:flagd",
+       "bad-input:deployment/frontend:kubernetes",
+       "change:deployment/frontend:container frontend env CART_ADDR removed"
+      ],
+      "probabilities": {
+       "dependency:daemonset/otel-collector-agent": 0.405,
+       "bad-input:deployment/frontend:otel-collector": 0.025,
+       "bad-input:deployment/frontend:cumulative": 0.0,
+       "bad-input:deployment/frontend:flagd": 0.0,
+       "bad-input:deployment/frontend:kubernetes": 0.005,
+       "change:deployment/frontend:container frontend env CART_ADDR removed": 0.395,
+       "none_of_these": 0.17
+      },
+      "picks": [
+       "dependency:daemonset/otel-collector-agent",
+       "dependency:daemonset/otel-collector-agent"
+      ],
+      "route": "check"
+     }
+    ],
+    "explanations": 15,
+    "winner": "dependency:daemonset/otel-collector-agent",
+    "pattern": "dependency",
+    "key_fact": "container opentelemetry-collector readiness probe: httpGet HTTP :13133/",
+    "key_fact_probability": 0.43,
+    "fault_type": "health_probe_config",
+    "fault_object": null,
+    "uncertain": true
+   },
+   "text": "Root cause: daemonset `otel-collector-agent` in namespace `astronomy-shop`.\nMechanism: container opentelemetry-collector readiness probe: httpGet HTTP :13133/.\nConcrete details: spec modified 141s ago, 18s after this object was created (fields: template.annotations.kubectl.kubernetes.io/restartedAt); pod template changes: template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-19T13:37:04+06:00; 22s before the first active symptom.\nObserved impact: daemonset `otel-collector-agent` in namespace `astronomy-shop`.\nFault type: health probe config (a health probe is misconfigured, so healthy containers are reported unhealthy).\nEvidence:\n- spec modified 141s ago, 18s after this object was created (fields: template.annotations.kubectl.kubernetes.io/restartedAt); pod template changes: template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-19T13:37:04+06:00; 22s before the first active symptom\n- daemonset/otel-collector-agent: spec modified 141s ago, 18s after this object was created (fields: template.annotations.kubectl.kubernetes.io/restartedAt); pod template changes: template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-19T13:37:04+06:00; 22s before the first active symptom\n- deployment/email: errors logged by 1 other component(s) (deployment/frontend) name this component (error mentioning the component, 26 lines, still occurring), e.g. 'Error: 13 INTERNAL: shipping quote failure: failed POST to email service: expected 200, got 400'\n- deployment/quote: errors logged by 1 other component(s) (deployment/frontend) name this component (error mentioning the component, 26 lines, still occurring), e.g. 'Error: 13 INTERNAL: shipping quote failure: failed POST to email service: expected 200, got 400'\n- deployment/shipping: errors logged by 1 other component(s) (deployment/frontend) name this component (error mentioning the component, 26 lines, still occurring), e.g. 'Error: 13 INTERNAL: shipping quote failure: failed POST to email service: expected 200, got 400'\n- deployment `email` in namespace `astronomy-shop` fails as a result (observed symptoms)\n- deployment `frontend` in namespace `astronomy-shop` fails as a result (observed symptoms)\n- deployment `quote` in namespace `astronomy-shop` fails as a result (observed symptoms)\n- deployment `shipping` in namespace `astronomy-shop` fails as a result (observed symptoms)\nConfidence: low; the investigation budget ended before the leading explanation was confirmed.",
+   "grade": {
+    "judgment": "False",
+    "reasoning": "Verdict: False (composite=0.11). D1 Fault Localization: 0.00 | D2 Fault Characterization: 0.00 | D3 Scope Precision: 0.33. Weakest dimension: Fault Localization (0.00). Checklist details: [{\"id\": \"D1-Q1\", \"answer\": \"No\", \"evidence\": \"Diagnosis names daemonset otel-collector-agent as the origin; ground truth identifies deployment/frontend in astronomy-shop.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q2\", \"answer\": \"No\", \"evidence\": \"Diagnosis treats frontend as failing 'as a result' of an otel-collector-agent fault, instead of identifying frontend as the origin.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q3\", \"answer\": \"No\", \"evidence\": \"Diagnosis blames otel-collector-agent, which does not match the ground-truth fault target deployment/frontend.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q1\", \"answer\": \"No\", \"evidence\": \"Diagnosis claims a misconfigured readiness probe; ground truth specifies removal of the required CART_ADDR environment variable.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q2\", \"answer\": \"No\", \"evidence\": \"Concrete details concern HTTP port 13133 and a restartedAt annotation; diagnosis never identifies the CART_ADDR removal.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q3\", \"answer\": \"No\", \"evidence\": \"The stated fault type, 'health probe config,' conflicts with the ground-truth missing environment variable.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q1\", \"answer\": \"No\", \"evidence\": \"Diagnosis attributes the fault to otel-collector-agent, which ground truth does not identify as contributing to the fault.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q2\", \"answer\": \"Yes\", \"evidence\": \"Diagnosis explicitly lists deployment/frontend in astronomy-shop as affected, covering the ground-truth affected component.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q3\", \"answer\": \"No\", \"evidence\": \"Diagnosis describes healthy containers reported unhealthy and shipping/email failures, rather than configuration errors and cart-related frontend outages from an unresolved cart endpoint.\", \"confidence\": \"High\"}]",
+    "success": false,
+    "accuracy": 11.0,
+    "composite_score": 0.11,
+    "dimensions": {
+     "D1": {
+      "name": "Fault Localization",
+      "score": 0.0
+     },
+     "D2": {
+      "name": "Fault Characterization",
+      "score": 0.0
+     },
+     "D3": {
+      "name": "Scope Precision",
+      "score": 0.33
+     }
+    },
+    "checklist": [
+     {
+      "id": "D1-Q1",
+      "answer": "No",
+      "evidence": "Diagnosis names daemonset otel-collector-agent as the origin; ground truth identifies deployment/frontend in astronomy-shop.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q2",
+      "answer": "No",
+      "evidence": "Diagnosis treats frontend as failing 'as a result' of an otel-collector-agent fault, instead of identifying frontend as the origin.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q3",
+      "answer": "No",
+      "evidence": "Diagnosis blames otel-collector-agent, which does not match the ground-truth fault target deployment/frontend.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q1",
+      "answer": "No",
+      "evidence": "Diagnosis claims a misconfigured readiness probe; ground truth specifies removal of the required CART_ADDR environment variable.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q2",
+      "answer": "No",
+      "evidence": "Concrete details concern HTTP port 13133 and a restartedAt annotation; diagnosis never identifies the CART_ADDR removal.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q3",
+      "answer": "No",
+      "evidence": "The stated fault type, 'health probe config,' conflicts with the ground-truth missing environment variable.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q1",
+      "answer": "No",
+      "evidence": "Diagnosis attributes the fault to otel-collector-agent, which ground truth does not identify as contributing to the fault.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q2",
+      "answer": "Yes",
+      "evidence": "Diagnosis explicitly lists deployment/frontend in astronomy-shop as affected, covering the ground-truth affected component.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q3",
+      "answer": "No",
+      "evidence": "Diagnosis describes healthy containers reported unhealthy and shipping/email failures, rather than configuration errors and cart-related frontend outages from an unresolved cart endpoint.",
+      "confidence": "High"
+     }
+    ]
+   }
+  },
+  {
+   "arm": 1,
+   "kind": "v2",
+   "model": "openrouter/openai/gpt-6-luna-decisions",
+   "position": 3,
+   "seconds": 9.0,
+   "requests": 4,
+   "input_tokens": 35394,
+   "cost_usd": 0.003539,
+   "error": null,
+   "investigation": {
+    "rounds": [
+     {
+      "candidates": [
+       "dependency:daemonset/otel-collector-agent",
+       "bad-input:deployment/frontend:otel-collector",
+       "bad-input:deployment/frontend:cumulative",
+       "bad-input:deployment/frontend:flagd",
+       "bad-input:deployment/frontend:kubernetes",
+       "change:deployment/frontend:container frontend env CART_ADDR removed"
+      ],
+      "probabilities": {
+       "dependency:daemonset/otel-collector-agent": 0.015,
+       "bad-input:deployment/frontend:otel-collector": 0.02,
+       "bad-input:deployment/frontend:cumulative": 0.015,
+       "bad-input:deployment/frontend:flagd": 0.02,
+       "bad-input:deployment/frontend:kubernetes": 0.08,
+       "change:deployment/frontend:container frontend env CART_ADDR removed": 0.5,
+       "none_of_these": 0.35
+      },
+      "picks": [
+       "change:deployment/frontend:container frontend env CART_ADDR removed",
+       "none_of_these"
+      ],
+      "route": "check"
+     }
+    ],
+    "explanations": 15,
+    "winner": "change:deployment/frontend:container frontend env CART_ADDR removed",
+    "pattern": "change",
+    "key_fact": "pod template changed in revision 2: container frontend env CART_ADDR removed",
+    "key_fact_probability": 0.345,
+    "fault_type": "config_value",
+    "fault_object": null,
+    "uncertain": true
+   },
+   "text": "Root cause: deployment `frontend` in namespace `astronomy-shop`.\nMechanism: The pod template change 'container frontend env CART_ADDR removed' in revision 2 of deployment/frontend breaks deployment/frontend.\nConcrete details: container frontend env CART_ADDR removed.\nObserved impact: deployment `frontend` in namespace `astronomy-shop`.\nKey evidence: pod template changed in revision 2: container frontend env CART_ADDR removed.\nFault type: config value (a wrong, missing, or shadowed value in this component's own configuration).\nEvidence:\n- container frontend env CART_ADDR removed\nConfidence: low; the investigation budget ended before the leading explanation was confirmed.",
+   "grade": {
+    "judgment": "True",
+    "reasoning": "Verdict: True (composite=0.89). D1 Fault Localization: 1.00 | D2 Fault Characterization: 1.00 | D3 Scope Precision: 0.67. Weakest dimension: Scope Precision (0.67). Checklist details: [{\"id\": \"D1-Q1\", \"answer\": \"Yes\", \"evidence\": \"Names deployment frontend in namespace astronomy-shop as the root cause, matching the fault specification.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q2\", \"answer\": \"Yes\", \"evidence\": \"Locates the fault in frontend's pod template configuration, rather than attributing it to the cart dependency.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q3\", \"answer\": \"Yes\", \"evidence\": \"Blames only deployment frontend, the component identified by the ground truth.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q1\", \"answer\": \"Yes\", \"evidence\": \"Explicitly identifies removal of the frontend container's CART_ADDR environment variable.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q2\", \"answer\": \"Yes\", \"evidence\": \"Concrete mutation is stated as 'container frontend env CART_ADDR removed.'\", \"confidence\": \"High\"}, {\"id\": \"D2-Q3\", \"answer\": \"Yes\", \"evidence\": \"Classifies the fault as a missing value in the component's own configuration, consistent with the removed environment variable.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q1\", \"answer\": \"Yes\", \"evidence\": \"Attributes the fault exclusively to frontend; no uninvolved components are blamed.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q2\", \"answer\": \"Yes\", \"evidence\": \"Includes frontend, the sole component identified as faulty or experiencing outages; cart is described in ground truth only as a dependency.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q3\", \"answer\": \"No\", \"evidence\": \"Only says the change 'breaks deployment/frontend'; does not describe endpoint resolution failure, runtime configuration errors, or partial outages for cart-related actions.\", \"confidence\": \"Medium\"}]",
+    "success": true,
+    "accuracy": 89.0,
+    "composite_score": 0.89,
+    "dimensions": {
+     "D1": {
+      "name": "Fault Localization",
+      "score": 1.0
+     },
+     "D2": {
+      "name": "Fault Characterization",
+      "score": 1.0
+     },
+     "D3": {
+      "name": "Scope Precision",
+      "score": 0.67
+     }
+    },
+    "checklist": [
+     {
+      "id": "D1-Q1",
+      "answer": "Yes",
+      "evidence": "Names deployment frontend in namespace astronomy-shop as the root cause, matching the fault specification.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q2",
+      "answer": "Yes",
+      "evidence": "Locates the fault in frontend's pod template configuration, rather than attributing it to the cart dependency.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q3",
+      "answer": "Yes",
+      "evidence": "Blames only deployment frontend, the component identified by the ground truth.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q1",
+      "answer": "Yes",
+      "evidence": "Explicitly identifies removal of the frontend container's CART_ADDR environment variable.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q2",
+      "answer": "Yes",
+      "evidence": "Concrete mutation is stated as 'container frontend env CART_ADDR removed.'",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q3",
+      "answer": "Yes",
+      "evidence": "Classifies the fault as a missing value in the component's own configuration, consistent with the removed environment variable.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q1",
+      "answer": "Yes",
+      "evidence": "Attributes the fault exclusively to frontend; no uninvolved components are blamed.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q2",
+      "answer": "Yes",
+      "evidence": "Includes frontend, the sole component identified as faulty or experiencing outages; cart is described in ground truth only as a dependency.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q3",
+      "answer": "No",
+      "evidence": "Only says the change 'breaks deployment/frontend'; does not describe endpoint resolution failure, runtime configuration errors, or partial outages for cart-related actions.",
+      "confidence": "Medium"
+     }
+    ]
+   }
+  },
+  {
+   "arm": 2,
+   "kind": "v1",
+   "model": "openrouter/typesafe/jev-1.13",
+   "position": 0,
+   "seconds": 13.0,
+   "requests": 7,
+   "input_tokens": 79758,
+   "cost_usd": 0.00335,
+   "error": null,
+   "investigation": {
+    "steps": [
+     {
+      "step": 1,
+      "node": "investigate",
+      "component": "deployment/email",
+      "verdict": "victim",
+      "origin_p": 0.04,
+      "victim_p": 0.47,
+      "next": "deployment/frontend",
+      "next_p": 0.65,
+      "category": "config_value",
+      "spec_checks": [],
+      "blocked_input": null,
+      "key_evidence": "errors logged by 1 other component(s) (deployment/frontend) name this component (error mentioning the component, 26 lines, still occurring), e.g. 'Error: 13 INTERNAL: shipping quote failure: failed POST to email service: expected 200, got 400'"
+     },
+     {
+      "step": 2,
+      "node": "investigate",
+      "component": "deployment/frontend",
+      "verdict": "victim",
+      "origin_p": 0.11,
+      "victim_p": 0.82,
+      "next": "deployment/shipping",
+      "next_p": 0.69,
+      "category": "config_value",
+      "spec_checks": [],
+      "blocked_input": null,
+      "key_evidence": "pod template changed in revision 2: container frontend env CART_ADDR removed"
+     },
+     {
+      "step": 3,
+      "node": "investigate",
+      "component": "deployment/shipping",
+      "verdict": "victim",
+      "origin_p": 0.05,
+      "victim_p": 0.47,
+      "next": "deployment/checkout",
+      "next_p": 0.45,
+      "category": "config_value",
+      "spec_checks": [],
+      "blocked_input": null,
+      "key_evidence": "dependency daemonset/otel-collector-agent is abnormal on its own: spec modified 141s ago, 18s after this object was created (fields: template.annotations.kubectl.kubernetes.io/restartedAt); pod template changes: template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-19T13:37:04+06:00; 22s before the first active symptom"
+     },
+     {
+      "step": 4,
+      "node": "investigate",
+      "component": "deployment/quote",
+      "verdict": "victim",
+      "origin_p": 0.02,
+      "victim_p": 0.59,
+      "next": "none",
+      "next_p": 0.81,
+      "category": "other",
+      "spec_checks": [],
+      "blocked_input": null,
+      "key_evidence": "dependency daemonset/otel-collector-agent is abnormal on its own: spec modified 141s ago, 18s after this object was created (fields: template.annotations.kubectl.kubernetes.io/restartedAt); pod template changes: template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-19T13:37:04+06:00; 22s before the first active symptom"
+     },
+     {
+      "step": 5,
+      "node": "investigate",
+      "component": "daemonset/otel-collector-agent",
+      "verdict": "unrelated",
+      "origin_p": 0.17,
+      "victim_p": 0.12,
+      "next": "none",
+      "next_p": 0.68,
+      "category": "config_value",
+      "spec_checks": [],
+      "blocked_input": null,
+      "key_evidence": "spec modified 141s ago, 18s after this object was created (fields: template.annotations.kubectl.kubernetes.io/restartedAt); pod template changes: template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-19T13:37:04+06:00; 22s before the first active symptom"
+     },
+     {
+      "step": 6,
+      "node": "investigate",
+      "component": "deployment/checkout",
+      "verdict": "unrelated",
+      "origin_p": 0.02,
+      "victim_p": 0.02,
+      "next": "none",
+      "next_p": 0.64,
+      "category": "resource_limits",
+      "spec_checks": [],
+      "blocked_input": null,
+      "key_evidence": "container checkout image ghcr.io/open-telemetry/demo:2.2.0-checkout resources {'limits': {'memory': '20Mi'}}"
+     }
+    ],
+    "concluded": "deployment/email",
+    "fallback": "triage top-1 (telemetry components skipped)",
+    "triage_top": [
+     [
+      "deployment/email",
+      0.36
+     ],
+     [
+      "daemonset/otel-collector-agent",
+      0.31
+     ],
+     [
+      "deployment/frontend",
+      0.27
+     ],
+     [
+      "deployment/checkout",
+      0.02
+     ],
+     [
+      "deployment/quote",
+      0.01
+     ]
+    ]
+   },
+   "text": "Root cause component: Deployment `email` in namespace `astronomy-shop`.\nMechanism: errors logged by 1 other component(s) (deployment/frontend) name this component (error mentioning the component, 26 lines, still occurring), e.g. 'Error: 13 INTERNAL: shipping quote failure: failed POST to email service: expected 200, got 400'.\nFault type: config value (a wrong, missing, or shadowed value in this component's own configuration).\nImpact on other components:\n- deployment/frontend fails when calling this component (error mentioning the component x26, still occurring)\n- container email: image ghcr.io/open-telemetry/demo:2.2.0-email, limits {'memory': '100Mi'}\nClassification: Jev (typesafe/jev-1.13-20260917) selected this origin as the most likely candidate after 6 investigation step(s) (origin probability 0.04, triage probability 0.36).\nLow confidence: `daemonset/otel-collector-agent` (probability 0.31) cannot be ruled out.",
+   "grade": {
+    "judgment": "False",
+    "reasoning": "Verdict: False (composite=0.22). D1 Fault Localization: 0.00 | D2 Fault Characterization: 0.33 | D3 Scope Precision: 0.33. Weakest dimension: Fault Localization (0.00). Checklist details: [{\"id\": \"D1-Q1\", \"answer\": \"No\", \"evidence\": \"The diagnosis names deployment/email as the origin; ground truth identifies deployment/frontend in astronomy-shop.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q2\", \"answer\": \"No\", \"evidence\": \"The diagnosis treats frontend as a victim of email failures, whereas frontend is the ground-truth fault origin.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q3\", \"answer\": \"No\", \"evidence\": \"The diagnosis blames email, which does not match the fault specification's deployment/frontend target.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q1\", \"answer\": \"No\", \"evidence\": \"The diagnosis gives only a generic configuration-value fault; it does not identify removal of a required environment variable.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q2\", \"answer\": \"No\", \"evidence\": \"The diagnosis never mentions CART_ADDR or its removal; email image and memory details do not match the injected mutation.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q3\", \"answer\": \"Yes\", \"evidence\": \"The stated fault type, a wrong or missing configuration value, is broadly consistent with a missing required environment variable.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q1\", \"answer\": \"No\", \"evidence\": \"The diagnosis blames email and leaves otel-collector-agent as a possible origin; neither contributes to the ground-truth fault.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q2\", \"answer\": \"Yes\", \"evidence\": \"The diagnosis explicitly includes deployment/frontend, the component identified as faulty and affected in the ground truth.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q3\", \"answer\": \"No\", \"evidence\": \"The diagnosis describes shipping quote failures from email HTTP 400 responses, rather than cart-related frontend failures caused by missing CART_ADDR.\", \"confidence\": \"High\"}]",
+    "success": false,
+    "accuracy": 22.0,
+    "composite_score": 0.22,
+    "dimensions": {
+     "D1": {
+      "name": "Fault Localization",
+      "score": 0.0
+     },
+     "D2": {
+      "name": "Fault Characterization",
+      "score": 0.33
+     },
+     "D3": {
+      "name": "Scope Precision",
+      "score": 0.33
+     }
+    },
+    "checklist": [
+     {
+      "id": "D1-Q1",
+      "answer": "No",
+      "evidence": "The diagnosis names deployment/email as the origin; ground truth identifies deployment/frontend in astronomy-shop.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q2",
+      "answer": "No",
+      "evidence": "The diagnosis treats frontend as a victim of email failures, whereas frontend is the ground-truth fault origin.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q3",
+      "answer": "No",
+      "evidence": "The diagnosis blames email, which does not match the fault specification's deployment/frontend target.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q1",
+      "answer": "No",
+      "evidence": "The diagnosis gives only a generic configuration-value fault; it does not identify removal of a required environment variable.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q2",
+      "answer": "No",
+      "evidence": "The diagnosis never mentions CART_ADDR or its removal; email image and memory details do not match the injected mutation.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q3",
+      "answer": "Yes",
+      "evidence": "The stated fault type, a wrong or missing configuration value, is broadly consistent with a missing required environment variable.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q1",
+      "answer": "No",
+      "evidence": "The diagnosis blames email and leaves otel-collector-agent as a possible origin; neither contributes to the ground-truth fault.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q2",
+      "answer": "Yes",
+      "evidence": "The diagnosis explicitly includes deployment/frontend, the component identified as faulty and affected in the ground truth.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q3",
+      "answer": "No",
+      "evidence": "The diagnosis describes shipping quote failures from email HTTP 400 responses, rather than cart-related frontend failures caused by missing CART_ADDR.",
+      "confidence": "High"
+     }
+    ]
+   }
+  },
+  {
+   "arm": 3,
+   "kind": "v1",
+   "model": "openrouter/openai/gpt-6-luna-decisions",
+   "position": 1,
+   "seconds": 12.1,
+   "requests": 7,
+   "input_tokens": 57204,
+   "cost_usd": 0.00572,
+   "error": null,
+   "investigation": {
+    "steps": [
+     {
+      "step": 1,
+      "node": "investigate",
+      "component": "deployment/frontend",
+      "verdict": "origin",
+      "origin_p": 0.42,
+      "victim_p": 0.4,
+      "next": "deployment/email",
+      "next_p": 0.5,
+      "category": "config_value",
+      "spec_checks": [],
+      "blocked_input": null,
+      "key_evidence": "pod template changed in revision 2: container frontend env CART_ADDR removed"
+     },
+     {
+      "step": 2,
+      "node": "investigate",
+      "component": "deployment/email",
+      "verdict": "origin",
+      "origin_p": 0.39,
+      "victim_p": 0.32,
+      "next": "deployment/checkout",
+      "next_p": 0.67,
+      "category": "config_value",
+      "spec_checks": [],
+      "blocked_input": null,
+      "key_evidence": "errors logged by 1 other component(s) (deployment/frontend) name this component (error mentioning the component, 26 lines, still occurring), e.g. 'Error: 13 INTERNAL: shipping quote failure: failed POST to email service: expected 200, got 400'"
+     },
+     {
+      "step": 3,
+      "node": "investigate",
+      "component": "deployment/quote",
+      "verdict": "victim",
+      "origin_p": 0.3,
+      "victim_p": 0.34,
+      "next": "deployment/shipping",
+      "next_p": 0.47,
+      "category": "other",
+      "spec_checks": [],
+      "blocked_input": null,
+      "key_evidence": "container quote env OTEL_EXPORTER_OTLP_ENDPOINT=http://$(OTEL_COLLECTOR_NAME):4318"
+     },
+     {
+      "step": 4,
+      "node": "investigate",
+      "component": "deployment/shipping",
+      "verdict": "victim",
+      "origin_p": 0.09,
+      "victim_p": 0.43,
+      "next": "deployment/checkout",
+      "next_p": 0.55,
+      "category": "code_bug",
+      "spec_checks": [],
+      "blocked_input": null,
+      "key_evidence": "container shipping env QUOTE_ADDR=http://quote:8080"
+     },
+     {
+      "step": 5,
+      "node": "investigate",
+      "component": "daemonset/otel-collector-agent",
+      "verdict": "origin",
+      "origin_p": 0.36,
+      "victim_p": 0.11,
+      "next": "none",
+      "next_p": 0.45,
+      "category": "rollout_or_replica_config",
+      "spec_checks": [],
+      "blocked_input": null,
+      "key_evidence": "ConfigMap otel-collector-agent key relay: connectors: \u23ce spanmetrics: {} \u23ce exporters: \u23ce debug: {} \u23ce opensearch: \u23ce http: \u23ce endpoint: http://opensearch:9200 \u23ce tls: \u23ce insecure: true \u23ce logs_index: otel-logs \u23ce logs_index_time_format: yyyy-MM-dd \u23ce otlp/jaeger: \u23ce endpoint: jaeger:4317 \u23ce sending_queue: \u23ce batch: null \u23ce tls: \u23ce insecure: true \u23ce otlphttp/prometheus: \u23ce endpoint: http://prometheus:9090/api/v1/otlp \u23ce sending_queue: \u23ce batch: null \u23ce tls: \u2026"
+     },
+     {
+      "step": 6,
+      "node": "investigate",
+      "component": "deployment/checkout",
+      "verdict": "unrelated",
+      "origin_p": 0.11,
+      "victim_p": 0.14,
+      "next": "none",
+      "next_p": 0.43,
+      "category": "other",
+      "spec_checks": [],
+      "blocked_input": null,
+      "key_evidence": "dependency daemonset/otel-collector-agent is abnormal on its own: spec modified 141s ago, 18s after this object was created (fields: template.annotations.kubectl.kubernetes.io/restartedAt); pod template changes: template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-19T13:37:04+06:00; 22s before the first active symptom"
+     }
+    ],
+    "concluded": "deployment/frontend",
+    "fallback": "most likely origin among investigated components",
+    "triage_top": [
+     [
+      "daemonset/otel-collector-agent",
+      0.35
+     ],
+     [
+      "deployment/frontend",
+      0.3
+     ],
+     [
+      "deployment/email",
+      0.17
+     ],
+     [
+      "deployment/quote",
+      0.05
+     ],
+     [
+      "deployment/shipping",
+      0.05
+     ]
+    ]
+   },
+   "text": "Root cause component: Deployment `frontend` in namespace `astronomy-shop`.\nMechanism: pod template changed in revision 2: container frontend env CART_ADDR removed.\nFault type: config value (a wrong, missing, or shadowed value in this component's own configuration).\nAbnormal state observed on this component:\n- 80 error-like log lines still occurring in the recent pod logs\n- container frontend: image ghcr.io/open-telemetry/demo:2.2.0-frontend, limits {'memory': '250Mi'}\nError-like log lines still occurring:\n- x54: frontend: \u2a2f Error: Could not parse target name \"\"\n- x13: frontend: Error: 13 INTERNAL: shipping quote failure: failed POST to email service: expected 200, got 400\n- x13: frontend: details: 'shipping quote failure: failed POST to email service: expected 200, got 400',\nClassification: Jev (openai/gpt-6-luna-decisions-20261006) selected this origin as the most likely candidate after 6 investigation step(s) (origin probability 0.42, triage probability 0.30).",
+   "grade": {
+    "judgment": "True",
+    "reasoning": "Verdict: True (composite=1.00). D1 Fault Localization: 1.00 | D2 Fault Characterization: 1.00 | D3 Scope Precision: 1.00. Weakest dimension: Fault Localization (1.00). Checklist details: [{\"id\": \"D1-Q1\", \"answer\": \"Yes\", \"evidence\": \"Names Deployment frontend in namespace astronomy-shop, exactly matching the fault specification.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q2\", \"answer\": \"Yes\", \"evidence\": \"Identifies frontend as the root cause and locates CART_ADDR removal in its pod template; shipping and email appear only in symptom logs.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q3\", \"answer\": \"Yes\", \"evidence\": \"Blames the frontend deployment, the component identified by the ground truth.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q1\", \"answer\": \"Yes\", \"evidence\": \"Explicitly states that container frontend environment variable CART_ADDR was removed.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q2\", \"answer\": \"Yes\", \"evidence\": \"Specifies the exact mutated environment variable, CART_ADDR, and its removal from the frontend pod template.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q3\", \"answer\": \"Yes\", \"evidence\": \"Classifies the fault as a missing value in the component's own configuration, consistent with the removed environment variable.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q1\", \"answer\": \"Yes\", \"evidence\": \"Attributes the fault solely to frontend configuration; shipping and email failures are quoted as logs, not identified as fault origins.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q2\", \"answer\": \"Yes\", \"evidence\": \"Includes frontend, the component identified as faulty and experiencing outages in the ground truth.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q3\", \"answer\": \"Yes\", \"evidence\": \"Reports repeated frontend runtime errors, 'Could not parse target name \\\"\\\"', consistent with the missing dependency endpoint configuration.\", \"confidence\": \"High\"}]",
+    "success": true,
+    "accuracy": 100.0,
+    "composite_score": 1.0,
+    "dimensions": {
+     "D1": {
+      "name": "Fault Localization",
+      "score": 1.0
+     },
+     "D2": {
+      "name": "Fault Characterization",
+      "score": 1.0
+     },
+     "D3": {
+      "name": "Scope Precision",
+      "score": 1.0
+     }
+    },
+    "checklist": [
+     {
+      "id": "D1-Q1",
+      "answer": "Yes",
+      "evidence": "Names Deployment frontend in namespace astronomy-shop, exactly matching the fault specification.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q2",
+      "answer": "Yes",
+      "evidence": "Identifies frontend as the root cause and locates CART_ADDR removal in its pod template; shipping and email appear only in symptom logs.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q3",
+      "answer": "Yes",
+      "evidence": "Blames the frontend deployment, the component identified by the ground truth.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q1",
+      "answer": "Yes",
+      "evidence": "Explicitly states that container frontend environment variable CART_ADDR was removed.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q2",
+      "answer": "Yes",
+      "evidence": "Specifies the exact mutated environment variable, CART_ADDR, and its removal from the frontend pod template.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q3",
+      "answer": "Yes",
+      "evidence": "Classifies the fault as a missing value in the component's own configuration, consistent with the removed environment variable.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q1",
+      "answer": "Yes",
+      "evidence": "Attributes the fault solely to frontend configuration; shipping and email failures are quoted as logs, not identified as fault origins.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q2",
+      "answer": "Yes",
+      "evidence": "Includes frontend, the component identified as faulty and experiencing outages in the ground truth.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q3",
+      "answer": "Yes",
+      "evidence": "Reports repeated frontend runtime errors, 'Could not parse target name \"\"', consistent with the missing dependency endpoint configuration.",
+      "confidence": "High"
+     }
+    ]
+   }
+  }
+ ],
+ "submission": {
+  "status": "200",
+  "message": "Submission received",
+  "stage": "diagnosis"
+ },
+ "judge": {
+  "model": "gpt-6-astra",
+  "backend": "codex",
+  "effort": "high"
+ }
+}

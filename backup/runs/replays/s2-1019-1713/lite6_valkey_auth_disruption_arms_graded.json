@@ -1,0 +1,760 @@
+{
+ "problem_id": "valkey_auth_disruption",
+ "source": "lite6_valkey_auth_disruption",
+ "replay": true,
+ "arms": [
+  {
+   "arm": 0,
+   "kind": "v1",
+   "model": "typesafe/jev-1.13",
+   "position": 0,
+   "seconds": 5.3,
+   "requests": 8,
+   "input_tokens": 89987,
+   "error": null,
+   "model_failed": false,
+   "component": "deployment/valkey-cart",
+   "investigation": {
+    "steps": [
+     {
+      "step": 1,
+      "node": "investigate",
+      "component": "deployment/cart",
+      "verdict": "victim",
+      "origin_p": 0.02,
+      "victim_p": 0.97,
+      "next": "deployment/valkey-cart",
+      "next_p": 0.99,
+      "category": "config_value",
+      "spec_checks": [
+       "service cart has no ready endpoints"
+      ],
+      "blocked_input": null,
+      "key_evidence": "log x1 (ongoing, last seen 0s ago): cart: Unhandled exception. System.ApplicationException: Wasn't able to connect to redis"
+     },
+     {
+      "step": 2,
+      "node": "investigate",
+      "component": "deployment/valkey-cart",
+      "verdict": "unrelated",
+      "origin_p": 0.1,
+      "victim_p": 0.2,
+      "next": "none",
+      "next_p": 0.97,
+      "category": "config_value",
+      "spec_checks": [],
+      "blocked_input": null,
+      "key_evidence": "errors logged by 1 other component(s) (deployment/cart) name this component (connectivity or timeout, 1 lines, still occurring), e.g. 'Unhandled exception. System.ApplicationException: Wasn't able to connect to redis'"
+     },
+     {
+      "step": 3,
+      "node": "investigate",
+      "component": "deployment/checkout",
+      "verdict": "victim",
+      "origin_p": 0.06,
+      "victim_p": 0.44,
+      "next": "deployment/frontend",
+      "next_p": 0.69,
+      "category": "resource_limits",
+      "spec_checks": [],
+      "blocked_input": null,
+      "key_evidence": "dependency daemonset/otel-collector-agent is abnormal on its own: spec modified 103s ago, 24s after this object was created (fields: template.annotations.kubectl.kubernetes.io/restartedAt); pod template changes: template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-19T12:50:53+06:00; 28s before the first active symptom"
+     },
+     {
+      "step": 4,
+      "node": "investigate",
+      "component": "daemonset/otel-collector-agent",
+      "verdict": "unrelated",
+      "origin_p": 0.19,
+      "victim_p": 0.12,
+      "next": "none",
+      "next_p": 0.7,
+      "category": "config_value",
+      "spec_checks": [],
+      "blocked_input": null,
+      "key_evidence": "pod template changed in revision 2: template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-19T12:50:53+06:00"
+     },
+     {
+      "step": 5,
+      "node": "investigate",
+      "component": "deployment/frontend",
+      "verdict": "victim",
+      "origin_p": 0.02,
+      "victim_p": 0.97,
+      "next": "deployment/frontend-proxy",
+      "next_p": 0.36,
+      "category": "config_value",
+      "spec_checks": [],
+      "blocked_input": null,
+      "key_evidence": "log x30 (ongoing, last seen 0s ago): frontend: Error: 14 UNAVAILABLE: No connection established. Last error: connect ECONNREFUSED 10.96.160.94:8080 (2026-10-19T06:52:41.494Z)"
+     },
+     {
+      "step": 6,
+      "node": "investigate",
+      "component": "deployment/frontend-proxy",
+      "verdict": "unrelated",
+      "origin_p": 0.01,
+      "victim_p": 0.02,
+      "next": "none",
+      "next_p": 0.84,
+      "category": "config_value",
+      "spec_checks": [],
+      "blocked_input": null,
+      "key_evidence": "container frontend-proxy command: /bin/sh -c envsubst < envoy.tmpl.yaml | sed '/type: STRICT_DNS/a\\      dns_lookup_family: V4_PREFERRED' > envoy.yaml && exec envoy -c envoy.yaml\n"
+     }
+    ],
+    "concluded": "deployment/valkey-cart",
+    "fallback": "end of a victim chain: deployment/cart fails calling deployment/valkey-cart",
+    "triage_top": [
+     [
+      "daemonset/otel-collector-agent",
+      0.46
+     ],
+     [
+      "deployment/cart",
+      0.39
+     ],
+     [
+      "deployment/valkey-cart",
+      0.15
+     ],
+     [
+      "deployment/accounting",
+      0.0
+     ],
+     [
+      "deployment/ad",
+      0.0
+     ]
+    ]
+   },
+   "text": "Root cause component: Deployment `valkey-cart` in namespace `astronomy-shop`.\nMechanism: deployment/cart: log x1 (ongoing, last seen 0s ago): cart: Unhandled exception. System.ApplicationException: Wasn't able to connect to redis.\nFault type: service routing (a Service selector or port sends traffic to the wrong pods or to none).\nImpact on other components:\n- deployment/cart fails when calling this component (connectivity or timeout x1, still occurring)\n- container valkey-cart: image valkey/valkey:9.0.1-alpine3.23, limits {'memory': '64Mi'}\nClassification: Jev (typesafe/jev-1.13-20260917) selected this origin as the most likely candidate after 6 investigation step(s) (origin probability 0.10, triage probability 0.15).\nLow confidence: `daemonset/otel-collector-agent` (probability 0.46) cannot be ruled out.",
+   "grade": {
+    "judgment": "False",
+    "reasoning": "Verdict: False (composite=0.34). D1 Fault Localization: 0.33 | D2 Fault Characterization: 0.00 | D3 Scope Precision: 0.67. Weakest dimension: Fault Characterization (0.00). Checklist details: [{\"id\": \"D1-Q1\", \"answer\": \"No\", \"evidence\": \"Diagnosis names Deployment valkey-cart in astronomy-shop; the authoritative fault specification targets Service valkey-cart in that namespace.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q2\", \"answer\": \"Yes\", \"evidence\": \"Diagnosis identifies valkey-cart as the origin and explicitly describes deployment/cart as failing when calling it.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q3\", \"answer\": \"No\", \"evidence\": \"Diagnosis also names daemonset/otel-collector-agent as a possible origin that cannot be ruled out; ground truth identifies only service/valkey-cart.\", \"confidence\": \"Medium\"}, {\"id\": \"D2-Q1\", \"answer\": \"No\", \"evidence\": \"Diagnosis attributes the fault to Service selector or port routing, whereas ground truth specifies broken Valkey authentication from an invalid password configuration.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q2\", \"answer\": \"No\", \"evidence\": \"Diagnosis provides an image tag and memory limit but identifies no invalid password or authentication configuration detail.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q3\", \"answer\": \"No\", \"evidence\": \"The explicit fault type, service routing, conflicts with the ground-truth authentication configuration failure.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q1\", \"answer\": \"No\", \"evidence\": \"Diagnosis introduces otel-collector-agent as another possible fault origin, although ground truth identifies no collector contribution.\", \"confidence\": \"Medium\"}, {\"id\": \"D3-Q2\", \"answer\": \"Yes\", \"evidence\": \"Diagnosis includes valkey-cart and its affected cart dependent, covering the explicitly identified origin and cart-related impact.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q3\", \"answer\": \"Yes\", \"evidence\": \"The cart exception, 'Wasn't able to connect to redis,' and ongoing call failures match dependent cache-session failures and disrupted cart operations.\", \"confidence\": \"High\"}]",
+    "success": false,
+    "accuracy": 34.0,
+    "composite_score": 0.34,
+    "dimensions": {
+     "D1": {
+      "name": "Fault Localization",
+      "score": 0.33
+     },
+     "D2": {
+      "name": "Fault Characterization",
+      "score": 0.0
+     },
+     "D3": {
+      "name": "Scope Precision",
+      "score": 0.67
+     }
+    },
+    "checklist": [
+     {
+      "id": "D1-Q1",
+      "answer": "No",
+      "evidence": "Diagnosis names Deployment valkey-cart in astronomy-shop; the authoritative fault specification targets Service valkey-cart in that namespace.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q2",
+      "answer": "Yes",
+      "evidence": "Diagnosis identifies valkey-cart as the origin and explicitly describes deployment/cart as failing when calling it.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q3",
+      "answer": "No",
+      "evidence": "Diagnosis also names daemonset/otel-collector-agent as a possible origin that cannot be ruled out; ground truth identifies only service/valkey-cart.",
+      "confidence": "Medium"
+     },
+     {
+      "id": "D2-Q1",
+      "answer": "No",
+      "evidence": "Diagnosis attributes the fault to Service selector or port routing, whereas ground truth specifies broken Valkey authentication from an invalid password configuration.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q2",
+      "answer": "No",
+      "evidence": "Diagnosis provides an image tag and memory limit but identifies no invalid password or authentication configuration detail.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q3",
+      "answer": "No",
+      "evidence": "The explicit fault type, service routing, conflicts with the ground-truth authentication configuration failure.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q1",
+      "answer": "No",
+      "evidence": "Diagnosis introduces otel-collector-agent as another possible fault origin, although ground truth identifies no collector contribution.",
+      "confidence": "Medium"
+     },
+     {
+      "id": "D3-Q2",
+      "answer": "Yes",
+      "evidence": "Diagnosis includes valkey-cart and its affected cart dependent, covering the explicitly identified origin and cart-related impact.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q3",
+      "answer": "Yes",
+      "evidence": "The cart exception, 'Wasn't able to connect to redis,' and ongoing call failures match dependent cache-session failures and disrupted cart operations.",
+      "confidence": "High"
+     }
+    ]
+   }
+  },
+  {
+   "arm": 1,
+   "kind": "v1",
+   "model": "openai/gpt-6-luna-decisions",
+   "position": 1,
+   "seconds": 2.6,
+   "requests": 4,
+   "input_tokens": 36806,
+   "error": null,
+   "model_failed": false,
+   "component": "deployment/valkey-cart",
+   "investigation": {
+    "steps": [
+     {
+      "step": 1,
+      "node": "investigate",
+      "component": "deployment/cart",
+      "verdict": "victim",
+      "origin_p": 0.29,
+      "victim_p": 0.54,
+      "next": "deployment/valkey-cart",
+      "next_p": 1.0,
+      "category": "config_value",
+      "spec_checks": [
+       "service cart has no ready endpoints"
+      ],
+      "blocked_input": null,
+      "key_evidence": "container wait-for-valkey-cart command: sh -c until nc -z -v -w30 valkey-cart 6379; do echo waiting for valkey-cart; sleep 2; done;"
+     },
+     {
+      "step": 2,
+      "node": "investigate",
+      "component": "deployment/valkey-cart",
+      "verdict": "origin",
+      "origin_p": 0.47,
+      "victim_p": 0.32,
+      "next": "none",
+      "next_p": 0.56,
+      "category": "other",
+      "spec_checks": [],
+      "blocked_input": null,
+      "key_evidence": "container valkey-cart image valkey/valkey:9.0.1-alpine3.23 resources {'limits': {'memory': '64Mi'}}"
+     },
+     {
+      "step": 3,
+      "node": "investigate",
+      "component": "deployment/checkout",
+      "verdict": "victim",
+      "origin_p": 0.02,
+      "victim_p": 0.9,
+      "next": "none",
+      "next_p": 0.67,
+      "category": "other",
+      "spec_checks": [],
+      "blocked_input": null,
+      "key_evidence": "dependency daemonset/otel-collector-agent is abnormal on its own: spec modified 103s ago, 24s after this object was created (fields: template.annotations.kubectl.kubernetes.io/restartedAt); pod template changes: template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-19T12:50:53+06:00; 28s before the first active symptom"
+     }
+    ],
+    "concluded": "deployment/valkey-cart",
+    "fallback": "most likely origin among investigated components",
+    "triage_top": [
+     [
+      "deployment/cart",
+      0.6
+     ],
+     [
+      "deployment/valkey-cart",
+      0.38
+     ],
+     [
+      "deployment/accounting",
+      0.01
+     ],
+     [
+      "daemonset/otel-collector-agent",
+      0.01
+     ],
+     [
+      "deployment/ad",
+      0.0
+     ]
+    ]
+   },
+   "text": "Root cause component: Deployment `valkey-cart` in namespace `astronomy-shop`.\nMechanism: container valkey-cart image valkey/valkey:9.0.1-alpine3.23 resources {'limits': {'memory': '64Mi'}}.\nFault type: other (an uncategorised fault).\nImpact on other components:\n- deployment/cart fails when calling this component (connectivity or timeout x1, still occurring)\n- container valkey-cart: image valkey/valkey:9.0.1-alpine3.23, limits {'memory': '64Mi'}\nClassification: Jev (openai/gpt-6-luna-decisions-20261006) selected this origin as the most likely candidate after 3 investigation step(s) (origin probability 0.47, triage probability 0.38).",
+   "grade": {
+    "judgment": "False",
+    "reasoning": "Verdict: False (composite=0.56). D1 Fault Localization: 0.67 | D2 Fault Characterization: 0.00 | D3 Scope Precision: 1.00. Weakest dimension: Fault Characterization (0.00). Checklist details: [{\"id\": \"D1-Q1\", \"answer\": \"No\", \"evidence\": \"Diagnosis names Deployment valkey-cart in astronomy-shop; the authoritative fault specification targets Service valkey-cart in that namespace.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q2\", \"answer\": \"Yes\", \"evidence\": \"Diagnosis identifies valkey-cart as the origin and deployment/cart as a dependent component failing when calling it.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q3\", \"answer\": \"Yes\", \"evidence\": \"Diagnosis blames valkey-cart, the named faulty component, rather than a different healthy component.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q1\", \"answer\": \"No\", \"evidence\": \"The stated mechanism lists an image and memory limit; it does not identify broken authentication caused by an invalid password configuration.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q2\", \"answer\": \"No\", \"evidence\": \"The concrete details concern image version and memory limit, not the invalid password configuration identified in ground truth.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q3\", \"answer\": \"No\", \"evidence\": \"Diagnosis labels the fault uncategorised and presents image and memory settings as its mechanism instead of the authentication configuration fault.\", \"confidence\": \"Medium\"}, {\"id\": \"D3-Q1\", \"answer\": \"Yes\", \"evidence\": \"Only valkey-cart is blamed; cart is explicitly described as experiencing a dependent failure.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q2\", \"answer\": \"Yes\", \"evidence\": \"Diagnosis includes valkey-cart and its affected cart dependent; ground truth names no additional specific affected components.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q3\", \"answer\": \"Yes\", \"evidence\": \"The reported cart failure when calling valkey-cart is consistent with dependent services failing to establish cache sessions and cart operations failing.\", \"confidence\": \"Medium\"}]",
+    "success": false,
+    "accuracy": 56.0,
+    "composite_score": 0.56,
+    "dimensions": {
+     "D1": {
+      "name": "Fault Localization",
+      "score": 0.67
+     },
+     "D2": {
+      "name": "Fault Characterization",
+      "score": 0.0
+     },
+     "D3": {
+      "name": "Scope Precision",
+      "score": 1.0
+     }
+    },
+    "checklist": [
+     {
+      "id": "D1-Q1",
+      "answer": "No",
+      "evidence": "Diagnosis names Deployment valkey-cart in astronomy-shop; the authoritative fault specification targets Service valkey-cart in that namespace.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q2",
+      "answer": "Yes",
+      "evidence": "Diagnosis identifies valkey-cart as the origin and deployment/cart as a dependent component failing when calling it.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q3",
+      "answer": "Yes",
+      "evidence": "Diagnosis blames valkey-cart, the named faulty component, rather than a different healthy component.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q1",
+      "answer": "No",
+      "evidence": "The stated mechanism lists an image and memory limit; it does not identify broken authentication caused by an invalid password configuration.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q2",
+      "answer": "No",
+      "evidence": "The concrete details concern image version and memory limit, not the invalid password configuration identified in ground truth.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q3",
+      "answer": "No",
+      "evidence": "Diagnosis labels the fault uncategorised and presents image and memory settings as its mechanism instead of the authentication configuration fault.",
+      "confidence": "Medium"
+     },
+     {
+      "id": "D3-Q1",
+      "answer": "Yes",
+      "evidence": "Only valkey-cart is blamed; cart is explicitly described as experiencing a dependent failure.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q2",
+      "answer": "Yes",
+      "evidence": "Diagnosis includes valkey-cart and its affected cart dependent; ground truth names no additional specific affected components.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q3",
+      "answer": "Yes",
+      "evidence": "The reported cart failure when calling valkey-cart is consistent with dependent services failing to establish cache sessions and cart operations failing.",
+      "confidence": "Medium"
+     }
+    ]
+   }
+  },
+  {
+   "arm": 2,
+   "kind": "v2",
+   "model": "typesafe/jev-1.13",
+   "position": 2,
+   "seconds": 5.5,
+   "requests": 9,
+   "input_tokens": 115491,
+   "error": null,
+   "model_failed": false,
+   "component": "deployment/valkey-cart",
+   "investigation": {
+    "steps": [
+     {
+      "step": 1,
+      "node": "investigate",
+      "component": "deployment/cart",
+      "verdict": "victim",
+      "origin_p": 0.02,
+      "victim_p": 0.97,
+      "next": "deployment/valkey-cart",
+      "next_p": 0.99,
+      "category": "config_value",
+      "spec_checks": [
+       "service cart has no ready endpoints"
+      ],
+      "blocked_input": null,
+      "key_evidence": "log x1 (ongoing, last seen 0s ago): cart: Unhandled exception. System.ApplicationException: Wasn't able to connect to redis"
+     },
+     {
+      "step": 2,
+      "node": "investigate",
+      "component": "deployment/valkey-cart",
+      "verdict": "unrelated",
+      "origin_p": 0.1,
+      "victim_p": 0.14,
+      "next": "none",
+      "next_p": 0.94,
+      "category": "config_value",
+      "spec_checks": [],
+      "blocked_input": null,
+      "key_evidence": "errors logged by 1 other component(s) (deployment/cart) name this component (connectivity or timeout, 1 lines, still occurring), e.g. 'Unhandled exception. System.ApplicationException: Wasn't able to connect to redis'"
+     },
+     {
+      "step": 3,
+      "node": "investigate",
+      "component": "deployment/checkout",
+      "verdict": "victim",
+      "origin_p": 0.01,
+      "victim_p": 0.72,
+      "next": "deployment/frontend",
+      "next_p": 0.67,
+      "category": "resource_limits",
+      "spec_checks": [],
+      "blocked_input": null,
+      "key_evidence": "container checkout image ghcr.io/open-telemetry/demo:2.2.0-checkout resources {'limits': {'memory': '20Mi'}}"
+     },
+     {
+      "step": 4,
+      "node": "investigate",
+      "component": "deployment/frontend",
+      "verdict": "victim",
+      "origin_p": 0.02,
+      "victim_p": 0.98,
+      "next": "deployment/frontend-proxy",
+      "next_p": 0.37,
+      "category": "config_value",
+      "spec_checks": [],
+      "blocked_input": null,
+      "key_evidence": "log x30 (ongoing, last seen 0s ago): frontend: Error: 14 UNAVAILABLE: No connection established. Last error: connect ECONNREFUSED 10.96.160.94:8080 (2026-10-19T06:52:41.494Z)"
+     },
+     {
+      "step": 5,
+      "node": "investigate",
+      "component": "deployment/frontend-proxy",
+      "verdict": "unrelated",
+      "origin_p": 0.01,
+      "victim_p": 0.08,
+      "next": "none",
+      "next_p": 0.77,
+      "category": "config_value",
+      "spec_checks": [],
+      "blocked_input": null,
+      "key_evidence": "container frontend-proxy command: /bin/sh -c envsubst < envoy.tmpl.yaml | sed '/type: STRICT_DNS/a\\      dns_lookup_family: V4_PREFERRED' > envoy.yaml && exec envoy -c envoy.yaml\n"
+     },
+     {
+      "step": 6,
+      "node": "investigate",
+      "component": "daemonset/otel-collector-agent",
+      "verdict": "unrelated",
+      "origin_p": 0.08,
+      "victim_p": 0.1,
+      "next": "none",
+      "next_p": 0.8,
+      "category": "config_value",
+      "spec_checks": [],
+      "blocked_input": null,
+      "key_evidence": "container opentelemetry-collector env GOMEMLIMIT=160MiB"
+     }
+    ],
+    "concluded": "deployment/valkey-cart",
+    "fallback": "end of a victim chain: deployment/cart fails calling deployment/valkey-cart",
+    "triage_top": [
+     [
+      "deployment/cart",
+      0.52
+     ],
+     [
+      "daemonset/otel-collector-agent",
+      0.275
+     ],
+     [
+      "deployment/valkey-cart",
+      0.2
+     ],
+     [
+      "other",
+      0.005
+     ],
+     [
+      "deployment/accounting",
+      0.0
+     ]
+    ],
+    "second": null
+   },
+   "text": "Root cause: Service `valkey-cart` (Deployment `valkey-cart`) in namespace `astronomy-shop`: deployment/cart: log x1 (ongoing, last seen 0s ago): cart: Unhandled exception. System.ApplicationException: Wasn't able to connect to redis.\nEffect: its callers see connectivity or timeout (1 lines).\nAffected (symptoms only, not causes): Deployment `cart` in namespace `astronomy-shop`: connectivity or timeout calling it (1 lines, still occurring).",
+   "grade": {
+    "judgment": "True",
+    "reasoning": "Verdict: True (composite=0.78). D1 Fault Localization: 1.00 | D2 Fault Characterization: 0.33 | D3 Scope Precision: 1.00. Weakest dimension: Fault Characterization (0.33). Checklist details: [{\"id\": \"D1-Q1\", \"answer\": \"Yes\", \"evidence\": \"Names Service `valkey-cart` in namespace `astronomy-shop` as the root cause, matching the fault specification.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q2\", \"answer\": \"Yes\", \"evidence\": \"Identifies `valkey-cart` as the origin and explicitly labels Deployment `cart` as affected with \\u201csymptoms only, not causes.\\u201d\", \"confidence\": \"High\"}, {\"id\": \"D1-Q3\", \"answer\": \"Yes\", \"evidence\": \"Blames the specified `valkey-cart` service; no different component is identified as the fault origin.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q1\", \"answer\": \"No\", \"evidence\": \"Reports inability to connect to Redis but does not identify broken authentication caused by an invalid password configuration.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q2\", \"answer\": \"No\", \"evidence\": \"Provides no password configuration detail, authentication setting, or mutated value.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q3\", \"answer\": \"Yes\", \"evidence\": \"Describes connection failure without asserting an incorrect or unrelated fault mechanism; authentication failure is not contradicted.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q1\", \"answer\": \"Yes\", \"evidence\": \"Attributes the fault only to `valkey-cart` and explicitly describes `cart` as a symptom-bearing dependent.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q2\", \"answer\": \"Yes\", \"evidence\": \"Includes `valkey-cart`, its callers, and affected Deployment `cart`, covering the origin and dependent services described in the ground truth.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q3\", \"answer\": \"Yes\", \"evidence\": \"The cart exception \\u201cWasn't able to connect to redis\\u201d matches dependent services failing to establish cache sessions.\", \"confidence\": \"High\"}]",
+    "success": true,
+    "accuracy": 78.0,
+    "composite_score": 0.78,
+    "dimensions": {
+     "D1": {
+      "name": "Fault Localization",
+      "score": 1.0
+     },
+     "D2": {
+      "name": "Fault Characterization",
+      "score": 0.33
+     },
+     "D3": {
+      "name": "Scope Precision",
+      "score": 1.0
+     }
+    },
+    "checklist": [
+     {
+      "id": "D1-Q1",
+      "answer": "Yes",
+      "evidence": "Names Service `valkey-cart` in namespace `astronomy-shop` as the root cause, matching the fault specification.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q2",
+      "answer": "Yes",
+      "evidence": "Identifies `valkey-cart` as the origin and explicitly labels Deployment `cart` as affected with \u201csymptoms only, not causes.\u201d",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q3",
+      "answer": "Yes",
+      "evidence": "Blames the specified `valkey-cart` service; no different component is identified as the fault origin.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q1",
+      "answer": "No",
+      "evidence": "Reports inability to connect to Redis but does not identify broken authentication caused by an invalid password configuration.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q2",
+      "answer": "No",
+      "evidence": "Provides no password configuration detail, authentication setting, or mutated value.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q3",
+      "answer": "Yes",
+      "evidence": "Describes connection failure without asserting an incorrect or unrelated fault mechanism; authentication failure is not contradicted.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q1",
+      "answer": "Yes",
+      "evidence": "Attributes the fault only to `valkey-cart` and explicitly describes `cart` as a symptom-bearing dependent.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q2",
+      "answer": "Yes",
+      "evidence": "Includes `valkey-cart`, its callers, and affected Deployment `cart`, covering the origin and dependent services described in the ground truth.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q3",
+      "answer": "Yes",
+      "evidence": "The cart exception \u201cWasn't able to connect to redis\u201d matches dependent services failing to establish cache sessions.",
+      "confidence": "High"
+     }
+    ]
+   }
+  },
+  {
+   "arm": 3,
+   "kind": "v2",
+   "model": "openai/gpt-6-luna-decisions",
+   "position": 3,
+   "seconds": 4.1,
+   "requests": 6,
+   "input_tokens": 61719,
+   "error": null,
+   "model_failed": false,
+   "component": "deployment/cart",
+   "investigation": {
+    "steps": [
+     {
+      "step": 1,
+      "node": "investigate",
+      "component": "deployment/cart",
+      "verdict": "origin",
+      "origin_p": 0.52,
+      "victim_p": 0.44,
+      "next": "deployment/valkey-cart",
+      "next_p": 1.0,
+      "category": "config_value",
+      "spec_checks": [
+       "service cart has no ready endpoints"
+      ],
+      "blocked_input": null,
+      "key_evidence": "container cart env VALKEY_ADDR=valkey-cart:6379"
+     },
+     {
+      "step": 2,
+      "node": "investigate",
+      "component": "deployment/valkey-cart",
+      "verdict": "origin",
+      "origin_p": 0.4,
+      "victim_p": 0.27,
+      "next": "none",
+      "next_p": 0.55,
+      "category": "other",
+      "spec_checks": [],
+      "blocked_input": null,
+      "key_evidence": "container valkey-cart image valkey/valkey:9.0.1-alpine3.23 resources {'limits': {'memory': '64Mi'}}"
+     },
+     {
+      "step": 3,
+      "node": "investigate",
+      "component": "deployment/checkout",
+      "verdict": "victim",
+      "origin_p": 0.04,
+      "victim_p": 0.54,
+      "next": "none",
+      "next_p": 0.71,
+      "category": "other",
+      "spec_checks": [],
+      "blocked_input": null,
+      "key_evidence": "container checkout env CART_ADDR=cart:8080"
+     },
+     {
+      "step": 4,
+      "node": "investigate",
+      "component": "daemonset/otel-collector-agent",
+      "verdict": "unrelated",
+      "origin_p": 0.27,
+      "victim_p": 0.16,
+      "next": "none",
+      "next_p": 0.49,
+      "category": "config_value",
+      "spec_checks": [],
+      "blocked_input": null,
+      "key_evidence": "container opentelemetry-collector env GOMEMLIMIT=160MiB"
+     }
+    ],
+    "concluded": "deployment/cart",
+    "fallback": "most likely origin among investigated components",
+    "triage_top": [
+     [
+      "deployment/cart",
+      0.765
+     ],
+     [
+      "deployment/valkey-cart",
+      0.15
+     ],
+     [
+      "daemonset/otel-collector-agent",
+      0.055
+     ],
+     [
+      "other",
+      0.015
+     ],
+     [
+      "deployment/accounting",
+      0.01
+     ]
+    ],
+    "second": null
+   },
+   "text": "Root cause: Service `cart` (Deployment `cart`) in namespace `astronomy-shop`: container cart env VALKEY_ADDR=valkey-cart:6379.\nMechanism: the component logs \"fail: cart.cartstore.ValkeyCartStore[0]\".\nDetails: service cart has no ready endpoints.\nEffect: only 0 of 1 desired replicas are ready; pod cart-74587775fc-wjh8t: container cart waiting in CrashLoopBackOff; its callers see connectivity or timeout (12 lines).\nObserved: pod cart-74587775fc-wjh8t: container cart restarted 4 times; warning events: BackOff x9; service cart selects this component but has 0 ready endpoints; pod cart-74587775fc-wjh8t: container cart restarted 1 more time(s) in the last 0s; warning event BackOff on pod/cart-74587775fc-wjh8t repeated 3 more time(s) in the last 0s.\nAffected (symptoms only, not causes): Deployment `frontend` in namespace `astronomy-shop`: connectivity or timeout calling it (12 lines, still occurring).",
+   "grade": {
+    "judgment": "False",
+    "reasoning": "Verdict: False (composite=0.34). D1 Fault Localization: 0.00 | D2 Fault Characterization: 0.33 | D3 Scope Precision: 0.67. Weakest dimension: Fault Localization (0.00). Checklist details: [{\"id\": \"D1-Q1\", \"answer\": \"No\", \"evidence\": \"The diagnosis names Service/Deployment cart as the root cause; the ground-truth origin is service/valkey-cart.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q2\", \"answer\": \"No\", \"evidence\": \"The diagnosis treats dependent service cart as the origin rather than identifying the Valkey authentication failure.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q3\", \"answer\": \"No\", \"evidence\": \"The blamed component is cart, which differs from the fault specification's valkey-cart target.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q1\", \"answer\": \"No\", \"evidence\": \"The diagnosis reports cart logs, missing ready endpoints, and CrashLoopBackOff; it does not identify invalid-password authentication failure.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q2\", \"answer\": \"No\", \"evidence\": \"VALKEY_ADDR=valkey-cart:6379 specifies a connection address, not the mutated password configuration.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q3\", \"answer\": \"Yes\", \"evidence\": \"The diagnosis reports availability symptoms without explicitly asserting a conflicting configuration fault or alternative authentication mechanism.\", \"confidence\": \"Medium\"}, {\"id\": \"D3-Q1\", \"answer\": \"No\", \"evidence\": \"The diagnosis blames cart, while the ground truth identifies valkey-cart as the component contributing the originating fault.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q2\", \"answer\": \"Yes\", \"evidence\": \"The diagnosis mentions valkey-cart through VALKEY_ADDR and describes its dependent cart service; frontend is also identified as symptomatic.\", \"confidence\": \"Medium\"}, {\"id\": \"D3-Q3\", \"answer\": \"Yes\", \"evidence\": \"Cart has no ready endpoints and callers experience connectivity failures or timeouts, consistent with failed cart-related operations.\", \"confidence\": \"High\"}]",
+    "success": false,
+    "accuracy": 34.0,
+    "composite_score": 0.34,
+    "dimensions": {
+     "D1": {
+      "name": "Fault Localization",
+      "score": 0.0
+     },
+     "D2": {
+      "name": "Fault Characterization",
+      "score": 0.33
+     },
+     "D3": {
+      "name": "Scope Precision",
+      "score": 0.67
+     }
+    },
+    "checklist": [
+     {
+      "id": "D1-Q1",
+      "answer": "No",
+      "evidence": "The diagnosis names Service/Deployment cart as the root cause; the ground-truth origin is service/valkey-cart.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q2",
+      "answer": "No",
+      "evidence": "The diagnosis treats dependent service cart as the origin rather than identifying the Valkey authentication failure.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q3",
+      "answer": "No",
+      "evidence": "The blamed component is cart, which differs from the fault specification's valkey-cart target.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q1",
+      "answer": "No",
+      "evidence": "The diagnosis reports cart logs, missing ready endpoints, and CrashLoopBackOff; it does not identify invalid-password authentication failure.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q2",
+      "answer": "No",
+      "evidence": "VALKEY_ADDR=valkey-cart:6379 specifies a connection address, not the mutated password configuration.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q3",
+      "answer": "Yes",
+      "evidence": "The diagnosis reports availability symptoms without explicitly asserting a conflicting configuration fault or alternative authentication mechanism.",
+      "confidence": "Medium"
+     },
+     {
+      "id": "D3-Q1",
+      "answer": "No",
+      "evidence": "The diagnosis blames cart, while the ground truth identifies valkey-cart as the component contributing the originating fault.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q2",
+      "answer": "Yes",
+      "evidence": "The diagnosis mentions valkey-cart through VALKEY_ADDR and describes its dependent cart service; frontend is also identified as symptomatic.",
+      "confidence": "Medium"
+     },
+     {
+      "id": "D3-Q3",
+      "answer": "Yes",
+      "evidence": "Cart has no ready endpoints and callers experience connectivity failures or timeouts, consistent with failed cart-related operations.",
+      "confidence": "High"
+     }
+    ]
+   }
+  }
+ ],
+ "judge": {
+  "model": "gpt-6-astra",
+  "backend": "codex",
+  "effort": "high"
+ }
+}

@@ -1,0 +1,227 @@
+{
+ "problem_id": "jev_diag_anon_300b24ecbade368a86260cdc1c4d0c6d_20261019_040158",
+ "submit_arm": 0,
+ "order": [
+  1,
+  2,
+  0,
+  3
+ ],
+ "arms": [
+  {
+   "arm": 0,
+   "kind": "v2",
+   "model": "openrouter/typesafe/jev-1.13",
+   "position": 2,
+   "seconds": 5.0,
+   "requests": 4,
+   "input_tokens": 28756,
+   "cost_usd": 0.001208,
+   "error": null,
+   "investigation": {
+    "rounds": [
+     {
+      "candidates": [
+       "partial:deployment/aux-service",
+       "partial:deployment/social-graph-service",
+       "acts-on:configmap/kube-system/coredns:ConfigMap coredns was modified 3478s ago, 66266s after it wa"
+      ],
+      "probabilities": {
+       "partial:deployment/aux-service": 0.26,
+       "partial:deployment/social-graph-service": 0.1,
+       "acts-on:configmap/kube-system/coredns:ConfigMap coredns was modified 3478s ago, 66266s after it wa": 0.19,
+       "none_of_these": 0.45
+      },
+      "picks": [
+       "none_of_these",
+       "none_of_these"
+      ],
+      "route": "coverage"
+     }
+    ],
+    "explanations": 3,
+    "winner": "key-fact:deployment/aux-service",
+    "pattern": "key-fact",
+    "key_fact": "ConfigMap aux-service-script key service.py: import http.server \u23ce import random \u23ce import socketserver \u23ce import time \u23ce \u23ce INIT_SECONDS = 15 \u23ce _START = time.time() \u23ce \u23ce \u23ce def _initialized() -> bool: \u23ce return time.time() - _START >= INIT_SECONDS \u23ce \u23ce \u23ce class MainHandler(http.server.SimpleHTTPRequestHandler): \u23ce def _write(self, status: int, body: str): \u23ce self.send_response(status) \u23ce self.end_headers() \u23ce self.wfile.write(body.encode()) \u23ce \u23ce def do_G\u2026",
+    "key_fact_probability": 0.38,
+    "fault_type": "code_bug",
+    "fault_object": null,
+    "uncertain": true
+   },
+   "text": "Root cause: deployment `aux-service` in namespace `social-network`.\nMechanism: ConfigMap aux-service-script key service.py: import http.server \u23ce import random \u23ce import socketserver \u23ce import time \u23ce \u23ce INIT_SECONDS = 15 \u23ce _START = time.time() \u23ce \u23ce \u23ce def _initialized() -> bool: \u23ce return time.time() - _START >= INIT_SECONDS \u23ce \u23ce \u23ce class MainHandler(http.server.SimpleHTTPRequestHandler): \u23ce def _write(self, status: int, body: str): \u23ce self.send_response(status) \u23ce self.end_headers() \u23ce self.wfile.write(body.encode()) \u23ce \u23ce def do_G\u2026.\nConcrete details: ConfigMap aux-service-script key service.py: import http.server \u23ce import random \u23ce import socketserver \u23ce import time \u23ce \u23ce INIT_SECONDS = 15 \u23ce _START = time.time() \u23ce \u23ce \u23ce def _initialized() -> bool: \u23ce return time.time() - _START >= INIT_SECONDS \u23ce \u23ce \u23ce class MainHandler(http.server.SimpleHTTPRequestHandler): \u23ce def _write(self, status: int, body: str): \u23ce self.send_response(status) \u23ce self.end_headers() \u23ce self.wfile.write(body.encode()) \u23ce \u23ce def do_G\u2026.\nObserved impact: deployment `aux-service` in namespace `social-network`.\nFault type: code bug (the component's own logic is faulty).\nEvidence:\n- ConfigMap aux-service-script key service.py: import http.server \u23ce import random \u23ce import socketserver \u23ce import time \u23ce \u23ce INIT_SECONDS = 15 \u23ce _START = time.time() \u23ce \u23ce \u23ce def _initialized() -> bool: \u23ce return time.time() - _START >= INIT_SECONDS \u23ce \u23ce \u23ce class MainHandler(http.server.SimpleHTTPRequestHandler): \u23ce def _write(self, status: int, body: str): \u23ce self.send_response(status) \u23ce self.end_headers() \u23ce self.wfile.write(body.encode()) \u23ce \u23ce def do_G\u2026\n- only 0 of 1 desired replicas are ready\n- pod aux-service-9df4c6c8c-f22ql: container aux-service-container waiting in CrashLoopBackOff\n- pod aux-service-9df4c6c8c-f22ql: container aux-service-container restarted 5 times\n- deployment/aux-service: only 0 of 1 desired replicas are ready\nConfidence: low; the investigation budget ended before the leading explanation was confirmed."
+  },
+  {
+   "arm": 1,
+   "kind": "v2",
+   "model": "openrouter/openai/gpt-6-luna-decisions",
+   "position": 0,
+   "seconds": 7.2,
+   "requests": 4,
+   "input_tokens": 19960,
+   "cost_usd": 0.001996,
+   "error": null,
+   "investigation": {
+    "rounds": [
+     {
+      "candidates": [
+       "partial:deployment/aux-service",
+       "partial:deployment/social-graph-service",
+       "acts-on:configmap/kube-system/coredns:ConfigMap coredns was modified 3478s ago, 66266s after it wa"
+      ],
+      "probabilities": {
+       "partial:deployment/aux-service": 0.875,
+       "partial:deployment/social-graph-service": 0.025,
+       "acts-on:configmap/kube-system/coredns:ConfigMap coredns was modified 3478s ago, 66266s after it wa": 0.0,
+       "none_of_these": 0.1
+      },
+      "picks": [
+       "partial:deployment/aux-service",
+       "partial:deployment/aux-service"
+      ],
+      "route": "accept"
+     }
+    ],
+    "explanations": 3,
+    "winner": "key-fact:deployment/aux-service",
+    "pattern": "key-fact",
+    "key_fact": "ConfigMap aux-service-script key service.py: import http.server \u23ce import random \u23ce import socketserver \u23ce import time \u23ce \u23ce INIT_SECONDS = 15 \u23ce _START = time.time() \u23ce \u23ce \u23ce def _initialized() -> bool: \u23ce return time.time() - _START >= INIT_SECONDS \u23ce \u23ce \u23ce class MainHandler(http.server.SimpleHTTPRequestHandler): \u23ce def _write(self, status: int, body: str): \u23ce self.send_response(status) \u23ce self.end_headers() \u23ce self.wfile.write(body.encode()) \u23ce \u23ce def do_G\u2026",
+    "key_fact_probability": 0.6,
+    "fault_type": "health_probe_config",
+    "fault_object": null,
+    "uncertain": false
+   },
+   "text": "Root cause: deployment `aux-service` in namespace `social-network`.\nMechanism: ConfigMap aux-service-script key service.py: import http.server \u23ce import random \u23ce import socketserver \u23ce import time \u23ce \u23ce INIT_SECONDS = 15 \u23ce _START = time.time() \u23ce \u23ce \u23ce def _initialized() -> bool: \u23ce return time.time() - _START >= INIT_SECONDS \u23ce \u23ce \u23ce class MainHandler(http.server.SimpleHTTPRequestHandler): \u23ce def _write(self, status: int, body: str): \u23ce self.send_response(status) \u23ce self.end_headers() \u23ce self.wfile.write(body.encode()) \u23ce \u23ce def do_G\u2026.\nConcrete details: ConfigMap aux-service-script key service.py: import http.server \u23ce import random \u23ce import socketserver \u23ce import time \u23ce \u23ce INIT_SECONDS = 15 \u23ce _START = time.time() \u23ce \u23ce \u23ce def _initialized() -> bool: \u23ce return time.time() - _START >= INIT_SECONDS \u23ce \u23ce \u23ce class MainHandler(http.server.SimpleHTTPRequestHandler): \u23ce def _write(self, status: int, body: str): \u23ce self.send_response(status) \u23ce self.end_headers() \u23ce self.wfile.write(body.encode()) \u23ce \u23ce def do_G\u2026.\nObserved impact: deployment `aux-service` in namespace `social-network`.\nFault type: health probe config (a health probe is misconfigured, so healthy containers are reported unhealthy).\nEvidence:\n- ConfigMap aux-service-script key service.py: import http.server \u23ce import random \u23ce import socketserver \u23ce import time \u23ce \u23ce INIT_SECONDS = 15 \u23ce _START = time.time() \u23ce \u23ce \u23ce def _initialized() -> bool: \u23ce return time.time() - _START >= INIT_SECONDS \u23ce \u23ce \u23ce class MainHandler(http.server.SimpleHTTPRequestHandler): \u23ce def _write(self, status: int, body: str): \u23ce self.send_response(status) \u23ce self.end_headers() \u23ce self.wfile.write(body.encode()) \u23ce \u23ce def do_G\u2026\n- only 0 of 1 desired replicas are ready\n- pod aux-service-9df4c6c8c-f22ql: container aux-service-container waiting in CrashLoopBackOff\n- pod aux-service-9df4c6c8c-f22ql: container aux-service-container restarted 5 times\n- deployment/aux-service: only 0 of 1 desired replicas are ready"
+  },
+  {
+   "arm": 2,
+   "kind": "v1",
+   "model": "openrouter/typesafe/jev-1.13",
+   "position": 1,
+   "seconds": 2.8,
+   "requests": 2,
+   "input_tokens": 26917,
+   "cost_usd": 0.001131,
+   "error": null,
+   "investigation": {
+    "steps": [
+     {
+      "step": 1,
+      "node": "investigate",
+      "component": "deployment/aux-service",
+      "verdict": "origin",
+      "origin_p": 0.94,
+      "victim_p": 0.0,
+      "next": "none",
+      "next_p": 0.82,
+      "category": "code_bug",
+      "spec_checks": [
+       "service aux-service has no ready endpoints"
+      ],
+      "blocked_input": null,
+      "key_evidence": "ConfigMap aux-service-script key service.py: import http.server \u23ce import random \u23ce import socketserver \u23ce import time \u23ce \u23ce INIT_SECONDS = 15 \u23ce _START = time.time() \u23ce \u23ce \u23ce def _initialized() -> bool: \u23ce return time.time() - _START >= INIT_SECONDS \u23ce \u23ce \u23ce class MainHandler(http.server.SimpleHTTPRequestHandler): \u23ce def _write(self, status: int, body: str): \u23ce self.send_response(status) \u23ce self.end_headers() \u23ce self.wfile.write(body.encode()) \u23ce \u23ce def do_G\u2026"
+     }
+    ],
+    "concluded": "deployment/aux-service",
+    "fallback": null,
+    "triage_top": [
+     [
+      "other",
+      0.49
+     ],
+     [
+      "deployment/aux-service",
+      0.4
+     ],
+     [
+      "deployment/social-graph-service",
+      0.1
+     ],
+     [
+      "deployment/jaeger",
+      0.01
+     ],
+     [
+      "deployment/compose-post-service",
+      0.0
+     ]
+    ]
+   },
+   "text": "Root cause component: Deployment `aux-service` in namespace `social-network`.\nMechanism: ConfigMap aux-service-script key service.py: import http.server \u23ce import random \u23ce import socketserver \u23ce import time \u23ce \u23ce INIT_SECONDS = 15 \u23ce _START = time.time() \u23ce \u23ce \u23ce def _initialized() -> bool: \u23ce return time.time() - _START >= INIT_SECONDS \u23ce \u23ce \u23ce class MainHandler(http.server.SimpleHTTPRequestHandler): \u23ce def _write(self, status: int, body: str): \u23ce self.send_response(status) \u23ce self.end_headers() \u23ce self.wfile.write(body.encode()) \u23ce \u23ce def do_G\u2026.\nFault type: code bug (the component's own logic is faulty).\nAbnormal state observed on this component:\n- only 0 of 1 desired replicas are ready\n- pod aux-service-9df4c6c8c-f22ql: container aux-service-container waiting in CrashLoopBackOff\n- pod aux-service-9df4c6c8c-f22ql: container aux-service-container restarted 5 times\n- warning events: BackOff x14, Unhealthy x3\n- service aux-service selects this component but has 0 ready endpoints\n- firing alert DeploymentNotReady\n- firing alert KubePodNotReady\n- pod aux-service-9df4c6c8c-f22ql: container aux-service-container restarted 1 more time(s) in the last 49s\n- warning event Unhealthy on pod/aux-service-9df4c6c8c-f22ql repeated 1 more time(s) in the last 49s\n- warning event BackOff on pod/aux-service-9df4c6c8c-f22ql repeated 4 more time(s) in the last 49s\nNotable spec settings:\n- Available=False (MinimumReplicasUnavailable)\n- container aux-service-container: image python:3.9-slim\nWarning events:\n- BackOff x14 on pod/aux-service-9df4c6c8c-f22ql: Back-off restarting failed container aux-service-container in pod aux-service-9df4c6c8c-f22ql_social-network(db9f0d03-d8f4-4adf-b7a5-6dfcbc686d3d)\n- Unhealthy x2 on pod/aux-service-9df4c6c8c-f22ql: Liveness probe failed: HTTP probe failed with statuscode: 503\n- Unhealthy x1 on pod/aux-service-9df4c6c8c-f22ql: Liveness probe failed: Get \"http://10.244.195.240:8080/health\": dial tcp 10.244.195.240:8080: connect: connection refused\nFiring alerts on this component: DeploymentNotReady, KubePodNotReady.\nClassification: Jev (typesafe/jev-1.13-20260917) confirmed this origin at investigation step 1 with probability 0.94 (triage probability 0.40)."
+  },
+  {
+   "arm": 3,
+   "kind": "v1",
+   "model": "openrouter/openai/gpt-6-luna-decisions",
+   "position": 3,
+   "seconds": 3.3,
+   "requests": 3,
+   "input_tokens": 19724,
+   "cost_usd": 0.001972,
+   "error": null,
+   "investigation": {
+    "steps": [
+     {
+      "step": 1,
+      "node": "investigate",
+      "component": "deployment/aux-service",
+      "verdict": "undetermined",
+      "origin_p": 0.45,
+      "victim_p": 0.03,
+      "next": "none",
+      "next_p": 0.82,
+      "category": "health_probe_config",
+      "spec_checks": [
+       "service aux-service has no ready endpoints"
+      ],
+      "blocked_input": null,
+      "key_evidence": "ConfigMap aux-service-script key service.py: import http.server \u23ce import random \u23ce import socketserver \u23ce import time \u23ce \u23ce INIT_SECONDS = 15 \u23ce _START = time.time() \u23ce \u23ce \u23ce def _initialized() -> bool: \u23ce return time.time() - _START >= INIT_SECONDS \u23ce \u23ce \u23ce class MainHandler(http.server.SimpleHTTPRequestHandler): \u23ce def _write(self, status: int, body: str): \u23ce self.send_response(status) \u23ce self.end_headers() \u23ce self.wfile.write(body.encode()) \u23ce \u23ce def do_G\u2026"
+     },
+     {
+      "step": 2,
+      "node": "cluster",
+      "result": [
+       [
+        "F1",
+        0.86
+       ],
+       [
+        "none",
+        0.14
+       ]
+      ]
+     }
+    ],
+    "concluded": "other",
+    "fallback": null,
+    "triage_top": [
+     [
+      "deployment/aux-service",
+      0.44
+     ],
+     [
+      "other",
+      0.25
+     ],
+     [
+      "deployment/social-graph-service",
+      0.13
+     ],
+     [
+      "deployment/compose-post-service",
+      0.01
+     ],
+     [
+      "deployment/home-timeline-redis",
+      0.01
+     ]
+    ]
+   },
+   "text": "Root cause object: ConfigMap `coredns` in namespace `kube-system`.\nMechanism: ConfigMap coredns was modified 3478s ago, 66266s after it was created (fields: data.Corefile); 3350s before the first active symptom.\nClassification: Jev (openai/gpt-6-luna-decisions-20261006) selected this origin with triage probability 0.25 after 2 investigation step(s)."
+  }
+ ],
+ "submission": {
+  "status": "200",
+  "message": "Submission received",
+  "stage": "diagnosis"
+ }
+}

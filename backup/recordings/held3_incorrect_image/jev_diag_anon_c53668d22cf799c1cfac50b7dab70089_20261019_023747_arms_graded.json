@@ -1,0 +1,538 @@
+{
+ "problem_id": "jev_diag_anon_c53668d22cf799c1cfac50b7dab70089_20261019_023747",
+ "submit_arm": 0,
+ "order": [
+  1,
+  0,
+  3,
+  2
+ ],
+ "arms": [
+  {
+   "arm": 0,
+   "kind": "v2",
+   "model": "openrouter/typesafe/jev-1.13",
+   "position": 1,
+   "seconds": 6.2,
+   "requests": 4,
+   "input_tokens": 49528,
+   "cost_usd": 0.00208,
+   "error": null,
+   "investigation": {
+    "rounds": [
+     {
+      "candidates": [
+       "change:deployment/product-catalog:container product-catalog image: ghcr.io/open-telemetry/demo:2.2.0-product-catalog -> app-image:latest",
+       "change:daemonset/otel-collector-agent:template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-19T08:37:32+06:00",
+       "change:deployment/astronomy-shop/product-catalog",
+       "change:daemonset/astronomy-shop/otel-collector-agent",
+       "partial:deployment/frontend",
+       "partial:deployment/product-catalog"
+      ],
+      "probabilities": {
+       "change:deployment/product-catalog:container product-catalog image: ghcr.io/open-telemetry/demo:2.2.0-product-catalog -> app-image:latest": 0.86,
+       "change:daemonset/otel-collector-agent:template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-19T08:37:32+06:00": 0.005,
+       "change:deployment/astronomy-shop/product-catalog": 0.11,
+       "change:daemonset/astronomy-shop/otel-collector-agent": 0.0,
+       "partial:deployment/frontend": 0.0,
+       "partial:deployment/product-catalog": 0.005,
+       "none_of_these": 0.02
+      },
+      "picks": [
+       "change:deployment/product-catalog:container product-catalog image: ghcr.io/open-telemetry/demo:2.2.0-product-catalog -> app-image:latest",
+       "change:deployment/product-catalog:container product-catalog image: ghcr.io/open-telemetry/demo:2.2.0-product-catalog -> app-image:latest"
+      ],
+      "route": "accept"
+     }
+    ],
+    "explanations": 8,
+    "winner": "change:deployment/product-catalog:container product-catalog image: ghcr.io/open-telemetry/demo:2.2.0-product-catalog -> app-image:latest",
+    "pattern": "change",
+    "key_fact": "pod template changed in revision 2: container product-catalog image: ghcr.io/open-telemetry/demo:2.2.0-product-catalog -> app-image:latest",
+    "key_fact_probability": 0.725,
+    "fault_type": "image_or_binary",
+    "fault_object": null,
+    "uncertain": false
+   },
+   "text": "Root cause: deployment `product-catalog` in namespace `astronomy-shop`.\nMechanism: The pod template change 'container product-catalog image: ghcr.io/open-telemetry/demo:2.2.0-product-catalog -> app-image:latest' in revision 2 of deployment/product-catalog breaks deployment/product-catalog.\nConcrete details: container product-catalog image: ghcr.io/open-telemetry/demo:2.2.0-product-catalog -> app-image:latest.\nObserved impact: deployment `product-catalog` in namespace `astronomy-shop`.\nKey evidence: pod template changed in revision 2: container product-catalog image: ghcr.io/open-telemetry/demo:2.2.0-product-catalog -> app-image:latest.\nFault type: image or binary (the container image or binary is wrong).\nEvidence:\n- container product-catalog image: ghcr.io/open-telemetry/demo:2.2.0-product-catalog -> app-image:latest\n- only 0 of 1 desired replicas are ready\n- pod product-catalog-68c4f8b8ff-s4cct: pod phase Pending\n- pod product-catalog-68c4f8b8ff-s4cct: container product-catalog waiting in ErrImagePull\n- deployment/product-catalog: only 0 of 1 desired replicas are ready",
+   "grade": {
+    "judgment": "True",
+    "reasoning": "Verdict: True (composite=0.89). D1 Fault Localization: 1.00 | D2 Fault Characterization: 1.00 | D3 Scope Precision: 0.67. Weakest dimension: Scope Precision (0.67). Checklist details: [{\"id\": \"D1-Q1\", \"answer\": \"Yes\", \"evidence\": \"Names deployment product-catalog in namespace astronomy-shop as the root cause, matching the fault specification.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q2\", \"answer\": \"Yes\", \"evidence\": \"Identifies the product-catalog deployment's image change as the origin, without blaming upstream checkout.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q3\", \"answer\": \"Yes\", \"evidence\": \"Blames only deployment/product-catalog, the component identified in the fault specification.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q1\", \"answer\": \"Yes\", \"evidence\": \"Attributes failure to changing the product-catalog container image to app-image:latest and reports ErrImagePull.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q2\", \"answer\": \"Yes\", \"evidence\": \"Explicitly identifies the mutated image value app-image:latest.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q3\", \"answer\": \"Yes\", \"evidence\": \"Classifies the fault as a wrong container image, consistent with the injected image mutation.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q1\", \"answer\": \"Yes\", \"evidence\": \"Attributes the fault solely to product-catalog and its container image configuration.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q2\", \"answer\": \"No\", \"evidence\": \"Mentions product-catalog but omits upstream checkout, whose calls are described as potentially timing out or failing in the ground truth.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q3\", \"answer\": \"Yes\", \"evidence\": \"Reports ErrImagePull, a Pending pod, and zero of one desired replicas ready, consistent with image pull failure and catalog unavailability.\", \"confidence\": \"High\"}]",
+    "success": true,
+    "accuracy": 89.0,
+    "composite_score": 0.89,
+    "dimensions": {
+     "D1": {
+      "name": "Fault Localization",
+      "score": 1.0
+     },
+     "D2": {
+      "name": "Fault Characterization",
+      "score": 1.0
+     },
+     "D3": {
+      "name": "Scope Precision",
+      "score": 0.67
+     }
+    },
+    "checklist": [
+     {
+      "id": "D1-Q1",
+      "answer": "Yes",
+      "evidence": "Names deployment product-catalog in namespace astronomy-shop as the root cause, matching the fault specification.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q2",
+      "answer": "Yes",
+      "evidence": "Identifies the product-catalog deployment's image change as the origin, without blaming upstream checkout.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q3",
+      "answer": "Yes",
+      "evidence": "Blames only deployment/product-catalog, the component identified in the fault specification.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q1",
+      "answer": "Yes",
+      "evidence": "Attributes failure to changing the product-catalog container image to app-image:latest and reports ErrImagePull.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q2",
+      "answer": "Yes",
+      "evidence": "Explicitly identifies the mutated image value app-image:latest.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q3",
+      "answer": "Yes",
+      "evidence": "Classifies the fault as a wrong container image, consistent with the injected image mutation.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q1",
+      "answer": "Yes",
+      "evidence": "Attributes the fault solely to product-catalog and its container image configuration.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q2",
+      "answer": "No",
+      "evidence": "Mentions product-catalog but omits upstream checkout, whose calls are described as potentially timing out or failing in the ground truth.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q3",
+      "answer": "Yes",
+      "evidence": "Reports ErrImagePull, a Pending pod, and zero of one desired replicas ready, consistent with image pull failure and catalog unavailability.",
+      "confidence": "High"
+     }
+    ]
+   }
+  },
+  {
+   "arm": 1,
+   "kind": "v2",
+   "model": "openrouter/openai/gpt-6-luna-decisions",
+   "position": 0,
+   "seconds": 7.7,
+   "requests": 4,
+   "input_tokens": 33594,
+   "cost_usd": 0.003359,
+   "error": null,
+   "investigation": {
+    "rounds": [
+     {
+      "candidates": [
+       "bad-input:deployment/frontend:otel-collector",
+       "bad-input:deployment/frontend:cumulative",
+       "bad-input:deployment/frontend:flagd",
+       "bad-input:deployment/frontend:kubernetes",
+       "change:deployment/product-catalog:container product-catalog image: ghcr.io/open-telemetry/demo:2.2.0-product-catalog -> app-image:latest",
+       "change:daemonset/otel-collector-agent:template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-19T08:37:32+06:00"
+      ],
+      "probabilities": {
+       "bad-input:deployment/frontend:otel-collector": 0.0,
+       "bad-input:deployment/frontend:cumulative": 0.005,
+       "bad-input:deployment/frontend:flagd": 0.005,
+       "bad-input:deployment/frontend:kubernetes": 0.0,
+       "change:deployment/product-catalog:container product-catalog image: ghcr.io/open-telemetry/demo:2.2.0-product-catalog -> app-image:latest": 0.98,
+       "change:daemonset/otel-collector-agent:template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-19T08:37:32+06:00": 0.005,
+       "none_of_these": 0.005
+      },
+      "picks": [
+       "change:deployment/product-catalog:container product-catalog image: ghcr.io/open-telemetry/demo:2.2.0-product-catalog -> app-image:latest",
+       "change:deployment/product-catalog:container product-catalog image: ghcr.io/open-telemetry/demo:2.2.0-product-catalog -> app-image:latest"
+      ],
+      "route": "accept"
+     }
+    ],
+    "explanations": 12,
+    "winner": "change:deployment/product-catalog:container product-catalog image: ghcr.io/open-telemetry/demo:2.2.0-product-catalog -> app-image:latest",
+    "pattern": "change",
+    "key_fact": "spec modified 127s ago, 33s after this object was created (fields: spec.replicas, containers[product-catalog].image); pod template changes: pod label pod-template-hash: 6bc6bd6ff4 -> 68c4f8b8ff; container product-catalog image: ghcr.io/open-telemetry/demo:2.2.0-product-catalog -> app-image:latest; 0s before the first active symptom",
+    "key_fact_probability": 0.76,
+    "fault_type": "image_or_binary",
+    "fault_object": null,
+    "uncertain": false
+   },
+   "text": "Root cause: deployment `product-catalog` in namespace `astronomy-shop`.\nMechanism: The pod template change 'container product-catalog image: ghcr.io/open-telemetry/demo:2.2.0-product-catalog -> app-image:latest' in revision 2 of deployment/product-catalog breaks deployment/product-catalog.\nConcrete details: container product-catalog image: ghcr.io/open-telemetry/demo:2.2.0-product-catalog -> app-image:latest.\nObserved impact: deployment `product-catalog` in namespace `astronomy-shop`.\nKey evidence: spec modified 127s ago, 33s after this object was created (fields: spec.replicas, containers[product-catalog].image); pod template changes: pod label pod-template-hash: 6bc6bd6ff4 -> 68c4f8b8ff; container product-catalog image: ghcr.io/open-telemetry/demo:2.2.0-product-catalog -> app-image:latest; 0s before the first active symptom.\nFault type: image or binary (the container image or binary is wrong).\nEvidence:\n- container product-catalog image: ghcr.io/open-telemetry/demo:2.2.0-product-catalog -> app-image:latest\n- only 0 of 1 desired replicas are ready\n- pod product-catalog-68c4f8b8ff-s4cct: pod phase Pending\n- pod product-catalog-68c4f8b8ff-s4cct: container product-catalog waiting in ErrImagePull\n- deployment/product-catalog: only 0 of 1 desired replicas are ready",
+   "grade": {
+    "judgment": "True",
+    "reasoning": "Verdict: True (composite=0.89). D1 Fault Localization: 1.00 | D2 Fault Characterization: 1.00 | D3 Scope Precision: 0.67. Weakest dimension: Scope Precision (0.67). Checklist details: [{\"id\": \"D1-Q1\", \"answer\": \"Yes\", \"evidence\": \"The diagnosis identifies deployment product-catalog in namespace astronomy-shop, exactly matching the fault specification.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q2\", \"answer\": \"Yes\", \"evidence\": \"The diagnosis locates the root cause in product-catalog's image change, rather than upstream checkout failures.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q3\", \"answer\": \"Yes\", \"evidence\": \"Only the ground-truth fault origin, deployment/product-catalog, is blamed.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q1\", \"answer\": \"Yes\", \"evidence\": \"The diagnosis identifies the wrong container image as the mechanism and reports ErrImagePull.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q2\", \"answer\": \"Yes\", \"evidence\": \"The diagnosis explicitly identifies the mutated image value app-image:latest for container product-catalog.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q3\", \"answer\": \"Yes\", \"evidence\": \"The stated fault type is a wrong container image, consistent with the ground-truth image configuration fault.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q1\", \"answer\": \"Yes\", \"evidence\": \"The diagnosis attributes the fault only to deployment/product-catalog and its container image configuration.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q2\", \"answer\": \"No\", \"evidence\": \"The diagnosis mentions product-catalog but omits upstream checkout, whose calls are described as potentially timing out or failing in the ground truth.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q3\", \"answer\": \"Yes\", \"evidence\": \"The diagnosis reports ErrImagePull, a Pending pod, and zero ready replicas, consistent with image pull errors and catalog unavailability.\", \"confidence\": \"High\"}]",
+    "success": true,
+    "accuracy": 89.0,
+    "composite_score": 0.89,
+    "dimensions": {
+     "D1": {
+      "name": "Fault Localization",
+      "score": 1.0
+     },
+     "D2": {
+      "name": "Fault Characterization",
+      "score": 1.0
+     },
+     "D3": {
+      "name": "Scope Precision",
+      "score": 0.67
+     }
+    },
+    "checklist": [
+     {
+      "id": "D1-Q1",
+      "answer": "Yes",
+      "evidence": "The diagnosis identifies deployment product-catalog in namespace astronomy-shop, exactly matching the fault specification.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q2",
+      "answer": "Yes",
+      "evidence": "The diagnosis locates the root cause in product-catalog's image change, rather than upstream checkout failures.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q3",
+      "answer": "Yes",
+      "evidence": "Only the ground-truth fault origin, deployment/product-catalog, is blamed.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q1",
+      "answer": "Yes",
+      "evidence": "The diagnosis identifies the wrong container image as the mechanism and reports ErrImagePull.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q2",
+      "answer": "Yes",
+      "evidence": "The diagnosis explicitly identifies the mutated image value app-image:latest for container product-catalog.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q3",
+      "answer": "Yes",
+      "evidence": "The stated fault type is a wrong container image, consistent with the ground-truth image configuration fault.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q1",
+      "answer": "Yes",
+      "evidence": "The diagnosis attributes the fault only to deployment/product-catalog and its container image configuration.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q2",
+      "answer": "No",
+      "evidence": "The diagnosis mentions product-catalog but omits upstream checkout, whose calls are described as potentially timing out or failing in the ground truth.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q3",
+      "answer": "Yes",
+      "evidence": "The diagnosis reports ErrImagePull, a Pending pod, and zero ready replicas, consistent with image pull errors and catalog unavailability.",
+      "confidence": "High"
+     }
+    ]
+   }
+  },
+  {
+   "arm": 2,
+   "kind": "v1",
+   "model": "openrouter/typesafe/jev-1.13",
+   "position": 3,
+   "seconds": 2.7,
+   "requests": 2,
+   "input_tokens": 31792,
+   "cost_usd": 0.001335,
+   "error": null,
+   "investigation": {
+    "steps": [
+     {
+      "step": 1,
+      "node": "investigate",
+      "component": "deployment/product-catalog",
+      "verdict": "origin",
+      "origin_p": 1.0,
+      "victim_p": 0.0,
+      "next": "none",
+      "next_p": 0.98,
+      "category": "image_or_binary",
+      "spec_checks": [
+       "service product-catalog has no ready endpoints"
+      ],
+      "blocked_input": null,
+      "key_evidence": "pod template changed in revision 2: container product-catalog image: ghcr.io/open-telemetry/demo:2.2.0-product-catalog -> app-image:latest"
+     }
+    ],
+    "concluded": "deployment/product-catalog",
+    "fallback": null,
+    "triage_top": [
+     [
+      "deployment/product-catalog",
+      1.0
+     ],
+     [
+      "deployment/accounting",
+      0.0
+     ],
+     [
+      "deployment/ad",
+      0.0
+     ],
+     [
+      "deployment/cart",
+      0.0
+     ],
+     [
+      "deployment/checkout",
+      0.0
+     ]
+    ]
+   },
+   "text": "Root cause component: Deployment `product-catalog` in namespace `astronomy-shop`.\nMechanism: pod template changed in revision 2: container product-catalog image: ghcr.io/open-telemetry/demo:2.2.0-product-catalog -> app-image:latest.\nFault type: image or binary (the container image or binary is wrong).\nAbnormal state observed on this component:\n- only 0 of 1 desired replicas are ready\n- pod product-catalog-68c4f8b8ff-s4cct: pod phase Pending\n- pod product-catalog-68c4f8b8ff-s4cct: container product-catalog waiting in ErrImagePull\n- warning events: Failed x14\n- service product-catalog selects this component but has 0 ready endpoints\n- firing alert PendingPodsDetected\n- firing alert KubePodNotReady\n- firing alert DeploymentNotReady\n- pod product-catalog-68c4f8b8ff-s4cct is still in pod phase Pending after another 49s\n- warning event Failed on pod/product-catalog-68c4f8b8ff-s4cct repeated 2 more time(s) in the last 49s\n- spec modified 127s ago, 33s after this object was created (fields: spec.replicas, containers[product-catalog].image); pod template changes: pod label pod-template-hash: 6bc6bd6ff4 -> 68c4f8b8ff; container product-catalog image: ghcr.io/open-telemetry/demo:2.2.0-product-catalog -> app-image:latest; 0s before the first active symptom\nNotable spec settings:\n- Available=False (MinimumReplicasUnavailable)\n- container wait-for-postgresql: image busybox:latest\n- container product-catalog: image app-image:latest, limits {'memory': '64Mi'}\nWarning events:\n- Failed x6 on pod/product-catalog-68c4f8b8ff-s4cct: Error: ImagePullBackOff\n- Failed x4 on pod/product-catalog-68c4f8b8ff-s4cct: Failed to pull image \"app-image:latest\": rpc error: code = NotFound desc = failed to pull and unpack image \"docker.io/library/app-image:latest\": failed to resolve reference \"docker.io/library/app-image:latest\": docker.io/library/app-image:\u2026\n- Failed x4 on pod/product-catalog-68c4f8b8ff-s4cct: Error: ErrImagePull\nFiring alerts on this component: PendingPodsDetected, KubePodNotReady, DeploymentNotReady.\nClassification: Jev (typesafe/jev-1.13-20260917) confirmed this origin at investigation step 1 with probability 1.00 (triage probability 1.00).",
+   "grade": {
+    "judgment": "True",
+    "reasoning": "Verdict: True (composite=0.89). D1 Fault Localization: 1.00 | D2 Fault Characterization: 1.00 | D3 Scope Precision: 0.67. Weakest dimension: Scope Precision (0.67). Checklist details: [{\"id\": \"D1-Q1\", \"answer\": \"Yes\", \"evidence\": \"Names Deployment product-catalog in namespace astronomy-shop as the root cause component, matching the fault specification.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q2\", \"answer\": \"Yes\", \"evidence\": \"Explicitly locates the origin in the product-catalog deployment and its image change, rather than an upstream caller.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q3\", \"answer\": \"Yes\", \"evidence\": \"Blames product-catalog, the specified faulty deployment; no healthy component is identified as the origin.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q1\", \"answer\": \"Yes\", \"evidence\": \"Identifies a wrong container image and reports NotFound when pulling app-image:latest, matching the nonexistent-image mechanism.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q2\", \"answer\": \"Yes\", \"evidence\": \"Specifies the image mutation from ghcr.io/open-telemetry/demo:2.2.0-product-catalog to app-image:latest.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q3\", \"answer\": \"Yes\", \"evidence\": \"Attributes the fault to the wrong container image, supported by ErrImagePull and ImagePullBackOff events.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q1\", \"answer\": \"Yes\", \"evidence\": \"Attributes the fault solely to product-catalog and its image configuration; no additional component is blamed.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q2\", \"answer\": \"No\", \"evidence\": \"Discusses product-catalog and its endpoints but omits checkout, which the ground truth names as an affected upstream caller.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q3\", \"answer\": \"Yes\", \"evidence\": \"Reports ImagePullBackOff, zero ready replicas, and zero ready service endpoints, consistent with image pull failure and catalog unavailability.\", \"confidence\": \"High\"}]",
+    "success": true,
+    "accuracy": 89.0,
+    "composite_score": 0.89,
+    "dimensions": {
+     "D1": {
+      "name": "Fault Localization",
+      "score": 1.0
+     },
+     "D2": {
+      "name": "Fault Characterization",
+      "score": 1.0
+     },
+     "D3": {
+      "name": "Scope Precision",
+      "score": 0.67
+     }
+    },
+    "checklist": [
+     {
+      "id": "D1-Q1",
+      "answer": "Yes",
+      "evidence": "Names Deployment product-catalog in namespace astronomy-shop as the root cause component, matching the fault specification.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q2",
+      "answer": "Yes",
+      "evidence": "Explicitly locates the origin in the product-catalog deployment and its image change, rather than an upstream caller.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q3",
+      "answer": "Yes",
+      "evidence": "Blames product-catalog, the specified faulty deployment; no healthy component is identified as the origin.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q1",
+      "answer": "Yes",
+      "evidence": "Identifies a wrong container image and reports NotFound when pulling app-image:latest, matching the nonexistent-image mechanism.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q2",
+      "answer": "Yes",
+      "evidence": "Specifies the image mutation from ghcr.io/open-telemetry/demo:2.2.0-product-catalog to app-image:latest.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q3",
+      "answer": "Yes",
+      "evidence": "Attributes the fault to the wrong container image, supported by ErrImagePull and ImagePullBackOff events.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q1",
+      "answer": "Yes",
+      "evidence": "Attributes the fault solely to product-catalog and its image configuration; no additional component is blamed.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q2",
+      "answer": "No",
+      "evidence": "Discusses product-catalog and its endpoints but omits checkout, which the ground truth names as an affected upstream caller.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q3",
+      "answer": "Yes",
+      "evidence": "Reports ImagePullBackOff, zero ready replicas, and zero ready service endpoints, consistent with image pull failure and catalog unavailability.",
+      "confidence": "High"
+     }
+    ]
+   }
+  },
+  {
+   "arm": 3,
+   "kind": "v1",
+   "model": "openrouter/openai/gpt-6-luna-decisions",
+   "position": 2,
+   "seconds": 2.5,
+   "requests": 2,
+   "input_tokens": 22017,
+   "cost_usd": 0.002202,
+   "error": null,
+   "investigation": {
+    "steps": [
+     {
+      "step": 1,
+      "node": "investigate",
+      "component": "deployment/product-catalog",
+      "verdict": "origin",
+      "origin_p": 0.99,
+      "victim_p": 0.01,
+      "next": "none",
+      "next_p": 0.93,
+      "category": "image_or_binary",
+      "spec_checks": [
+       "service product-catalog has no ready endpoints"
+      ],
+      "blocked_input": null,
+      "key_evidence": "pod template changed in revision 2: container product-catalog image: ghcr.io/open-telemetry/demo:2.2.0-product-catalog -> app-image:latest"
+     }
+    ],
+    "concluded": "deployment/product-catalog",
+    "fallback": null,
+    "triage_top": [
+     [
+      "deployment/product-catalog",
+      1.0
+     ],
+     [
+      "deployment/accounting",
+      0.0
+     ],
+     [
+      "deployment/ad",
+      0.0
+     ],
+     [
+      "deployment/cart",
+      0.0
+     ],
+     [
+      "deployment/checkout",
+      0.0
+     ]
+    ]
+   },
+   "text": "Root cause component: Deployment `product-catalog` in namespace `astronomy-shop`.\nMechanism: pod template changed in revision 2: container product-catalog image: ghcr.io/open-telemetry/demo:2.2.0-product-catalog -> app-image:latest.\nFault type: image or binary (the container image or binary is wrong).\nAbnormal state observed on this component:\n- only 0 of 1 desired replicas are ready\n- pod product-catalog-68c4f8b8ff-s4cct: pod phase Pending\n- pod product-catalog-68c4f8b8ff-s4cct: container product-catalog waiting in ErrImagePull\n- warning events: Failed x14\n- service product-catalog selects this component but has 0 ready endpoints\n- firing alert PendingPodsDetected\n- firing alert KubePodNotReady\n- firing alert DeploymentNotReady\n- pod product-catalog-68c4f8b8ff-s4cct is still in pod phase Pending after another 49s\n- warning event Failed on pod/product-catalog-68c4f8b8ff-s4cct repeated 2 more time(s) in the last 49s\n- spec modified 127s ago, 33s after this object was created (fields: spec.replicas, containers[product-catalog].image); pod template changes: pod label pod-template-hash: 6bc6bd6ff4 -> 68c4f8b8ff; container product-catalog image: ghcr.io/open-telemetry/demo:2.2.0-product-catalog -> app-image:latest; 0s before the first active symptom\nNotable spec settings:\n- Available=False (MinimumReplicasUnavailable)\n- container wait-for-postgresql: image busybox:latest\n- container product-catalog: image app-image:latest, limits {'memory': '64Mi'}\nWarning events:\n- Failed x6 on pod/product-catalog-68c4f8b8ff-s4cct: Error: ImagePullBackOff\n- Failed x4 on pod/product-catalog-68c4f8b8ff-s4cct: Failed to pull image \"app-image:latest\": rpc error: code = NotFound desc = failed to pull and unpack image \"docker.io/library/app-image:latest\": failed to resolve reference \"docker.io/library/app-image:latest\": docker.io/library/app-image:\u2026\n- Failed x4 on pod/product-catalog-68c4f8b8ff-s4cct: Error: ErrImagePull\nFiring alerts on this component: PendingPodsDetected, KubePodNotReady, DeploymentNotReady.\nClassification: Jev (openai/gpt-6-luna-decisions-20261006) confirmed this origin at investigation step 1 with probability 0.99 (triage probability 1.00).",
+   "grade": {
+    "judgment": "True",
+    "reasoning": "Verdict: True (composite=0.89). D1 Fault Localization: 1.00 | D2 Fault Characterization: 1.00 | D3 Scope Precision: 0.67. Weakest dimension: Scope Precision (0.67). Checklist details: [{\"id\": \"D1-Q1\", \"answer\": \"Yes\", \"evidence\": \"Names Deployment product-catalog in namespace astronomy-shop as the root cause component, exactly matching the fault specification.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q2\", \"answer\": \"Yes\", \"evidence\": \"Explicitly identifies product-catalog as the origin and ties its image change to image pull failures.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q3\", \"answer\": \"Yes\", \"evidence\": \"Attributes the fault to the specified product-catalog deployment; no other component is identified as the origin.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q1\", \"answer\": \"Yes\", \"evidence\": \"Describes the image changing to app-image:latest and reports NotFound errors when pulling that image.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q2\", \"answer\": \"Yes\", \"evidence\": \"Specifies the mutated container image: ghcr.io/open-telemetry/demo:2.2.0-product-catalog -> app-image:latest.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q3\", \"answer\": \"Yes\", \"evidence\": \"Classifies the fault as a wrong container image and supports it with ErrImagePull and ImagePullBackOff events.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q1\", \"answer\": \"Yes\", \"evidence\": \"Blames only product-catalog's image configuration; other listed settings are not attributed causal responsibility.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q2\", \"answer\": \"No\", \"evidence\": \"Describes product-catalog and its unavailable endpoints but omits the upstream checkout component mentioned as affected in the ground truth.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q3\", \"answer\": \"Yes\", \"evidence\": \"Reports ImagePullBackOff, zero ready replicas, and zero ready service endpoints, consistent with image pull failure and catalog unavailability.\", \"confidence\": \"High\"}]",
+    "success": true,
+    "accuracy": 89.0,
+    "composite_score": 0.89,
+    "dimensions": {
+     "D1": {
+      "name": "Fault Localization",
+      "score": 1.0
+     },
+     "D2": {
+      "name": "Fault Characterization",
+      "score": 1.0
+     },
+     "D3": {
+      "name": "Scope Precision",
+      "score": 0.67
+     }
+    },
+    "checklist": [
+     {
+      "id": "D1-Q1",
+      "answer": "Yes",
+      "evidence": "Names Deployment product-catalog in namespace astronomy-shop as the root cause component, exactly matching the fault specification.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q2",
+      "answer": "Yes",
+      "evidence": "Explicitly identifies product-catalog as the origin and ties its image change to image pull failures.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q3",
+      "answer": "Yes",
+      "evidence": "Attributes the fault to the specified product-catalog deployment; no other component is identified as the origin.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q1",
+      "answer": "Yes",
+      "evidence": "Describes the image changing to app-image:latest and reports NotFound errors when pulling that image.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q2",
+      "answer": "Yes",
+      "evidence": "Specifies the mutated container image: ghcr.io/open-telemetry/demo:2.2.0-product-catalog -> app-image:latest.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q3",
+      "answer": "Yes",
+      "evidence": "Classifies the fault as a wrong container image and supports it with ErrImagePull and ImagePullBackOff events.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q1",
+      "answer": "Yes",
+      "evidence": "Blames only product-catalog's image configuration; other listed settings are not attributed causal responsibility.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q2",
+      "answer": "No",
+      "evidence": "Describes product-catalog and its unavailable endpoints but omits the upstream checkout component mentioned as affected in the ground truth.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q3",
+      "answer": "Yes",
+      "evidence": "Reports ImagePullBackOff, zero ready replicas, and zero ready service endpoints, consistent with image pull failure and catalog unavailability.",
+      "confidence": "High"
+     }
+    ]
+   }
+  }
+ ],
+ "submission": {
+  "status": "200",
+  "message": "Submission received",
+  "stage": "diagnosis"
+ },
+ "judge": {
+  "model": "gpt-6-astra",
+  "backend": "codex",
+  "effort": "high"
+ }
+}

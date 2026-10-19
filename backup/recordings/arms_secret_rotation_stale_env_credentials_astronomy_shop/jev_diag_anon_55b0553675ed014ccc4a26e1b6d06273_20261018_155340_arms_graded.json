@@ -1,0 +1,574 @@
+{
+ "problem_id": "jev_diag_anon_55b0553675ed014ccc4a26e1b6d06273_20261018_155340",
+ "submit_arm": 0,
+ "order": [
+  2,
+  1,
+  0,
+  3
+ ],
+ "arms": [
+  {
+   "arm": 0,
+   "kind": "v2",
+   "model": "openrouter/typesafe/jev-1.13",
+   "position": 2,
+   "seconds": 5.3,
+   "requests": 4,
+   "input_tokens": 31498,
+   "cost_usd": 0.001323,
+   "error": null,
+   "investigation": {
+    "rounds": [
+     {
+      "candidates": [
+       "change:deployment/accounting:container accounting env DB_CONNECTION_STRING: Host=postgresql;Username=otelu;Password=otelp;Database=otel -> Host=postgresql;Username=otelu;Password=otelp_7k9m2q4x;Database=otel",
+       "change:deployment/product-catalog:template annotation kubectl.kubernetes.io/restartedAt: 2026-10-18T21:53:22+06:00 -> 2026-10-18T21:53:25+06:00",
+       "change:deployment/product-reviews:container product-reviews env DB_CONNECTION_STRING: host=postgresql user=otelu password=otelp dbname=otel -> host=postgresql user=otelu password=otelp_7k9m2q4x dbname=otel",
+       "change:daemonset/otel-collector-agent:template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-18T21:53:06+06:00",
+       "change:configmap/astronomy-shop/postgresql-init",
+       "change:secret/astronomy-shop/product-catalog-db-conn"
+      ],
+      "probabilities": {
+       "change:deployment/accounting:container accounting env DB_CONNECTION_STRING: Host=postgresql;Username=otelu;Password=otelp;Database=otel -> Host=postgresql;Username=otelu;Password=otelp_7k9m2q4x;Database=otel": 0.01,
+       "change:deployment/product-catalog:template annotation kubectl.kubernetes.io/restartedAt: 2026-10-18T21:53:22+06:00 -> 2026-10-18T21:53:25+06:00": 0.01,
+       "change:deployment/product-reviews:container product-reviews env DB_CONNECTION_STRING: host=postgresql user=otelu password=otelp dbname=otel -> host=postgresql user=otelu password=otelp_7k9m2q4x dbname=otel": 0.01,
+       "change:daemonset/otel-collector-agent:template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-18T21:53:06+06:00": 0.0,
+       "change:configmap/astronomy-shop/postgresql-init": 0.33999999999999997,
+       "change:secret/astronomy-shop/product-catalog-db-conn": 0.44,
+       "none_of_these": 0.19
+      },
+      "picks": [
+       "change:secret/astronomy-shop/product-catalog-db-conn",
+       "change:configmap/astronomy-shop/postgresql-init"
+      ],
+      "route": "check"
+     },
+     {
+      "candidates": [
+       "change:deployment/accounting:container accounting env DB_CONNECTION_STRING: Host=postgresql;Username=otelu;Password=otelp;Database=otel -> Host=postgresql;Username=otelu;Password=otelp_7k9m2q4x;Database=otel",
+       "change:deployment/product-catalog:template annotation kubectl.kubernetes.io/restartedAt: 2026-10-18T21:53:22+06:00 -> 2026-10-18T21:53:25+06:00",
+       "change:deployment/product-reviews:container product-reviews env DB_CONNECTION_STRING: host=postgresql user=otelu password=otelp dbname=otel -> host=postgresql user=otelu password=otelp_7k9m2q4x dbname=otel",
+       "change:daemonset/otel-collector-agent:template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-18T21:53:06+06:00",
+       "change:configmap/astronomy-shop/postgresql-init",
+       "change:secret/astronomy-shop/product-catalog-db-conn"
+      ],
+      "probabilities": {
+       "change:deployment/accounting:container accounting env DB_CONNECTION_STRING: Host=postgresql;Username=otelu;Password=otelp;Database=otel -> Host=postgresql;Username=otelu;Password=otelp_7k9m2q4x;Database=otel": 0.01,
+       "change:deployment/product-catalog:template annotation kubectl.kubernetes.io/restartedAt: 2026-10-18T21:53:22+06:00 -> 2026-10-18T21:53:25+06:00": 0.005,
+       "change:deployment/product-reviews:container product-reviews env DB_CONNECTION_STRING: host=postgresql user=otelu password=otelp dbname=otel -> host=postgresql user=otelu password=otelp_7k9m2q4x dbname=otel": 0.005,
+       "change:daemonset/otel-collector-agent:template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-18T21:53:06+06:00": 0.01,
+       "change:configmap/astronomy-shop/postgresql-init": 0.595,
+       "change:secret/astronomy-shop/product-catalog-db-conn": 0.275,
+       "none_of_these": 0.1
+      },
+      "picks": [
+       "change:configmap/astronomy-shop/postgresql-init",
+       "change:configmap/astronomy-shop/postgresql-init"
+      ],
+      "route": "check"
+     }
+    ],
+    "explanations": 16,
+    "winner": "change:configmap/astronomy-shop/postgresql-init",
+    "pattern": "acts-on",
+    "uncertain": true
+   },
+   "text": "Root cause: configmap `postgresql-init` in namespace `astronomy-shop`.\nMechanism: configmap postgresql-init was changed recently and breaks deployment/postgresql, which it acts on.\nConcrete details: configmap postgresql-init fields written: data.init.sql; ConfigMap postgresql-init was rewritten at 2026-10-18T15:53:29Z, after 1 of 1 running containers of this workload started; it is mounted as files (volume /docker-entrypoint-initdb.d), which the kubelet updates in place, so the running process sees the new content only if it re-reads the files; ConfigMap postgresql-init was modified 136s ago, 41s after it was created (fields: data.init.sql); 57s before the first active symptom.\nObserved impact: deployment `postgresql` in namespace `astronomy-shop`.\nEvidence:\n- configmap postgresql-init fields written: data.init.sql\n- ConfigMap postgresql-init was rewritten at 2026-10-18T15:53:29Z, after 1 of 1 running containers of this workload started; it is mounted as files (volume /docker-entrypoint-initdb.d), which the kubelet updates in place, so the running process sees the new content only if it re-reads the files\n- ConfigMap postgresql-init was modified 136s ago, 41s after it was created (fields: data.init.sql); 57s before the first active symptom\n- deployment/postgresql: ConfigMap postgresql-init was rewritten at 2026-10-18T15:53:29Z, after 1 of 1 running containers of this workload started; it is mounted as files (volume /docker-entrypoint-initdb.d), which the kubelet updates in place, so the running process sees the new content only if it re-reads the files\nConfidence: low; the investigation budget ended before the leading explanation was confirmed.",
+   "grade": {
+    "judgment": "False",
+    "reasoning": "Verdict: False (composite=0.00). D1 Fault Localization: 0.00 | D2 Fault Characterization: 0.00 | D3 Scope Precision: 0.00. Weakest dimension: Fault Localization (0.00). Checklist details: [{\"id\": \"D1-Q1\", \"answer\": \"No\", \"evidence\": \"Diagnosis names ConfigMap postgresql-init as the root cause, rather than deployment/product-catalog.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q2\", \"answer\": \"No\", \"evidence\": \"Diagnosis attributes the fault to postgresql-init breaking deployment/postgresql, omitting the specified fault origin, product-catalog.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q3\", \"answer\": \"No\", \"evidence\": \"Diagnosis blames postgresql-init, which does not match the fault specification's target, deployment/product-catalog.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q1\", \"answer\": \"No\", \"evidence\": \"Diagnosis describes changed mounted ConfigMap files, not product-catalog retaining startup database credentials after credential and Secret rotation.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q2\", \"answer\": \"No\", \"evidence\": \"The cited mutation is data.init.sql; diagnosis provides no credential rotation, Kubernetes Secret change, or stale database connection string details.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q3\", \"answer\": \"No\", \"evidence\": \"Diagnosis attributes failure to an initialization ConfigMap change breaking PostgreSQL, conflicting with the stated runtime credential mismatch in product-catalog.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q1\", \"answer\": \"No\", \"evidence\": \"Diagnosis blames ConfigMap postgresql-init and claims it breaks PostgreSQL; ground truth identifies stale credentials in product-catalog as the fault.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q2\", \"answer\": \"No\", \"evidence\": \"Diagnosis omits product-catalog and the rotated Kubernetes Secret, both explicitly involved in the ground truth.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q3\", \"answer\": \"No\", \"evidence\": \"Observed impact is assigned to deployment/postgresql; diagnosis does not describe product-catalog failing to reconnect after existing database sessions terminate.\", \"confidence\": \"High\"}]",
+    "success": false,
+    "accuracy": 0.0,
+    "composite_score": 0.0,
+    "dimensions": {
+     "D1": {
+      "name": "Fault Localization",
+      "score": 0.0
+     },
+     "D2": {
+      "name": "Fault Characterization",
+      "score": 0.0
+     },
+     "D3": {
+      "name": "Scope Precision",
+      "score": 0.0
+     }
+    },
+    "checklist": [
+     {
+      "id": "D1-Q1",
+      "answer": "No",
+      "evidence": "Diagnosis names ConfigMap postgresql-init as the root cause, rather than deployment/product-catalog.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q2",
+      "answer": "No",
+      "evidence": "Diagnosis attributes the fault to postgresql-init breaking deployment/postgresql, omitting the specified fault origin, product-catalog.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q3",
+      "answer": "No",
+      "evidence": "Diagnosis blames postgresql-init, which does not match the fault specification's target, deployment/product-catalog.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q1",
+      "answer": "No",
+      "evidence": "Diagnosis describes changed mounted ConfigMap files, not product-catalog retaining startup database credentials after credential and Secret rotation.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q2",
+      "answer": "No",
+      "evidence": "The cited mutation is data.init.sql; diagnosis provides no credential rotation, Kubernetes Secret change, or stale database connection string details.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q3",
+      "answer": "No",
+      "evidence": "Diagnosis attributes failure to an initialization ConfigMap change breaking PostgreSQL, conflicting with the stated runtime credential mismatch in product-catalog.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q1",
+      "answer": "No",
+      "evidence": "Diagnosis blames ConfigMap postgresql-init and claims it breaks PostgreSQL; ground truth identifies stale credentials in product-catalog as the fault.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q2",
+      "answer": "No",
+      "evidence": "Diagnosis omits product-catalog and the rotated Kubernetes Secret, both explicitly involved in the ground truth.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q3",
+      "answer": "No",
+      "evidence": "Observed impact is assigned to deployment/postgresql; diagnosis does not describe product-catalog failing to reconnect after existing database sessions terminate.",
+      "confidence": "High"
+     }
+    ]
+   }
+  },
+  {
+   "arm": 1,
+   "kind": "v2",
+   "model": "openrouter/openai/gpt-6-luna-decisions",
+   "position": 1,
+   "seconds": 5.4,
+   "requests": 4,
+   "input_tokens": 21532,
+   "cost_usd": 0.002153,
+   "error": null,
+   "investigation": {
+    "rounds": [
+     {
+      "candidates": [
+       "change:deployment/accounting:container accounting env DB_CONNECTION_STRING: Host=postgresql;Username=otelu;Password=otelp;Database=otel -> Host=postgresql;Username=otelu;Password=otelp_7k9m2q4x;Database=otel",
+       "change:deployment/product-catalog:template annotation kubectl.kubernetes.io/restartedAt: 2026-10-18T21:53:22+06:00 -> 2026-10-18T21:53:25+06:00",
+       "change:deployment/product-reviews:container product-reviews env DB_CONNECTION_STRING: host=postgresql user=otelu password=otelp dbname=otel -> host=postgresql user=otelu password=otelp_7k9m2q4x dbname=otel",
+       "change:daemonset/otel-collector-agent:template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-18T21:53:06+06:00",
+       "change:configmap/astronomy-shop/postgresql-init",
+       "change:secret/astronomy-shop/product-catalog-db-conn"
+      ],
+      "probabilities": {
+       "change:deployment/accounting:container accounting env DB_CONNECTION_STRING: Host=postgresql;Username=otelu;Password=otelp;Database=otel -> Host=postgresql;Username=otelu;Password=otelp_7k9m2q4x;Database=otel": 0.135,
+       "change:deployment/product-catalog:template annotation kubectl.kubernetes.io/restartedAt: 2026-10-18T21:53:22+06:00 -> 2026-10-18T21:53:25+06:00": 0.015,
+       "change:deployment/product-reviews:container product-reviews env DB_CONNECTION_STRING: host=postgresql user=otelu password=otelp dbname=otel -> host=postgresql user=otelu password=otelp_7k9m2q4x dbname=otel": 0.03,
+       "change:daemonset/otel-collector-agent:template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-18T21:53:06+06:00": 0.01,
+       "change:configmap/astronomy-shop/postgresql-init": 0.5,
+       "change:secret/astronomy-shop/product-catalog-db-conn": 0.08,
+       "none_of_these": 0.23
+      },
+      "picks": [
+       "change:configmap/astronomy-shop/postgresql-init",
+       "change:configmap/astronomy-shop/postgresql-init"
+      ],
+      "route": "check"
+     },
+     {
+      "candidates": [
+       "change:deployment/accounting:container accounting env DB_CONNECTION_STRING: Host=postgresql;Username=otelu;Password=otelp;Database=otel -> Host=postgresql;Username=otelu;Password=otelp_7k9m2q4x;Database=otel",
+       "change:deployment/product-catalog:template annotation kubectl.kubernetes.io/restartedAt: 2026-10-18T21:53:22+06:00 -> 2026-10-18T21:53:25+06:00",
+       "change:deployment/product-reviews:container product-reviews env DB_CONNECTION_STRING: host=postgresql user=otelu password=otelp dbname=otel -> host=postgresql user=otelu password=otelp_7k9m2q4x dbname=otel",
+       "change:daemonset/otel-collector-agent:template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-18T21:53:06+06:00",
+       "change:configmap/astronomy-shop/postgresql-init",
+       "change:secret/astronomy-shop/product-catalog-db-conn"
+      ],
+      "probabilities": {
+       "change:deployment/accounting:container accounting env DB_CONNECTION_STRING: Host=postgresql;Username=otelu;Password=otelp;Database=otel -> Host=postgresql;Username=otelu;Password=otelp_7k9m2q4x;Database=otel": 0.025,
+       "change:deployment/product-catalog:template annotation kubectl.kubernetes.io/restartedAt: 2026-10-18T21:53:22+06:00 -> 2026-10-18T21:53:25+06:00": 0.01,
+       "change:deployment/product-reviews:container product-reviews env DB_CONNECTION_STRING: host=postgresql user=otelu password=otelp dbname=otel -> host=postgresql user=otelu password=otelp_7k9m2q4x dbname=otel": 0.015,
+       "change:daemonset/otel-collector-agent:template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-18T21:53:06+06:00": 0.015,
+       "change:configmap/astronomy-shop/postgresql-init": 0.855,
+       "change:secret/astronomy-shop/product-catalog-db-conn": 0.015,
+       "none_of_these": 0.065
+      },
+      "picks": [
+       "change:configmap/astronomy-shop/postgresql-init",
+       "change:configmap/astronomy-shop/postgresql-init"
+      ],
+      "route": "accept"
+     }
+    ],
+    "explanations": 16,
+    "winner": "change:configmap/astronomy-shop/postgresql-init",
+    "pattern": "acts-on",
+    "uncertain": false
+   },
+   "text": "Root cause: configmap `postgresql-init` in namespace `astronomy-shop`.\nMechanism: configmap postgresql-init was changed recently and breaks deployment/postgresql, which it acts on.\nConcrete details: configmap postgresql-init fields written: data.init.sql; ConfigMap postgresql-init was rewritten at 2026-10-18T15:53:29Z, after 1 of 1 running containers of this workload started; it is mounted as files (volume /docker-entrypoint-initdb.d), which the kubelet updates in place, so the running process sees the new content only if it re-reads the files; ConfigMap postgresql-init was modified 136s ago, 41s after it was created (fields: data.init.sql); 57s before the first active symptom.\nObserved impact: deployment `postgresql` in namespace `astronomy-shop`.\nEvidence:\n- configmap postgresql-init fields written: data.init.sql\n- ConfigMap postgresql-init was rewritten at 2026-10-18T15:53:29Z, after 1 of 1 running containers of this workload started; it is mounted as files (volume /docker-entrypoint-initdb.d), which the kubelet updates in place, so the running process sees the new content only if it re-reads the files\n- ConfigMap postgresql-init was modified 136s ago, 41s after it was created (fields: data.init.sql); 57s before the first active symptom\n- deployment/postgresql: ConfigMap postgresql-init was rewritten at 2026-10-18T15:53:29Z, after 1 of 1 running containers of this workload started; it is mounted as files (volume /docker-entrypoint-initdb.d), which the kubelet updates in place, so the running process sees the new content only if it re-reads the files",
+   "grade": {
+    "judgment": "False",
+    "reasoning": "Verdict: False (composite=0.00). D1 Fault Localization: 0.00 | D2 Fault Characterization: 0.00 | D3 Scope Precision: 0.00. Weakest dimension: Fault Localization (0.00). Checklist details: [{\"id\": \"D1-Q1\", \"answer\": \"No\", \"evidence\": \"Diagnosis names ConfigMap postgresql-init and deployment/postgresql; the specified fault origin is deployment/product-catalog.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q2\", \"answer\": \"No\", \"evidence\": \"Diagnosis assigns the origin to postgresql-init breaking PostgreSQL, rather than identifying product-catalog's stale runtime credentials.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q3\", \"answer\": \"No\", \"evidence\": \"Diagnosis explicitly blames ConfigMap postgresql-init, a different component from the specified product-catalog deployment.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q1\", \"answer\": \"No\", \"evidence\": \"Diagnosis describes changed ConfigMap files requiring rereading, not rotated database credentials and a Secret leaving product-catalog's startup connection string stale.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q2\", \"answer\": \"No\", \"evidence\": \"Concrete details concern data.init.sql and /docker-entrypoint-initdb.d; diagnosis omits credential rotation, the Kubernetes Secret, and product-catalog's captured connection string.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q3\", \"answer\": \"No\", \"evidence\": \"Diagnosis attributes failure to an initialization ConfigMap change breaking PostgreSQL, conflicting with the specified runtime credential mismatch in product-catalog.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q1\", \"answer\": \"No\", \"evidence\": \"Diagnosis blames postgresql-init as the root cause, although ground truth identifies stale credentials in product-catalog rather than an initialization ConfigMap fault.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q2\", \"answer\": \"No\", \"evidence\": \"Diagnosis mentions PostgreSQL but omits the affected product-catalog deployment and the rotated Kubernetes Secret.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q3\", \"answer\": \"No\", \"evidence\": \"Diagnosis states PostgreSQL is broken; ground truth states product-catalog cannot reconnect after existing database sessions are terminated.\", \"confidence\": \"High\"}]",
+    "success": false,
+    "accuracy": 0.0,
+    "composite_score": 0.0,
+    "dimensions": {
+     "D1": {
+      "name": "Fault Localization",
+      "score": 0.0
+     },
+     "D2": {
+      "name": "Fault Characterization",
+      "score": 0.0
+     },
+     "D3": {
+      "name": "Scope Precision",
+      "score": 0.0
+     }
+    },
+    "checklist": [
+     {
+      "id": "D1-Q1",
+      "answer": "No",
+      "evidence": "Diagnosis names ConfigMap postgresql-init and deployment/postgresql; the specified fault origin is deployment/product-catalog.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q2",
+      "answer": "No",
+      "evidence": "Diagnosis assigns the origin to postgresql-init breaking PostgreSQL, rather than identifying product-catalog's stale runtime credentials.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q3",
+      "answer": "No",
+      "evidence": "Diagnosis explicitly blames ConfigMap postgresql-init, a different component from the specified product-catalog deployment.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q1",
+      "answer": "No",
+      "evidence": "Diagnosis describes changed ConfigMap files requiring rereading, not rotated database credentials and a Secret leaving product-catalog's startup connection string stale.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q2",
+      "answer": "No",
+      "evidence": "Concrete details concern data.init.sql and /docker-entrypoint-initdb.d; diagnosis omits credential rotation, the Kubernetes Secret, and product-catalog's captured connection string.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q3",
+      "answer": "No",
+      "evidence": "Diagnosis attributes failure to an initialization ConfigMap change breaking PostgreSQL, conflicting with the specified runtime credential mismatch in product-catalog.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q1",
+      "answer": "No",
+      "evidence": "Diagnosis blames postgresql-init as the root cause, although ground truth identifies stale credentials in product-catalog rather than an initialization ConfigMap fault.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q2",
+      "answer": "No",
+      "evidence": "Diagnosis mentions PostgreSQL but omits the affected product-catalog deployment and the rotated Kubernetes Secret.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q3",
+      "answer": "No",
+      "evidence": "Diagnosis states PostgreSQL is broken; ground truth states product-catalog cannot reconnect after existing database sessions are terminated.",
+      "confidence": "High"
+     }
+    ]
+   }
+  },
+  {
+   "arm": 2,
+   "kind": "v1",
+   "model": "openrouter/typesafe/jev-1.13",
+   "position": 0,
+   "seconds": 3.5,
+   "requests": 2,
+   "input_tokens": 33317,
+   "cost_usd": 0.001399,
+   "error": null,
+   "investigation": {
+    "steps": [
+     {
+      "step": 1,
+      "node": "investigate",
+      "component": "deployment/product-catalog",
+      "verdict": "origin",
+      "origin_p": 0.66,
+      "victim_p": 0.32,
+      "next": "none",
+      "next_p": 0.85,
+      "category": "credentials_or_auth",
+      "spec_checks": [],
+      "blocked_input": null,
+      "key_evidence": "Secret product-catalog-db-conn was rewritten at 2026-10-18T15:53:29Z, after 1 of 1 running containers of this workload started; it is read through env DB_CONNECTION_STRING, which are fixed when the container starts, so those containers still use the previous values"
+     }
+    ],
+    "concluded": "deployment/product-catalog",
+    "fallback": null,
+    "triage_top": [
+     [
+      "deployment/product-catalog",
+      0.71
+     ],
+     [
+      "deployment/postgresql",
+      0.16
+     ],
+     [
+      "other",
+      0.09
+     ],
+     [
+      "deployment/product-reviews",
+      0.03
+     ],
+     [
+      "deployment/accounting",
+      0.01
+     ]
+    ]
+   },
+   "text": "Root cause component: Deployment `product-catalog` in namespace `astronomy-shop`.\nMechanism: Secret product-catalog-db-conn was rewritten at 2026-10-18T15:53:29Z, after 1 of 1 running containers of this workload started; it is read through env DB_CONNECTION_STRING, which are fixed when the container starts, so those containers still use the previous values.\nFault object: Secret `product-catalog-db-conn`: Secret product-catalog-db-conn was created 140s ago, 36s after the workloads that read it; 61s before the first active symptom.\nFault type: credentials or auth (authentication between components fails because credentials or auth settings changed).\nAbnormal state observed on this component:\n- server deployment/postgresql rejects logins for account otelu (12 lines, still occurring); this component may present those credentials: secret/product-catalog-db-conn, which it reads through env values, was rewritten 85s before the rejections began and after its containers started; its env var DB_CONNECTION_STRING names a database connection and postgresql is the application's only database\n- spec modified 137s ago, 39s after this object was created (fields: template.annotations.kubectl.kubernetes.io/restartedAt, containers[product-catalog].env[DB_CONNECTION_STRING]); pod template changes: template annotation kubectl.kubernetes.io/restartedAt: 2026-10-18T21:53:22+06:00 -> 2026-10-18T21:53:25+06:00; pod label pod-template-hash: 56456cc9ff -> 577557ddb4; 58s before the first active symptom\n- Secret product-catalog-db-conn was created 140s ago, 36s after the workloads that read it; 61s before the first active symptom\n- container wait-for-postgresql: image busybox:latest\n- container product-catalog: image ghcr.io/open-telemetry/demo:2.2.0-product-catalog, limits {'memory': '64Mi'}\nClassification: Jev (typesafe/jev-1.13-20260917) confirmed this origin at investigation step 1 with probability 0.66 (triage probability 0.71).",
+   "grade": {
+    "judgment": "True",
+    "reasoning": "Verdict: True (composite=1.00). D1 Fault Localization: 1.00 | D2 Fault Characterization: 1.00 | D3 Scope Precision: 1.00. Weakest dimension: Fault Localization (1.00). Checklist details: [{\"id\": \"D1-Q1\", \"answer\": \"Yes\", \"evidence\": \"Explicitly identifies Deployment product-catalog in namespace astronomy-shop as the root cause component.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q2\", \"answer\": \"Yes\", \"evidence\": \"Identifies product-catalog as the origin and PostgreSQL login rejections as evidence of its stale credentials.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q3\", \"answer\": \"Yes\", \"evidence\": \"Names the ground-truth deployment product-catalog as the root cause, without assigning origin to a different workload.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q1\", \"answer\": \"Yes\", \"evidence\": \"Explains that the Secret changed after container startup, while the running container retains previous connection-string environment values.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q2\", \"answer\": \"Yes\", \"evidence\": \"Names Secret product-catalog-db-conn and env DB_CONNECTION_STRING, specifying that the Secret was rewritten after the consuming container started.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q3\", \"answer\": \"Yes\", \"evidence\": \"Classifies the fault as credentials or authentication failure caused by changed credentials, consistent with the stale runtime connection string.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q1\", \"answer\": \"Yes\", \"evidence\": \"Attributes the fault to product-catalog's stale Secret-derived credentials; PostgreSQL is described as rejecting authentication, without blaming unrelated components.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q2\", \"answer\": \"Yes\", \"evidence\": \"Mentions product-catalog, its Kubernetes Secret, and the PostgreSQL backend, covering the components involved in the ground truth.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q3\", \"answer\": \"Yes\", \"evidence\": \"Reports ongoing PostgreSQL login rejections for account otelu and authentication failure, consistent with product-catalog being unable to reconnect using stale credentials.\", \"confidence\": \"High\"}]",
+    "success": true,
+    "accuracy": 100.0,
+    "composite_score": 1.0,
+    "dimensions": {
+     "D1": {
+      "name": "Fault Localization",
+      "score": 1.0
+     },
+     "D2": {
+      "name": "Fault Characterization",
+      "score": 1.0
+     },
+     "D3": {
+      "name": "Scope Precision",
+      "score": 1.0
+     }
+    },
+    "checklist": [
+     {
+      "id": "D1-Q1",
+      "answer": "Yes",
+      "evidence": "Explicitly identifies Deployment product-catalog in namespace astronomy-shop as the root cause component.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q2",
+      "answer": "Yes",
+      "evidence": "Identifies product-catalog as the origin and PostgreSQL login rejections as evidence of its stale credentials.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q3",
+      "answer": "Yes",
+      "evidence": "Names the ground-truth deployment product-catalog as the root cause, without assigning origin to a different workload.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q1",
+      "answer": "Yes",
+      "evidence": "Explains that the Secret changed after container startup, while the running container retains previous connection-string environment values.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q2",
+      "answer": "Yes",
+      "evidence": "Names Secret product-catalog-db-conn and env DB_CONNECTION_STRING, specifying that the Secret was rewritten after the consuming container started.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q3",
+      "answer": "Yes",
+      "evidence": "Classifies the fault as credentials or authentication failure caused by changed credentials, consistent with the stale runtime connection string.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q1",
+      "answer": "Yes",
+      "evidence": "Attributes the fault to product-catalog's stale Secret-derived credentials; PostgreSQL is described as rejecting authentication, without blaming unrelated components.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q2",
+      "answer": "Yes",
+      "evidence": "Mentions product-catalog, its Kubernetes Secret, and the PostgreSQL backend, covering the components involved in the ground truth.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q3",
+      "answer": "Yes",
+      "evidence": "Reports ongoing PostgreSQL login rejections for account otelu and authentication failure, consistent with product-catalog being unable to reconnect using stale credentials.",
+      "confidence": "High"
+     }
+    ]
+   }
+  },
+  {
+   "arm": 3,
+   "kind": "v1",
+   "model": "openrouter/openai/gpt-6-luna-decisions",
+   "position": 3,
+   "seconds": 3.0,
+   "requests": 2,
+   "input_tokens": 22932,
+   "cost_usd": 0.002293,
+   "error": null,
+   "investigation": {
+    "steps": [
+     {
+      "step": 1,
+      "node": "investigate",
+      "component": "deployment/product-catalog",
+      "verdict": "origin",
+      "origin_p": 0.61,
+      "victim_p": 0.31,
+      "next": "none",
+      "next_p": 0.57,
+      "category": "credentials_or_auth",
+      "spec_checks": [],
+      "blocked_input": null,
+      "key_evidence": "Secret product-catalog-db-conn was rewritten at 2026-10-18T15:53:29Z, after 1 of 1 running containers of this workload started; it is read through env DB_CONNECTION_STRING, which are fixed when the container starts, so those containers still use the previous values"
+     }
+    ],
+    "concluded": "deployment/product-catalog",
+    "fallback": null,
+    "triage_top": [
+     [
+      "deployment/product-catalog",
+      0.63
+     ],
+     [
+      "deployment/postgresql",
+      0.29
+     ],
+     [
+      "deployment/product-reviews",
+      0.03
+     ],
+     [
+      "deployment/accounting",
+      0.01
+     ],
+     [
+      "deployment/frontend",
+      0.01
+     ]
+    ]
+   },
+   "text": "Root cause component: Deployment `product-catalog` in namespace `astronomy-shop`.\nMechanism: Secret product-catalog-db-conn was rewritten at 2026-10-18T15:53:29Z, after 1 of 1 running containers of this workload started; it is read through env DB_CONNECTION_STRING, which are fixed when the container starts, so those containers still use the previous values.\nFault object: Secret `product-catalog-db-conn`: Secret product-catalog-db-conn was created 140s ago, 36s after the workloads that read it; 61s before the first active symptom.\nFault type: credentials or auth (authentication between components fails because credentials or auth settings changed).\nAbnormal state observed on this component:\n- server deployment/postgresql rejects logins for account otelu (12 lines, still occurring); this component may present those credentials: secret/product-catalog-db-conn, which it reads through env values, was rewritten 85s before the rejections began and after its containers started; its env var DB_CONNECTION_STRING names a database connection and postgresql is the application's only database\n- spec modified 137s ago, 39s after this object was created (fields: template.annotations.kubectl.kubernetes.io/restartedAt, containers[product-catalog].env[DB_CONNECTION_STRING]); pod template changes: template annotation kubectl.kubernetes.io/restartedAt: 2026-10-18T21:53:22+06:00 -> 2026-10-18T21:53:25+06:00; pod label pod-template-hash: 56456cc9ff -> 577557ddb4; 58s before the first active symptom\n- Secret product-catalog-db-conn was created 140s ago, 36s after the workloads that read it; 61s before the first active symptom\n- container wait-for-postgresql: image busybox:latest\n- container product-catalog: image ghcr.io/open-telemetry/demo:2.2.0-product-catalog, limits {'memory': '64Mi'}\nClassification: Jev (openai/gpt-6-luna-decisions-20261006) confirmed this origin at investigation step 1 with probability 0.61 (triage probability 0.63).",
+   "grade": {
+    "judgment": "True",
+    "reasoning": "Verdict: True (composite=1.00). D1 Fault Localization: 1.00 | D2 Fault Characterization: 1.00 | D3 Scope Precision: 1.00. Weakest dimension: Fault Localization (1.00). Checklist details: [{\"id\": \"D1-Q1\", \"answer\": \"Yes\", \"evidence\": \"Names Deployment product-catalog in namespace astronomy-shop as the root cause component, matching the fault specification.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q2\", \"answer\": \"Yes\", \"evidence\": \"Identifies product-catalog as the origin and PostgreSQL login rejections as the observed authentication symptom.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q3\", \"answer\": \"Yes\", \"evidence\": \"Explicitly assigns the root cause to product-catalog, the deployment identified by the ground truth.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q1\", \"answer\": \"Yes\", \"evidence\": \"Explains that the Secret changed after container startup while the running container retained previous database connection values.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q2\", \"answer\": \"Yes\", \"evidence\": \"Identifies Secret product-catalog-db-conn and startup-fixed DB_CONNECTION_STRING as the concrete credential configuration involved.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q3\", \"answer\": \"Yes\", \"evidence\": \"Classifies the fault as credentials or authentication failure caused by changed credentials, consistent with the stale runtime connection string.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q1\", \"answer\": \"Yes\", \"evidence\": \"Limits causal attribution to product-catalog's stale Secret-derived credentials; PostgreSQL is described as rejecting logins.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q2\", \"answer\": \"Yes\", \"evidence\": \"Mentions product-catalog, its Kubernetes Secret, and the PostgreSQL backend, covering the components involved in the ground truth.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q3\", \"answer\": \"Yes\", \"evidence\": \"Reports ongoing PostgreSQL login rejections for account otelu, consistent with product-catalog being unable to reconnect using stale credentials.\", \"confidence\": \"High\"}]",
+    "success": true,
+    "accuracy": 100.0,
+    "composite_score": 1.0,
+    "dimensions": {
+     "D1": {
+      "name": "Fault Localization",
+      "score": 1.0
+     },
+     "D2": {
+      "name": "Fault Characterization",
+      "score": 1.0
+     },
+     "D3": {
+      "name": "Scope Precision",
+      "score": 1.0
+     }
+    },
+    "checklist": [
+     {
+      "id": "D1-Q1",
+      "answer": "Yes",
+      "evidence": "Names Deployment product-catalog in namespace astronomy-shop as the root cause component, matching the fault specification.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q2",
+      "answer": "Yes",
+      "evidence": "Identifies product-catalog as the origin and PostgreSQL login rejections as the observed authentication symptom.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q3",
+      "answer": "Yes",
+      "evidence": "Explicitly assigns the root cause to product-catalog, the deployment identified by the ground truth.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q1",
+      "answer": "Yes",
+      "evidence": "Explains that the Secret changed after container startup while the running container retained previous database connection values.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q2",
+      "answer": "Yes",
+      "evidence": "Identifies Secret product-catalog-db-conn and startup-fixed DB_CONNECTION_STRING as the concrete credential configuration involved.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q3",
+      "answer": "Yes",
+      "evidence": "Classifies the fault as credentials or authentication failure caused by changed credentials, consistent with the stale runtime connection string.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q1",
+      "answer": "Yes",
+      "evidence": "Limits causal attribution to product-catalog's stale Secret-derived credentials; PostgreSQL is described as rejecting logins.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q2",
+      "answer": "Yes",
+      "evidence": "Mentions product-catalog, its Kubernetes Secret, and the PostgreSQL backend, covering the components involved in the ground truth.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q3",
+      "answer": "Yes",
+      "evidence": "Reports ongoing PostgreSQL login rejections for account otelu, consistent with product-catalog being unable to reconnect using stale credentials.",
+      "confidence": "High"
+     }
+    ]
+   }
+  }
+ ],
+ "submission": {
+  "status": "200",
+  "message": "Submission received",
+  "stage": "diagnosis"
+ },
+ "judge": {
+  "model": "gpt-6-astra",
+  "backend": "codex",
+  "effort": "high"
+ }
+}

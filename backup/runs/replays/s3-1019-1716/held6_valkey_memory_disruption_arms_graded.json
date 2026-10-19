@@ -1,0 +1,278 @@
+{
+ "problem_id": "valkey_memory_disruption",
+ "source": "held6_valkey_memory_disruption",
+ "replay": true,
+ "arms": [
+  {
+   "arm": 0,
+   "kind": "v2",
+   "model": "typesafe/jev-1.13",
+   "position": 0,
+   "seconds": 2.5,
+   "requests": 2,
+   "input_tokens": 32663,
+   "error": null,
+   "model_failed": false,
+   "component": "job/valkey-memory-flood",
+   "investigation": {
+    "steps": [
+     {
+      "step": 1,
+      "node": "investigate",
+      "component": "job/valkey-memory-flood",
+      "verdict": "origin",
+      "origin_p": 1.0,
+      "victim_p": 0.0,
+      "next": "none",
+      "next_p": 0.77,
+      "category": "data_or_traffic",
+      "spec_checks": [],
+      "blocked_input": null,
+      "key_evidence": "container flooder command: python3 -c import base64; exec(base64.b64decode('aW1wb3J0IHJlZGlzCmltcG9ydCB0aHJlYWRpbmcKaW1wb3J0IHRpbWUKCmRlZiBmbG9vZF9yZWRpcygpOgogICAgY2xpZW50ID0gcmVkaXMuUmVkaXMoaG9zdD0ndmFsa2V5LWNhcnQnLCBwb3J0PTYzNzkpCiAgICB3aGlsZSBUcnVlOgogICAgICAgIHRyeToKICAgICAgICAgICAgcGF5bG9hZCA9ICd4JyAqIDEwMDAwMDAKICAgICAgICAgICAgY2xpZW50LnNldChmImtleV97dGltZS50aW1lKCl9IiwgcGF5bG9hZCkKICAgICAgICBleGNlcHQgRXhjZXB0aW9uIGFzIGU6CiAgICAgICAgICAgIHByaW50KGYiRXJyb3I6IHtlfSIpCiAgICAgICAgICAgIHRpbWUuc2xlZXAoMSkKCnRocmVhZHMgPSB"
+     }
+    ],
+    "concluded": "job/valkey-memory-flood",
+    "fallback": null,
+    "triage_top": [
+     [
+      "job/valkey-memory-flood",
+      0.96
+     ],
+     [
+      "deployment/valkey-cart",
+      0.04
+     ],
+     [
+      "deployment/accounting",
+      0.0
+     ],
+     [
+      "deployment/ad",
+      0.0
+     ],
+     [
+      "deployment/cart",
+      0.0
+     ]
+    ],
+    "second": null
+   },
+   "text": "Root cause: Service `valkey-cart` (Deployment `valkey-cart`) in namespace `astronomy-shop`, driven by Job `valkey-memory-flood`, which calls it: pod valkey-cart-859985f49d-dxcvn: container valkey-cart was OOMKilled.\nMechanism: Job `valkey-memory-flood` calls valkey-cart (job has 1 active pod(s) and has not completed); the script it runs (decoded from base64): import redis import threading import time def flood_redis(): client = redis.Redis(host='valkey-cart', port=6379) while True: try: payload = 'x' * 1000000 client.set(f\"key_{time.time()}\", payload) except Exception as e: print(f\"Error: {e}\") time.sleep(1) threads = [] for _ in range(10): t = threading.Thread(target=flood.\nEffect: only 0 of 1 desired replicas are ready; pod valkey-cart-859985f49d-dxcvn: container valkey-cart waiting in CrashLoopBackOff.\nObserved: pod valkey-cart-859985f49d-dxcvn: container valkey-cart restarted 4 times; warning events: BackOff x10; service valkey-cart selects this component but has 0 ready endpoints; pod valkey-cart-859985f49d-dxcvn: container valkey-cart restarted 1 more time(s) in the last 0s; warning event BackOff on pod/valkey-cart-859985f49d-dxcvn repeated 4 more time(s) in the last 0s.",
+   "grade": {
+    "judgment": "True",
+    "reasoning": "Verdict: True (composite=1.00). D1 Fault Localization: 1.00 | D2 Fault Characterization: 1.00 | D3 Scope Precision: 1.00. Weakest dimension: Fault Localization (1.00). Checklist details: [{\"id\": \"D1-Q1\", \"answer\": \"Yes\", \"evidence\": \"Names Service valkey-cart in namespace astronomy-shop, matching the structured fault specification.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q2\", \"answer\": \"Yes\", \"evidence\": \"Identifies valkey-cart as the root-cause service and describes its OOMKilled container, with the flooding Job as the driver.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q3\", \"answer\": \"Yes\", \"evidence\": \"Locates the fault at valkey-cart; the additional Job is explicitly connected to flooding that service.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q1\", \"answer\": \"Yes\", \"evidence\": \"Describes a Job repeatedly writing large payloads to valkey-cart and reports its container was OOMKilled, matching the flooding-induced memory exhaustion.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q2\", \"answer\": \"Yes\", \"evidence\": \"Provides concrete flooding details: Redis host valkey-cart, port 6379, payload 'x' * 1000000, and repeated SET operations using timestamped keys.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q3\", \"answer\": \"Yes\", \"evidence\": \"Attributes the failure to large-payload flooding and OOM behavior, without introducing an unrelated fault type.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q1\", \"answer\": \"Yes\", \"evidence\": \"Attributes the fault to valkey-cart and its flooding workload, consistent with the ground-truth contributors.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q2\", \"answer\": \"Yes\", \"evidence\": \"Includes both the affected valkey-cart service and the flooding workload, identified as Job valkey-memory-flood.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q3\", \"answer\": \"Yes\", \"evidence\": \"Reports OOMKilled, CrashLoopBackOff, zero ready replicas, and zero ready service endpoints, consistent with memory exhaustion disrupting request processing.\", \"confidence\": \"High\"}]",
+    "success": true,
+    "accuracy": 100.0,
+    "composite_score": 1.0,
+    "dimensions": {
+     "D1": {
+      "name": "Fault Localization",
+      "score": 1.0
+     },
+     "D2": {
+      "name": "Fault Characterization",
+      "score": 1.0
+     },
+     "D3": {
+      "name": "Scope Precision",
+      "score": 1.0
+     }
+    },
+    "checklist": [
+     {
+      "id": "D1-Q1",
+      "answer": "Yes",
+      "evidence": "Names Service valkey-cart in namespace astronomy-shop, matching the structured fault specification.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q2",
+      "answer": "Yes",
+      "evidence": "Identifies valkey-cart as the root-cause service and describes its OOMKilled container, with the flooding Job as the driver.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q3",
+      "answer": "Yes",
+      "evidence": "Locates the fault at valkey-cart; the additional Job is explicitly connected to flooding that service.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q1",
+      "answer": "Yes",
+      "evidence": "Describes a Job repeatedly writing large payloads to valkey-cart and reports its container was OOMKilled, matching the flooding-induced memory exhaustion.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q2",
+      "answer": "Yes",
+      "evidence": "Provides concrete flooding details: Redis host valkey-cart, port 6379, payload 'x' * 1000000, and repeated SET operations using timestamped keys.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q3",
+      "answer": "Yes",
+      "evidence": "Attributes the failure to large-payload flooding and OOM behavior, without introducing an unrelated fault type.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q1",
+      "answer": "Yes",
+      "evidence": "Attributes the fault to valkey-cart and its flooding workload, consistent with the ground-truth contributors.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q2",
+      "answer": "Yes",
+      "evidence": "Includes both the affected valkey-cart service and the flooding workload, identified as Job valkey-memory-flood.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q3",
+      "answer": "Yes",
+      "evidence": "Reports OOMKilled, CrashLoopBackOff, zero ready replicas, and zero ready service endpoints, consistent with memory exhaustion disrupting request processing.",
+      "confidence": "High"
+     }
+    ]
+   }
+  },
+  {
+   "arm": 1,
+   "kind": "v2",
+   "model": "openai/gpt-6-luna-decisions",
+   "position": 1,
+   "seconds": 2.6,
+   "requests": 2,
+   "input_tokens": 22169,
+   "error": null,
+   "model_failed": false,
+   "component": "job/valkey-memory-flood",
+   "investigation": {
+    "steps": [
+     {
+      "step": 1,
+      "node": "investigate",
+      "component": "job/valkey-memory-flood",
+      "verdict": "origin",
+      "origin_p": 0.97,
+      "victim_p": 0.02,
+      "next": "deployment/valkey-cart",
+      "next_p": 0.53,
+      "category": "config_value",
+      "spec_checks": [],
+      "blocked_input": null,
+      "key_evidence": "container flooder command: python3 -c import base64; exec(base64.b64decode('aW1wb3J0IHJlZGlzCmltcG9ydCB0aHJlYWRpbmcKaW1wb3J0IHRpbWUKCmRlZiBmbG9vZF9yZWRpcygpOgogICAgY2xpZW50ID0gcmVkaXMuUmVkaXMoaG9zdD0ndmFsa2V5LWNhcnQnLCBwb3J0PTYzNzkpCiAgICB3aGlsZSBUcnVlOgogICAgICAgIHRyeToKICAgICAgICAgICAgcGF5bG9hZCA9ICd4JyAqIDEwMDAwMDAKICAgICAgICAgICAgY2xpZW50LnNldChmImtleV97dGltZS50aW1lKCl9IiwgcGF5bG9hZCkKICAgICAgICBleGNlcHQgRXhjZXB0aW9uIGFzIGU6CiAgICAgICAgICAgIHByaW50KGYiRXJyb3I6IHtlfSIpCiAgICAgICAgICAgIHRpbWUuc2xlZXAoMSkKCnRocmVhZHMgPSB"
+     }
+    ],
+    "concluded": "job/valkey-memory-flood",
+    "fallback": null,
+    "triage_top": [
+     [
+      "job/valkey-memory-flood",
+      0.93
+     ],
+     [
+      "deployment/valkey-cart",
+      0.06
+     ],
+     [
+      "daemonset/otel-collector-agent",
+      0.01
+     ],
+     [
+      "deployment/accounting",
+      0.0
+     ],
+     [
+      "deployment/ad",
+      0.0
+     ]
+    ],
+    "second": null
+   },
+   "text": "Root cause: Service `valkey-cart` (Deployment `valkey-cart`) in namespace `astronomy-shop`, driven by Job `valkey-memory-flood`, which calls it: pod valkey-cart-859985f49d-dxcvn: container valkey-cart was OOMKilled.\nMechanism: Job `valkey-memory-flood` calls valkey-cart (job has 1 active pod(s) and has not completed); the script it runs (decoded from base64): import redis import threading import time def flood_redis(): client = redis.Redis(host='valkey-cart', port=6379) while True: try: payload = 'x' * 1000000 client.set(f\"key_{time.time()}\", payload) except Exception as e: print(f\"Error: {e}\") time.sleep(1) threads = [] for _ in range(10): t = threading.Thread(target=flood.\nEffect: only 0 of 1 desired replicas are ready; pod valkey-cart-859985f49d-dxcvn: container valkey-cart waiting in CrashLoopBackOff.\nObserved: pod valkey-cart-859985f49d-dxcvn: container valkey-cart restarted 4 times; warning events: BackOff x10; service valkey-cart selects this component but has 0 ready endpoints; pod valkey-cart-859985f49d-dxcvn: container valkey-cart restarted 1 more time(s) in the last 0s; warning event BackOff on pod/valkey-cart-859985f49d-dxcvn repeated 4 more time(s) in the last 0s.",
+   "grade": {
+    "judgment": "True",
+    "reasoning": "Verdict: True (composite=1.00). D1 Fault Localization: 1.00 | D2 Fault Characterization: 1.00 | D3 Scope Precision: 1.00. Weakest dimension: Fault Localization (1.00). Checklist details: [{\"id\": \"D1-Q1\", \"answer\": \"Yes\", \"evidence\": \"Names Service valkey-cart in namespace astronomy-shop, matching the structured fault specification.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q2\", \"answer\": \"Yes\", \"evidence\": \"Identifies valkey-cart as the root-cause service and describes its OOMKilled container, with the flooding Job as the driver.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q3\", \"answer\": \"Yes\", \"evidence\": \"Locates the fault at valkey-cart; the additional Job is explicitly connected to flooding that service.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q1\", \"answer\": \"Yes\", \"evidence\": \"Describes a Job repeatedly writing large payloads to valkey-cart and reports its container was OOMKilled, matching the flooding-induced memory exhaustion.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q2\", \"answer\": \"Yes\", \"evidence\": \"Provides concrete flooding details: Redis host valkey-cart, port 6379, payload 'x' * 1000000, and repeated SET operations using timestamped keys.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q3\", \"answer\": \"Yes\", \"evidence\": \"Attributes the failure to large-payload flooding and OOM behavior, without introducing an unrelated fault type.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q1\", \"answer\": \"Yes\", \"evidence\": \"Attributes the fault to valkey-cart and its flooding workload, consistent with the ground-truth contributors.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q2\", \"answer\": \"Yes\", \"evidence\": \"Includes both the affected valkey-cart service and the flooding workload, identified as Job valkey-memory-flood.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q3\", \"answer\": \"Yes\", \"evidence\": \"Reports OOMKilled, CrashLoopBackOff, zero ready replicas, and zero ready service endpoints, consistent with memory exhaustion disrupting request processing.\", \"confidence\": \"High\"}]",
+    "success": true,
+    "accuracy": 100.0,
+    "composite_score": 1.0,
+    "dimensions": {
+     "D1": {
+      "name": "Fault Localization",
+      "score": 1.0
+     },
+     "D2": {
+      "name": "Fault Characterization",
+      "score": 1.0
+     },
+     "D3": {
+      "name": "Scope Precision",
+      "score": 1.0
+     }
+    },
+    "checklist": [
+     {
+      "id": "D1-Q1",
+      "answer": "Yes",
+      "evidence": "Names Service valkey-cart in namespace astronomy-shop, matching the structured fault specification.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q2",
+      "answer": "Yes",
+      "evidence": "Identifies valkey-cart as the root-cause service and describes its OOMKilled container, with the flooding Job as the driver.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q3",
+      "answer": "Yes",
+      "evidence": "Locates the fault at valkey-cart; the additional Job is explicitly connected to flooding that service.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q1",
+      "answer": "Yes",
+      "evidence": "Describes a Job repeatedly writing large payloads to valkey-cart and reports its container was OOMKilled, matching the flooding-induced memory exhaustion.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q2",
+      "answer": "Yes",
+      "evidence": "Provides concrete flooding details: Redis host valkey-cart, port 6379, payload 'x' * 1000000, and repeated SET operations using timestamped keys.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q3",
+      "answer": "Yes",
+      "evidence": "Attributes the failure to large-payload flooding and OOM behavior, without introducing an unrelated fault type.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q1",
+      "answer": "Yes",
+      "evidence": "Attributes the fault to valkey-cart and its flooding workload, consistent with the ground-truth contributors.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q2",
+      "answer": "Yes",
+      "evidence": "Includes both the affected valkey-cart service and the flooding workload, identified as Job valkey-memory-flood.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q3",
+      "answer": "Yes",
+      "evidence": "Reports OOMKilled, CrashLoopBackOff, zero ready replicas, and zero ready service endpoints, consistent with memory exhaustion disrupting request processing.",
+      "confidence": "High"
+     }
+    ]
+   }
+  }
+ ],
+ "judge": {
+  "model": "gpt-6-astra",
+  "backend": "codex",
+  "effort": "high"
+ }
+}

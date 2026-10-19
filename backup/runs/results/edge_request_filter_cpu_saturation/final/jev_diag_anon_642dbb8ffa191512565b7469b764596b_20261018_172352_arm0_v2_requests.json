@@ -1,0 +1,1282 @@
+[
+ {
+  "label": "decide:1",
+  "state": {
+   "application": {
+    "name": "OpenTelemetry Demo Astronomy Shop",
+    "description": "An online shopping platform built with a microservices architecture, showcasing OpenTelemetry instrumentation for distributed tracing across services.",
+    "namespaces": [
+     "astronomy-shop"
+    ]
+   },
+   "evidence": {
+    "deployment/frontend-proxy": {
+     "kind": "Deployment",
+     "name": "frontend-proxy",
+     "namespace": "astronomy-shop",
+     "healthy": false,
+     "signals": [
+      "container frontend-proxy cpu usage 101m is at its limit 100m (throttling likely)",
+      "spec modified 128s ago, 31s after this object was created (fields: template.annotations.edge.platform/change-ticket, template.annotations.edge.platform/filter-profile, containers[frontend-proxy].args, containers[frontend-proxy].command); pod template changes: template annotation edge.platform/change-ticket added: EDGE-1847; template annotation edge.platform/filter-profile added: managed-rules-v2; pod label pod-template-hash: 579d54f6f5 -> 6c9669bb69; 37s before the first active symptom"
+     ],
+     "template_changes": {
+      "revision": 2,
+      "changed_at": "2026-10-18T17:23:49Z",
+      "changes": [
+       "template annotation edge.platform/change-ticket added: EDGE-1847",
+       "template annotation edge.platform/filter-profile added: managed-rules-v2",
+       "pod label pod-template-hash: 579d54f6f5 -> 6c9669bb69",
+       "container frontend-proxy command: [\"/bin/sh\", \"-c\", \"envsubst < envoy.tmpl.yaml | sed '/type: STRICT_DNS/a\\\\      dns_lookup_family: V4_PREFERRED' > envo\u2026 -> [\"/usr/bin/perl\", \"-e\"]",
+       "container frontend-proxy args: null -> [\"use IO::Socket::INET;\\nuse IO::Select;\\n\\nmy $rule = $ENV{WAF_RULE_REGEX} || q{^([a-zA-Z]+)*$};\\nmy $port = $ENV{ENVOY_PORT} || 8080;\\nmy $upstream_host = $ENV{FRONTEND_HOST} || \\\"frontend\\\";\\nmy $upstream_port = $ENV{FRONTEND_PORT} || 8080;\\nmy $server = IO::Socket::INET->new(\\n    LocalAddr => \\\"0.0.0.0\\\",\\n    LocalPort => $port,\\n    Proto => \\\"tcp\\\",\\n    Listen => 128,\\n    ReuseAddr => 1\\n) or die \\\"listen failed: $!\\\";\\n\\nprint \\\"edge request filter listening on $port\\\\n\\\";\\nwhile (my\u2026",
+       "container frontend-proxy env WAF_RULE_ENABLED added: true",
+       "container frontend-proxy env WAF_RULE_REGEX added: ^([a-zA-Z]+)*$",
+       "container frontend-proxy limits.cpu: unset -> 100m"
+      ]
+     }
+    }
+   },
+   "cluster": {
+    "symptom_onset": "2026-10-18T17:24:26+00:00",
+    "recent_changes": [
+     {
+      "object": "deployment/frontend-proxy",
+      "at": "2026-10-18T17:23:49Z",
+      "modified_after_creation_s": 31,
+      "fields": [
+       "template.annotations.edge.platform/change-ticket",
+       "template.annotations.edge.platform/filter-profile",
+       "containers[frontend-proxy].args",
+       "containers[frontend-proxy].command",
+       "containers[frontend-proxy].env[WAF_RULE_ENABLED]",
+       "containers[frontend-proxy].env[WAF_RULE_REGEX]",
+       "containers[frontend-proxy].resources.limits.cpu"
+      ],
+      "seconds_ago": 128,
+      "seconds_before_symptoms": 37
+     },
+     {
+      "object": "daemonset/otel-collector-agent",
+      "at": "2026-10-18T17:23:35Z",
+      "modified_after_creation_s": 17,
+      "fields": [
+       "template.annotations.kubectl.kubernetes.io/restartedAt"
+      ],
+      "seconds_ago": 142,
+      "seconds_before_symptoms": 51,
+      "role": "observability"
+     },
+     {
+      "object": "configmap/kube-system/coredns",
+      "at": "2026-10-18T16:57:47Z",
+      "modified_after_creation_s": 29766,
+      "fields": [
+       "data.Corefile"
+      ],
+      "seconds_ago": 1690,
+      "seconds_before_symptoms": 1599
+     }
+    ],
+    "findings": [
+     {
+      "kind": "ConfigMap",
+      "name": "coredns",
+      "namespace": "kube-system",
+      "signal": "ConfigMap coredns was modified 1690s ago, 29766s after it was created (fields: data.Corefile); 1599s before the first active symptom"
+     }
+    ]
+   }
+  },
+  "questions": {
+   "best_explanation": {
+    "type": "choice",
+    "criteria": {
+     "o1": "Origin: deployment/astronomy-shop/frontend-proxy. The pod template change 'container frontend-proxy env WAF_RULE_ENABLED added: true' in revision 2 of deployment/frontend-proxy breaks deployment/frontend-proxy. | Details: container frontend-proxy env WAF_RULE_ENABLED added: true | Observed impact on: deployment/astronomy-shop/frontend-proxy | Checks: revision 2 of deployment/frontend-proxy was made before the symptoms began (supports); deployment/frontend-proxy shows symptoms of its own (supports)",
+     "o2": "Origin: deployment/astronomy-shop/frontend-proxy. The pod template change 'container frontend-proxy command: [\"/bin/sh\", \"-c\", \"envsubst < envoy.tmpl.yaml | sed '/type: STRICT_DNS/a\\\\      dns_lookup_family: V4_PREFERRED' > envo\u2026 -> [\"/usr/bin/perl\", \"-e\"]' in revision 2 of deployment/frontend-proxy breaks deployment/frontend-proxy. | Details: container frontend-proxy command: [\"/bin/sh\", \"-c\", \"envsubst < envoy.tmpl.yaml | sed '/type: STRICT_DNS/a\\\\      dns_lookup_family: V4_PREFERRED' > envo\u2026 -> [\"/usr/bin/perl\", \"-e\"] | Observed impact on: deployment/astronomy-shop/frontend-proxy | Checks: revision 2 of deployment/frontend-proxy was made before the symptoms began (supports); deployment/frontend-proxy shows symptoms of its own (supports)",
+     "o3": "Origin: deployment/astronomy-shop/frontend-proxy. The pod template change 'template annotation edge.platform/filter-profile added: managed-rules-v2' in revision 2 of deployment/frontend-proxy breaks deployment/frontend-proxy. | Details: template annotation edge.platform/filter-profile added: managed-rules-v2 | Observed impact on: deployment/astronomy-shop/frontend-proxy | Checks: revision 2 of deployment/frontend-proxy was made before the symptoms began (supports); deployment/frontend-proxy shows symptoms of its own (supports)",
+     "o4": "Origin: deployment/astronomy-shop/frontend-proxy. The pod template change 'template annotation edge.platform/change-ticket added: EDGE-1847' in revision 2 of deployment/frontend-proxy breaks deployment/frontend-proxy. | Details: template annotation edge.platform/change-ticket added: EDGE-1847 | Observed impact on: deployment/astronomy-shop/frontend-proxy | Checks: revision 2 of deployment/frontend-proxy was made before the symptoms began (supports); deployment/frontend-proxy shows symptoms of its own (supports)",
+     "o5": "Origin: deployment/astronomy-shop/frontend-proxy. The pod template change 'container frontend-proxy env WAF_RULE_REGEX added: ^([a-zA-Z]+)*$' in revision 2 of deployment/frontend-proxy breaks deployment/frontend-proxy. | Details: container frontend-proxy env WAF_RULE_REGEX added: ^([a-zA-Z]+)*$ | Observed impact on: deployment/astronomy-shop/frontend-proxy | Checks: revision 2 of deployment/frontend-proxy was made before the symptoms began (supports); deployment/frontend-proxy shows symptoms of its own (supports)",
+     "o6": "Origin: deployment/astronomy-shop/frontend-proxy. The pod template change 'container frontend-proxy args: null -> [\"use IO::Socket::INET;\\nuse IO::Select;\\n\\nmy $rule = $ENV{WAF_RULE_REGEX} || q{^([a-zA-Z]+)*$};\\nmy $port = $ENV{ENVOY_PORT} || 8080;\\nmy $upstream_host = $ENV{FRONTEND_HOST} || \\\"frontend\\\";\\nmy $upstream_port = $ENV{FRONTEND_PORT} || 8080;\\nmy $server = IO::Socket::INET->new(\\n    LocalAddr => \\\"0.0.0.0\\\",\\n    LocalPort => $port,\\n    Proto => \\\"tcp\\\",\\n    Listen => 128,\\n    ReuseAddr => 1\\n) or die \\\"listen failed: $!\\\";\\n\\nprint \\\"edge request filter listening on $port\\\\n\\\";\\nwhile (my\u2026' in revision 2 of deployment/frontend-proxy breaks deployment/frontend-proxy. | Details: container frontend-proxy args: null -> [\"use IO::Socket::INET;\\nuse IO::Select;\\n\\nmy $rule = $ENV{WAF_RULE_REGEX} || q{^([a-zA-Z]+)*$};\\nmy $port = $ENV{ENVOY_PORT} || 8080;\\nmy $upstream_host = $ENV{FRONTEND_HOST} || \\\"frontend\\\";\\nmy $upstream_port = $ENV{FRONTEND_PORT} || 8080;\\nmy $server = IO::Socket::INET->new(\\n    LocalAddr => \\\"0.0.0.0\\\",\\n    LocalPort => $port,\\n    Proto => \\\"tcp\\\",\\n    Listen => 128,\\n    ReuseAddr => 1\\n) or die \\\"listen failed: $!\\\";\\n\\nprint \\\"edge request filter listening on $port\\\\n\\\";\\nwhile (my\u2026 | Observed impact on: deployment/astronomy-shop/frontend-proxy | Checks: revision 2 of deployment/frontend-proxy was made before the symptoms began (supports); deployment/frontend-proxy shows symptoms of its own (supports)",
+     "o7": "None of these explanations fits the evidence."
+    },
+    "instructions": {
+     "question": "Which explanation best accounts for all the observed symptoms in `evidence`?",
+     "how_to_decide": [
+      "Prefer the explanation whose chain is supported by the observed facts and explains the most symptoms; an explanation contradicted by a fact is unlikely.",
+      "A component that only fails because something it calls fails is a victim, not the origin.",
+      "Choose `o7` when none of the explanations fits the evidence."
+     ]
+    }
+   }
+  },
+  "model": "typesafe/jev-1.13-20260917",
+  "latency_ms": 911,
+  "usage": {
+   "input_tokens": 2842,
+   "output_tokens": 77,
+   "cost": 0.000119364
+  },
+  "answers": {
+   "best_explanation": {
+    "type": "choice",
+    "choice": "o6",
+    "confidence": 0.42,
+    "probabilities": {
+     "o1": 0.05,
+     "o2": 0.41,
+     "o3": 0.0,
+     "o4": 0.0,
+     "o5": 0.01,
+     "o6": 0.5,
+     "o7": 0.03
+    }
+   }
+  }
+ },
+ {
+  "label": "decide:2",
+  "state": {
+   "application": {
+    "name": "OpenTelemetry Demo Astronomy Shop",
+    "description": "An online shopping platform built with a microservices architecture, showcasing OpenTelemetry instrumentation for distributed tracing across services.",
+    "namespaces": [
+     "astronomy-shop"
+    ]
+   },
+   "evidence": {
+    "deployment/frontend-proxy": {
+     "kind": "Deployment",
+     "name": "frontend-proxy",
+     "namespace": "astronomy-shop",
+     "healthy": false,
+     "signals": [
+      "container frontend-proxy cpu usage 101m is at its limit 100m (throttling likely)",
+      "spec modified 128s ago, 31s after this object was created (fields: template.annotations.edge.platform/change-ticket, template.annotations.edge.platform/filter-profile, containers[frontend-proxy].args, containers[frontend-proxy].command); pod template changes: template annotation edge.platform/change-ticket added: EDGE-1847; template annotation edge.platform/filter-profile added: managed-rules-v2; pod label pod-template-hash: 579d54f6f5 -> 6c9669bb69; 37s before the first active symptom"
+     ],
+     "template_changes": {
+      "revision": 2,
+      "changed_at": "2026-10-18T17:23:49Z",
+      "changes": [
+       "template annotation edge.platform/change-ticket added: EDGE-1847",
+       "template annotation edge.platform/filter-profile added: managed-rules-v2",
+       "pod label pod-template-hash: 579d54f6f5 -> 6c9669bb69",
+       "container frontend-proxy command: [\"/bin/sh\", \"-c\", \"envsubst < envoy.tmpl.yaml | sed '/type: STRICT_DNS/a\\\\      dns_lookup_family: V4_PREFERRED' > envo\u2026 -> [\"/usr/bin/perl\", \"-e\"]",
+       "container frontend-proxy args: null -> [\"use IO::Socket::INET;\\nuse IO::Select;\\n\\nmy $rule = $ENV{WAF_RULE_REGEX} || q{^([a-zA-Z]+)*$};\\nmy $port = $ENV{ENVOY_PORT} || 8080;\\nmy $upstream_host = $ENV{FRONTEND_HOST} || \\\"frontend\\\";\\nmy $upstream_port = $ENV{FRONTEND_PORT} || 8080;\\nmy $server = IO::Socket::INET->new(\\n    LocalAddr => \\\"0.0.0.0\\\",\\n    LocalPort => $port,\\n    Proto => \\\"tcp\\\",\\n    Listen => 128,\\n    ReuseAddr => 1\\n) or die \\\"listen failed: $!\\\";\\n\\nprint \\\"edge request filter listening on $port\\\\n\\\";\\nwhile (my\u2026",
+       "container frontend-proxy env WAF_RULE_ENABLED added: true",
+       "container frontend-proxy env WAF_RULE_REGEX added: ^([a-zA-Z]+)*$",
+       "container frontend-proxy limits.cpu: unset -> 100m"
+      ]
+     }
+    }
+   },
+   "cluster": {
+    "symptom_onset": "2026-10-18T17:24:26+00:00",
+    "recent_changes": [
+     {
+      "object": "deployment/frontend-proxy",
+      "at": "2026-10-18T17:23:49Z",
+      "modified_after_creation_s": 31,
+      "fields": [
+       "template.annotations.edge.platform/change-ticket",
+       "template.annotations.edge.platform/filter-profile",
+       "containers[frontend-proxy].args",
+       "containers[frontend-proxy].command",
+       "containers[frontend-proxy].env[WAF_RULE_ENABLED]",
+       "containers[frontend-proxy].env[WAF_RULE_REGEX]",
+       "containers[frontend-proxy].resources.limits.cpu"
+      ],
+      "seconds_ago": 128,
+      "seconds_before_symptoms": 37
+     },
+     {
+      "object": "daemonset/otel-collector-agent",
+      "at": "2026-10-18T17:23:35Z",
+      "modified_after_creation_s": 17,
+      "fields": [
+       "template.annotations.kubectl.kubernetes.io/restartedAt"
+      ],
+      "seconds_ago": 142,
+      "seconds_before_symptoms": 51,
+      "role": "observability"
+     },
+     {
+      "object": "configmap/kube-system/coredns",
+      "at": "2026-10-18T16:57:47Z",
+      "modified_after_creation_s": 29766,
+      "fields": [
+       "data.Corefile"
+      ],
+      "seconds_ago": 1690,
+      "seconds_before_symptoms": 1599
+     }
+    ],
+    "findings": [
+     {
+      "kind": "ConfigMap",
+      "name": "coredns",
+      "namespace": "kube-system",
+      "signal": "ConfigMap coredns was modified 1690s ago, 29766s after it was created (fields: data.Corefile); 1599s before the first active symptom"
+     }
+    ]
+   }
+  },
+  "questions": {
+   "best_explanation": {
+    "type": "choice",
+    "criteria": {
+     "o1": "Origin: deployment/astronomy-shop/frontend-proxy. The pod template change 'template annotation edge.platform/filter-profile added: managed-rules-v2' in revision 2 of deployment/frontend-proxy breaks deployment/frontend-proxy. | Details: template annotation edge.platform/filter-profile added: managed-rules-v2 | Observed impact on: deployment/astronomy-shop/frontend-proxy | Checks: revision 2 of deployment/frontend-proxy was made before the symptoms began (supports); deployment/frontend-proxy shows symptoms of its own (supports)",
+     "o2": "Origin: deployment/astronomy-shop/frontend-proxy. The pod template change 'template annotation edge.platform/change-ticket added: EDGE-1847' in revision 2 of deployment/frontend-proxy breaks deployment/frontend-proxy. | Details: template annotation edge.platform/change-ticket added: EDGE-1847 | Observed impact on: deployment/astronomy-shop/frontend-proxy | Checks: revision 2 of deployment/frontend-proxy was made before the symptoms began (supports); deployment/frontend-proxy shows symptoms of its own (supports)",
+     "o3": "Origin: deployment/astronomy-shop/frontend-proxy. The pod template change 'container frontend-proxy env WAF_RULE_ENABLED added: true' in revision 2 of deployment/frontend-proxy breaks deployment/frontend-proxy. | Details: container frontend-proxy env WAF_RULE_ENABLED added: true | Observed impact on: deployment/astronomy-shop/frontend-proxy | Checks: revision 2 of deployment/frontend-proxy was made before the symptoms began (supports); deployment/frontend-proxy shows symptoms of its own (supports)",
+     "o4": "Origin: deployment/astronomy-shop/frontend-proxy. The pod template change 'container frontend-proxy env WAF_RULE_REGEX added: ^([a-zA-Z]+)*$' in revision 2 of deployment/frontend-proxy breaks deployment/frontend-proxy. | Details: container frontend-proxy env WAF_RULE_REGEX added: ^([a-zA-Z]+)*$ | Observed impact on: deployment/astronomy-shop/frontend-proxy | Checks: revision 2 of deployment/frontend-proxy was made before the symptoms began (supports); deployment/frontend-proxy shows symptoms of its own (supports)",
+     "o5": "None of these explanations fits the evidence.",
+     "o6": "Origin: deployment/astronomy-shop/frontend-proxy. The pod template change 'container frontend-proxy command: [\"/bin/sh\", \"-c\", \"envsubst < envoy.tmpl.yaml | sed '/type: STRICT_DNS/a\\\\      dns_lookup_family: V4_PREFERRED' > envo\u2026 -> [\"/usr/bin/perl\", \"-e\"]' in revision 2 of deployment/frontend-proxy breaks deployment/frontend-proxy. | Details: container frontend-proxy command: [\"/bin/sh\", \"-c\", \"envsubst < envoy.tmpl.yaml | sed '/type: STRICT_DNS/a\\\\      dns_lookup_family: V4_PREFERRED' > envo\u2026 -> [\"/usr/bin/perl\", \"-e\"] | Observed impact on: deployment/astronomy-shop/frontend-proxy | Checks: revision 2 of deployment/frontend-proxy was made before the symptoms began (supports); deployment/frontend-proxy shows symptoms of its own (supports)",
+     "o7": "Origin: deployment/astronomy-shop/frontend-proxy. The pod template change 'container frontend-proxy args: null -> [\"use IO::Socket::INET;\\nuse IO::Select;\\n\\nmy $rule = $ENV{WAF_RULE_REGEX} || q{^([a-zA-Z]+)*$};\\nmy $port = $ENV{ENVOY_PORT} || 8080;\\nmy $upstream_host = $ENV{FRONTEND_HOST} || \\\"frontend\\\";\\nmy $upstream_port = $ENV{FRONTEND_PORT} || 8080;\\nmy $server = IO::Socket::INET->new(\\n    LocalAddr => \\\"0.0.0.0\\\",\\n    LocalPort => $port,\\n    Proto => \\\"tcp\\\",\\n    Listen => 128,\\n    ReuseAddr => 1\\n) or die \\\"listen failed: $!\\\";\\n\\nprint \\\"edge request filter listening on $port\\\\n\\\";\\nwhile (my\u2026' in revision 2 of deployment/frontend-proxy breaks deployment/frontend-proxy. | Details: container frontend-proxy args: null -> [\"use IO::Socket::INET;\\nuse IO::Select;\\n\\nmy $rule = $ENV{WAF_RULE_REGEX} || q{^([a-zA-Z]+)*$};\\nmy $port = $ENV{ENVOY_PORT} || 8080;\\nmy $upstream_host = $ENV{FRONTEND_HOST} || \\\"frontend\\\";\\nmy $upstream_port = $ENV{FRONTEND_PORT} || 8080;\\nmy $server = IO::Socket::INET->new(\\n    LocalAddr => \\\"0.0.0.0\\\",\\n    LocalPort => $port,\\n    Proto => \\\"tcp\\\",\\n    Listen => 128,\\n    ReuseAddr => 1\\n) or die \\\"listen failed: $!\\\";\\n\\nprint \\\"edge request filter listening on $port\\\\n\\\";\\nwhile (my\u2026 | Observed impact on: deployment/astronomy-shop/frontend-proxy | Checks: revision 2 of deployment/frontend-proxy was made before the symptoms began (supports); deployment/frontend-proxy shows symptoms of its own (supports)"
+    },
+    "instructions": {
+     "question": "Which explanation best accounts for all the observed symptoms in `evidence`?",
+     "how_to_decide": [
+      "Prefer the explanation whose chain is supported by the observed facts and explains the most symptoms; an explanation contradicted by a fact is unlikely.",
+      "A component that only fails because something it calls fails is a victim, not the origin.",
+      "Choose `o5` when none of the explanations fits the evidence."
+     ]
+    }
+   }
+  },
+  "model": "typesafe/jev-1.13-20260917",
+  "latency_ms": 517,
+  "usage": {
+   "input_tokens": 2842,
+   "output_tokens": 77,
+   "cost": 0.000119364
+  },
+  "answers": {
+   "best_explanation": {
+    "type": "choice",
+    "choice": "o7",
+    "confidence": 0.39,
+    "probabilities": {
+     "o1": 0.02,
+     "o2": 0.0,
+     "o3": 0.04,
+     "o4": 0.03,
+     "o5": 0.09,
+     "o6": 0.34,
+     "o7": 0.48
+    }
+   }
+  }
+ },
+ {
+  "label": "decide:1",
+  "state": {
+   "application": {
+    "name": "OpenTelemetry Demo Astronomy Shop",
+    "description": "An online shopping platform built with a microservices architecture, showcasing OpenTelemetry instrumentation for distributed tracing across services.",
+    "namespaces": [
+     "astronomy-shop"
+    ]
+   },
+   "evidence": {
+    "deployment/frontend-proxy": {
+     "kind": "Deployment",
+     "name": "frontend-proxy",
+     "namespace": "astronomy-shop",
+     "healthy": false,
+     "signals": [
+      "container frontend-proxy cpu usage 101m is at its limit 100m (throttling likely)",
+      "spec modified 128s ago, 31s after this object was created (fields: template.annotations.edge.platform/change-ticket, template.annotations.edge.platform/filter-profile, containers[frontend-proxy].args, containers[frontend-proxy].command); pod template changes: template annotation edge.platform/change-ticket added: EDGE-1847; template annotation edge.platform/filter-profile added: managed-rules-v2; pod label pod-template-hash: 579d54f6f5 -> 6c9669bb69; 37s before the first active symptom"
+     ],
+     "template_changes": {
+      "revision": 2,
+      "changed_at": "2026-10-18T17:23:49Z",
+      "changes": [
+       "template annotation edge.platform/change-ticket added: EDGE-1847",
+       "template annotation edge.platform/filter-profile added: managed-rules-v2",
+       "pod label pod-template-hash: 579d54f6f5 -> 6c9669bb69",
+       "container frontend-proxy command: [\"/bin/sh\", \"-c\", \"envsubst < envoy.tmpl.yaml | sed '/type: STRICT_DNS/a\\\\      dns_lookup_family: V4_PREFERRED' > envo\u2026 -> [\"/usr/bin/perl\", \"-e\"]",
+       "container frontend-proxy args: null -> [\"use IO::Socket::INET;\\nuse IO::Select;\\n\\nmy $rule = $ENV{WAF_RULE_REGEX} || q{^([a-zA-Z]+)*$};\\nmy $port = $ENV{ENVOY_PORT} || 8080;\\nmy $upstream_host = $ENV{FRONTEND_HOST} || \\\"frontend\\\";\\nmy $upstream_port = $ENV{FRONTEND_PORT} || 8080;\\nmy $server = IO::Socket::INET->new(\\n    LocalAddr => \\\"0.0.0.0\\\",\\n    LocalPort => $port,\\n    Proto => \\\"tcp\\\",\\n    Listen => 128,\\n    ReuseAddr => 1\\n) or die \\\"listen failed: $!\\\";\\n\\nprint \\\"edge request filter listening on $port\\\\n\\\";\\nwhile (my\u2026",
+       "container frontend-proxy env WAF_RULE_ENABLED added: true",
+       "container frontend-proxy env WAF_RULE_REGEX added: ^([a-zA-Z]+)*$",
+       "container frontend-proxy limits.cpu: unset -> 100m"
+      ]
+     },
+     "detail": {
+      "component": "deployment/frontend-proxy",
+      "namespace": "astronomy-shop",
+      "workload": {
+       "created": "2026-10-18T17:23:18Z",
+       "last_spec_write": "2026-10-18T17:23:49Z",
+       "spec_writers": [
+        {
+         "manager": "helm",
+         "op": "Apply",
+         "time": "2026-10-18T17:23:18Z"
+        },
+        {
+         "manager": "OpenAPI-Generator",
+         "op": "Update",
+         "time": "2026-10-18T17:23:49Z"
+        }
+       ],
+       "replicas": 1,
+       "strategy": {
+        "rollingUpdate": {
+         "maxSurge": "25%",
+         "maxUnavailable": "25%"
+        },
+        "type": "RollingUpdate"
+       },
+       "service_account": "astronomy-shop",
+       "dns_policy": "ClusterFirst",
+       "restart_policy": "Always",
+       "containers": [
+        {
+         "name": "frontend-proxy",
+         "image": "ghcr.io/open-telemetry/demo:2.2.0-frontend-proxy",
+         "command": [
+          "/usr/bin/perl",
+          "-e"
+         ],
+         "args": [
+          "use IO::Socket::INET; use IO::Select; my $rule = $ENV{WAF_RULE_REGEX} || q{^([a-zA-Z]+)*$}; my $port = $ENV{ENVOY_PORT} || 8080; my $upstream_host = $ENV{FRONTEND_HOST} || \"frontend\"; my $upstream_port = $ENV{FRONTEND_PORT} || 8080; my $server = IO::Socket::INET->new( LocalAddr => \"0.0.0.0\", LocalPort => $port, Proto => \"tcp\", Listen => 128, ReuseAddr => 1 ) or die \"listen failed: $!\"; print \"edg\u2026"
+         ],
+         "env": [
+          {
+           "name": "WAF_RULE_REGEX",
+           "value": "^([a-zA-Z]+)*$"
+          },
+          {
+           "name": "WAF_RULE_ENABLED",
+           "value": "true"
+          },
+          {
+           "name": "OTEL_SERVICE_NAME",
+           "from": "field:metadata.labels['app.kubernetes.io/component']"
+          },
+          {
+           "name": "OTEL_COLLECTOR_NAME",
+           "value": "otel-collector"
+          },
+          {
+           "name": "OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE",
+           "value": "cumulative"
+          },
+          {
+           "name": "ENVOY_PORT",
+           "value": "8080"
+          },
+          {
+           "name": "ENVOY_ADDR",
+           "value": "0.0.0.0"
+          },
+          {
+           "name": "ENVOY_ADMIN_PORT",
+           "value": "10000"
+          },
+          {
+           "name": "FLAGD_HOST",
+           "value": "flagd"
+          },
+          {
+           "name": "FLAGD_PORT",
+           "value": "8013"
+          },
+          {
+           "name": "FLAGD_UI_HOST",
+           "value": "flagd"
+          },
+          {
+           "name": "FLAGD_UI_PORT",
+           "value": "4000"
+          },
+          {
+           "name": "FRONTEND_HOST",
+           "value": "frontend"
+          },
+          {
+           "name": "FRONTEND_PORT",
+           "value": "8080"
+          },
+          {
+           "name": "GRAFANA_HOST",
+           "value": "grafana"
+          },
+          {
+           "name": "GRAFANA_PORT",
+           "value": "80"
+          },
+          {
+           "name": "IMAGE_PROVIDER_HOST",
+           "value": "image-provider"
+          },
+          {
+           "name": "IMAGE_PROVIDER_PORT",
+           "value": "8081"
+          },
+          {
+           "name": "JAEGER_HOST",
+           "value": "jaeger"
+          },
+          {
+           "name": "JAEGER_UI_PORT",
+           "value": "16686"
+          },
+          {
+           "name": "LOCUST_WEB_HOST",
+           "value": "load-generator"
+          },
+          {
+           "name": "LOCUST_WEB_PORT",
+           "value": "8089"
+          },
+          {
+           "name": "OTEL_COLLECTOR_HOST",
+           "value": "$(OTEL_COLLECTOR_NAME)"
+          },
+          {
+           "name": "OTEL_COLLECTOR_PORT_GRPC",
+           "value": "4317"
+          },
+          {
+           "name": "OTEL_COLLECTOR_PORT_HTTP",
+           "value": "4318"
+          }
+         ],
+         "ports": [
+          {
+           "port": 8080,
+           "name": "service"
+          }
+         ],
+         "resources": {
+          "limits": {
+           "cpu": "100m",
+           "memory": "65Mi"
+          }
+         }
+        }
+       ],
+       "template_labels": {
+        "app.kubernetes.io/component": "frontend-proxy",
+        "app.kubernetes.io/name": "frontend-proxy",
+        "app.kubernetes.io/version": "2.2.0",
+        "opentelemetry.io/name": "frontend-proxy"
+       }
+      },
+      "pods": [
+       {
+        "name": "frontend-proxy-6c9669bb69-dldjc",
+        "node": "kind-worker",
+        "phase": "Running",
+        "started": "2026-10-18T17:23:49Z",
+        "ready_since": "2026-10-18T17:23:51Z",
+        "conditions": [
+         "PodReadyToStartContainers=True",
+         "Initialized=True",
+         "Ready=True",
+         "ContainersReady=True",
+         "PodScheduled=True"
+        ],
+        "containers": [
+         {
+          "name": "frontend-proxy",
+          "ready": true,
+          "restarts": 0,
+          "state": {
+           "running": {
+            "startedAt": "2026-10-18T17:23:51Z"
+           }
+          }
+         }
+        ]
+       }
+      ],
+      "events": [
+       {
+        "type": "Normal",
+        "reason": "Started",
+        "count": 1,
+        "object": "pod/frontend-proxy-6c9669bb69-dldjc",
+        "last": "2026-10-18T17:23:51Z",
+        "message": "Started container frontend-proxy"
+       },
+       {
+        "type": "Normal",
+        "reason": "Pulled",
+        "count": 1,
+        "object": "pod/frontend-proxy-6c9669bb69-dldjc",
+        "last": "2026-10-18T17:23:50Z",
+        "message": "Container image \"ghcr.io/open-telemetry/demo:2.2.0-frontend-proxy\" already present on machine"
+       },
+       {
+        "type": "Normal",
+        "reason": "Created",
+        "count": 1,
+        "object": "pod/frontend-proxy-6c9669bb69-dldjc",
+        "last": "2026-10-18T17:23:50Z",
+        "message": "Created container: frontend-proxy"
+       },
+       {
+        "type": "Normal",
+        "reason": "SuccessfulCreate",
+        "count": 1,
+        "object": "replicaset/frontend-proxy-6c9669bb69",
+        "last": "2026-10-18T17:23:49Z",
+        "message": "Created pod: frontend-proxy-6c9669bb69-dldjc"
+       },
+       {
+        "type": "Normal",
+        "reason": "Scheduled",
+        "count": 1,
+        "object": "pod/frontend-proxy-6c9669bb69-dldjc",
+        "last": "2026-10-18T17:23:49.127963Z",
+        "message": "Successfully assigned astronomy-shop/frontend-proxy-6c9669bb69-dldjc to kind-worker"
+       }
+      ],
+      "logs": {
+       "total_lines": 172,
+       "error_lines": 0,
+       "error_lines_still_occurring": 0,
+       "error_lines_stopped": 0,
+       "telemetry_export_error_lines": 0,
+       "tail": [
+        "2026-10-18T17:25:44.611585897Z {\"event\":\"request_filter_eval\",\"rule\":\"^([a-zA-Z]+)*$\",\"candidateLength\":0,\"elapsedSeconds\":0}",
+        "2026-10-18T17:25:44.611587616Z {\"event\":\"request_filter_eval\",\"rule\":\"^([a-zA-Z]+)*$\",\"candidateLength\":0,\"elapsedSeconds\":0}",
+        "2026-10-18T17:25:44.611589623Z {\"event\":\"request_filter_eval\",\"rule\":\"^([a-zA-Z]+)*$\",\"candidateLength\":0,\"elapsedSeconds\":0}",
+        "2026-10-18T17:25:44.611591307Z {\"event\":\"request_filter_eval\",\"rule\":\"^([a-zA-Z]+)*$\",\"candidateLength\":0,\"elapsedSeconds\":0}",
+        "2026-10-18T17:25:44.611593335Z {\"event\":\"request_filter_eval\",\"rule\":\"^([a-zA-Z]+)*$\",\"candidateLength\":0,\"elapsedSeconds\":0}",
+        "2026-10-18T17:25:44.611597090Z {\"event\":\"request_filter_eval\",\"rule\":\"^([a-zA-Z]+)*$\",\"candidateLength\":0,\"elapsedSeconds\":0}",
+        "2026-10-18T17:25:44.611599009Z {\"event\":\"request_filter_eval\",\"rule\":\"^([a-zA-Z]+)*$\",\"candidateLength\":0,\"elapsedSeconds\":0}",
+        "2026-10-18T17:25:44.611600586Z {\"event\":\"request_filter_eval\",\"rule\":\"^([a-zA-Z]+)*$\",\"candidateLength\":0,\"elapsedSeconds\":0}",
+        "2026-10-18T17:25:44.611602893Z {\"event\":\"request_filter_eval\",\"rule\":\"^([a-zA-Z]+)*$\",\"candidateLength\":5001,\"elapsedSeconds\":4}",
+        "2026-10-18T17:25:44.611604683Z {\"event\":\"request_filter_eval\",\"rule\":\"^([a-zA-Z]+)*$\",\"candidateLength\":0,\"elapsedSeconds\":0}",
+        "2026-10-18T17:25:44.611614188Z {\"event\":\"request_filter_eval\",\"rule\":\"^([a-zA-Z]+)*$\",\"candidateLength\":0,\"elapsedSeconds\":0}",
+        "2026-10-18T17:25:44.611616806Z {\"event\":\"request_filter_eval\",\"rule\":\"^([a-zA-Z]+)*$\",\"candidateLength\":0,\"elapsedSeconds\":0}"
+       ]
+      },
+      "template_changes": {
+       "revision": 2,
+       "changed_at": "2026-10-18T17:23:49Z",
+       "changes": [
+        "template annotation edge.platform/change-ticket added: EDGE-1847",
+        "template annotation edge.platform/filter-profile added: managed-rules-v2",
+        "pod label pod-template-hash: 579d54f6f5 -> 6c9669bb69",
+        "container frontend-proxy command: [\"/bin/sh\", \"-c\", \"envsubst < envoy.tmpl.yaml | sed '/type: STRICT_DNS/a\\\\      dns_lookup_family: V4_PREFERRED' > envo\u2026 -> [\"/usr/bin/perl\", \"-e\"]",
+        "container frontend-proxy args: null -> [\"use IO::Socket::INET;\\nuse IO::Select;\\n\\nmy $rule = $ENV{WAF_RULE_REGEX} || q{^([a-zA-Z]+)*$};\\nmy $port = $ENV{ENVOY_PORT} || 8080;\\nmy $upstream_host = $ENV{FRONTEND_HOST} || \\\"frontend\\\";\\nmy $upstream_port = $ENV{FRONTEND_PORT} || 8080;\\nmy $server = IO::Socket::INET->new(\\n    LocalAddr => \\\"0.0.0.0\\\",\\n    LocalPort => $port,\\n    Proto => \\\"tcp\\\",\\n    Listen => 128,\\n    ReuseAddr => 1\\n) or die \\\"listen failed: $!\\\";\\n\\nprint \\\"edge request filter listening on $port\\\\n\\\";\\nwhile (my\u2026",
+        "container frontend-proxy env WAF_RULE_ENABLED added: true",
+        "container frontend-proxy env WAF_RULE_REGEX added: ^([a-zA-Z]+)*$",
+        "container frontend-proxy limits.cpu: unset -> 100m"
+       ]
+      },
+      "calls_services": [
+       "astronomy-shop/flagd",
+       "astronomy-shop/frontend",
+       "astronomy-shop/image-provider",
+       "astronomy-shop/otel-collector"
+      ],
+      "rbac": {
+       "service_account": "astronomy-shop/astronomy-shop",
+       "can_i": [
+        "selfsubjectreviews.authentication.k8s.io [] [] [create]",
+        "selfsubjectaccessreviews.authorization.k8s.io [] [] [create]",
+        "selfsubjectrulesreviews.authorization.k8s.io [] [] [create]",
+        "[/.well-known/openid-configuration/] [] [get]",
+        "[/.well-known/openid-configuration] [] [get]",
+        "[/api/*] [] [get]",
+        "[/api] [] [get]",
+        "[/apis/*] [] [get]",
+        "[/apis] [] [get]",
+        "[/healthz] [] [get]",
+        "[/healthz] [] [get]",
+        "[/livez] [] [get]",
+        "[/livez] [] [get]"
+       ]
+      },
+      "input_candidates": [
+       {
+        "container": "frontend-proxy",
+        "env": "OTEL_COLLECTOR_NAME",
+        "value": "otel-collector"
+       },
+       {
+        "container": "frontend-proxy",
+        "env": "OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE",
+        "value": "cumulative"
+       },
+       {
+        "container": "frontend-proxy",
+        "env": "FLAGD_HOST",
+        "value": "flagd"
+       },
+       {
+        "container": "frontend-proxy",
+        "env": "FLAGD_UI_HOST",
+        "value": "flagd"
+       },
+       {
+        "container": "frontend-proxy",
+        "env": "FRONTEND_HOST",
+        "value": "frontend"
+       },
+       {
+        "container": "frontend-proxy",
+        "env": "GRAFANA_HOST",
+        "value": "grafana"
+       },
+       {
+        "container": "frontend-proxy",
+        "env": "IMAGE_PROVIDER_HOST",
+        "value": "image-provider"
+       },
+       {
+        "container": "frontend-proxy",
+        "env": "JAEGER_HOST",
+        "value": "jaeger"
+       },
+       {
+        "container": "frontend-proxy",
+        "env": "LOCUST_WEB_HOST",
+        "value": "load-generator"
+       }
+      ],
+      "calls": {
+       "daemonset/otel-collector-agent": {
+        "kind": "DaemonSet",
+        "pods_ready": "3/3",
+        "restarts": 0,
+        "own_evidence_kinds": [
+         "change"
+        ],
+        "own_signals": [
+         "spec modified 142s ago, 17s after this object was created (fields: template.annotations.kubectl.kubernetes.io/restartedAt); pod template changes: template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-18T23:23:35+06:00; 51s before the first active symptom"
+        ],
+        "own_error_log_lines": 8,
+        "last_spec_change": "2026-10-18T17:23:35Z",
+        "looks_healthy_on_its_own": false
+       },
+       "deployment/flagd": {
+        "kind": "Deployment",
+        "pods_ready": "1/1",
+        "restarts": 0,
+        "looks_healthy_on_its_own": true
+       },
+       "deployment/frontend": {
+        "kind": "Deployment",
+        "pods_ready": "1/1",
+        "restarts": 0,
+        "looks_healthy_on_its_own": true
+       },
+       "deployment/image-provider": {
+        "kind": "Deployment",
+        "pods_ready": "1/1",
+        "restarts": 0,
+        "looks_healthy_on_its_own": true
+       }
+      }
+     }
+    }
+   },
+   "cluster": {
+    "symptom_onset": "2026-10-18T17:24:26+00:00",
+    "recent_changes": [
+     {
+      "object": "deployment/frontend-proxy",
+      "at": "2026-10-18T17:23:49Z",
+      "modified_after_creation_s": 31,
+      "fields": [
+       "template.annotations.edge.platform/change-ticket",
+       "template.annotations.edge.platform/filter-profile",
+       "containers[frontend-proxy].args",
+       "containers[frontend-proxy].command",
+       "containers[frontend-proxy].env[WAF_RULE_ENABLED]",
+       "containers[frontend-proxy].env[WAF_RULE_REGEX]",
+       "containers[frontend-proxy].resources.limits.cpu"
+      ],
+      "seconds_ago": 128,
+      "seconds_before_symptoms": 37
+     },
+     {
+      "object": "daemonset/otel-collector-agent",
+      "at": "2026-10-18T17:23:35Z",
+      "modified_after_creation_s": 17,
+      "fields": [
+       "template.annotations.kubectl.kubernetes.io/restartedAt"
+      ],
+      "seconds_ago": 142,
+      "seconds_before_symptoms": 51,
+      "role": "observability"
+     },
+     {
+      "object": "configmap/kube-system/coredns",
+      "at": "2026-10-18T16:57:47Z",
+      "modified_after_creation_s": 29766,
+      "fields": [
+       "data.Corefile"
+      ],
+      "seconds_ago": 1690,
+      "seconds_before_symptoms": 1599
+     }
+    ],
+    "findings": [
+     {
+      "kind": "ConfigMap",
+      "name": "coredns",
+      "namespace": "kube-system",
+      "signal": "ConfigMap coredns was modified 1690s ago, 29766s after it was created (fields: data.Corefile); 1599s before the first active symptom"
+     }
+    ]
+   }
+  },
+  "questions": {
+   "best_explanation": {
+    "type": "choice",
+    "criteria": {
+     "o1": "None of these explanations fits the evidence.",
+     "o2": "Origin: deployment/astronomy-shop/frontend-proxy. The pod template change 'container frontend-proxy args: null -> [\"use IO::Socket::INET;\\nuse IO::Select;\\n\\nmy $rule = $ENV{WAF_RULE_REGEX} || q{^([a-zA-Z]+)*$};\\nmy $port = $ENV{ENVOY_PORT} || 8080;\\nmy $upstream_host = $ENV{FRONTEND_HOST} || \\\"frontend\\\";\\nmy $upstream_port = $ENV{FRONTEND_PORT} || 8080;\\nmy $server = IO::Socket::INET->new(\\n    LocalAddr => \\\"0.0.0.0\\\",\\n    LocalPort => $port,\\n    Proto => \\\"tcp\\\",\\n    Listen => 128,\\n    ReuseAddr => 1\\n) or die \\\"listen failed: $!\\\";\\n\\nprint \\\"edge request filter listening on $port\\\\n\\\";\\nwhile (my\u2026' in revision 2 of deployment/frontend-proxy breaks deployment/frontend-proxy. | Details: container frontend-proxy args: null -> [\"use IO::Socket::INET;\\nuse IO::Select;\\n\\nmy $rule = $ENV{WAF_RULE_REGEX} || q{^([a-zA-Z]+)*$};\\nmy $port = $ENV{ENVOY_PORT} || 8080;\\nmy $upstream_host = $ENV{FRONTEND_HOST} || \\\"frontend\\\";\\nmy $upstream_port = $ENV{FRONTEND_PORT} || 8080;\\nmy $server = IO::Socket::INET->new(\\n    LocalAddr => \\\"0.0.0.0\\\",\\n    LocalPort => $port,\\n    Proto => \\\"tcp\\\",\\n    Listen => 128,\\n    ReuseAddr => 1\\n) or die \\\"listen failed: $!\\\";\\n\\nprint \\\"edge request filter listening on $port\\\\n\\\";\\nwhile (my\u2026 | Observed impact on: deployment/astronomy-shop/frontend-proxy | Checks: revision 2 of deployment/frontend-proxy was made before the symptoms began (supports); deployment/frontend-proxy shows symptoms of its own (supports)",
+     "o3": "Origin: deployment/astronomy-shop/frontend-proxy. The pod template change 'template annotation edge.platform/change-ticket added: EDGE-1847' in revision 2 of deployment/frontend-proxy breaks deployment/frontend-proxy. | Details: template annotation edge.platform/change-ticket added: EDGE-1847 | Observed impact on: deployment/astronomy-shop/frontend-proxy | Checks: revision 2 of deployment/frontend-proxy was made before the symptoms began (supports); deployment/frontend-proxy shows symptoms of its own (supports)",
+     "o4": "Origin: deployment/astronomy-shop/frontend-proxy. The pod template change 'container frontend-proxy env WAF_RULE_REGEX added: ^([a-zA-Z]+)*$' in revision 2 of deployment/frontend-proxy breaks deployment/frontend-proxy. | Details: container frontend-proxy env WAF_RULE_REGEX added: ^([a-zA-Z]+)*$ | Observed impact on: deployment/astronomy-shop/frontend-proxy | Checks: revision 2 of deployment/frontend-proxy was made before the symptoms began (supports); deployment/frontend-proxy shows symptoms of its own (supports)",
+     "o5": "Origin: deployment/astronomy-shop/frontend-proxy. The pod template change 'container frontend-proxy command: [\"/bin/sh\", \"-c\", \"envsubst < envoy.tmpl.yaml | sed '/type: STRICT_DNS/a\\\\      dns_lookup_family: V4_PREFERRED' > envo\u2026 -> [\"/usr/bin/perl\", \"-e\"]' in revision 2 of deployment/frontend-proxy breaks deployment/frontend-proxy. | Details: container frontend-proxy command: [\"/bin/sh\", \"-c\", \"envsubst < envoy.tmpl.yaml | sed '/type: STRICT_DNS/a\\\\      dns_lookup_family: V4_PREFERRED' > envo\u2026 -> [\"/usr/bin/perl\", \"-e\"] | Observed impact on: deployment/astronomy-shop/frontend-proxy | Checks: revision 2 of deployment/frontend-proxy was made before the symptoms began (supports); deployment/frontend-proxy shows symptoms of its own (supports)",
+     "o6": "Origin: deployment/astronomy-shop/frontend-proxy. The pod template change 'template annotation edge.platform/filter-profile added: managed-rules-v2' in revision 2 of deployment/frontend-proxy breaks deployment/frontend-proxy. | Details: template annotation edge.platform/filter-profile added: managed-rules-v2 | Observed impact on: deployment/astronomy-shop/frontend-proxy | Checks: revision 2 of deployment/frontend-proxy was made before the symptoms began (supports); deployment/frontend-proxy shows symptoms of its own (supports)",
+     "o7": "Origin: deployment/astronomy-shop/frontend-proxy. The pod template change 'container frontend-proxy env WAF_RULE_ENABLED added: true' in revision 2 of deployment/frontend-proxy breaks deployment/frontend-proxy. | Details: container frontend-proxy env WAF_RULE_ENABLED added: true | Observed impact on: deployment/astronomy-shop/frontend-proxy | Checks: revision 2 of deployment/frontend-proxy was made before the symptoms began (supports); deployment/frontend-proxy shows symptoms of its own (supports)"
+    },
+    "instructions": {
+     "question": "Which explanation best accounts for all the observed symptoms in `evidence`?",
+     "how_to_decide": [
+      "Prefer the explanation whose chain is supported by the observed facts and explains the most symptoms; an explanation contradicted by a fact is unlikely.",
+      "A component that only fails because something it calls fails is a victim, not the origin.",
+      "Choose `o1` when none of the explanations fits the evidence."
+     ]
+    }
+   }
+  },
+  "model": "typesafe/jev-1.13-20260917",
+  "latency_ms": 534,
+  "usage": {
+   "input_tokens": 7090,
+   "output_tokens": 77,
+   "cost": 0.00029778
+  },
+  "answers": {
+   "best_explanation": {
+    "type": "choice",
+    "choice": "o2",
+    "confidence": 0.6,
+    "probabilities": {
+     "o1": 0.07,
+     "o2": 0.66,
+     "o3": 0.0,
+     "o4": 0.06,
+     "o5": 0.2,
+     "o6": 0.0,
+     "o7": 0.01
+    }
+   }
+  }
+ },
+ {
+  "label": "decide:2",
+  "state": {
+   "application": {
+    "name": "OpenTelemetry Demo Astronomy Shop",
+    "description": "An online shopping platform built with a microservices architecture, showcasing OpenTelemetry instrumentation for distributed tracing across services.",
+    "namespaces": [
+     "astronomy-shop"
+    ]
+   },
+   "evidence": {
+    "deployment/frontend-proxy": {
+     "kind": "Deployment",
+     "name": "frontend-proxy",
+     "namespace": "astronomy-shop",
+     "healthy": false,
+     "signals": [
+      "container frontend-proxy cpu usage 101m is at its limit 100m (throttling likely)",
+      "spec modified 128s ago, 31s after this object was created (fields: template.annotations.edge.platform/change-ticket, template.annotations.edge.platform/filter-profile, containers[frontend-proxy].args, containers[frontend-proxy].command); pod template changes: template annotation edge.platform/change-ticket added: EDGE-1847; template annotation edge.platform/filter-profile added: managed-rules-v2; pod label pod-template-hash: 579d54f6f5 -> 6c9669bb69; 37s before the first active symptom"
+     ],
+     "template_changes": {
+      "revision": 2,
+      "changed_at": "2026-10-18T17:23:49Z",
+      "changes": [
+       "template annotation edge.platform/change-ticket added: EDGE-1847",
+       "template annotation edge.platform/filter-profile added: managed-rules-v2",
+       "pod label pod-template-hash: 579d54f6f5 -> 6c9669bb69",
+       "container frontend-proxy command: [\"/bin/sh\", \"-c\", \"envsubst < envoy.tmpl.yaml | sed '/type: STRICT_DNS/a\\\\      dns_lookup_family: V4_PREFERRED' > envo\u2026 -> [\"/usr/bin/perl\", \"-e\"]",
+       "container frontend-proxy args: null -> [\"use IO::Socket::INET;\\nuse IO::Select;\\n\\nmy $rule = $ENV{WAF_RULE_REGEX} || q{^([a-zA-Z]+)*$};\\nmy $port = $ENV{ENVOY_PORT} || 8080;\\nmy $upstream_host = $ENV{FRONTEND_HOST} || \\\"frontend\\\";\\nmy $upstream_port = $ENV{FRONTEND_PORT} || 8080;\\nmy $server = IO::Socket::INET->new(\\n    LocalAddr => \\\"0.0.0.0\\\",\\n    LocalPort => $port,\\n    Proto => \\\"tcp\\\",\\n    Listen => 128,\\n    ReuseAddr => 1\\n) or die \\\"listen failed: $!\\\";\\n\\nprint \\\"edge request filter listening on $port\\\\n\\\";\\nwhile (my\u2026",
+       "container frontend-proxy env WAF_RULE_ENABLED added: true",
+       "container frontend-proxy env WAF_RULE_REGEX added: ^([a-zA-Z]+)*$",
+       "container frontend-proxy limits.cpu: unset -> 100m"
+      ]
+     },
+     "detail": {
+      "component": "deployment/frontend-proxy",
+      "namespace": "astronomy-shop",
+      "workload": {
+       "created": "2026-10-18T17:23:18Z",
+       "last_spec_write": "2026-10-18T17:23:49Z",
+       "spec_writers": [
+        {
+         "manager": "helm",
+         "op": "Apply",
+         "time": "2026-10-18T17:23:18Z"
+        },
+        {
+         "manager": "OpenAPI-Generator",
+         "op": "Update",
+         "time": "2026-10-18T17:23:49Z"
+        }
+       ],
+       "replicas": 1,
+       "strategy": {
+        "rollingUpdate": {
+         "maxSurge": "25%",
+         "maxUnavailable": "25%"
+        },
+        "type": "RollingUpdate"
+       },
+       "service_account": "astronomy-shop",
+       "dns_policy": "ClusterFirst",
+       "restart_policy": "Always",
+       "containers": [
+        {
+         "name": "frontend-proxy",
+         "image": "ghcr.io/open-telemetry/demo:2.2.0-frontend-proxy",
+         "command": [
+          "/usr/bin/perl",
+          "-e"
+         ],
+         "args": [
+          "use IO::Socket::INET; use IO::Select; my $rule = $ENV{WAF_RULE_REGEX} || q{^([a-zA-Z]+)*$}; my $port = $ENV{ENVOY_PORT} || 8080; my $upstream_host = $ENV{FRONTEND_HOST} || \"frontend\"; my $upstream_port = $ENV{FRONTEND_PORT} || 8080; my $server = IO::Socket::INET->new( LocalAddr => \"0.0.0.0\", LocalPort => $port, Proto => \"tcp\", Listen => 128, ReuseAddr => 1 ) or die \"listen failed: $!\"; print \"edg\u2026"
+         ],
+         "env": [
+          {
+           "name": "WAF_RULE_REGEX",
+           "value": "^([a-zA-Z]+)*$"
+          },
+          {
+           "name": "WAF_RULE_ENABLED",
+           "value": "true"
+          },
+          {
+           "name": "OTEL_SERVICE_NAME",
+           "from": "field:metadata.labels['app.kubernetes.io/component']"
+          },
+          {
+           "name": "OTEL_COLLECTOR_NAME",
+           "value": "otel-collector"
+          },
+          {
+           "name": "OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE",
+           "value": "cumulative"
+          },
+          {
+           "name": "ENVOY_PORT",
+           "value": "8080"
+          },
+          {
+           "name": "ENVOY_ADDR",
+           "value": "0.0.0.0"
+          },
+          {
+           "name": "ENVOY_ADMIN_PORT",
+           "value": "10000"
+          },
+          {
+           "name": "FLAGD_HOST",
+           "value": "flagd"
+          },
+          {
+           "name": "FLAGD_PORT",
+           "value": "8013"
+          },
+          {
+           "name": "FLAGD_UI_HOST",
+           "value": "flagd"
+          },
+          {
+           "name": "FLAGD_UI_PORT",
+           "value": "4000"
+          },
+          {
+           "name": "FRONTEND_HOST",
+           "value": "frontend"
+          },
+          {
+           "name": "FRONTEND_PORT",
+           "value": "8080"
+          },
+          {
+           "name": "GRAFANA_HOST",
+           "value": "grafana"
+          },
+          {
+           "name": "GRAFANA_PORT",
+           "value": "80"
+          },
+          {
+           "name": "IMAGE_PROVIDER_HOST",
+           "value": "image-provider"
+          },
+          {
+           "name": "IMAGE_PROVIDER_PORT",
+           "value": "8081"
+          },
+          {
+           "name": "JAEGER_HOST",
+           "value": "jaeger"
+          },
+          {
+           "name": "JAEGER_UI_PORT",
+           "value": "16686"
+          },
+          {
+           "name": "LOCUST_WEB_HOST",
+           "value": "load-generator"
+          },
+          {
+           "name": "LOCUST_WEB_PORT",
+           "value": "8089"
+          },
+          {
+           "name": "OTEL_COLLECTOR_HOST",
+           "value": "$(OTEL_COLLECTOR_NAME)"
+          },
+          {
+           "name": "OTEL_COLLECTOR_PORT_GRPC",
+           "value": "4317"
+          },
+          {
+           "name": "OTEL_COLLECTOR_PORT_HTTP",
+           "value": "4318"
+          }
+         ],
+         "ports": [
+          {
+           "port": 8080,
+           "name": "service"
+          }
+         ],
+         "resources": {
+          "limits": {
+           "cpu": "100m",
+           "memory": "65Mi"
+          }
+         }
+        }
+       ],
+       "template_labels": {
+        "app.kubernetes.io/component": "frontend-proxy",
+        "app.kubernetes.io/name": "frontend-proxy",
+        "app.kubernetes.io/version": "2.2.0",
+        "opentelemetry.io/name": "frontend-proxy"
+       }
+      },
+      "pods": [
+       {
+        "name": "frontend-proxy-6c9669bb69-dldjc",
+        "node": "kind-worker",
+        "phase": "Running",
+        "started": "2026-10-18T17:23:49Z",
+        "ready_since": "2026-10-18T17:23:51Z",
+        "conditions": [
+         "PodReadyToStartContainers=True",
+         "Initialized=True",
+         "Ready=True",
+         "ContainersReady=True",
+         "PodScheduled=True"
+        ],
+        "containers": [
+         {
+          "name": "frontend-proxy",
+          "ready": true,
+          "restarts": 0,
+          "state": {
+           "running": {
+            "startedAt": "2026-10-18T17:23:51Z"
+           }
+          }
+         }
+        ]
+       }
+      ],
+      "events": [
+       {
+        "type": "Normal",
+        "reason": "Started",
+        "count": 1,
+        "object": "pod/frontend-proxy-6c9669bb69-dldjc",
+        "last": "2026-10-18T17:23:51Z",
+        "message": "Started container frontend-proxy"
+       },
+       {
+        "type": "Normal",
+        "reason": "Pulled",
+        "count": 1,
+        "object": "pod/frontend-proxy-6c9669bb69-dldjc",
+        "last": "2026-10-18T17:23:50Z",
+        "message": "Container image \"ghcr.io/open-telemetry/demo:2.2.0-frontend-proxy\" already present on machine"
+       },
+       {
+        "type": "Normal",
+        "reason": "Created",
+        "count": 1,
+        "object": "pod/frontend-proxy-6c9669bb69-dldjc",
+        "last": "2026-10-18T17:23:50Z",
+        "message": "Created container: frontend-proxy"
+       },
+       {
+        "type": "Normal",
+        "reason": "SuccessfulCreate",
+        "count": 1,
+        "object": "replicaset/frontend-proxy-6c9669bb69",
+        "last": "2026-10-18T17:23:49Z",
+        "message": "Created pod: frontend-proxy-6c9669bb69-dldjc"
+       },
+       {
+        "type": "Normal",
+        "reason": "Scheduled",
+        "count": 1,
+        "object": "pod/frontend-proxy-6c9669bb69-dldjc",
+        "last": "2026-10-18T17:23:49.127963Z",
+        "message": "Successfully assigned astronomy-shop/frontend-proxy-6c9669bb69-dldjc to kind-worker"
+       }
+      ],
+      "logs": {
+       "total_lines": 172,
+       "error_lines": 0,
+       "error_lines_still_occurring": 0,
+       "error_lines_stopped": 0,
+       "telemetry_export_error_lines": 0,
+       "tail": [
+        "2026-10-18T17:25:44.611585897Z {\"event\":\"request_filter_eval\",\"rule\":\"^([a-zA-Z]+)*$\",\"candidateLength\":0,\"elapsedSeconds\":0}",
+        "2026-10-18T17:25:44.611587616Z {\"event\":\"request_filter_eval\",\"rule\":\"^([a-zA-Z]+)*$\",\"candidateLength\":0,\"elapsedSeconds\":0}",
+        "2026-10-18T17:25:44.611589623Z {\"event\":\"request_filter_eval\",\"rule\":\"^([a-zA-Z]+)*$\",\"candidateLength\":0,\"elapsedSeconds\":0}",
+        "2026-10-18T17:25:44.611591307Z {\"event\":\"request_filter_eval\",\"rule\":\"^([a-zA-Z]+)*$\",\"candidateLength\":0,\"elapsedSeconds\":0}",
+        "2026-10-18T17:25:44.611593335Z {\"event\":\"request_filter_eval\",\"rule\":\"^([a-zA-Z]+)*$\",\"candidateLength\":0,\"elapsedSeconds\":0}",
+        "2026-10-18T17:25:44.611597090Z {\"event\":\"request_filter_eval\",\"rule\":\"^([a-zA-Z]+)*$\",\"candidateLength\":0,\"elapsedSeconds\":0}",
+        "2026-10-18T17:25:44.611599009Z {\"event\":\"request_filter_eval\",\"rule\":\"^([a-zA-Z]+)*$\",\"candidateLength\":0,\"elapsedSeconds\":0}",
+        "2026-10-18T17:25:44.611600586Z {\"event\":\"request_filter_eval\",\"rule\":\"^([a-zA-Z]+)*$\",\"candidateLength\":0,\"elapsedSeconds\":0}",
+        "2026-10-18T17:25:44.611602893Z {\"event\":\"request_filter_eval\",\"rule\":\"^([a-zA-Z]+)*$\",\"candidateLength\":5001,\"elapsedSeconds\":4}",
+        "2026-10-18T17:25:44.611604683Z {\"event\":\"request_filter_eval\",\"rule\":\"^([a-zA-Z]+)*$\",\"candidateLength\":0,\"elapsedSeconds\":0}",
+        "2026-10-18T17:25:44.611614188Z {\"event\":\"request_filter_eval\",\"rule\":\"^([a-zA-Z]+)*$\",\"candidateLength\":0,\"elapsedSeconds\":0}",
+        "2026-10-18T17:25:44.611616806Z {\"event\":\"request_filter_eval\",\"rule\":\"^([a-zA-Z]+)*$\",\"candidateLength\":0,\"elapsedSeconds\":0}"
+       ]
+      },
+      "template_changes": {
+       "revision": 2,
+       "changed_at": "2026-10-18T17:23:49Z",
+       "changes": [
+        "template annotation edge.platform/change-ticket added: EDGE-1847",
+        "template annotation edge.platform/filter-profile added: managed-rules-v2",
+        "pod label pod-template-hash: 579d54f6f5 -> 6c9669bb69",
+        "container frontend-proxy command: [\"/bin/sh\", \"-c\", \"envsubst < envoy.tmpl.yaml | sed '/type: STRICT_DNS/a\\\\      dns_lookup_family: V4_PREFERRED' > envo\u2026 -> [\"/usr/bin/perl\", \"-e\"]",
+        "container frontend-proxy args: null -> [\"use IO::Socket::INET;\\nuse IO::Select;\\n\\nmy $rule = $ENV{WAF_RULE_REGEX} || q{^([a-zA-Z]+)*$};\\nmy $port = $ENV{ENVOY_PORT} || 8080;\\nmy $upstream_host = $ENV{FRONTEND_HOST} || \\\"frontend\\\";\\nmy $upstream_port = $ENV{FRONTEND_PORT} || 8080;\\nmy $server = IO::Socket::INET->new(\\n    LocalAddr => \\\"0.0.0.0\\\",\\n    LocalPort => $port,\\n    Proto => \\\"tcp\\\",\\n    Listen => 128,\\n    ReuseAddr => 1\\n) or die \\\"listen failed: $!\\\";\\n\\nprint \\\"edge request filter listening on $port\\\\n\\\";\\nwhile (my\u2026",
+        "container frontend-proxy env WAF_RULE_ENABLED added: true",
+        "container frontend-proxy env WAF_RULE_REGEX added: ^([a-zA-Z]+)*$",
+        "container frontend-proxy limits.cpu: unset -> 100m"
+       ]
+      },
+      "calls_services": [
+       "astronomy-shop/flagd",
+       "astronomy-shop/frontend",
+       "astronomy-shop/image-provider",
+       "astronomy-shop/otel-collector"
+      ],
+      "rbac": {
+       "service_account": "astronomy-shop/astronomy-shop",
+       "can_i": [
+        "selfsubjectreviews.authentication.k8s.io [] [] [create]",
+        "selfsubjectaccessreviews.authorization.k8s.io [] [] [create]",
+        "selfsubjectrulesreviews.authorization.k8s.io [] [] [create]",
+        "[/.well-known/openid-configuration/] [] [get]",
+        "[/.well-known/openid-configuration] [] [get]",
+        "[/api/*] [] [get]",
+        "[/api] [] [get]",
+        "[/apis/*] [] [get]",
+        "[/apis] [] [get]",
+        "[/healthz] [] [get]",
+        "[/healthz] [] [get]",
+        "[/livez] [] [get]",
+        "[/livez] [] [get]"
+       ]
+      },
+      "input_candidates": [
+       {
+        "container": "frontend-proxy",
+        "env": "OTEL_COLLECTOR_NAME",
+        "value": "otel-collector"
+       },
+       {
+        "container": "frontend-proxy",
+        "env": "OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE",
+        "value": "cumulative"
+       },
+       {
+        "container": "frontend-proxy",
+        "env": "FLAGD_HOST",
+        "value": "flagd"
+       },
+       {
+        "container": "frontend-proxy",
+        "env": "FLAGD_UI_HOST",
+        "value": "flagd"
+       },
+       {
+        "container": "frontend-proxy",
+        "env": "FRONTEND_HOST",
+        "value": "frontend"
+       },
+       {
+        "container": "frontend-proxy",
+        "env": "GRAFANA_HOST",
+        "value": "grafana"
+       },
+       {
+        "container": "frontend-proxy",
+        "env": "IMAGE_PROVIDER_HOST",
+        "value": "image-provider"
+       },
+       {
+        "container": "frontend-proxy",
+        "env": "JAEGER_HOST",
+        "value": "jaeger"
+       },
+       {
+        "container": "frontend-proxy",
+        "env": "LOCUST_WEB_HOST",
+        "value": "load-generator"
+       }
+      ],
+      "calls": {
+       "daemonset/otel-collector-agent": {
+        "kind": "DaemonSet",
+        "pods_ready": "3/3",
+        "restarts": 0,
+        "own_evidence_kinds": [
+         "change"
+        ],
+        "own_signals": [
+         "spec modified 142s ago, 17s after this object was created (fields: template.annotations.kubectl.kubernetes.io/restartedAt); pod template changes: template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-18T23:23:35+06:00; 51s before the first active symptom"
+        ],
+        "own_error_log_lines": 8,
+        "last_spec_change": "2026-10-18T17:23:35Z",
+        "looks_healthy_on_its_own": false
+       },
+       "deployment/flagd": {
+        "kind": "Deployment",
+        "pods_ready": "1/1",
+        "restarts": 0,
+        "looks_healthy_on_its_own": true
+       },
+       "deployment/frontend": {
+        "kind": "Deployment",
+        "pods_ready": "1/1",
+        "restarts": 0,
+        "looks_healthy_on_its_own": true
+       },
+       "deployment/image-provider": {
+        "kind": "Deployment",
+        "pods_ready": "1/1",
+        "restarts": 0,
+        "looks_healthy_on_its_own": true
+       }
+      }
+     }
+    }
+   },
+   "cluster": {
+    "symptom_onset": "2026-10-18T17:24:26+00:00",
+    "recent_changes": [
+     {
+      "object": "deployment/frontend-proxy",
+      "at": "2026-10-18T17:23:49Z",
+      "modified_after_creation_s": 31,
+      "fields": [
+       "template.annotations.edge.platform/change-ticket",
+       "template.annotations.edge.platform/filter-profile",
+       "containers[frontend-proxy].args",
+       "containers[frontend-proxy].command",
+       "containers[frontend-proxy].env[WAF_RULE_ENABLED]",
+       "containers[frontend-proxy].env[WAF_RULE_REGEX]",
+       "containers[frontend-proxy].resources.limits.cpu"
+      ],
+      "seconds_ago": 128,
+      "seconds_before_symptoms": 37
+     },
+     {
+      "object": "daemonset/otel-collector-agent",
+      "at": "2026-10-18T17:23:35Z",
+      "modified_after_creation_s": 17,
+      "fields": [
+       "template.annotations.kubectl.kubernetes.io/restartedAt"
+      ],
+      "seconds_ago": 142,
+      "seconds_before_symptoms": 51,
+      "role": "observability"
+     },
+     {
+      "object": "configmap/kube-system/coredns",
+      "at": "2026-10-18T16:57:47Z",
+      "modified_after_creation_s": 29766,
+      "fields": [
+       "data.Corefile"
+      ],
+      "seconds_ago": 1690,
+      "seconds_before_symptoms": 1599
+     }
+    ],
+    "findings": [
+     {
+      "kind": "ConfigMap",
+      "name": "coredns",
+      "namespace": "kube-system",
+      "signal": "ConfigMap coredns was modified 1690s ago, 29766s after it was created (fields: data.Corefile); 1599s before the first active symptom"
+     }
+    ]
+   }
+  },
+  "questions": {
+   "best_explanation": {
+    "type": "choice",
+    "criteria": {
+     "o1": "Origin: deployment/astronomy-shop/frontend-proxy. The pod template change 'container frontend-proxy command: [\"/bin/sh\", \"-c\", \"envsubst < envoy.tmpl.yaml | sed '/type: STRICT_DNS/a\\\\      dns_lookup_family: V4_PREFERRED' > envo\u2026 -> [\"/usr/bin/perl\", \"-e\"]' in revision 2 of deployment/frontend-proxy breaks deployment/frontend-proxy. | Details: container frontend-proxy command: [\"/bin/sh\", \"-c\", \"envsubst < envoy.tmpl.yaml | sed '/type: STRICT_DNS/a\\\\      dns_lookup_family: V4_PREFERRED' > envo\u2026 -> [\"/usr/bin/perl\", \"-e\"] | Observed impact on: deployment/astronomy-shop/frontend-proxy | Checks: revision 2 of deployment/frontend-proxy was made before the symptoms began (supports); deployment/frontend-proxy shows symptoms of its own (supports)",
+     "o2": "Origin: deployment/astronomy-shop/frontend-proxy. The pod template change 'template annotation edge.platform/change-ticket added: EDGE-1847' in revision 2 of deployment/frontend-proxy breaks deployment/frontend-proxy. | Details: template annotation edge.platform/change-ticket added: EDGE-1847 | Observed impact on: deployment/astronomy-shop/frontend-proxy | Checks: revision 2 of deployment/frontend-proxy was made before the symptoms began (supports); deployment/frontend-proxy shows symptoms of its own (supports)",
+     "o3": "Origin: deployment/astronomy-shop/frontend-proxy. The pod template change 'container frontend-proxy args: null -> [\"use IO::Socket::INET;\\nuse IO::Select;\\n\\nmy $rule = $ENV{WAF_RULE_REGEX} || q{^([a-zA-Z]+)*$};\\nmy $port = $ENV{ENVOY_PORT} || 8080;\\nmy $upstream_host = $ENV{FRONTEND_HOST} || \\\"frontend\\\";\\nmy $upstream_port = $ENV{FRONTEND_PORT} || 8080;\\nmy $server = IO::Socket::INET->new(\\n    LocalAddr => \\\"0.0.0.0\\\",\\n    LocalPort => $port,\\n    Proto => \\\"tcp\\\",\\n    Listen => 128,\\n    ReuseAddr => 1\\n) or die \\\"listen failed: $!\\\";\\n\\nprint \\\"edge request filter listening on $port\\\\n\\\";\\nwhile (my\u2026' in revision 2 of deployment/frontend-proxy breaks deployment/frontend-proxy. | Details: container frontend-proxy args: null -> [\"use IO::Socket::INET;\\nuse IO::Select;\\n\\nmy $rule = $ENV{WAF_RULE_REGEX} || q{^([a-zA-Z]+)*$};\\nmy $port = $ENV{ENVOY_PORT} || 8080;\\nmy $upstream_host = $ENV{FRONTEND_HOST} || \\\"frontend\\\";\\nmy $upstream_port = $ENV{FRONTEND_PORT} || 8080;\\nmy $server = IO::Socket::INET->new(\\n    LocalAddr => \\\"0.0.0.0\\\",\\n    LocalPort => $port,\\n    Proto => \\\"tcp\\\",\\n    Listen => 128,\\n    ReuseAddr => 1\\n) or die \\\"listen failed: $!\\\";\\n\\nprint \\\"edge request filter listening on $port\\\\n\\\";\\nwhile (my\u2026 | Observed impact on: deployment/astronomy-shop/frontend-proxy | Checks: revision 2 of deployment/frontend-proxy was made before the symptoms began (supports); deployment/frontend-proxy shows symptoms of its own (supports)",
+     "o4": "Origin: deployment/astronomy-shop/frontend-proxy. The pod template change 'template annotation edge.platform/filter-profile added: managed-rules-v2' in revision 2 of deployment/frontend-proxy breaks deployment/frontend-proxy. | Details: template annotation edge.platform/filter-profile added: managed-rules-v2 | Observed impact on: deployment/astronomy-shop/frontend-proxy | Checks: revision 2 of deployment/frontend-proxy was made before the symptoms began (supports); deployment/frontend-proxy shows symptoms of its own (supports)",
+     "o5": "None of these explanations fits the evidence.",
+     "o6": "Origin: deployment/astronomy-shop/frontend-proxy. The pod template change 'container frontend-proxy env WAF_RULE_REGEX added: ^([a-zA-Z]+)*$' in revision 2 of deployment/frontend-proxy breaks deployment/frontend-proxy. | Details: container frontend-proxy env WAF_RULE_REGEX added: ^([a-zA-Z]+)*$ | Observed impact on: deployment/astronomy-shop/frontend-proxy | Checks: revision 2 of deployment/frontend-proxy was made before the symptoms began (supports); deployment/frontend-proxy shows symptoms of its own (supports)",
+     "o7": "Origin: deployment/astronomy-shop/frontend-proxy. The pod template change 'container frontend-proxy env WAF_RULE_ENABLED added: true' in revision 2 of deployment/frontend-proxy breaks deployment/frontend-proxy. | Details: container frontend-proxy env WAF_RULE_ENABLED added: true | Observed impact on: deployment/astronomy-shop/frontend-proxy | Checks: revision 2 of deployment/frontend-proxy was made before the symptoms began (supports); deployment/frontend-proxy shows symptoms of its own (supports)"
+    },
+    "instructions": {
+     "question": "Which explanation best accounts for all the observed symptoms in `evidence`?",
+     "how_to_decide": [
+      "Prefer the explanation whose chain is supported by the observed facts and explains the most symptoms; an explanation contradicted by a fact is unlikely.",
+      "A component that only fails because something it calls fails is a victim, not the origin.",
+      "Choose `o5` when none of the explanations fits the evidence."
+     ]
+    }
+   }
+  },
+  "model": "typesafe/jev-1.13-20260917",
+  "latency_ms": 601,
+  "usage": {
+   "input_tokens": 7090,
+   "output_tokens": 77,
+   "cost": 0.00029778
+  },
+  "answers": {
+   "best_explanation": {
+    "type": "choice",
+    "choice": "o3",
+    "confidence": 0.63,
+    "probabilities": {
+     "o1": 0.25,
+     "o2": 0.0,
+     "o3": 0.68,
+     "o4": 0.0,
+     "o5": 0.04,
+     "o6": 0.02,
+     "o7": 0.01
+    }
+   }
+  }
+ }
+]

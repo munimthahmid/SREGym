@@ -1,0 +1,282 @@
+{
+ "problem_id": "service_port_conflict_social_network",
+ "source": "held5_service_port_conflict_social_network",
+ "replay": true,
+ "arms": [
+  {
+   "arm": 0,
+   "kind": "v2",
+   "model": "typesafe/jev-1.13",
+   "position": 0,
+   "seconds": 2.8,
+   "requests": 2,
+   "input_tokens": 28878,
+   "error": null,
+   "model_failed": false,
+   "component": "deployment/media-service",
+   "investigation": {
+    "steps": [
+     {
+      "step": 1,
+      "node": "investigate",
+      "component": "deployment/media-service",
+      "verdict": "origin",
+      "origin_p": 0.89,
+      "victim_p": 0.01,
+      "next": "none",
+      "next_p": 0.83,
+      "category": "scheduling_constraint",
+      "spec_checks": [
+       "service media-service has no ready endpoints"
+      ],
+      "blocked_input": null,
+      "key_evidence": "event FailedScheduling x1 on pod/media-service-57864b696c-22rp6: 0/4 nodes are available: 1 node(s) had untolerated taint {node-role.kubernetes.io/control-plane: }, 3 node(s) didn't have free ports for the requested pod ports. preemption: 0/4 nodes are available: 1 Preemption is not helpful for scheduling, 3 No preemption victims found for incoming pod."
+     }
+    ],
+    "concluded": "deployment/media-service",
+    "fallback": null,
+    "triage_top": [
+     [
+      "deployment/media-service",
+      0.94
+     ],
+     [
+      "other",
+      0.06
+     ],
+     [
+      "deployment/compose-post-service",
+      0.0
+     ],
+     [
+      "deployment/home-timeline-redis",
+      0.0
+     ],
+     [
+      "deployment/home-timeline-service",
+      0.0
+     ]
+    ],
+    "second": null
+   },
+   "text": "Root cause: Service `media-service` (Deployment `media-service`) in namespace `social-network`: event FailedScheduling x1 on pod/media-service-57864b696c-22rp6: 0/4 nodes are available: 1 node(s) had untolerated taint {node-role.kubernetes.io/control-plane: }, 3 node(s) didn't have free ports for the requested pod ports. preemption: 0/4 nodes are available: 1 Preemption is not helpful for scheduling, 3 No preemption victims found for incoming pod.\nMechanism: warning events: FailedScheduling x1.\nDetails: service media-service has no ready endpoints.\nEffect: only 0 of 1 desired replicas are ready; pod media-service-57864b696c-22rp6: pod phase Pending; its callers see connectivity or timeout (6 lines).\nObserved: pod media-service-57864b696c-22rp6: pod unschedulable: 0/4 nodes are available: 1 node(s) had untolerated taint {node-role.kubernetes.io/control-plane: }, 3 node(s) didn't have free ports for the requested pod port\u2026; service media-service selects this component but has 0 ready endpoints; pod media-service-57864b696c-22rp6 is still in pod phase Pending after another 0s.\nAffected (symptoms only, not causes): Deployment `compose-post-service` in namespace `social-network`: connectivity or timeout calling it (6 lines, still occurring).",
+   "grade": {
+    "judgment": "True",
+    "reasoning": "Verdict: True (composite=0.78). D1 Fault Localization: 1.00 | D2 Fault Characterization: 0.67 | D3 Scope Precision: 0.67. Weakest dimension: Fault Characterization (0.67). Checklist details: [{\"id\": \"D1-Q1\", \"answer\": \"Yes\", \"evidence\": \"Names Deployment `media-service` in namespace `social-network` as the root-cause component.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q2\", \"answer\": \"Yes\", \"evidence\": \"Identifies media-service as the origin and explicitly labels compose-post-service as affected by symptoms only, not a cause.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q3\", \"answer\": \"Yes\", \"evidence\": \"Blames Deployment `media-service`, matching the fault specification, without identifying another component as the origin.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q1\", \"answer\": \"Yes\", \"evidence\": \"Reports FailedScheduling because nodes 'didn't have free ports for the requested pod ports,' matching the port-conflict scheduling mechanism.\", \"confidence\": \"Medium\"}, {\"id\": \"D2-Q2\", \"answer\": \"No\", \"evidence\": \"Does not identify the pod template's hostPort setting or the conflicting port value 9100.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q3\", \"answer\": \"Yes\", \"evidence\": \"Reports unavailable requested ports preventing scheduling; it does not assert an incompatible fault type.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q1\", \"answer\": \"Yes\", \"evidence\": \"Scopes the cause to media-service and explicitly describes compose-post-service as a secondary symptom, not a cause.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q2\", \"answer\": \"No\", \"evidence\": \"Omits the prometheus-node-exporter DaemonSet, which occupies port 9100 and contributes to the conflict.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q3\", \"answer\": \"Yes\", \"evidence\": \"Reports an unschedulable Pending pod, zero of one desired replicas ready, and no ready service endpoints.\", \"confidence\": \"High\"}]",
+    "success": true,
+    "accuracy": 78.0,
+    "composite_score": 0.78,
+    "dimensions": {
+     "D1": {
+      "name": "Fault Localization",
+      "score": 1.0
+     },
+     "D2": {
+      "name": "Fault Characterization",
+      "score": 0.67
+     },
+     "D3": {
+      "name": "Scope Precision",
+      "score": 0.67
+     }
+    },
+    "checklist": [
+     {
+      "id": "D1-Q1",
+      "answer": "Yes",
+      "evidence": "Names Deployment `media-service` in namespace `social-network` as the root-cause component.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q2",
+      "answer": "Yes",
+      "evidence": "Identifies media-service as the origin and explicitly labels compose-post-service as affected by symptoms only, not a cause.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q3",
+      "answer": "Yes",
+      "evidence": "Blames Deployment `media-service`, matching the fault specification, without identifying another component as the origin.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q1",
+      "answer": "Yes",
+      "evidence": "Reports FailedScheduling because nodes 'didn't have free ports for the requested pod ports,' matching the port-conflict scheduling mechanism.",
+      "confidence": "Medium"
+     },
+     {
+      "id": "D2-Q2",
+      "answer": "No",
+      "evidence": "Does not identify the pod template's hostPort setting or the conflicting port value 9100.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q3",
+      "answer": "Yes",
+      "evidence": "Reports unavailable requested ports preventing scheduling; it does not assert an incompatible fault type.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q1",
+      "answer": "Yes",
+      "evidence": "Scopes the cause to media-service and explicitly describes compose-post-service as a secondary symptom, not a cause.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q2",
+      "answer": "No",
+      "evidence": "Omits the prometheus-node-exporter DaemonSet, which occupies port 9100 and contributes to the conflict.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q3",
+      "answer": "Yes",
+      "evidence": "Reports an unschedulable Pending pod, zero of one desired replicas ready, and no ready service endpoints.",
+      "confidence": "High"
+     }
+    ]
+   }
+  },
+  {
+   "arm": 1,
+   "kind": "v2",
+   "model": "openai/gpt-6-luna-decisions",
+   "position": 1,
+   "seconds": 3.7,
+   "requests": 3,
+   "input_tokens": 34818,
+   "error": null,
+   "model_failed": false,
+   "component": "deployment/media-service",
+   "investigation": {
+    "steps": [
+     {
+      "step": 1,
+      "node": "investigate",
+      "component": "deployment/media-service",
+      "verdict": "origin",
+      "origin_p": 0.96,
+      "victim_p": 0.02,
+      "next": "deployment/compose-post-service",
+      "next_p": 0.78,
+      "category": "scheduling_constraint",
+      "spec_checks": [
+       "service media-service has no ready endpoints"
+      ],
+      "blocked_input": null,
+      "key_evidence": "pod media-service-57864b696c-22rp6: pod unschedulable: 0/4 nodes are available: 1 node(s) had untolerated taint {node-role.kubernetes.io/control-plane: }, 3 node(s) didn't have free ports for the requested pod port\u2026"
+     }
+    ],
+    "concluded": "deployment/media-service",
+    "fallback": null,
+    "triage_top": [
+     [
+      "deployment/media-service",
+      0.9
+     ],
+     [
+      "other",
+      0.03
+     ],
+     [
+      "deployment/nginx-thrift",
+      0.015
+     ],
+     [
+      "deployment/compose-post-service",
+      0.01
+     ],
+     [
+      "deployment/media-mongodb",
+      0.01
+     ]
+    ],
+    "second": null
+   },
+   "text": "Root cause: Service `media-service` (Deployment `media-service`) in namespace `social-network`: pod media-service-57864b696c-22rp6: pod unschedulable: 0/4 nodes are available: 1 node(s) had untolerated taint {node-role.kubernetes.io/control-plane: }, 3 node(s) didn't have free ports for the requested pod port\u2026.\nMechanism: warning events: FailedScheduling x1.\nDetails: service media-service has no ready endpoints.\nEffect: only 0 of 1 desired replicas are ready; pod media-service-57864b696c-22rp6: pod phase Pending; its callers see connectivity or timeout (6 lines).\nObserved: service media-service selects this component but has 0 ready endpoints; pod media-service-57864b696c-22rp6 is still in pod phase Pending after another 0s.\nAffected (symptoms only, not causes): Deployment `compose-post-service` in namespace `social-network`: connectivity or timeout calling it (6 lines, still occurring).",
+   "grade": {
+    "judgment": "True",
+    "reasoning": "Verdict: True (composite=0.78). D1 Fault Localization: 1.00 | D2 Fault Characterization: 0.67 | D3 Scope Precision: 0.67. Weakest dimension: Fault Characterization (0.67). Checklist details: [{\"id\": \"D1-Q1\", \"answer\": \"Yes\", \"evidence\": \"Names Deployment media-service in namespace social-network, matching the specified fault origin.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q2\", \"answer\": \"Yes\", \"evidence\": \"Identifies media-service as the root cause and explicitly labels compose-post-service as affected through symptoms only, not causes.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q3\", \"answer\": \"Yes\", \"evidence\": \"Attributes the fault to media-service, the deployment identified in the ground truth.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q1\", \"answer\": \"Yes\", \"evidence\": \"Reports FailedScheduling because nodes 'didn't have free ports for the requested pod port,' matching the port-conflict scheduling mechanism.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q2\", \"answer\": \"No\", \"evidence\": \"Does not identify the pod template's hostPort 9100 binding or its collision with prometheus-node-exporter.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q3\", \"answer\": \"Yes\", \"evidence\": \"Reports scheduling failure involving unavailable requested ports; the additional scheduler taint observation does not contradict the port conflict.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q1\", \"answer\": \"Yes\", \"evidence\": \"Blames media-service and explicitly identifies compose-post-service as a symptomatic caller rather than a contributing cause.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q2\", \"answer\": \"No\", \"evidence\": \"Omits the prometheus-node-exporter DaemonSet, which ground truth identifies as occupying port 9100 on all nodes.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q3\", \"answer\": \"Yes\", \"evidence\": \"Reports a Pending, unschedulable pod, zero ready endpoints, and zero of one desired replicas ready, consistent with scheduling conflicts reducing availability.\", \"confidence\": \"High\"}]",
+    "success": true,
+    "accuracy": 78.0,
+    "composite_score": 0.78,
+    "dimensions": {
+     "D1": {
+      "name": "Fault Localization",
+      "score": 1.0
+     },
+     "D2": {
+      "name": "Fault Characterization",
+      "score": 0.67
+     },
+     "D3": {
+      "name": "Scope Precision",
+      "score": 0.67
+     }
+    },
+    "checklist": [
+     {
+      "id": "D1-Q1",
+      "answer": "Yes",
+      "evidence": "Names Deployment media-service in namespace social-network, matching the specified fault origin.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q2",
+      "answer": "Yes",
+      "evidence": "Identifies media-service as the root cause and explicitly labels compose-post-service as affected through symptoms only, not causes.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q3",
+      "answer": "Yes",
+      "evidence": "Attributes the fault to media-service, the deployment identified in the ground truth.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q1",
+      "answer": "Yes",
+      "evidence": "Reports FailedScheduling because nodes 'didn't have free ports for the requested pod port,' matching the port-conflict scheduling mechanism.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q2",
+      "answer": "No",
+      "evidence": "Does not identify the pod template's hostPort 9100 binding or its collision with prometheus-node-exporter.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q3",
+      "answer": "Yes",
+      "evidence": "Reports scheduling failure involving unavailable requested ports; the additional scheduler taint observation does not contradict the port conflict.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q1",
+      "answer": "Yes",
+      "evidence": "Blames media-service and explicitly identifies compose-post-service as a symptomatic caller rather than a contributing cause.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q2",
+      "answer": "No",
+      "evidence": "Omits the prometheus-node-exporter DaemonSet, which ground truth identifies as occupying port 9100 on all nodes.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q3",
+      "answer": "Yes",
+      "evidence": "Reports a Pending, unschedulable pod, zero ready endpoints, and zero of one desired replicas ready, consistent with scheduling conflicts reducing availability.",
+      "confidence": "High"
+     }
+    ]
+   }
+  }
+ ],
+ "judge": {
+  "model": "gpt-6-astra",
+  "backend": "codex",
+  "effort": "high"
+ }
+}

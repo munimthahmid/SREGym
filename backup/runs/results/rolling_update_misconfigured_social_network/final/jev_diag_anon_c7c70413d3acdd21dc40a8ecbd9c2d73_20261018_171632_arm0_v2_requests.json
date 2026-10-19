@@ -1,0 +1,222 @@
+[
+ {
+  "label": "decide:1",
+  "state": {
+   "application": {
+    "name": "Social Network",
+    "description": "A social network with unidirectional follow relationships, implemented with loosely-coupled microservices, communicating with each other via Thrift RPCs.",
+    "namespaces": [
+     "social-network"
+    ]
+   },
+   "evidence": {
+    "deployment/custom-service": {
+     "kind": "Deployment",
+     "name": "custom-service",
+     "namespace": "social-network",
+     "healthy": false,
+     "signals": [
+      "rolling update allows maxUnavailable=100% and maxSurge=0% for 3 replicas: all pods may go down at once; no replacement pod is started before the old ones stop",
+      "only 0 of 3 desired replicas are ready",
+      "pod custom-service-745756b47-2rpnb: pod phase Pending",
+      "pod custom-service-745756b47-2rpnb: init container hang-init has been running for 129s; the pod's main containers cannot start until it exits",
+      "pod custom-service-745756b47-6wtxq: pod phase Pending",
+      "pod custom-service-745756b47-6wtxq: init container hang-init has been running for 129s; the pod's main containers cannot start until it exits",
+      "pod custom-service-745756b47-db7kv: pod phase Pending",
+      "pod custom-service-745756b47-db7kv: init container hang-init has been running for 129s; the pod's main containers cannot start until it exits"
+     ],
+     "template_changes": {
+      "revision": 3,
+      "changed_at": "2026-10-18T17:16:25Z",
+      "changes": [
+       "template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-18T23:16:25+06:00",
+       "pod label pod-template-hash: 5d95dbc564 -> 745756b47"
+      ]
+     }
+    },
+    "deployment/social-graph-service": {
+     "kind": "Deployment",
+     "name": "social-graph-service",
+     "namespace": "social-network",
+     "healthy": false
+    }
+   },
+   "cluster": {
+    "symptom_onset": "2026-10-18T17:16:25+00:00",
+    "recent_changes": [
+     {
+      "object": "configmap/kube-system/coredns",
+      "at": "2026-10-18T16:57:47Z",
+      "modified_after_creation_s": 29766,
+      "fields": [
+       "data.Corefile"
+      ],
+      "seconds_ago": 1251,
+      "seconds_before_symptoms": 1118
+     }
+    ],
+    "findings": [
+     {
+      "kind": "ConfigMap",
+      "name": "coredns",
+      "namespace": "kube-system",
+      "signal": "ConfigMap coredns was modified 1251s ago, 29766s after it was created (fields: data.Corefile); 1118s before the first active symptom"
+     }
+    ]
+   }
+  },
+  "questions": {
+   "best_explanation": {
+    "type": "choice",
+    "criteria": {
+     "o1": "Origin: configmap/kube-system/coredns. configmap coredns acts on the application: ConfigMap coredns was modified 1251s ago, 29766s after it was created (fields: data.Corefile); 1118s before the first active symptom. | Details: ConfigMap coredns was modified 1251s ago, 29766s after it was created (fields: data.Corefile); 1118s before the first active symptom",
+     "o2": "Origin: deployment/social-network/custom-service. The fault is in this component; the mechanism is not established. | Observed impact on: deployment/social-network/custom-service",
+     "o3": "Origin: deployment/social-network/custom-service. deployment/social-network/custom-service has a wrong setting of its own: rolling update allows maxUnavailable=100% and maxSurge=0% for 3 replicas: all pods may go down at once; no replacement pod is started before the old ones stop; init container hang-init has been running for 129s; the pod's main containers cannot start until it exits | Details: rolling update allows maxUnavailable=100% and maxSurge=0% for 3 replicas: all pods may go down at once; no replacement pod is started before the old ones stop; init container hang-init has been running for 129s; the pod's main containers cannot start until it exits | Observed impact on: deployment/social-network/custom-service | Checks: deployment/social-network/custom-service shows symptoms of its own (supports)",
+     "o4": "Origin: deployment/social-network/custom-service. The pod template change 'template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-18T23:16:25+06:00' in revision 3 of deployment/custom-service breaks deployment/custom-service. | Details: template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-18T23:16:25+06:00 | Observed impact on: deployment/social-network/custom-service | Checks: revision 3 of deployment/custom-service was made before the symptoms began (supports); deployment/custom-service shows symptoms of its own (supports)",
+     "o5": "None of these explanations fits the evidence.",
+     "o6": "Origin: deployment/social-network/social-graph-service. The fault is in this component; the mechanism is not established. | Observed impact on: deployment/social-network/social-graph-service"
+    },
+    "instructions": {
+     "question": "Which explanation best accounts for all the observed symptoms in `evidence`?",
+     "how_to_decide": [
+      "Prefer the explanation whose chain is supported by the observed facts and explains the most symptoms; an explanation contradicted by a fact is unlikely.",
+      "A component that only fails because something it calls fails is a victim, not the origin.",
+      "Choose `o5` when none of the explanations fits the evidence."
+     ]
+    }
+   }
+  },
+  "model": "typesafe/jev-1.13-20260917",
+  "latency_ms": 511,
+  "usage": {
+   "input_tokens": 1767,
+   "output_tokens": 69,
+   "cost": 7.4214e-05
+  },
+  "answers": {
+   "best_explanation": {
+    "type": "choice",
+    "choice": "o3",
+    "confidence": 0.69,
+    "probabilities": {
+     "o1": 0.14,
+     "o2": 0.03,
+     "o3": 0.74,
+     "o4": 0.03,
+     "o5": 0.06,
+     "o6": 0.0
+    }
+   }
+  }
+ },
+ {
+  "label": "decide:2",
+  "state": {
+   "application": {
+    "name": "Social Network",
+    "description": "A social network with unidirectional follow relationships, implemented with loosely-coupled microservices, communicating with each other via Thrift RPCs.",
+    "namespaces": [
+     "social-network"
+    ]
+   },
+   "evidence": {
+    "deployment/custom-service": {
+     "kind": "Deployment",
+     "name": "custom-service",
+     "namespace": "social-network",
+     "healthy": false,
+     "signals": [
+      "rolling update allows maxUnavailable=100% and maxSurge=0% for 3 replicas: all pods may go down at once; no replacement pod is started before the old ones stop",
+      "only 0 of 3 desired replicas are ready",
+      "pod custom-service-745756b47-2rpnb: pod phase Pending",
+      "pod custom-service-745756b47-2rpnb: init container hang-init has been running for 129s; the pod's main containers cannot start until it exits",
+      "pod custom-service-745756b47-6wtxq: pod phase Pending",
+      "pod custom-service-745756b47-6wtxq: init container hang-init has been running for 129s; the pod's main containers cannot start until it exits",
+      "pod custom-service-745756b47-db7kv: pod phase Pending",
+      "pod custom-service-745756b47-db7kv: init container hang-init has been running for 129s; the pod's main containers cannot start until it exits"
+     ],
+     "template_changes": {
+      "revision": 3,
+      "changed_at": "2026-10-18T17:16:25Z",
+      "changes": [
+       "template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-18T23:16:25+06:00",
+       "pod label pod-template-hash: 5d95dbc564 -> 745756b47"
+      ]
+     }
+    },
+    "deployment/social-graph-service": {
+     "kind": "Deployment",
+     "name": "social-graph-service",
+     "namespace": "social-network",
+     "healthy": false
+    }
+   },
+   "cluster": {
+    "symptom_onset": "2026-10-18T17:16:25+00:00",
+    "recent_changes": [
+     {
+      "object": "configmap/kube-system/coredns",
+      "at": "2026-10-18T16:57:47Z",
+      "modified_after_creation_s": 29766,
+      "fields": [
+       "data.Corefile"
+      ],
+      "seconds_ago": 1251,
+      "seconds_before_symptoms": 1118
+     }
+    ],
+    "findings": [
+     {
+      "kind": "ConfigMap",
+      "name": "coredns",
+      "namespace": "kube-system",
+      "signal": "ConfigMap coredns was modified 1251s ago, 29766s after it was created (fields: data.Corefile); 1118s before the first active symptom"
+     }
+    ]
+   }
+  },
+  "questions": {
+   "best_explanation": {
+    "type": "choice",
+    "criteria": {
+     "o1": "Origin: configmap/kube-system/coredns. configmap coredns acts on the application: ConfigMap coredns was modified 1251s ago, 29766s after it was created (fields: data.Corefile); 1118s before the first active symptom. | Details: ConfigMap coredns was modified 1251s ago, 29766s after it was created (fields: data.Corefile); 1118s before the first active symptom",
+     "o2": "Origin: deployment/social-network/custom-service. The pod template change 'template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-18T23:16:25+06:00' in revision 3 of deployment/custom-service breaks deployment/custom-service. | Details: template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-18T23:16:25+06:00 | Observed impact on: deployment/social-network/custom-service | Checks: revision 3 of deployment/custom-service was made before the symptoms began (supports); deployment/custom-service shows symptoms of its own (supports)",
+     "o3": "Origin: deployment/social-network/custom-service. deployment/social-network/custom-service has a wrong setting of its own: rolling update allows maxUnavailable=100% and maxSurge=0% for 3 replicas: all pods may go down at once; no replacement pod is started before the old ones stop; init container hang-init has been running for 129s; the pod's main containers cannot start until it exits | Details: rolling update allows maxUnavailable=100% and maxSurge=0% for 3 replicas: all pods may go down at once; no replacement pod is started before the old ones stop; init container hang-init has been running for 129s; the pod's main containers cannot start until it exits | Observed impact on: deployment/social-network/custom-service | Checks: deployment/social-network/custom-service shows symptoms of its own (supports)",
+     "o4": "None of these explanations fits the evidence.",
+     "o5": "Origin: deployment/social-network/custom-service. The fault is in this component; the mechanism is not established. | Observed impact on: deployment/social-network/custom-service",
+     "o6": "Origin: deployment/social-network/social-graph-service. The fault is in this component; the mechanism is not established. | Observed impact on: deployment/social-network/social-graph-service"
+    },
+    "instructions": {
+     "question": "Which explanation best accounts for all the observed symptoms in `evidence`?",
+     "how_to_decide": [
+      "Prefer the explanation whose chain is supported by the observed facts and explains the most symptoms; an explanation contradicted by a fact is unlikely.",
+      "A component that only fails because something it calls fails is a victim, not the origin.",
+      "Choose `o4` when none of the explanations fits the evidence."
+     ]
+    }
+   }
+  },
+  "model": "typesafe/jev-1.13-20260917",
+  "latency_ms": 519,
+  "usage": {
+   "input_tokens": 1767,
+   "output_tokens": 69,
+   "cost": 7.4214e-05
+  },
+  "answers": {
+   "best_explanation": {
+    "type": "choice",
+    "choice": "o3",
+    "confidence": 0.68,
+    "probabilities": {
+     "o1": 0.16,
+     "o2": 0.05,
+     "o3": 0.73,
+     "o4": 0.05,
+     "o5": 0.01,
+     "o6": 0.0
+    }
+   }
+  }
+ }
+]

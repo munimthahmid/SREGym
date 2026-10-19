@@ -1,0 +1,278 @@
+{
+ "problem_id": "search_rate_retry_collapse_hotel_reservation",
+ "source": "lite5_search_rate_retry_collapse_hotel_reservation",
+ "replay": true,
+ "arms": [
+  {
+   "arm": 0,
+   "kind": "v2",
+   "model": "typesafe/jev-1.13",
+   "position": 0,
+   "seconds": 2.0,
+   "requests": 2,
+   "input_tokens": 26490,
+   "error": null,
+   "model_failed": false,
+   "component": "deployment/rate",
+   "investigation": {
+    "steps": [
+     {
+      "step": 1,
+      "node": "investigate",
+      "component": "deployment/rate",
+      "verdict": "origin",
+      "origin_p": 0.81,
+      "victim_p": 0.05,
+      "next": "none",
+      "next_p": 0.37,
+      "category": "data_or_traffic",
+      "spec_checks": [],
+      "blocked_input": null,
+      "key_evidence": "calls from search to rate time out (68 lines, still occurring) while rate shows no failure of its own; search's call settings for it: RATE_RPC_TIMEOUT_MS=750, RATE_RPC_MAX_ATTEMPTS=3, RATE_RPC_INITIAL_BACKOFF_MS=50, RATE_RPC_BACKOFF_MULTIPLIER=2.0; rate's capacity settings: RATE_BACKEND_QPS_LIMIT=20, RATE_QUEUE_CAPACITY=256; search retries a timed-out call (RATE_RPC_MAX_ATTEMPTS=3), adding requests to rate, which caps its throughput (RATE_BACKEND_QPS_LIMIT=20)"
+     }
+    ],
+    "concluded": "deployment/rate",
+    "fallback": null,
+    "triage_top": [
+     [
+      "deployment/rate",
+      0.97
+     ],
+     [
+      "deployment/consul",
+      0.02
+     ],
+     [
+      "deployment/search",
+      0.01
+     ],
+     [
+      "deployment/frontend",
+      0.0
+     ],
+     [
+      "deployment/geo",
+      0.0
+     ]
+    ],
+    "second": null
+   },
+   "text": "Root cause: the call path from Deployment `search` to Deployment `rate` in namespace `hotel-reservation`: calls from search to rate time out (68 lines, still occurring) while rate shows no failure of its own; search's call settings for it: RATE_RPC_TIMEOUT_MS=750, RATE_RPC_MAX_ATTEMPTS=3, RATE_RPC_INITIAL_BACKOFF_MS=50, RATE_RPC_BACKOFF_MULTIPLIER=2.0; rate's capacity settings: RATE_BACKEND_QPS_LIMIT=20, RATE_QUEUE_CAPACITY=256; search retries a timed-out call (RATE_RPC_MAX_ATTEMPTS=3), adding requests to rate, which caps its throughput (RATE_BACKEND_QPS_LIMIT=20).\nMechanism: search logs \"WRN services/search/server.go:252 > downstream request failed dependency=rate grpc_code=DeadlineExceeded\".\nEffect: its callers see connectivity or timeout (68 lines).\nAffected (symptoms only, not causes): Deployment `search` in namespace `hotel-reservation`: connectivity or timeout calling it (68 lines, still occurring).",
+   "grade": {
+    "judgment": "True",
+    "reasoning": "Verdict: True (composite=0.89). D1 Fault Localization: 1.00 | D2 Fault Characterization: 0.67 | D3 Scope Precision: 1.00. Weakest dimension: Fault Characterization (0.67). Checklist details: [{\"id\": \"D1-Q1\", \"answer\": \"Yes\", \"evidence\": \"Identifies the search-to-rate call path in namespace hotel-reservation as the root cause.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q2\", \"answer\": \"Yes\", \"evidence\": \"Locates the cause in the search-to-rate call path and explicitly labels caller-facing search timeouts as symptoms only.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q3\", \"answer\": \"Yes\", \"evidence\": \"Names the specified RPC path and states that rate shows no failure of its own.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q1\", \"answer\": \"No\", \"evidence\": \"Describes retries adding requests, but omits the transient burst, queue saturation, expired calls retaining capacity, and amplification persisting after traffic normalizes.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q2\", \"answer\": \"Yes\", \"evidence\": \"Specifies RATE_RPC_MAX_ATTEMPTS=3 and RATE_RPC_TIMEOUT_MS=750, matching the three-attempt policy with a short per-attempt deadline.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q3\", \"answer\": \"Yes\", \"evidence\": \"Attributes failures to RPC timeouts, retries adding downstream requests, and bounded throughput; it does not assert an unrelated fault type.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q1\", \"answer\": \"Yes\", \"evidence\": \"Attributes the fault only to the search-to-rate path, search retry settings, and rate capacity settings.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q2\", \"answer\": \"Yes\", \"evidence\": \"Includes both search and rate, the services contributing to the ground-truth fault.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q3\", \"answer\": \"Yes\", \"evidence\": \"Reports ongoing search-to-rate timeouts and logs dependency=rate grpc_code=DeadlineExceeded, consistent with calls exceeding their deadlines.\", \"confidence\": \"High\"}]",
+    "success": true,
+    "accuracy": 89.0,
+    "composite_score": 0.89,
+    "dimensions": {
+     "D1": {
+      "name": "Fault Localization",
+      "score": 1.0
+     },
+     "D2": {
+      "name": "Fault Characterization",
+      "score": 0.67
+     },
+     "D3": {
+      "name": "Scope Precision",
+      "score": 1.0
+     }
+    },
+    "checklist": [
+     {
+      "id": "D1-Q1",
+      "answer": "Yes",
+      "evidence": "Identifies the search-to-rate call path in namespace hotel-reservation as the root cause.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q2",
+      "answer": "Yes",
+      "evidence": "Locates the cause in the search-to-rate call path and explicitly labels caller-facing search timeouts as symptoms only.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q3",
+      "answer": "Yes",
+      "evidence": "Names the specified RPC path and states that rate shows no failure of its own.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q1",
+      "answer": "No",
+      "evidence": "Describes retries adding requests, but omits the transient burst, queue saturation, expired calls retaining capacity, and amplification persisting after traffic normalizes.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q2",
+      "answer": "Yes",
+      "evidence": "Specifies RATE_RPC_MAX_ATTEMPTS=3 and RATE_RPC_TIMEOUT_MS=750, matching the three-attempt policy with a short per-attempt deadline.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q3",
+      "answer": "Yes",
+      "evidence": "Attributes failures to RPC timeouts, retries adding downstream requests, and bounded throughput; it does not assert an unrelated fault type.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q1",
+      "answer": "Yes",
+      "evidence": "Attributes the fault only to the search-to-rate path, search retry settings, and rate capacity settings.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q2",
+      "answer": "Yes",
+      "evidence": "Includes both search and rate, the services contributing to the ground-truth fault.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q3",
+      "answer": "Yes",
+      "evidence": "Reports ongoing search-to-rate timeouts and logs dependency=rate grpc_code=DeadlineExceeded, consistent with calls exceeding their deadlines.",
+      "confidence": "High"
+     }
+    ]
+   }
+  },
+  {
+   "arm": 1,
+   "kind": "v2",
+   "model": "openai/gpt-6-luna-decisions",
+   "position": 1,
+   "seconds": 2.9,
+   "requests": 3,
+   "input_tokens": 30066,
+   "error": null,
+   "model_failed": false,
+   "component": "deployment/rate",
+   "investigation": {
+    "steps": [
+     {
+      "step": 1,
+      "node": "investigate",
+      "component": "deployment/rate",
+      "verdict": "origin",
+      "origin_p": 0.78,
+      "victim_p": 0.14,
+      "next": "deployment/search",
+      "next_p": 0.91,
+      "category": "data_or_traffic",
+      "spec_checks": [],
+      "blocked_input": null,
+      "key_evidence": "calls from search to rate time out (68 lines, still occurring) while rate shows no failure of its own; search's call settings for it: RATE_RPC_TIMEOUT_MS=750, RATE_RPC_MAX_ATTEMPTS=3, RATE_RPC_INITIAL_BACKOFF_MS=50, RATE_RPC_BACKOFF_MULTIPLIER=2.0; rate's capacity settings: RATE_BACKEND_QPS_LIMIT=20, RATE_QUEUE_CAPACITY=256; search retries a timed-out call (RATE_RPC_MAX_ATTEMPTS=3), adding requests to rate, which caps its throughput (RATE_BACKEND_QPS_LIMIT=20)"
+     }
+    ],
+    "concluded": "deployment/rate",
+    "fallback": null,
+    "triage_top": [
+     [
+      "deployment/rate",
+      0.91
+     ],
+     [
+      "deployment/search",
+      0.055
+     ],
+     [
+      "deployment/user",
+      0.01
+     ],
+     [
+      "deployment/consul",
+      0.005
+     ],
+     [
+      "deployment/mongodb-rate",
+      0.005
+     ]
+    ],
+    "second": null
+   },
+   "text": "Root cause: the call path from Deployment `search` to Deployment `rate` in namespace `hotel-reservation`: calls from search to rate time out (68 lines, still occurring) while rate shows no failure of its own; search's call settings for it: RATE_RPC_TIMEOUT_MS=750, RATE_RPC_MAX_ATTEMPTS=3, RATE_RPC_INITIAL_BACKOFF_MS=50, RATE_RPC_BACKOFF_MULTIPLIER=2.0; rate's capacity settings: RATE_BACKEND_QPS_LIMIT=20, RATE_QUEUE_CAPACITY=256; search retries a timed-out call (RATE_RPC_MAX_ATTEMPTS=3), adding requests to rate, which caps its throughput (RATE_BACKEND_QPS_LIMIT=20).\nMechanism: search logs \"WRN services/search/server.go:252 > downstream request failed dependency=rate grpc_code=DeadlineExceeded\".\nEffect: its callers see connectivity or timeout (68 lines).\nAffected (symptoms only, not causes): Deployment `search` in namespace `hotel-reservation`: connectivity or timeout calling it (68 lines, still occurring).",
+   "grade": {
+    "judgment": "True",
+    "reasoning": "Verdict: True (composite=0.89). D1 Fault Localization: 1.00 | D2 Fault Characterization: 0.67 | D3 Scope Precision: 1.00. Weakest dimension: Fault Characterization (0.67). Checklist details: [{\"id\": \"D1-Q1\", \"answer\": \"Yes\", \"evidence\": \"Identifies the search-to-rate call path in namespace hotel-reservation as the root cause.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q2\", \"answer\": \"Yes\", \"evidence\": \"Locates the cause in the search-to-rate call path and explicitly labels caller-facing search timeouts as symptoms only.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q3\", \"answer\": \"Yes\", \"evidence\": \"Names the specified RPC path and states that rate shows no failure of its own.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q1\", \"answer\": \"No\", \"evidence\": \"Describes retries adding requests, but omits the transient burst, queue saturation, expired calls retaining capacity, and amplification persisting after traffic normalizes.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q2\", \"answer\": \"Yes\", \"evidence\": \"Specifies RATE_RPC_MAX_ATTEMPTS=3 and RATE_RPC_TIMEOUT_MS=750, matching the three-attempt policy with a short per-attempt deadline.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q3\", \"answer\": \"Yes\", \"evidence\": \"Attributes failures to RPC timeouts, retries adding downstream requests, and bounded throughput; it does not assert an unrelated fault type.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q1\", \"answer\": \"Yes\", \"evidence\": \"Attributes the fault only to the search-to-rate path, search retry settings, and rate capacity settings.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q2\", \"answer\": \"Yes\", \"evidence\": \"Includes both search and rate, the services contributing to the ground-truth fault.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q3\", \"answer\": \"Yes\", \"evidence\": \"Reports ongoing search-to-rate timeouts and logs dependency=rate grpc_code=DeadlineExceeded, consistent with calls exceeding their deadlines.\", \"confidence\": \"High\"}]",
+    "success": true,
+    "accuracy": 89.0,
+    "composite_score": 0.89,
+    "dimensions": {
+     "D1": {
+      "name": "Fault Localization",
+      "score": 1.0
+     },
+     "D2": {
+      "name": "Fault Characterization",
+      "score": 0.67
+     },
+     "D3": {
+      "name": "Scope Precision",
+      "score": 1.0
+     }
+    },
+    "checklist": [
+     {
+      "id": "D1-Q1",
+      "answer": "Yes",
+      "evidence": "Identifies the search-to-rate call path in namespace hotel-reservation as the root cause.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q2",
+      "answer": "Yes",
+      "evidence": "Locates the cause in the search-to-rate call path and explicitly labels caller-facing search timeouts as symptoms only.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q3",
+      "answer": "Yes",
+      "evidence": "Names the specified RPC path and states that rate shows no failure of its own.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q1",
+      "answer": "No",
+      "evidence": "Describes retries adding requests, but omits the transient burst, queue saturation, expired calls retaining capacity, and amplification persisting after traffic normalizes.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q2",
+      "answer": "Yes",
+      "evidence": "Specifies RATE_RPC_MAX_ATTEMPTS=3 and RATE_RPC_TIMEOUT_MS=750, matching the three-attempt policy with a short per-attempt deadline.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q3",
+      "answer": "Yes",
+      "evidence": "Attributes failures to RPC timeouts, retries adding downstream requests, and bounded throughput; it does not assert an unrelated fault type.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q1",
+      "answer": "Yes",
+      "evidence": "Attributes the fault only to the search-to-rate path, search retry settings, and rate capacity settings.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q2",
+      "answer": "Yes",
+      "evidence": "Includes both search and rate, the services contributing to the ground-truth fault.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q3",
+      "answer": "Yes",
+      "evidence": "Reports ongoing search-to-rate timeouts and logs dependency=rate grpc_code=DeadlineExceeded, consistent with calls exceeding their deadlines.",
+      "confidence": "High"
+     }
+    ]
+   }
+  }
+ ],
+ "judge": {
+  "model": "gpt-6-astra",
+  "backend": "codex",
+  "effort": "high"
+ }
+}

@@ -1,0 +1,522 @@
+{
+ "problem_id": "jev_diag_anon_c7c70413d3acdd21dc40a8ecbd9c2d73_20261018_171632",
+ "submit_arm": 0,
+ "order": [
+  1,
+  2,
+  3,
+  0
+ ],
+ "arms": [
+  {
+   "arm": 0,
+   "kind": "v2",
+   "model": "openrouter/typesafe/jev-1.13",
+   "position": 3,
+   "seconds": 1.0,
+   "requests": 2,
+   "input_tokens": 3534,
+   "cost_usd": 0.000148,
+   "error": null,
+   "investigation": {
+    "rounds": [
+     {
+      "candidates": [
+       "change:deployment/custom-service:template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-18T23:16:25+06:00",
+       "own-setting:deployment/custom-service",
+       "partial:deployment/custom-service",
+       "partial:deployment/social-graph-service",
+       "acts-on:configmap/kube-system/coredns:ConfigMap coredns was modified 1251s ago, 29766s after it wa"
+      ],
+      "probabilities": {
+       "change:deployment/custom-service:template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-18T23:16:25+06:00": 0.04,
+       "own-setting:deployment/custom-service": 0.735,
+       "partial:deployment/custom-service": 0.02,
+       "partial:deployment/social-graph-service": 0.0,
+       "acts-on:configmap/kube-system/coredns:ConfigMap coredns was modified 1251s ago, 29766s after it wa": 0.15000000000000002,
+       "none_of_these": 0.055
+      },
+      "picks": [
+       "own-setting:deployment/custom-service",
+       "own-setting:deployment/custom-service"
+      ],
+      "route": "accept"
+     }
+    ],
+    "explanations": 5,
+    "winner": "own-setting:deployment/custom-service",
+    "pattern": "own-setting",
+    "uncertain": false
+   },
+   "text": "Root cause: deployment `custom-service` in namespace `social-network`.\nMechanism: deployment/social-network/custom-service has a wrong setting of its own: rolling update allows maxUnavailable=100% and maxSurge=0% for 3 replicas: all pods may go down at once; no replacement pod is started before the old ones stop; init container hang-init has been running for 129s; the pod's main containers cannot start until it exits\nConcrete details: rolling update allows maxUnavailable=100% and maxSurge=0% for 3 replicas: all pods may go down at once; no replacement pod is started before the old ones stop; init container hang-init has been running for 129s; the pod's main containers cannot start until it exits.\nObserved impact: deployment `custom-service` in namespace `social-network`.\nEvidence:\n- rolling update allows maxUnavailable=100% and maxSurge=0% for 3 replicas: all pods may go down at once; no replacement pod is started before the old ones stop\n- init container hang-init has been running for 129s; the pod's main containers cannot start until it exits\n- only 0 of 3 desired replicas are ready\n- pod custom-service-745756b47-2rpnb: pod phase Pending\n- deployment/custom-service: rolling update allows maxUnavailable=100% and maxSurge=0% for 3 replicas: all pods may go down at once; no replacement pod is started before the old ones stop",
+   "grade": {
+    "judgment": "True",
+    "reasoning": "Verdict: True (composite=1.00). D1 Fault Localization: 1.00 | D2 Fault Characterization: 1.00 | D3 Scope Precision: 1.00. Weakest dimension: Fault Localization (1.00). Checklist details: [{\"id\": \"D1-Q1\", \"answer\": \"Yes\", \"evidence\": \"Diagnosis explicitly identifies deployment custom-service in namespace social-network as the root cause, matching the fault specification.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q2\", \"answer\": \"Yes\", \"evidence\": \"Diagnosis attributes the fault to custom-service's own rollout settings and hanging init container, rather than a downstream victim.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q3\", \"answer\": \"Yes\", \"evidence\": \"Only the specified custom-service deployment is identified as the fault origin.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q1\", \"answer\": \"Yes\", \"evidence\": \"Diagnosis describes a rolling update permitting all replicas to stop while a hanging init container prevents replacement containers from starting.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q2\", \"answer\": \"Yes\", \"evidence\": \"Diagnosis specifies maxUnavailable=100% and maxSurge=0%, matching the ground-truth values, and identifies the hanging init container.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q3\", \"answer\": \"Yes\", \"evidence\": \"The attributed fault combines unsafe rollout settings with an init container hang, consistent with the ground truth.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q1\", \"answer\": \"Yes\", \"evidence\": \"Diagnosis confines blame to custom-service's rollout configuration and its init container; no unrelated components are blamed.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q2\", \"answer\": \"Yes\", \"evidence\": \"Diagnosis includes the custom-service deployment, old and replacement pods, and the hanging init container described in the ground truth.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q3\", \"answer\": \"Yes\", \"evidence\": \"Diagnosis reports zero of three desired replicas ready and an init container running for 129 seconds, consistent with prolonged rollout unavailability.\", \"confidence\": \"High\"}]",
+    "success": true,
+    "accuracy": 100.0,
+    "composite_score": 1.0,
+    "dimensions": {
+     "D1": {
+      "name": "Fault Localization",
+      "score": 1.0
+     },
+     "D2": {
+      "name": "Fault Characterization",
+      "score": 1.0
+     },
+     "D3": {
+      "name": "Scope Precision",
+      "score": 1.0
+     }
+    },
+    "checklist": [
+     {
+      "id": "D1-Q1",
+      "answer": "Yes",
+      "evidence": "Diagnosis explicitly identifies deployment custom-service in namespace social-network as the root cause, matching the fault specification.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q2",
+      "answer": "Yes",
+      "evidence": "Diagnosis attributes the fault to custom-service's own rollout settings and hanging init container, rather than a downstream victim.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q3",
+      "answer": "Yes",
+      "evidence": "Only the specified custom-service deployment is identified as the fault origin.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q1",
+      "answer": "Yes",
+      "evidence": "Diagnosis describes a rolling update permitting all replicas to stop while a hanging init container prevents replacement containers from starting.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q2",
+      "answer": "Yes",
+      "evidence": "Diagnosis specifies maxUnavailable=100% and maxSurge=0%, matching the ground-truth values, and identifies the hanging init container.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q3",
+      "answer": "Yes",
+      "evidence": "The attributed fault combines unsafe rollout settings with an init container hang, consistent with the ground truth.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q1",
+      "answer": "Yes",
+      "evidence": "Diagnosis confines blame to custom-service's rollout configuration and its init container; no unrelated components are blamed.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q2",
+      "answer": "Yes",
+      "evidence": "Diagnosis includes the custom-service deployment, old and replacement pods, and the hanging init container described in the ground truth.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q3",
+      "answer": "Yes",
+      "evidence": "Diagnosis reports zero of three desired replicas ready and an init container running for 129 seconds, consistent with prolonged rollout unavailability.",
+      "confidence": "High"
+     }
+    ]
+   }
+  },
+  {
+   "arm": 1,
+   "kind": "v2",
+   "model": "openrouter/openai/gpt-6-luna-decisions",
+   "position": 0,
+   "seconds": 1.6,
+   "requests": 2,
+   "input_tokens": 2450,
+   "cost_usd": 0.000245,
+   "error": null,
+   "investigation": {
+    "rounds": [
+     {
+      "candidates": [
+       "change:deployment/custom-service:template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-18T23:16:25+06:00",
+       "own-setting:deployment/custom-service",
+       "partial:deployment/custom-service",
+       "partial:deployment/social-graph-service",
+       "acts-on:configmap/kube-system/coredns:ConfigMap coredns was modified 1251s ago, 29766s after it wa"
+      ],
+      "probabilities": {
+       "change:deployment/custom-service:template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-18T23:16:25+06:00": 0.145,
+       "own-setting:deployment/custom-service": 0.6699999999999999,
+       "partial:deployment/custom-service": 0.08499999999999999,
+       "partial:deployment/social-graph-service": 0.02,
+       "acts-on:configmap/kube-system/coredns:ConfigMap coredns was modified 1251s ago, 29766s after it wa": 0.035,
+       "none_of_these": 0.045
+      },
+      "picks": [
+       "own-setting:deployment/custom-service",
+       "own-setting:deployment/custom-service"
+      ],
+      "route": "accept"
+     }
+    ],
+    "explanations": 5,
+    "winner": "own-setting:deployment/custom-service",
+    "pattern": "own-setting",
+    "uncertain": false
+   },
+   "text": "Root cause: deployment `custom-service` in namespace `social-network`.\nMechanism: deployment/social-network/custom-service has a wrong setting of its own: rolling update allows maxUnavailable=100% and maxSurge=0% for 3 replicas: all pods may go down at once; no replacement pod is started before the old ones stop; init container hang-init has been running for 129s; the pod's main containers cannot start until it exits\nConcrete details: rolling update allows maxUnavailable=100% and maxSurge=0% for 3 replicas: all pods may go down at once; no replacement pod is started before the old ones stop; init container hang-init has been running for 129s; the pod's main containers cannot start until it exits.\nObserved impact: deployment `custom-service` in namespace `social-network`.\nEvidence:\n- rolling update allows maxUnavailable=100% and maxSurge=0% for 3 replicas: all pods may go down at once; no replacement pod is started before the old ones stop\n- init container hang-init has been running for 129s; the pod's main containers cannot start until it exits\n- only 0 of 3 desired replicas are ready\n- pod custom-service-745756b47-2rpnb: pod phase Pending\n- deployment/custom-service: rolling update allows maxUnavailable=100% and maxSurge=0% for 3 replicas: all pods may go down at once; no replacement pod is started before the old ones stop",
+   "grade": {
+    "judgment": "True",
+    "reasoning": "Verdict: True (composite=1.00). D1 Fault Localization: 1.00 | D2 Fault Characterization: 1.00 | D3 Scope Precision: 1.00. Weakest dimension: Fault Localization (1.00). Checklist details: [{\"id\": \"D1-Q1\", \"answer\": \"Yes\", \"evidence\": \"Names deployment custom-service in namespace social-network as the root cause, matching the fault specification.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q2\", \"answer\": \"Yes\", \"evidence\": \"Attributes the fault to custom-service's own rollout configuration and init container, rather than a downstream victim.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q3\", \"answer\": \"Yes\", \"evidence\": \"Identifies only the specified custom-service deployment as the fault origin.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q1\", \"answer\": \"Yes\", \"evidence\": \"Describes a rolling update allowing all replicas to stop while a running init container prevents main containers from starting.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q2\", \"answer\": \"Yes\", \"evidence\": \"Explicitly specifies maxUnavailable=100%, maxSurge=0%, and init container hang-init running for 129 seconds.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q3\", \"answer\": \"Yes\", \"evidence\": \"Attributes the failure to rollout settings combined with a hanging init container, consistent with the ground truth.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q1\", \"answer\": \"Yes\", \"evidence\": \"Limits fault attribution to custom-service's rollout settings and init container; no unrelated components are blamed.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q2\", \"answer\": \"Yes\", \"evidence\": \"Includes the custom-service deployment in social-network and its blocking init container, covering the ground-truth components.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q3\", \"answer\": \"Yes\", \"evidence\": \"Reports zero of three desired replicas ready, a Pending pod, and main containers blocked by the init container, consistent with prolonged unavailability.\", \"confidence\": \"High\"}]",
+    "success": true,
+    "accuracy": 100.0,
+    "composite_score": 1.0,
+    "dimensions": {
+     "D1": {
+      "name": "Fault Localization",
+      "score": 1.0
+     },
+     "D2": {
+      "name": "Fault Characterization",
+      "score": 1.0
+     },
+     "D3": {
+      "name": "Scope Precision",
+      "score": 1.0
+     }
+    },
+    "checklist": [
+     {
+      "id": "D1-Q1",
+      "answer": "Yes",
+      "evidence": "Names deployment custom-service in namespace social-network as the root cause, matching the fault specification.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q2",
+      "answer": "Yes",
+      "evidence": "Attributes the fault to custom-service's own rollout configuration and init container, rather than a downstream victim.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q3",
+      "answer": "Yes",
+      "evidence": "Identifies only the specified custom-service deployment as the fault origin.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q1",
+      "answer": "Yes",
+      "evidence": "Describes a rolling update allowing all replicas to stop while a running init container prevents main containers from starting.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q2",
+      "answer": "Yes",
+      "evidence": "Explicitly specifies maxUnavailable=100%, maxSurge=0%, and init container hang-init running for 129 seconds.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q3",
+      "answer": "Yes",
+      "evidence": "Attributes the failure to rollout settings combined with a hanging init container, consistent with the ground truth.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q1",
+      "answer": "Yes",
+      "evidence": "Limits fault attribution to custom-service's rollout settings and init container; no unrelated components are blamed.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q2",
+      "answer": "Yes",
+      "evidence": "Includes the custom-service deployment in social-network and its blocking init container, covering the ground-truth components.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q3",
+      "answer": "Yes",
+      "evidence": "Reports zero of three desired replicas ready, a Pending pod, and main containers blocked by the init container, consistent with prolonged unavailability.",
+      "confidence": "High"
+     }
+    ]
+   }
+  },
+  {
+   "arm": 2,
+   "kind": "v1",
+   "model": "openrouter/typesafe/jev-1.13",
+   "position": 1,
+   "seconds": 3.1,
+   "requests": 2,
+   "input_tokens": 28033,
+   "cost_usd": 0.001177,
+   "error": null,
+   "investigation": {
+    "steps": [
+     {
+      "step": 1,
+      "node": "investigate",
+      "component": "deployment/custom-service",
+      "verdict": "origin",
+      "origin_p": 1.0,
+      "victim_p": 0.0,
+      "next": "none",
+      "next_p": 0.97,
+      "category": "config_value",
+      "spec_checks": [],
+      "blocked_input": null,
+      "key_evidence": "container hang-init command: /bin/sh -c sleep infinity"
+     }
+    ],
+    "concluded": "deployment/custom-service",
+    "fallback": null,
+    "triage_top": [
+     [
+      "deployment/custom-service",
+      0.8
+     ],
+     [
+      "other",
+      0.2
+     ],
+     [
+      "deployment/compose-post-service",
+      0.0
+     ],
+     [
+      "deployment/home-timeline-redis",
+      0.0
+     ],
+     [
+      "deployment/home-timeline-service",
+      0.0
+     ]
+    ]
+   },
+   "text": "Root cause component: Deployment `custom-service` in namespace `social-network`.\nMechanism: container hang-init command: /bin/sh -c sleep infinity.\nFault type: config value (a wrong, missing, or shadowed value in this component's own configuration).\nAbnormal state observed on this component:\n- rolling update allows maxUnavailable=100% and maxSurge=0% for 3 replicas: all pods may go down at once; no replacement pod is started before the old ones stop\n- only 0 of 3 desired replicas are ready\n- pod custom-service-745756b47-2rpnb: pod phase Pending\n- pod custom-service-745756b47-2rpnb: init container hang-init has been running for 129s; the pod's main containers cannot start until it exits\n- pod custom-service-745756b47-6wtxq: pod phase Pending\n- pod custom-service-745756b47-6wtxq: init container hang-init has been running for 129s; the pod's main containers cannot start until it exits\n- pod custom-service-745756b47-db7kv: pod phase Pending\n- pod custom-service-745756b47-db7kv: init container hang-init has been running for 129s; the pod's main containers cannot start until it exits\n- firing alert DeploymentNotReady\n- pod custom-service-745756b47-2rpnb is still in pod phase Pending after another 49s\n- pod custom-service-745756b47-6wtxq is still in pod phase Pending after another 49s\n- pod custom-service-745756b47-db7kv is still in pod phase Pending after another 49s\n- container hang-init: image busybox:1.36\n- container custom-service-main: image python:3.9-slim\nFiring alerts on this component: DeploymentNotReady.\nClassification: Jev (typesafe/jev-1.13-20260917) confirmed this origin at investigation step 1 with probability 1.00 (triage probability 0.80).",
+   "grade": {
+    "judgment": "True",
+    "reasoning": "Verdict: True (composite=1.00). D1 Fault Localization: 1.00 | D2 Fault Characterization: 1.00 | D3 Scope Precision: 1.00. Weakest dimension: Fault Localization (1.00). Checklist details: [{\"id\": \"D1-Q1\", \"answer\": \"Yes\", \"evidence\": \"Names Deployment custom-service in namespace social-network as the root cause component, matching the fault specification.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q2\", \"answer\": \"Yes\", \"evidence\": \"Identifies custom-service as the origin and describes its Pending pods as symptoms of the deployment's configuration.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q3\", \"answer\": \"Yes\", \"evidence\": \"Blames the specified custom-service deployment; no different or healthy component is identified as the origin.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q1\", \"answer\": \"Yes\", \"evidence\": \"Describes maxUnavailable=100% and maxSurge=0% combined with a hanging init container that prevents main containers from starting.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q2\", \"answer\": \"Yes\", \"evidence\": \"Explicitly reports maxUnavailable=100% and maxSurge=0%, matching the ground-truth rollout settings.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q3\", \"answer\": \"Yes\", \"evidence\": \"Classifies the fault as configuration and explains the unsafe rollout settings and init container hang, consistent with ground truth.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q1\", \"answer\": \"Yes\", \"evidence\": \"Attributes the fault only to custom-service's rollout configuration and init container; no uninvolved components are blamed.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q2\", \"answer\": \"Yes\", \"evidence\": \"Includes the custom-service deployment and its hanging init container, covering the components described in ground truth.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q3\", \"answer\": \"Yes\", \"evidence\": \"Reports zero of three replicas ready, all pods remaining Pending after another 49 seconds, and DeploymentNotReady, consistent with prolonged unavailability.\", \"confidence\": \"High\"}]",
+    "success": true,
+    "accuracy": 100.0,
+    "composite_score": 1.0,
+    "dimensions": {
+     "D1": {
+      "name": "Fault Localization",
+      "score": 1.0
+     },
+     "D2": {
+      "name": "Fault Characterization",
+      "score": 1.0
+     },
+     "D3": {
+      "name": "Scope Precision",
+      "score": 1.0
+     }
+    },
+    "checklist": [
+     {
+      "id": "D1-Q1",
+      "answer": "Yes",
+      "evidence": "Names Deployment custom-service in namespace social-network as the root cause component, matching the fault specification.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q2",
+      "answer": "Yes",
+      "evidence": "Identifies custom-service as the origin and describes its Pending pods as symptoms of the deployment's configuration.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q3",
+      "answer": "Yes",
+      "evidence": "Blames the specified custom-service deployment; no different or healthy component is identified as the origin.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q1",
+      "answer": "Yes",
+      "evidence": "Describes maxUnavailable=100% and maxSurge=0% combined with a hanging init container that prevents main containers from starting.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q2",
+      "answer": "Yes",
+      "evidence": "Explicitly reports maxUnavailable=100% and maxSurge=0%, matching the ground-truth rollout settings.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q3",
+      "answer": "Yes",
+      "evidence": "Classifies the fault as configuration and explains the unsafe rollout settings and init container hang, consistent with ground truth.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q1",
+      "answer": "Yes",
+      "evidence": "Attributes the fault only to custom-service's rollout configuration and init container; no uninvolved components are blamed.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q2",
+      "answer": "Yes",
+      "evidence": "Includes the custom-service deployment and its hanging init container, covering the components described in ground truth.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q3",
+      "answer": "Yes",
+      "evidence": "Reports zero of three replicas ready, all pods remaining Pending after another 49 seconds, and DeploymentNotReady, consistent with prolonged unavailability.",
+      "confidence": "High"
+     }
+    ]
+   }
+  },
+  {
+   "arm": 3,
+   "kind": "v1",
+   "model": "openrouter/openai/gpt-6-luna-decisions",
+   "position": 2,
+   "seconds": 2.7,
+   "requests": 2,
+   "input_tokens": 19120,
+   "cost_usd": 0.001912,
+   "error": null,
+   "investigation": {
+    "steps": [
+     {
+      "step": 1,
+      "node": "investigate",
+      "component": "deployment/custom-service",
+      "verdict": "origin",
+      "origin_p": 0.96,
+      "victim_p": 0.02,
+      "next": "none",
+      "next_p": 0.98,
+      "category": "config_value",
+      "spec_checks": [],
+      "blocked_input": null,
+      "key_evidence": "container hang-init command: /bin/sh -c sleep infinity"
+     }
+    ],
+    "concluded": "deployment/custom-service",
+    "fallback": null,
+    "triage_top": [
+     [
+      "deployment/custom-service",
+      0.95
+     ],
+     [
+      "other",
+      0.02
+     ],
+     [
+      "deployment/compose-post-service",
+      0.01
+     ],
+     [
+      "deployment/social-graph-service",
+      0.01
+     ],
+     [
+      "deployment/user-timeline-service",
+      0.01
+     ]
+    ]
+   },
+   "text": "Root cause component: Deployment `custom-service` in namespace `social-network`.\nMechanism: container hang-init command: /bin/sh -c sleep infinity.\nFault type: config value (a wrong, missing, or shadowed value in this component's own configuration).\nAbnormal state observed on this component:\n- rolling update allows maxUnavailable=100% and maxSurge=0% for 3 replicas: all pods may go down at once; no replacement pod is started before the old ones stop\n- only 0 of 3 desired replicas are ready\n- pod custom-service-745756b47-2rpnb: pod phase Pending\n- pod custom-service-745756b47-2rpnb: init container hang-init has been running for 129s; the pod's main containers cannot start until it exits\n- pod custom-service-745756b47-6wtxq: pod phase Pending\n- pod custom-service-745756b47-6wtxq: init container hang-init has been running for 129s; the pod's main containers cannot start until it exits\n- pod custom-service-745756b47-db7kv: pod phase Pending\n- pod custom-service-745756b47-db7kv: init container hang-init has been running for 129s; the pod's main containers cannot start until it exits\n- firing alert DeploymentNotReady\n- pod custom-service-745756b47-2rpnb is still in pod phase Pending after another 49s\n- pod custom-service-745756b47-6wtxq is still in pod phase Pending after another 49s\n- pod custom-service-745756b47-db7kv is still in pod phase Pending after another 49s\n- container hang-init: image busybox:1.36\n- container custom-service-main: image python:3.9-slim\nFiring alerts on this component: DeploymentNotReady.\nClassification: Jev (openai/gpt-6-luna-decisions-20261006) confirmed this origin at investigation step 1 with probability 0.96 (triage probability 0.95).",
+   "grade": {
+    "judgment": "True",
+    "reasoning": "Verdict: True (composite=1.00). D1 Fault Localization: 1.00 | D2 Fault Characterization: 1.00 | D3 Scope Precision: 1.00. Weakest dimension: Fault Localization (1.00). Checklist details: [{\"id\": \"D1-Q1\", \"answer\": \"Yes\", \"evidence\": \"The diagnosis explicitly identifies Deployment custom-service in namespace social-network as the root cause component.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q2\", \"answer\": \"Yes\", \"evidence\": \"The diagnosis locates the origin in custom-service's rollout configuration and hanging init container; pending pods are described as symptoms.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q3\", \"answer\": \"Yes\", \"evidence\": \"Only the ground-truth deployment custom-service is identified as the fault origin.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q1\", \"answer\": \"Yes\", \"evidence\": \"The diagnosis describes maxUnavailable=100% and maxSurge=0% combined with a hanging init container that prevents main containers from starting.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q2\", \"answer\": \"Yes\", \"evidence\": \"The diagnosis specifies maxUnavailable=100% and maxSurge=0%, matching the ground-truth rollout values.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q3\", \"answer\": \"Yes\", \"evidence\": \"The diagnosis identifies a configuration fault involving rollout settings and a hanging init container, consistent with ground truth.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q1\", \"answer\": \"Yes\", \"evidence\": \"The diagnosis attributes the fault solely to custom-service's configuration and init container, without blaming unrelated components.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q2\", \"answer\": \"Yes\", \"evidence\": \"The diagnosis includes Deployment custom-service in social-network and its hanging init container, covering the ground-truth contributing component.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q3\", \"answer\": \"Yes\", \"evidence\": \"The diagnosis reports zero of three replicas ready, persistent Pending pods, and DeploymentNotReady, consistent with a stuck rollout and prolonged unavailability.\", \"confidence\": \"High\"}]",
+    "success": true,
+    "accuracy": 100.0,
+    "composite_score": 1.0,
+    "dimensions": {
+     "D1": {
+      "name": "Fault Localization",
+      "score": 1.0
+     },
+     "D2": {
+      "name": "Fault Characterization",
+      "score": 1.0
+     },
+     "D3": {
+      "name": "Scope Precision",
+      "score": 1.0
+     }
+    },
+    "checklist": [
+     {
+      "id": "D1-Q1",
+      "answer": "Yes",
+      "evidence": "The diagnosis explicitly identifies Deployment custom-service in namespace social-network as the root cause component.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q2",
+      "answer": "Yes",
+      "evidence": "The diagnosis locates the origin in custom-service's rollout configuration and hanging init container; pending pods are described as symptoms.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q3",
+      "answer": "Yes",
+      "evidence": "Only the ground-truth deployment custom-service is identified as the fault origin.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q1",
+      "answer": "Yes",
+      "evidence": "The diagnosis describes maxUnavailable=100% and maxSurge=0% combined with a hanging init container that prevents main containers from starting.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q2",
+      "answer": "Yes",
+      "evidence": "The diagnosis specifies maxUnavailable=100% and maxSurge=0%, matching the ground-truth rollout values.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q3",
+      "answer": "Yes",
+      "evidence": "The diagnosis identifies a configuration fault involving rollout settings and a hanging init container, consistent with ground truth.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q1",
+      "answer": "Yes",
+      "evidence": "The diagnosis attributes the fault solely to custom-service's configuration and init container, without blaming unrelated components.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q2",
+      "answer": "Yes",
+      "evidence": "The diagnosis includes Deployment custom-service in social-network and its hanging init container, covering the ground-truth contributing component.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q3",
+      "answer": "Yes",
+      "evidence": "The diagnosis reports zero of three replicas ready, persistent Pending pods, and DeploymentNotReady, consistent with a stuck rollout and prolonged unavailability.",
+      "confidence": "High"
+     }
+    ]
+   }
+  }
+ ],
+ "submission": {
+  "status": "200",
+  "message": "Submission received",
+  "stage": "diagnosis"
+ },
+ "judge": {
+  "model": "gpt-6-astra",
+  "backend": "codex",
+  "effort": "high"
+ }
+}

@@ -1,0 +1,3158 @@
+{
+ "problem_id": "update_incompatible_correlated",
+ "source": "tgt_update_incompatible_correlated",
+ "replay": true,
+ "arms": [
+  {
+   "arm": 0,
+   "kind": "v2",
+   "model": "typesafe/jev-1.13",
+   "position": 0,
+   "seconds": 2.5,
+   "requests": 3,
+   "input_tokens": 60238,
+   "error": null,
+   "model_failed": false,
+   "component": "deployment/mongodb-geo",
+   "investigation": {
+    "steps": [
+     {
+      "step": 1,
+      "node": "investigate",
+      "component": "deployment/mongodb-geo",
+      "verdict": "origin",
+      "origin_p": 1.0,
+      "victim_p": 0.0,
+      "next": "none",
+      "next_p": 0.93,
+      "category": "image_or_binary",
+      "spec_checks": [
+       "service mongodb-geo has no ready endpoints"
+      ],
+      "blocked_input": null,
+      "key_evidence": "log x1 (ongoing, last seen 0s ago): hotel-reserv-geo-mongo: {\"t\":{\"$date\":\"2026-10-19T08:00:12.940+00:00\"},\"s\":\"F\", \"c\":\"CONTROL\", \"id\":20573, \"ctx\":\"initandlisten\",\"msg\":\"Wrong mongod version\",\"attr\":{\"error\":\"UPGRADE PROBLEM: Found an invalid featureCompatibilityVersion do\u2026"
+     }
+    ],
+    "concluded": "deployment/mongodb-geo",
+    "fallback": null,
+    "triage_top": [
+     [
+      "deployment/mongodb-geo",
+      0.865
+     ],
+     [
+      "deployment/mongodb-user",
+      0.065
+     ],
+     [
+      "deployment/rate",
+      0.055
+     ],
+     [
+      "deployment/mongodb-rate",
+      0.01
+     ],
+     [
+      "deployment/geo",
+      0.005
+     ]
+    ],
+    "second": null
+   },
+   "text": "Root cause: Deployments `mongodb-geo`, `mongodb-profile`, `mongodb-rate`, `mongodb-recommendation`, `mongodb-reservation`, `mongodb-user` in namespace `hotel-reservation` (the same change on 6): log x1 (ongoing, last seen 0s ago): hotel-reserv-geo-mongo: {\"t\":{\"$date\":\"2026-10-19T08:00:12.940+00:00\"},\"s\":\"F\", \"c\":\"CONTROL\", \"id\":20573, \"ctx\":\"initandlisten\",\"msg\":\"Wrong mongod version\",\"attr\":{\"error\":\"UPGRADE PROBLEM: Found an invalid featureCompatibilityVersion do\u2026.\nMechanism: the component logs \"We suggest setting the contents of sysfsFile to 0\".\nDetails: container hotel-reserv-geo-mongo image: mongo:4.4.6 -> mongo:8.0.14-rc0; service mongodb-geo has no ready endpoints.\nEffect: only 0 of 1 desired replicas are ready; pod mongodb-geo-7db569d69-nwrhf: container hotel-reserv-geo-mongo waiting in CrashLoopBackOff.\nObserved: pod mongodb-geo-7db569d69-nwrhf: container hotel-reserv-geo-mongo restarted 4 times; service mongodb-geo selects this component but has 0 ready endpoints; pod mongodb-geo-7db569d69-nwrhf: container hotel-reserv-geo-mongo restarted 1 more time(s) in the last 0s; warning event BackOff on pod/mongodb-geo-7db569d69-nwrhf repeated 4 more time(s) in the last 0s; warning events: BackOff x10.",
+   "grade": {
+    "judgment": "True",
+    "reasoning": "Verdict: True (composite=0.89). D1 Fault Localization: 1.00 | D2 Fault Characterization: 0.67 | D3 Scope Precision: 1.00. Weakest dimension: Fault Characterization (0.67). Checklist details: [{\"id\": \"D1-Q1\", \"answer\": \"Yes\", \"evidence\": \"Names all six MongoDB deployments in namespace hotel-reservation, matching the fault specification.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q2\", \"answer\": \"Yes\", \"evidence\": \"Identifies the MongoDB deployments as the root cause and describes unavailable endpoints and pod crashes as effects.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q3\", \"answer\": \"Yes\", \"evidence\": \"All deployments identified as fault origins match the ground-truth targets; no healthy component is blamed.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q1\", \"answer\": \"Yes\", \"evidence\": \"Reports the upgrade from mongo:4.4.6 to mongo:8.0.14-rc0 alongside 'Wrong mongod version' and an invalid featureCompatibilityVersion error.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q2\", \"answer\": \"Yes\", \"evidence\": \"Explicitly identifies the incompatible image tag mongo:8.0.14-rc0 and states the same change affected all six deployments.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q3\", \"answer\": \"No\", \"evidence\": \"Labels a suggestion to set sysfsFile contents to 0 as the mechanism, introducing an unrelated explanation alongside the correct image-upgrade evidence.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q1\", \"answer\": \"Yes\", \"evidence\": \"Attributes the fault exclusively to the six MongoDB deployments listed in the ground truth.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q2\", \"answer\": \"Yes\", \"evidence\": \"Includes mongodb-geo, mongodb-profile, mongodb-rate, mongodb-recommendation, mongodb-reservation, and mongodb-user.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q3\", \"answer\": \"Yes\", \"evidence\": \"Reports version incompatibility, CrashLoopBackOff, zero ready replicas, and no ready database endpoints, consistent with database unavailability and persistence failures.\", \"confidence\": \"High\"}]",
+    "success": true,
+    "accuracy": 89.0,
+    "composite_score": 0.89,
+    "dimensions": {
+     "D1": {
+      "name": "Fault Localization",
+      "score": 1.0
+     },
+     "D2": {
+      "name": "Fault Characterization",
+      "score": 0.67
+     },
+     "D3": {
+      "name": "Scope Precision",
+      "score": 1.0
+     }
+    },
+    "checklist": [
+     {
+      "id": "D1-Q1",
+      "answer": "Yes",
+      "evidence": "Names all six MongoDB deployments in namespace hotel-reservation, matching the fault specification.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q2",
+      "answer": "Yes",
+      "evidence": "Identifies the MongoDB deployments as the root cause and describes unavailable endpoints and pod crashes as effects.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q3",
+      "answer": "Yes",
+      "evidence": "All deployments identified as fault origins match the ground-truth targets; no healthy component is blamed.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q1",
+      "answer": "Yes",
+      "evidence": "Reports the upgrade from mongo:4.4.6 to mongo:8.0.14-rc0 alongside 'Wrong mongod version' and an invalid featureCompatibilityVersion error.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q2",
+      "answer": "Yes",
+      "evidence": "Explicitly identifies the incompatible image tag mongo:8.0.14-rc0 and states the same change affected all six deployments.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q3",
+      "answer": "No",
+      "evidence": "Labels a suggestion to set sysfsFile contents to 0 as the mechanism, introducing an unrelated explanation alongside the correct image-upgrade evidence.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q1",
+      "answer": "Yes",
+      "evidence": "Attributes the fault exclusively to the six MongoDB deployments listed in the ground truth.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q2",
+      "answer": "Yes",
+      "evidence": "Includes mongodb-geo, mongodb-profile, mongodb-rate, mongodb-recommendation, mongodb-reservation, and mongodb-user.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q3",
+      "answer": "Yes",
+      "evidence": "Reports version incompatibility, CrashLoopBackOff, zero ready replicas, and no ready database endpoints, consistent with database unavailability and persistence failures.",
+      "confidence": "High"
+     }
+    ]
+   }
+  },
+  {
+   "arm": 1,
+   "kind": "v2",
+   "model": "openai/gpt-6-luna-decisions",
+   "position": 1,
+   "seconds": 3.0,
+   "requests": 5,
+   "input_tokens": 48420,
+   "error": null,
+   "model_failed": false,
+   "component": "deployment/mongodb-geo",
+   "investigation": {
+    "steps": [
+     {
+      "step": 1,
+      "node": "investigate",
+      "component": "deployment/mongodb-geo",
+      "verdict": "origin",
+      "origin_p": 0.95,
+      "victim_p": 0.03,
+      "next": "deployment/mongodb-user",
+      "next_p": 0.67,
+      "category": "image_or_binary",
+      "spec_checks": [
+       "service mongodb-geo has no ready endpoints"
+      ],
+      "blocked_input": null,
+      "key_evidence": "pod template changed in revision 3: container hotel-reserv-geo-mongo image: mongo:4.4.6 -> mongo:8.0.14-rc0"
+     },
+     {
+      "step": 2,
+      "node": "investigate",
+      "component": "deployment/mongodb-user",
+      "verdict": "origin",
+      "origin_p": 0.84,
+      "victim_p": 0.06,
+      "next": "deployment/mongodb-rate",
+      "next_p": 0.51,
+      "category": "image_or_binary",
+      "spec_checks": [
+       "service mongodb-user has no ready endpoints"
+      ],
+      "blocked_input": null,
+      "key_evidence": "pod template changed in revision 2: container hotel-reserv-user-mongo image: mongo:4.4.6 -> mongo:8.0.14-rc0"
+     }
+    ],
+    "concluded": "deployment/mongodb-geo",
+    "fallback": null,
+    "triage_top": [
+     [
+      "deployment/mongodb-geo",
+      0.47
+     ],
+     [
+      "deployment/mongodb-user",
+      0.33
+     ],
+     [
+      "deployment/mongodb-rate",
+      0.045
+     ],
+     [
+      "deployment/mongodb-reservation",
+      0.04
+     ],
+     [
+      "deployment/mongodb-profile",
+      0.035
+     ]
+    ],
+    "second": null
+   },
+   "text": "Root cause: Deployments `mongodb-geo`, `mongodb-profile`, `mongodb-rate`, `mongodb-recommendation`, `mongodb-reservation`, `mongodb-user` in namespace `hotel-reservation` (the same change on 6): pod template changed in revision 3: container hotel-reserv-geo-mongo image: mongo:4.4.6 -> mongo:8.0.14-rc0.\nMechanism: the component logs \"We suggest setting the contents of sysfsFile to 0\".\nDetails: container hotel-reserv-geo-mongo image: mongo:4.4.6 -> mongo:8.0.14-rc0; service mongodb-geo has no ready endpoints.\nEffect: only 0 of 1 desired replicas are ready; pod mongodb-geo-7db569d69-nwrhf: container hotel-reserv-geo-mongo waiting in CrashLoopBackOff.\nObserved: pod mongodb-geo-7db569d69-nwrhf: container hotel-reserv-geo-mongo restarted 4 times; service mongodb-geo selects this component but has 0 ready endpoints; pod mongodb-geo-7db569d69-nwrhf: container hotel-reserv-geo-mongo restarted 1 more time(s) in the last 0s; warning event BackOff on pod/mongodb-geo-7db569d69-nwrhf repeated 4 more time(s) in the last 0s; warning events: BackOff x10.",
+   "grade": {
+    "judgment": "True",
+    "reasoning": "Verdict: True (composite=0.89). D1 Fault Localization: 1.00 | D2 Fault Characterization: 0.67 | D3 Scope Precision: 1.00. Weakest dimension: Fault Characterization (0.67). Checklist details: [{\"id\": \"D1-Q1\", \"answer\": \"Yes\", \"evidence\": \"Names all six MongoDB deployments in namespace hotel-reservation, matching the fault specification.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q2\", \"answer\": \"Yes\", \"evidence\": \"Identifies the MongoDB deployment image changes as the root cause, rather than blaming downstream application services.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q3\", \"answer\": \"Yes\", \"evidence\": \"Every deployment identified as a fault origin appears in the ground-truth component list.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q1\", \"answer\": \"Yes\", \"evidence\": \"Identifies the image upgrade from mongo:4.4.6 to mongo:8.0.14-rc0 across the six deployments.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q2\", \"answer\": \"Yes\", \"evidence\": \"Explicitly names the mutated image tag mongo:8.0.14-rc0, matching ground truth.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q3\", \"answer\": \"No\", \"evidence\": \"Labels a sysfs setting recommendation as the mechanism, which does not explain the ground-truth database version incompatibility.\", \"confidence\": \"Medium\"}, {\"id\": \"D3-Q1\", \"answer\": \"Yes\", \"evidence\": \"Blames only the six MongoDB deployments specified in ground truth.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q2\", \"answer\": \"Yes\", \"evidence\": \"Includes mongodb-geo, mongodb-profile, mongodb-rate, mongodb-recommendation, mongodb-reservation, and mongodb-user.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q3\", \"answer\": \"Yes\", \"evidence\": \"Reports mongodb-geo in CrashLoopBackOff with zero ready replicas and endpoints, consistent with database runtime failure, although cross-service persistence failures are not described.\", \"confidence\": \"Medium\"}]",
+    "success": true,
+    "accuracy": 89.0,
+    "composite_score": 0.89,
+    "dimensions": {
+     "D1": {
+      "name": "Fault Localization",
+      "score": 1.0
+     },
+     "D2": {
+      "name": "Fault Characterization",
+      "score": 0.67
+     },
+     "D3": {
+      "name": "Scope Precision",
+      "score": 1.0
+     }
+    },
+    "checklist": [
+     {
+      "id": "D1-Q1",
+      "answer": "Yes",
+      "evidence": "Names all six MongoDB deployments in namespace hotel-reservation, matching the fault specification.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q2",
+      "answer": "Yes",
+      "evidence": "Identifies the MongoDB deployment image changes as the root cause, rather than blaming downstream application services.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q3",
+      "answer": "Yes",
+      "evidence": "Every deployment identified as a fault origin appears in the ground-truth component list.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q1",
+      "answer": "Yes",
+      "evidence": "Identifies the image upgrade from mongo:4.4.6 to mongo:8.0.14-rc0 across the six deployments.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q2",
+      "answer": "Yes",
+      "evidence": "Explicitly names the mutated image tag mongo:8.0.14-rc0, matching ground truth.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q3",
+      "answer": "No",
+      "evidence": "Labels a sysfs setting recommendation as the mechanism, which does not explain the ground-truth database version incompatibility.",
+      "confidence": "Medium"
+     },
+     {
+      "id": "D3-Q1",
+      "answer": "Yes",
+      "evidence": "Blames only the six MongoDB deployments specified in ground truth.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q2",
+      "answer": "Yes",
+      "evidence": "Includes mongodb-geo, mongodb-profile, mongodb-rate, mongodb-recommendation, mongodb-reservation, and mongodb-user.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q3",
+      "answer": "Yes",
+      "evidence": "Reports mongodb-geo in CrashLoopBackOff with zero ready replicas and endpoints, consistent with database runtime failure, although cross-service persistence failures are not described.",
+      "confidence": "Medium"
+     }
+    ]
+   }
+  },
+  {
+   "arm": 2,
+   "kind": "v2",
+   "model": "microsoft/microsoft-decision-1",
+   "position": 2,
+   "seconds": 3.1,
+   "requests": 3,
+   "input_tokens": 46229,
+   "error": null,
+   "model_failed": false,
+   "component": "deployment/mongodb-geo",
+   "investigation": {
+    "steps": [
+     {
+      "step": 1,
+      "node": "investigate",
+      "component": "deployment/mongodb-geo",
+      "verdict": "origin",
+      "origin_p": 0.9659,
+      "victim_p": 0.02,
+      "next": "deployment/geo",
+      "next_p": 0.5192,
+      "category": "image_or_binary",
+      "spec_checks": [
+       "service mongodb-geo has no ready endpoints"
+      ],
+      "blocked_input": null,
+      "key_evidence": "log x1 (ongoing, last seen 0s ago): hotel-reserv-geo-mongo: {\"t\":{\"$date\":\"2026-10-19T08:00:12.940+00:00\"},\"s\":\"F\", \"c\":\"CONTROL\", \"id\":20573, \"ctx\":\"initandlisten\",\"msg\":\"Wrong mongod version\",\"attr\":{\"error\":\"UPGRADE PROBLEM: Found an invalid featureCompatibilityVersion do\u2026"
+     }
+    ],
+    "concluded": "deployment/mongodb-geo",
+    "fallback": null,
+    "triage_top": [
+     [
+      "deployment/mongodb-geo",
+      0.8891
+     ],
+     [
+      "deployment/geo",
+      0.0937
+     ],
+     [
+      "deployment/rate",
+      0.0082
+     ],
+     [
+      "deployment/mongodb-rate",
+      0.0014
+     ],
+     [
+      "other",
+      0.0012
+     ]
+    ],
+    "second": null
+   },
+   "text": "Root cause: Deployments `mongodb-geo`, `mongodb-profile`, `mongodb-rate`, `mongodb-recommendation`, `mongodb-reservation`, `mongodb-user` in namespace `hotel-reservation` (the same change on 6): log x1 (ongoing, last seen 0s ago): hotel-reserv-geo-mongo: {\"t\":{\"$date\":\"2026-10-19T08:00:12.940+00:00\"},\"s\":\"F\", \"c\":\"CONTROL\", \"id\":20573, \"ctx\":\"initandlisten\",\"msg\":\"Wrong mongod version\",\"attr\":{\"error\":\"UPGRADE PROBLEM: Found an invalid featureCompatibilityVersion do\u2026.\nMechanism: the component logs \"We suggest setting the contents of sysfsFile to 0\".\nDetails: container hotel-reserv-geo-mongo image: mongo:4.4.6 -> mongo:8.0.14-rc0; service mongodb-geo has no ready endpoints.\nEffect: only 0 of 1 desired replicas are ready; pod mongodb-geo-7db569d69-nwrhf: container hotel-reserv-geo-mongo waiting in CrashLoopBackOff.\nObserved: pod mongodb-geo-7db569d69-nwrhf: container hotel-reserv-geo-mongo restarted 4 times; service mongodb-geo selects this component but has 0 ready endpoints; pod mongodb-geo-7db569d69-nwrhf: container hotel-reserv-geo-mongo restarted 1 more time(s) in the last 0s; warning event BackOff on pod/mongodb-geo-7db569d69-nwrhf repeated 4 more time(s) in the last 0s; warning events: BackOff x10.",
+   "grade": {
+    "judgment": "True",
+    "reasoning": "Verdict: True (composite=0.89). D1 Fault Localization: 1.00 | D2 Fault Characterization: 0.67 | D3 Scope Precision: 1.00. Weakest dimension: Fault Characterization (0.67). Checklist details: [{\"id\": \"D1-Q1\", \"answer\": \"Yes\", \"evidence\": \"Names all six MongoDB deployments in namespace hotel-reservation, matching the fault specification.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q2\", \"answer\": \"Yes\", \"evidence\": \"Identifies the MongoDB deployments as the root cause and describes unavailable endpoints and pod crashes as effects.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q3\", \"answer\": \"Yes\", \"evidence\": \"All deployments identified as fault origins match the ground-truth targets; no healthy component is blamed.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q1\", \"answer\": \"Yes\", \"evidence\": \"Reports the upgrade from mongo:4.4.6 to mongo:8.0.14-rc0 alongside 'Wrong mongod version' and an invalid featureCompatibilityVersion error.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q2\", \"answer\": \"Yes\", \"evidence\": \"Explicitly identifies the incompatible image tag mongo:8.0.14-rc0 and states the same change affected all six deployments.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q3\", \"answer\": \"No\", \"evidence\": \"Labels a suggestion to set sysfsFile contents to 0 as the mechanism, introducing an unrelated explanation alongside the correct image-upgrade evidence.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q1\", \"answer\": \"Yes\", \"evidence\": \"Attributes the fault exclusively to the six MongoDB deployments listed in the ground truth.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q2\", \"answer\": \"Yes\", \"evidence\": \"Includes mongodb-geo, mongodb-profile, mongodb-rate, mongodb-recommendation, mongodb-reservation, and mongodb-user.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q3\", \"answer\": \"Yes\", \"evidence\": \"Reports version incompatibility, CrashLoopBackOff, zero ready replicas, and no ready database endpoints, consistent with database unavailability and persistence failures.\", \"confidence\": \"High\"}]",
+    "success": true,
+    "accuracy": 89.0,
+    "composite_score": 0.89,
+    "dimensions": {
+     "D1": {
+      "name": "Fault Localization",
+      "score": 1.0
+     },
+     "D2": {
+      "name": "Fault Characterization",
+      "score": 0.67
+     },
+     "D3": {
+      "name": "Scope Precision",
+      "score": 1.0
+     }
+    },
+    "checklist": [
+     {
+      "id": "D1-Q1",
+      "answer": "Yes",
+      "evidence": "Names all six MongoDB deployments in namespace hotel-reservation, matching the fault specification.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q2",
+      "answer": "Yes",
+      "evidence": "Identifies the MongoDB deployments as the root cause and describes unavailable endpoints and pod crashes as effects.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q3",
+      "answer": "Yes",
+      "evidence": "All deployments identified as fault origins match the ground-truth targets; no healthy component is blamed.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q1",
+      "answer": "Yes",
+      "evidence": "Reports the upgrade from mongo:4.4.6 to mongo:8.0.14-rc0 alongside 'Wrong mongod version' and an invalid featureCompatibilityVersion error.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q2",
+      "answer": "Yes",
+      "evidence": "Explicitly identifies the incompatible image tag mongo:8.0.14-rc0 and states the same change affected all six deployments.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q3",
+      "answer": "No",
+      "evidence": "Labels a suggestion to set sysfsFile contents to 0 as the mechanism, introducing an unrelated explanation alongside the correct image-upgrade evidence.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q1",
+      "answer": "Yes",
+      "evidence": "Attributes the fault exclusively to the six MongoDB deployments listed in the ground truth.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q2",
+      "answer": "Yes",
+      "evidence": "Includes mongodb-geo, mongodb-profile, mongodb-rate, mongodb-recommendation, mongodb-reservation, and mongodb-user.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q3",
+      "answer": "Yes",
+      "evidence": "Reports version incompatibility, CrashLoopBackOff, zero ready replicas, and no ready database endpoints, consistent with database unavailability and persistence failures.",
+      "confidence": "High"
+     }
+    ]
+   }
+  },
+  {
+   "arm": 3,
+   "kind": "v2",
+   "model": "liquid/d1",
+   "position": 3,
+   "seconds": 3.1,
+   "requests": 2,
+   "input_tokens": 32972,
+   "error": null,
+   "model_failed": false,
+   "component": "deployment/mongodb-geo",
+   "investigation": {
+    "steps": [
+     {
+      "step": 1,
+      "node": "investigate",
+      "component": "deployment/mongodb-geo",
+      "verdict": "origin",
+      "origin_p": 0.9998,
+      "victim_p": 0.0001,
+      "next": "none",
+      "next_p": 0.9748,
+      "category": "image_or_binary",
+      "spec_checks": [
+       "service mongodb-geo has no ready endpoints"
+      ],
+      "blocked_input": null,
+      "key_evidence": "log x1 (ongoing, last seen 0s ago): hotel-reserv-geo-mongo: {\"t\":{\"$date\":\"2026-10-19T08:00:12.940+00:00\"},\"s\":\"F\", \"c\":\"CONTROL\", \"id\":20573, \"ctx\":\"initandlisten\",\"msg\":\"Wrong mongod version\",\"attr\":{\"error\":\"UPGRADE PROBLEM: Found an invalid featureCompatibilityVersion do\u2026"
+     }
+    ],
+    "concluded": "deployment/mongodb-geo",
+    "fallback": null,
+    "triage_top": [
+     [
+      "deployment/mongodb-geo",
+      0.9021
+     ],
+     [
+      "deployment/mongodb-user",
+      0.0329
+     ],
+     [
+      "deployment/mongodb-profile",
+      0.0309
+     ],
+     [
+      "deployment/rate",
+      0.0176
+     ],
+     [
+      "deployment/mongodb-rate",
+      0.0054
+     ]
+    ],
+    "second": null
+   },
+   "text": "Root cause: Deployments `mongodb-geo`, `mongodb-profile`, `mongodb-rate`, `mongodb-recommendation`, `mongodb-reservation`, `mongodb-user` in namespace `hotel-reservation` (the same change on 6): log x1 (ongoing, last seen 0s ago): hotel-reserv-geo-mongo: {\"t\":{\"$date\":\"2026-10-19T08:00:12.940+00:00\"},\"s\":\"F\", \"c\":\"CONTROL\", \"id\":20573, \"ctx\":\"initandlisten\",\"msg\":\"Wrong mongod version\",\"attr\":{\"error\":\"UPGRADE PROBLEM: Found an invalid featureCompatibilityVersion do\u2026.\nMechanism: the component logs \"We suggest setting the contents of sysfsFile to 0\".\nDetails: container hotel-reserv-geo-mongo image: mongo:4.4.6 -> mongo:8.0.14-rc0; service mongodb-geo has no ready endpoints.\nEffect: only 0 of 1 desired replicas are ready; pod mongodb-geo-7db569d69-nwrhf: container hotel-reserv-geo-mongo waiting in CrashLoopBackOff.\nObserved: pod mongodb-geo-7db569d69-nwrhf: container hotel-reserv-geo-mongo restarted 4 times; service mongodb-geo selects this component but has 0 ready endpoints; pod mongodb-geo-7db569d69-nwrhf: container hotel-reserv-geo-mongo restarted 1 more time(s) in the last 0s; warning event BackOff on pod/mongodb-geo-7db569d69-nwrhf repeated 4 more time(s) in the last 0s; warning events: BackOff x10.",
+   "grade": {
+    "judgment": "True",
+    "reasoning": "Verdict: True (composite=0.89). D1 Fault Localization: 1.00 | D2 Fault Characterization: 0.67 | D3 Scope Precision: 1.00. Weakest dimension: Fault Characterization (0.67). Checklist details: [{\"id\": \"D1-Q1\", \"answer\": \"Yes\", \"evidence\": \"Names all six MongoDB deployments in namespace hotel-reservation, matching the fault specification.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q2\", \"answer\": \"Yes\", \"evidence\": \"Identifies the MongoDB deployments as the root cause and describes unavailable endpoints and pod crashes as effects.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q3\", \"answer\": \"Yes\", \"evidence\": \"All deployments identified as fault origins match the ground-truth targets; no healthy component is blamed.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q1\", \"answer\": \"Yes\", \"evidence\": \"Reports the upgrade from mongo:4.4.6 to mongo:8.0.14-rc0 alongside 'Wrong mongod version' and an invalid featureCompatibilityVersion error.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q2\", \"answer\": \"Yes\", \"evidence\": \"Explicitly identifies the incompatible image tag mongo:8.0.14-rc0 and states the same change affected all six deployments.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q3\", \"answer\": \"No\", \"evidence\": \"Labels a suggestion to set sysfsFile contents to 0 as the mechanism, introducing an unrelated explanation alongside the correct image-upgrade evidence.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q1\", \"answer\": \"Yes\", \"evidence\": \"Attributes the fault exclusively to the six MongoDB deployments listed in the ground truth.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q2\", \"answer\": \"Yes\", \"evidence\": \"Includes mongodb-geo, mongodb-profile, mongodb-rate, mongodb-recommendation, mongodb-reservation, and mongodb-user.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q3\", \"answer\": \"Yes\", \"evidence\": \"Reports version incompatibility, CrashLoopBackOff, zero ready replicas, and no ready database endpoints, consistent with database unavailability and persistence failures.\", \"confidence\": \"High\"}]",
+    "success": true,
+    "accuracy": 89.0,
+    "composite_score": 0.89,
+    "dimensions": {
+     "D1": {
+      "name": "Fault Localization",
+      "score": 1.0
+     },
+     "D2": {
+      "name": "Fault Characterization",
+      "score": 0.67
+     },
+     "D3": {
+      "name": "Scope Precision",
+      "score": 1.0
+     }
+    },
+    "checklist": [
+     {
+      "id": "D1-Q1",
+      "answer": "Yes",
+      "evidence": "Names all six MongoDB deployments in namespace hotel-reservation, matching the fault specification.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q2",
+      "answer": "Yes",
+      "evidence": "Identifies the MongoDB deployments as the root cause and describes unavailable endpoints and pod crashes as effects.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q3",
+      "answer": "Yes",
+      "evidence": "All deployments identified as fault origins match the ground-truth targets; no healthy component is blamed.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q1",
+      "answer": "Yes",
+      "evidence": "Reports the upgrade from mongo:4.4.6 to mongo:8.0.14-rc0 alongside 'Wrong mongod version' and an invalid featureCompatibilityVersion error.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q2",
+      "answer": "Yes",
+      "evidence": "Explicitly identifies the incompatible image tag mongo:8.0.14-rc0 and states the same change affected all six deployments.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q3",
+      "answer": "No",
+      "evidence": "Labels a suggestion to set sysfsFile contents to 0 as the mechanism, introducing an unrelated explanation alongside the correct image-upgrade evidence.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q1",
+      "answer": "Yes",
+      "evidence": "Attributes the fault exclusively to the six MongoDB deployments listed in the ground truth.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q2",
+      "answer": "Yes",
+      "evidence": "Includes mongodb-geo, mongodb-profile, mongodb-rate, mongodb-recommendation, mongodb-reservation, and mongodb-user.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q3",
+      "answer": "Yes",
+      "evidence": "Reports version incompatibility, CrashLoopBackOff, zero ready replicas, and no ready database endpoints, consistent with database unavailability and persistence failures.",
+      "confidence": "High"
+     }
+    ]
+   }
+  },
+  {
+   "arm": 4,
+   "kind": "v2",
+   "model": "liquid/d1-ultra",
+   "position": 4,
+   "seconds": 3.6,
+   "requests": 3,
+   "input_tokens": 55079,
+   "error": null,
+   "model_failed": false,
+   "component": "deployment/mongodb-geo",
+   "investigation": {
+    "steps": [
+     {
+      "step": 1,
+      "node": "investigate",
+      "component": "deployment/mongodb-geo",
+      "verdict": "origin",
+      "origin_p": 0.9422,
+      "victim_p": 0.0025,
+      "next": "none",
+      "next_p": 0.7169,
+      "category": "image_or_binary",
+      "spec_checks": [
+       "service mongodb-geo has no ready endpoints"
+      ],
+      "blocked_input": null,
+      "key_evidence": "log x1 (ongoing, last seen 0s ago): hotel-reserv-geo-mongo: {\"t\":{\"$date\":\"2026-10-19T08:00:12.940+00:00\"},\"s\":\"F\", \"c\":\"CONTROL\", \"id\":20573, \"ctx\":\"initandlisten\",\"msg\":\"Wrong mongod version\",\"attr\":{\"error\":\"UPGRADE PROBLEM: Found an invalid featureCompatibilityVersion do\u2026"
+     }
+    ],
+    "concluded": "deployment/mongodb-geo",
+    "fallback": null,
+    "triage_top": [
+     [
+      "deployment/mongodb-geo",
+      0.379
+     ],
+     [
+      "deployment/mongodb-user",
+      0.3043
+     ],
+     [
+      "deployment/mongodb-profile",
+      0.0838
+     ],
+     [
+      "deployment/mongodb-rate",
+      0.0676
+     ],
+     [
+      "deployment/mongodb-recommendation",
+      0.0663
+     ]
+    ],
+    "second": null
+   },
+   "text": "Root cause: Deployments `mongodb-geo`, `mongodb-profile`, `mongodb-rate`, `mongodb-recommendation`, `mongodb-reservation`, `mongodb-user` in namespace `hotel-reservation` (the same change on 6): log x1 (ongoing, last seen 0s ago): hotel-reserv-geo-mongo: {\"t\":{\"$date\":\"2026-10-19T08:00:12.940+00:00\"},\"s\":\"F\", \"c\":\"CONTROL\", \"id\":20573, \"ctx\":\"initandlisten\",\"msg\":\"Wrong mongod version\",\"attr\":{\"error\":\"UPGRADE PROBLEM: Found an invalid featureCompatibilityVersion do\u2026.\nMechanism: the component logs \"We suggest setting the contents of sysfsFile to 0\".\nDetails: container hotel-reserv-geo-mongo image: mongo:4.4.6 -> mongo:8.0.14-rc0; service mongodb-geo has no ready endpoints.\nEffect: only 0 of 1 desired replicas are ready; pod mongodb-geo-7db569d69-nwrhf: container hotel-reserv-geo-mongo waiting in CrashLoopBackOff.\nObserved: pod mongodb-geo-7db569d69-nwrhf: container hotel-reserv-geo-mongo restarted 4 times; service mongodb-geo selects this component but has 0 ready endpoints; pod mongodb-geo-7db569d69-nwrhf: container hotel-reserv-geo-mongo restarted 1 more time(s) in the last 0s; warning event BackOff on pod/mongodb-geo-7db569d69-nwrhf repeated 4 more time(s) in the last 0s; warning events: BackOff x10.",
+   "grade": {
+    "judgment": "True",
+    "reasoning": "Verdict: True (composite=0.89). D1 Fault Localization: 1.00 | D2 Fault Characterization: 0.67 | D3 Scope Precision: 1.00. Weakest dimension: Fault Characterization (0.67). Checklist details: [{\"id\": \"D1-Q1\", \"answer\": \"Yes\", \"evidence\": \"Names all six MongoDB deployments in namespace hotel-reservation, matching the fault specification.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q2\", \"answer\": \"Yes\", \"evidence\": \"Identifies the MongoDB deployments as the root cause and describes unavailable endpoints and pod crashes as effects.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q3\", \"answer\": \"Yes\", \"evidence\": \"All deployments identified as fault origins match the ground-truth targets; no healthy component is blamed.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q1\", \"answer\": \"Yes\", \"evidence\": \"Reports the upgrade from mongo:4.4.6 to mongo:8.0.14-rc0 alongside 'Wrong mongod version' and an invalid featureCompatibilityVersion error.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q2\", \"answer\": \"Yes\", \"evidence\": \"Explicitly identifies the incompatible image tag mongo:8.0.14-rc0 and states the same change affected all six deployments.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q3\", \"answer\": \"No\", \"evidence\": \"Labels a suggestion to set sysfsFile contents to 0 as the mechanism, introducing an unrelated explanation alongside the correct image-upgrade evidence.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q1\", \"answer\": \"Yes\", \"evidence\": \"Attributes the fault exclusively to the six MongoDB deployments listed in the ground truth.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q2\", \"answer\": \"Yes\", \"evidence\": \"Includes mongodb-geo, mongodb-profile, mongodb-rate, mongodb-recommendation, mongodb-reservation, and mongodb-user.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q3\", \"answer\": \"Yes\", \"evidence\": \"Reports version incompatibility, CrashLoopBackOff, zero ready replicas, and no ready database endpoints, consistent with database unavailability and persistence failures.\", \"confidence\": \"High\"}]",
+    "success": true,
+    "accuracy": 89.0,
+    "composite_score": 0.89,
+    "dimensions": {
+     "D1": {
+      "name": "Fault Localization",
+      "score": 1.0
+     },
+     "D2": {
+      "name": "Fault Characterization",
+      "score": 0.67
+     },
+     "D3": {
+      "name": "Scope Precision",
+      "score": 1.0
+     }
+    },
+    "checklist": [
+     {
+      "id": "D1-Q1",
+      "answer": "Yes",
+      "evidence": "Names all six MongoDB deployments in namespace hotel-reservation, matching the fault specification.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q2",
+      "answer": "Yes",
+      "evidence": "Identifies the MongoDB deployments as the root cause and describes unavailable endpoints and pod crashes as effects.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q3",
+      "answer": "Yes",
+      "evidence": "All deployments identified as fault origins match the ground-truth targets; no healthy component is blamed.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q1",
+      "answer": "Yes",
+      "evidence": "Reports the upgrade from mongo:4.4.6 to mongo:8.0.14-rc0 alongside 'Wrong mongod version' and an invalid featureCompatibilityVersion error.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q2",
+      "answer": "Yes",
+      "evidence": "Explicitly identifies the incompatible image tag mongo:8.0.14-rc0 and states the same change affected all six deployments.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q3",
+      "answer": "No",
+      "evidence": "Labels a suggestion to set sysfsFile contents to 0 as the mechanism, introducing an unrelated explanation alongside the correct image-upgrade evidence.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q1",
+      "answer": "Yes",
+      "evidence": "Attributes the fault exclusively to the six MongoDB deployments listed in the ground truth.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q2",
+      "answer": "Yes",
+      "evidence": "Includes mongodb-geo, mongodb-profile, mongodb-rate, mongodb-recommendation, mongodb-reservation, and mongodb-user.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q3",
+      "answer": "Yes",
+      "evidence": "Reports version incompatibility, CrashLoopBackOff, zero ready replicas, and no ready database endpoints, consistent with database unavailability and persistence failures.",
+      "confidence": "High"
+     }
+    ]
+   }
+  },
+  {
+   "arm": 5,
+   "kind": "v2",
+   "model": "cloudflare/clef",
+   "position": 5,
+   "seconds": 3.5,
+   "requests": 3,
+   "input_tokens": 20114,
+   "error": null,
+   "model_failed": false,
+   "component": "deployment/mongodb-geo",
+   "investigation": {
+    "steps": [
+     {
+      "step": 1,
+      "node": "investigate",
+      "component": "deployment/mongodb-geo",
+      "verdict": "origin",
+      "origin_p": 0.6359,
+      "victim_p": 0.1233,
+      "next": "none",
+      "next_p": 0.9545,
+      "category": "image_or_binary",
+      "spec_checks": [
+       "service mongodb-geo has no ready endpoints"
+      ],
+      "blocked_input": null,
+      "key_evidence": "log x1 (ongoing, last seen 0s ago): hotel-reserv-geo-mongo: {\"t\":{\"$date\":\"2026-10-19T08:00:12.940+00:00\"},\"s\":\"F\", \"c\":\"CONTROL\", \"id\":20573, \"ctx\":\"initandlisten\",\"msg\":\"Wrong mongod version\",\"attr\":{\"error\":\"UPGRADE PROBLEM: Found an invalid featureCompatibilityVersion do\u2026"
+     }
+    ],
+    "concluded": "deployment/mongodb-geo",
+    "fallback": null,
+    "triage_top": [
+     [
+      "deployment/mongodb-geo",
+      0.6095
+     ],
+     [
+      "deployment/mongodb-user",
+      0.115
+     ],
+     [
+      "deployment/mongodb-profile",
+      0.0787
+     ],
+     [
+      "deployment/geo",
+      0.0236
+     ],
+     [
+      "deployment/frontend",
+      0.0219
+     ]
+    ],
+    "second": null
+   },
+   "text": "Root cause: Deployments `mongodb-geo`, `mongodb-profile`, `mongodb-rate`, `mongodb-recommendation`, `mongodb-reservation`, `mongodb-user` in namespace `hotel-reservation` (the same change on 6): log x1 (ongoing, last seen 0s ago): hotel-reserv-geo-mongo: {\"t\":{\"$date\":\"2026-10-19T08:00:12.940+00:00\"},\"s\":\"F\", \"c\":\"CONTROL\", \"id\":20573, \"ctx\":\"initandlisten\",\"msg\":\"Wrong mongod version\",\"attr\":{\"error\":\"UPGRADE PROBLEM: Found an invalid featureCompatibilityVersion do\u2026.\nMechanism: the component logs \"We suggest setting the contents of sysfsFile to 0\".\nDetails: container hotel-reserv-geo-mongo image: mongo:4.4.6 -> mongo:8.0.14-rc0; service mongodb-geo has no ready endpoints.\nEffect: only 0 of 1 desired replicas are ready; pod mongodb-geo-7db569d69-nwrhf: container hotel-reserv-geo-mongo waiting in CrashLoopBackOff.\nObserved: pod mongodb-geo-7db569d69-nwrhf: container hotel-reserv-geo-mongo restarted 4 times; service mongodb-geo selects this component but has 0 ready endpoints; pod mongodb-geo-7db569d69-nwrhf: container hotel-reserv-geo-mongo restarted 1 more time(s) in the last 0s; warning event BackOff on pod/mongodb-geo-7db569d69-nwrhf repeated 4 more time(s) in the last 0s; warning events: BackOff x10.",
+   "grade": {
+    "judgment": "True",
+    "reasoning": "Verdict: True (composite=0.89). D1 Fault Localization: 1.00 | D2 Fault Characterization: 0.67 | D3 Scope Precision: 1.00. Weakest dimension: Fault Characterization (0.67). Checklist details: [{\"id\": \"D1-Q1\", \"answer\": \"Yes\", \"evidence\": \"Names all six MongoDB deployments in namespace hotel-reservation, matching the fault specification.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q2\", \"answer\": \"Yes\", \"evidence\": \"Identifies the MongoDB deployments as the root cause and describes unavailable endpoints and pod crashes as effects.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q3\", \"answer\": \"Yes\", \"evidence\": \"All deployments identified as fault origins match the ground-truth targets; no healthy component is blamed.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q1\", \"answer\": \"Yes\", \"evidence\": \"Reports the upgrade from mongo:4.4.6 to mongo:8.0.14-rc0 alongside 'Wrong mongod version' and an invalid featureCompatibilityVersion error.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q2\", \"answer\": \"Yes\", \"evidence\": \"Explicitly identifies the incompatible image tag mongo:8.0.14-rc0 and states the same change affected all six deployments.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q3\", \"answer\": \"No\", \"evidence\": \"Labels a suggestion to set sysfsFile contents to 0 as the mechanism, introducing an unrelated explanation alongside the correct image-upgrade evidence.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q1\", \"answer\": \"Yes\", \"evidence\": \"Attributes the fault exclusively to the six MongoDB deployments listed in the ground truth.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q2\", \"answer\": \"Yes\", \"evidence\": \"Includes mongodb-geo, mongodb-profile, mongodb-rate, mongodb-recommendation, mongodb-reservation, and mongodb-user.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q3\", \"answer\": \"Yes\", \"evidence\": \"Reports version incompatibility, CrashLoopBackOff, zero ready replicas, and no ready database endpoints, consistent with database unavailability and persistence failures.\", \"confidence\": \"High\"}]",
+    "success": true,
+    "accuracy": 89.0,
+    "composite_score": 0.89,
+    "dimensions": {
+     "D1": {
+      "name": "Fault Localization",
+      "score": 1.0
+     },
+     "D2": {
+      "name": "Fault Characterization",
+      "score": 0.67
+     },
+     "D3": {
+      "name": "Scope Precision",
+      "score": 1.0
+     }
+    },
+    "checklist": [
+     {
+      "id": "D1-Q1",
+      "answer": "Yes",
+      "evidence": "Names all six MongoDB deployments in namespace hotel-reservation, matching the fault specification.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q2",
+      "answer": "Yes",
+      "evidence": "Identifies the MongoDB deployments as the root cause and describes unavailable endpoints and pod crashes as effects.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q3",
+      "answer": "Yes",
+      "evidence": "All deployments identified as fault origins match the ground-truth targets; no healthy component is blamed.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q1",
+      "answer": "Yes",
+      "evidence": "Reports the upgrade from mongo:4.4.6 to mongo:8.0.14-rc0 alongside 'Wrong mongod version' and an invalid featureCompatibilityVersion error.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q2",
+      "answer": "Yes",
+      "evidence": "Explicitly identifies the incompatible image tag mongo:8.0.14-rc0 and states the same change affected all six deployments.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q3",
+      "answer": "No",
+      "evidence": "Labels a suggestion to set sysfsFile contents to 0 as the mechanism, introducing an unrelated explanation alongside the correct image-upgrade evidence.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q1",
+      "answer": "Yes",
+      "evidence": "Attributes the fault exclusively to the six MongoDB deployments listed in the ground truth.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q2",
+      "answer": "Yes",
+      "evidence": "Includes mongodb-geo, mongodb-profile, mongodb-rate, mongodb-recommendation, mongodb-reservation, and mongodb-user.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q3",
+      "answer": "Yes",
+      "evidence": "Reports version incompatibility, CrashLoopBackOff, zero ready replicas, and no ready database endpoints, consistent with database unavailability and persistence failures.",
+      "confidence": "High"
+     }
+    ]
+   }
+  },
+  {
+   "arm": 6,
+   "kind": "v2",
+   "model": "cloudflare/clef-omni",
+   "position": 6,
+   "seconds": 7.7,
+   "requests": 10,
+   "input_tokens": 98487,
+   "error": null,
+   "model_failed": false,
+   "component": "deployment/mongodb-geo",
+   "investigation": {
+    "steps": [
+     {
+      "step": 1,
+      "node": "investigate",
+      "component": "deployment/mongodb-geo",
+      "verdict": "origin",
+      "origin_p": 0.427,
+      "victim_p": 0.2892,
+      "next": "none",
+      "next_p": 0.9541,
+      "category": "image_or_binary",
+      "spec_checks": [
+       "service mongodb-geo has no ready endpoints"
+      ],
+      "blocked_input": null,
+      "key_evidence": "log x1 (ongoing, last seen 0s ago): hotel-reserv-geo-mongo: {\"t\":{\"$date\":\"2026-10-19T08:00:12.940+00:00\"},\"s\":\"F\", \"c\":\"CONTROL\", \"id\":20573, \"ctx\":\"initandlisten\",\"msg\":\"Wrong mongod version\",\"attr\":{\"error\":\"UPGRADE PROBLEM: Found an invalid featureCompatibilityVersion do\u2026"
+     },
+     {
+      "step": 2,
+      "node": "investigate",
+      "component": "deployment/mongodb-user",
+      "verdict": "victim",
+      "origin_p": 0.3376,
+      "victim_p": 0.4356,
+      "next": "none",
+      "next_p": 0.9308,
+      "category": "image_or_binary",
+      "spec_checks": [
+       "service mongodb-user has no ready endpoints"
+      ],
+      "blocked_input": null,
+      "key_evidence": "spec modified 76s ago, 13s after this object was created (fields: spec.replicas, containers[hotel-reserv-user-mongo].image); pod template changes: container hotel-reserv-user-mongo image: mongo:4.4.6 -> mongo:8.0.14-rc0; 4s before the first active symptom"
+     },
+     {
+      "step": 3,
+      "node": "investigate",
+      "component": "deployment/geo",
+      "verdict": "unrelated",
+      "origin_p": 0.0919,
+      "victim_p": 0.218,
+      "next": "none",
+      "next_p": 0.8768,
+      "category": "other",
+      "spec_checks": [],
+      "blocked_input": null,
+      "key_evidence": null
+     },
+     {
+      "step": 4,
+      "node": "investigate",
+      "component": "deployment/mongodb-profile",
+      "verdict": "origin",
+      "origin_p": 0.3968,
+      "victim_p": 0.3292,
+      "next": "none",
+      "next_p": 0.9475,
+      "category": "image_or_binary",
+      "spec_checks": [
+       "service mongodb-profile has no ready endpoints"
+      ],
+      "blocked_input": null,
+      "key_evidence": "log x1 (ongoing, last seen 0s ago): hotel-reserv-profile-mongo: {\"t\":{\"$date\":\"2026-10-19T08:00:07.459+00:00\"},\"s\":\"F\", \"c\":\"CONTROL\", \"id\":20573, \"ctx\":\"initandlisten\",\"msg\":\"Wrong mongod version\",\"attr\":{\"error\":\"UPGRADE PROBLEM: Found an invalid featureCompatibilityVersio\u2026"
+     },
+     {
+      "step": 5,
+      "node": "investigate",
+      "component": "deployment/mongodb-rate",
+      "verdict": "origin",
+      "origin_p": 0.3789,
+      "victim_p": 0.3341,
+      "next": "none",
+      "next_p": 0.8908,
+      "category": "image_or_binary",
+      "spec_checks": [
+       "service mongodb-rate has no ready endpoints"
+      ],
+      "blocked_input": null,
+      "key_evidence": "log x1 (ongoing, last seen 0s ago): hotel-reserv-rate-mongo: {\"t\":{\"$date\":\"2026-10-19T08:00:16.161+00:00\"},\"s\":\"F\", \"c\":\"CONTROL\", \"id\":20573, \"ctx\":\"initandlisten\",\"msg\":\"Wrong mongod version\",\"attr\":{\"error\":\"UPGRADE PROBLEM: Found an invalid featureCompatibilityVersion d\u2026"
+     },
+     {
+      "step": 6,
+      "node": "investigate",
+      "component": "deployment/rate",
+      "verdict": "victim",
+      "origin_p": 0.1104,
+      "victim_p": 0.7032,
+      "next": "none",
+      "next_p": 0.7913,
+      "category": "code_bug",
+      "spec_checks": [
+       "service rate has no ready endpoints"
+      ],
+      "blocked_input": null,
+      "key_evidence": "log x1 (ongoing, last seen 0s ago): hotel-reserv-rate: panic: no reachable servers"
+     },
+     {
+      "step": 7,
+      "node": "investigate",
+      "component": "deployment/mongodb-recommendation",
+      "verdict": "victim",
+      "origin_p": 0.3069,
+      "victim_p": 0.391,
+      "next": "none",
+      "next_p": 0.8966,
+      "category": "image_or_binary",
+      "spec_checks": [
+       "service mongodb-recommendation has no ready endpoints"
+      ],
+      "blocked_input": null,
+      "key_evidence": "log x1 (ongoing, last seen 0s ago): hotel-reserv-recommendation-mongo: {\"t\":{\"$date\":\"2026-10-19T08:00:14.676+00:00\"},\"s\":\"F\", \"c\":\"CONTROL\", \"id\":20573, \"ctx\":\"initandlisten\",\"msg\":\"Wrong mongod version\",\"attr\":{\"error\":\"UPGRADE PROBLEM: Found an invalid featureCompatibilit\u2026"
+     },
+     {
+      "step": 8,
+      "node": "investigate",
+      "component": "deployment/mongodb-reservation",
+      "verdict": "victim",
+      "origin_p": 0.3494,
+      "victim_p": 0.3878,
+      "next": "none",
+      "next_p": 0.8501,
+      "category": "image_or_binary",
+      "spec_checks": [
+       "service mongodb-reservation has no ready endpoints"
+      ],
+      "blocked_input": null,
+      "key_evidence": "pod template changed in revision 2: container hotel-reserv-reservation-mongo image: mongo:4.4.6 -> mongo:8.0.14-rc0"
+     }
+    ],
+    "concluded": "deployment/mongodb-geo",
+    "fallback": "most likely origin among investigated components",
+    "triage_top": [
+     [
+      "deployment/mongodb-geo",
+      0.3902
+     ],
+     [
+      "deployment/mongodb-user",
+      0.1078
+     ],
+     [
+      "deployment/geo",
+      0.105
+     ],
+     [
+      "deployment/mongodb-profile",
+      0.0914
+     ],
+     [
+      "deployment/mongodb-rate",
+      0.0686
+     ]
+    ],
+    "second": null
+   },
+   "text": "Root cause: Deployments `mongodb-geo`, `mongodb-profile`, `mongodb-rate`, `mongodb-recommendation`, `mongodb-reservation`, `mongodb-user` in namespace `hotel-reservation` (the same change on 6): log x1 (ongoing, last seen 0s ago): hotel-reserv-geo-mongo: {\"t\":{\"$date\":\"2026-10-19T08:00:12.940+00:00\"},\"s\":\"F\", \"c\":\"CONTROL\", \"id\":20573, \"ctx\":\"initandlisten\",\"msg\":\"Wrong mongod version\",\"attr\":{\"error\":\"UPGRADE PROBLEM: Found an invalid featureCompatibilityVersion do\u2026.\nMechanism: the component logs \"We suggest setting the contents of sysfsFile to 0\".\nDetails: container hotel-reserv-geo-mongo image: mongo:4.4.6 -> mongo:8.0.14-rc0; service mongodb-geo has no ready endpoints.\nEffect: only 0 of 1 desired replicas are ready; pod mongodb-geo-7db569d69-nwrhf: container hotel-reserv-geo-mongo waiting in CrashLoopBackOff.\nObserved: pod mongodb-geo-7db569d69-nwrhf: container hotel-reserv-geo-mongo restarted 4 times; service mongodb-geo selects this component but has 0 ready endpoints; pod mongodb-geo-7db569d69-nwrhf: container hotel-reserv-geo-mongo restarted 1 more time(s) in the last 0s; warning event BackOff on pod/mongodb-geo-7db569d69-nwrhf repeated 4 more time(s) in the last 0s; warning events: BackOff x10.",
+   "grade": {
+    "judgment": "True",
+    "reasoning": "Verdict: True (composite=0.89). D1 Fault Localization: 1.00 | D2 Fault Characterization: 0.67 | D3 Scope Precision: 1.00. Weakest dimension: Fault Characterization (0.67). Checklist details: [{\"id\": \"D1-Q1\", \"answer\": \"Yes\", \"evidence\": \"Names all six MongoDB deployments in namespace hotel-reservation, matching the fault specification.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q2\", \"answer\": \"Yes\", \"evidence\": \"Identifies the MongoDB deployments as the root cause and describes unavailable endpoints and pod crashes as effects.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q3\", \"answer\": \"Yes\", \"evidence\": \"All deployments identified as fault origins match the ground-truth targets; no healthy component is blamed.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q1\", \"answer\": \"Yes\", \"evidence\": \"Reports the upgrade from mongo:4.4.6 to mongo:8.0.14-rc0 alongside 'Wrong mongod version' and an invalid featureCompatibilityVersion error.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q2\", \"answer\": \"Yes\", \"evidence\": \"Explicitly identifies the incompatible image tag mongo:8.0.14-rc0 and states the same change affected all six deployments.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q3\", \"answer\": \"No\", \"evidence\": \"Labels a suggestion to set sysfsFile contents to 0 as the mechanism, introducing an unrelated explanation alongside the correct image-upgrade evidence.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q1\", \"answer\": \"Yes\", \"evidence\": \"Attributes the fault exclusively to the six MongoDB deployments listed in the ground truth.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q2\", \"answer\": \"Yes\", \"evidence\": \"Includes mongodb-geo, mongodb-profile, mongodb-rate, mongodb-recommendation, mongodb-reservation, and mongodb-user.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q3\", \"answer\": \"Yes\", \"evidence\": \"Reports version incompatibility, CrashLoopBackOff, zero ready replicas, and no ready database endpoints, consistent with database unavailability and persistence failures.\", \"confidence\": \"High\"}]",
+    "success": true,
+    "accuracy": 89.0,
+    "composite_score": 0.89,
+    "dimensions": {
+     "D1": {
+      "name": "Fault Localization",
+      "score": 1.0
+     },
+     "D2": {
+      "name": "Fault Characterization",
+      "score": 0.67
+     },
+     "D3": {
+      "name": "Scope Precision",
+      "score": 1.0
+     }
+    },
+    "checklist": [
+     {
+      "id": "D1-Q1",
+      "answer": "Yes",
+      "evidence": "Names all six MongoDB deployments in namespace hotel-reservation, matching the fault specification.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q2",
+      "answer": "Yes",
+      "evidence": "Identifies the MongoDB deployments as the root cause and describes unavailable endpoints and pod crashes as effects.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q3",
+      "answer": "Yes",
+      "evidence": "All deployments identified as fault origins match the ground-truth targets; no healthy component is blamed.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q1",
+      "answer": "Yes",
+      "evidence": "Reports the upgrade from mongo:4.4.6 to mongo:8.0.14-rc0 alongside 'Wrong mongod version' and an invalid featureCompatibilityVersion error.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q2",
+      "answer": "Yes",
+      "evidence": "Explicitly identifies the incompatible image tag mongo:8.0.14-rc0 and states the same change affected all six deployments.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q3",
+      "answer": "No",
+      "evidence": "Labels a suggestion to set sysfsFile contents to 0 as the mechanism, introducing an unrelated explanation alongside the correct image-upgrade evidence.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q1",
+      "answer": "Yes",
+      "evidence": "Attributes the fault exclusively to the six MongoDB deployments listed in the ground truth.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q2",
+      "answer": "Yes",
+      "evidence": "Includes mongodb-geo, mongodb-profile, mongodb-rate, mongodb-recommendation, mongodb-reservation, and mongodb-user.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q3",
+      "answer": "Yes",
+      "evidence": "Reports version incompatibility, CrashLoopBackOff, zero ready replicas, and no ready database endpoints, consistent with database unavailability and persistence failures.",
+      "confidence": "High"
+     }
+    ]
+   }
+  },
+  {
+   "arm": 7,
+   "kind": "v2",
+   "model": "nace-ai/drex-v2.0",
+   "position": 7,
+   "seconds": 17.0,
+   "requests": 11,
+   "input_tokens": 87438,
+   "error": null,
+   "model_failed": false,
+   "component": "deployment/mongodb-profile",
+   "investigation": {
+    "steps": [
+     {
+      "step": 1,
+      "node": "investigate",
+      "component": "deployment/rate",
+      "verdict": "victim",
+      "origin_p": 0.0617,
+      "victim_p": 0.6299,
+      "next": "none",
+      "next_p": 0.425,
+      "category": "other",
+      "spec_checks": [
+       "service rate has no ready endpoints"
+      ],
+      "blocked_input": null,
+      "key_evidence": "log x1 (ongoing, last seen 0s ago): hotel-reserv-rate: panic: no reachable servers"
+     },
+     {
+      "step": 2,
+      "node": "investigate",
+      "component": "deployment/mongodb-recommendation",
+      "verdict": "origin",
+      "origin_p": 0.4128,
+      "victim_p": 0.2635,
+      "next": "none",
+      "next_p": 0.8023,
+      "category": "image_or_binary",
+      "spec_checks": [
+       "service mongodb-recommendation has no ready endpoints"
+      ],
+      "blocked_input": null,
+      "key_evidence": "pod template changed in revision 2: container hotel-reserv-recommendation-mongo image: mongo:4.4.6 -> mongo:8.0.14-rc0"
+     },
+     {
+      "step": 3,
+      "node": "investigate",
+      "component": "deployment/mongodb-user",
+      "verdict": "undetermined",
+      "origin_p": 0.3402,
+      "victim_p": 0.2365,
+      "next": "none",
+      "next_p": 0.8037,
+      "category": "image_or_binary",
+      "spec_checks": [
+       "service mongodb-user has no ready endpoints"
+      ],
+      "blocked_input": null,
+      "key_evidence": "pod template changed in revision 2: container hotel-reserv-user-mongo image: mongo:4.4.6 -> mongo:8.0.14-rc0"
+     },
+     {
+      "step": 4,
+      "node": "investigate",
+      "component": "deployment/frontend",
+      "verdict": "unrelated",
+      "origin_p": 0.0156,
+      "victim_p": 0.0199,
+      "next": "none",
+      "next_p": 0.8673,
+      "category": "other",
+      "spec_checks": [],
+      "blocked_input": null,
+      "key_evidence": null
+     },
+     {
+      "step": 5,
+      "node": "investigate",
+      "component": "deployment/recommendation",
+      "verdict": "unrelated",
+      "origin_p": 0.0192,
+      "victim_p": 0.0348,
+      "next": "none",
+      "next_p": 0.737,
+      "category": "other",
+      "spec_checks": [],
+      "blocked_input": null,
+      "key_evidence": null
+     },
+     {
+      "step": 6,
+      "node": "investigate",
+      "component": "deployment/mongodb-geo",
+      "verdict": "origin",
+      "origin_p": 0.4093,
+      "victim_p": 0.2822,
+      "next": "none",
+      "next_p": 0.7144,
+      "category": "image_or_binary",
+      "spec_checks": [
+       "service mongodb-geo has no ready endpoints"
+      ],
+      "blocked_input": null,
+      "key_evidence": "pod template changed in revision 3: container hotel-reserv-geo-mongo image: mongo:4.4.6 -> mongo:8.0.14-rc0"
+     },
+     {
+      "step": 7,
+      "node": "investigate",
+      "component": "deployment/mongodb-rate",
+      "verdict": "origin",
+      "origin_p": 0.4237,
+      "victim_p": 0.2479,
+      "next": "none",
+      "next_p": 0.7561,
+      "category": "other",
+      "spec_checks": [
+       "service mongodb-rate has no ready endpoints"
+      ],
+      "blocked_input": null,
+      "key_evidence": "log x1 (ongoing, last seen 0s ago): hotel-reserv-rate-mongo: {\"t\":{\"$date\":\"2026-10-19T08:00:16.161+00:00\"},\"s\":\"F\", \"c\":\"CONTROL\", \"id\":20573, \"ctx\":\"initandlisten\",\"msg\":\"Wrong mongod version\",\"attr\":{\"error\":\"UPGRADE PROBLEM: Found an invalid featureCompatibilityVersion d\u2026"
+     },
+     {
+      "step": 8,
+      "node": "investigate",
+      "component": "deployment/mongodb-reservation",
+      "verdict": "undetermined",
+      "origin_p": 0.3172,
+      "victim_p": 0.2275,
+      "next": "none",
+      "next_p": 0.6768,
+      "category": "image_or_binary",
+      "spec_checks": [
+       "service mongodb-reservation has no ready endpoints"
+      ],
+      "blocked_input": null,
+      "key_evidence": "pod template changed in revision 2: container hotel-reserv-reservation-mongo image: mongo:4.4.6 -> mongo:8.0.14-rc0"
+     },
+     {
+      "step": 9,
+      "node": "investigate",
+      "component": "deployment/mongodb-profile",
+      "verdict": "origin",
+      "origin_p": 0.4343,
+      "victim_p": 0.2274,
+      "next": "none",
+      "next_p": 0.7541,
+      "category": "image_or_binary",
+      "spec_checks": [
+       "service mongodb-profile has no ready endpoints"
+      ],
+      "blocked_input": null,
+      "key_evidence": "pod template changed in revision 2: container hotel-reserv-profile-mongo image: mongo:4.4.6 -> mongo:8.0.14-rc0"
+     }
+    ],
+    "concluded": "deployment/mongodb-profile",
+    "fallback": "most likely origin among investigated components",
+    "triage_top": [
+     [
+      "deployment/rate",
+      0.2643
+     ],
+     [
+      "deployment/mongodb-recommendation",
+      0.264
+     ],
+     [
+      "deployment/mongodb-user",
+      0.122
+     ],
+     [
+      "deployment/frontend",
+      0.0834
+     ],
+     [
+      "deployment/recommendation",
+      0.056
+     ]
+    ],
+    "second": null
+   },
+   "text": "Root cause: Deployments `mongodb-profile`, `mongodb-geo`, `mongodb-rate`, `mongodb-recommendation`, `mongodb-reservation`, `mongodb-user` in namespace `hotel-reservation` (the same change on 6): pod template changed in revision 2: container hotel-reserv-profile-mongo image: mongo:4.4.6 -> mongo:8.0.14-rc0.\nMechanism: the component logs \"We suggest setting the contents of sysfsFile to 0\".\nDetails: container hotel-reserv-profile-mongo image: mongo:4.4.6 -> mongo:8.0.14-rc0; service mongodb-profile has no ready endpoints.\nEffect: only 0 of 1 desired replicas are ready; pod mongodb-profile-9f4bbd96-c7b5n: container hotel-reserv-profile-mongo waiting in CrashLoopBackOff.\nObserved: pod mongodb-profile-9f4bbd96-c7b5n: container hotel-reserv-profile-mongo restarted 4 times; warning events: BackOff x9; service mongodb-profile selects this component but has 0 ready endpoints; pod mongodb-profile-9f4bbd96-c7b5n: container hotel-reserv-profile-mongo restarted 1 more time(s) in the last 0s; warning event BackOff on pod/mongodb-profile-9f4bbd96-c7b5n repeated 3 more time(s) in the last 0s.",
+   "grade": {
+    "judgment": "True",
+    "reasoning": "Verdict: True (composite=1.00). D1 Fault Localization: 1.00 | D2 Fault Characterization: 1.00 | D3 Scope Precision: 1.00. Weakest dimension: Fault Localization (1.00). Checklist details: [{\"id\": \"D1-Q1\", \"answer\": \"Yes\", \"evidence\": \"Names all six MongoDB deployments in namespace hotel-reservation, matching the fault specification.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q2\", \"answer\": \"Yes\", \"evidence\": \"Identifies the MongoDB deployment image changes as the root cause and unavailable endpoints as an effect.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q3\", \"answer\": \"Yes\", \"evidence\": \"All deployments identified as the root cause are listed in the ground-truth fault specification.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q1\", \"answer\": \"Yes\", \"evidence\": \"Attributes the root cause to upgrading the deployments from mongo:4.4.6 to mongo:8.0.14-rc0.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q2\", \"answer\": \"Yes\", \"evidence\": \"Explicitly identifies the mutated image tag mongo:8.0.14-rc0, exactly matching ground truth.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q3\", \"answer\": \"Yes\", \"evidence\": \"Root-cause attribution matches the image upgrade; the sysfs log quotation does not explicitly assert a separate configuration fault.\", \"confidence\": \"Medium\"}, {\"id\": \"D3-Q1\", \"answer\": \"Yes\", \"evidence\": \"Blames only mongodb-profile, mongodb-geo, mongodb-rate, mongodb-recommendation, mongodb-reservation, and mongodb-user.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q2\", \"answer\": \"Yes\", \"evidence\": \"Lists all six ground-truth MongoDB deployments and states that the same change occurred on all six.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q3\", \"answer\": \"Yes\", \"evidence\": \"Reports CrashLoopBackOff, zero ready replicas, and no ready mongodb-profile endpoints, consistent with database unavailability and persistence failures.\", \"confidence\": \"Medium\"}]",
+    "success": true,
+    "accuracy": 100.0,
+    "composite_score": 1.0,
+    "dimensions": {
+     "D1": {
+      "name": "Fault Localization",
+      "score": 1.0
+     },
+     "D2": {
+      "name": "Fault Characterization",
+      "score": 1.0
+     },
+     "D3": {
+      "name": "Scope Precision",
+      "score": 1.0
+     }
+    },
+    "checklist": [
+     {
+      "id": "D1-Q1",
+      "answer": "Yes",
+      "evidence": "Names all six MongoDB deployments in namespace hotel-reservation, matching the fault specification.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q2",
+      "answer": "Yes",
+      "evidence": "Identifies the MongoDB deployment image changes as the root cause and unavailable endpoints as an effect.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q3",
+      "answer": "Yes",
+      "evidence": "All deployments identified as the root cause are listed in the ground-truth fault specification.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q1",
+      "answer": "Yes",
+      "evidence": "Attributes the root cause to upgrading the deployments from mongo:4.4.6 to mongo:8.0.14-rc0.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q2",
+      "answer": "Yes",
+      "evidence": "Explicitly identifies the mutated image tag mongo:8.0.14-rc0, exactly matching ground truth.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q3",
+      "answer": "Yes",
+      "evidence": "Root-cause attribution matches the image upgrade; the sysfs log quotation does not explicitly assert a separate configuration fault.",
+      "confidence": "Medium"
+     },
+     {
+      "id": "D3-Q1",
+      "answer": "Yes",
+      "evidence": "Blames only mongodb-profile, mongodb-geo, mongodb-rate, mongodb-recommendation, mongodb-reservation, and mongodb-user.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q2",
+      "answer": "Yes",
+      "evidence": "Lists all six ground-truth MongoDB deployments and states that the same change occurred on all six.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q3",
+      "answer": "Yes",
+      "evidence": "Reports CrashLoopBackOff, zero ready replicas, and no ready mongodb-profile endpoints, consistent with database unavailability and persistence failures.",
+      "confidence": "Medium"
+     }
+    ]
+   }
+  },
+  {
+   "arm": 8,
+   "kind": "v2",
+   "model": "inception/mercury-decide",
+   "position": 8,
+   "seconds": 5.5,
+   "requests": 3,
+   "input_tokens": 51004,
+   "error": null,
+   "model_failed": false,
+   "component": "deployment/mongodb-geo",
+   "investigation": {
+    "steps": [
+     {
+      "step": 1,
+      "node": "investigate",
+      "component": "deployment/mongodb-geo",
+      "verdict": "origin",
+      "origin_p": 0.9996,
+      "victim_p": 0.0,
+      "next": "none",
+      "next_p": 0.9958,
+      "category": "image_or_binary",
+      "spec_checks": [
+       "service mongodb-geo has no ready endpoints"
+      ],
+      "blocked_input": null,
+      "key_evidence": "pod template changed in revision 3: container hotel-reserv-geo-mongo image: mongo:4.4.6 -> mongo:8.0.14-rc0"
+     }
+    ],
+    "concluded": "deployment/mongodb-geo",
+    "fallback": null,
+    "triage_top": [
+     [
+      "deployment/mongodb-geo",
+      0.4183
+     ],
+     [
+      "deployment/mongodb-user",
+      0.2104
+     ],
+     [
+      "deployment/mongodb-rate",
+      0.1132
+     ],
+     [
+      "deployment/mongodb-recommendation",
+      0.096
+     ],
+     [
+      "deployment/mongodb-profile",
+      0.0941
+     ]
+    ],
+    "second": null
+   },
+   "text": "Root cause: Deployments `mongodb-geo`, `mongodb-profile`, `mongodb-rate`, `mongodb-recommendation`, `mongodb-reservation`, `mongodb-user` in namespace `hotel-reservation` (the same change on 6): pod template changed in revision 3: container hotel-reserv-geo-mongo image: mongo:4.4.6 -> mongo:8.0.14-rc0.\nMechanism: the component logs \"We suggest setting the contents of sysfsFile to 0\".\nDetails: container hotel-reserv-geo-mongo image: mongo:4.4.6 -> mongo:8.0.14-rc0; service mongodb-geo has no ready endpoints.\nEffect: only 0 of 1 desired replicas are ready; pod mongodb-geo-7db569d69-nwrhf: container hotel-reserv-geo-mongo waiting in CrashLoopBackOff.\nObserved: pod mongodb-geo-7db569d69-nwrhf: container hotel-reserv-geo-mongo restarted 4 times; service mongodb-geo selects this component but has 0 ready endpoints; pod mongodb-geo-7db569d69-nwrhf: container hotel-reserv-geo-mongo restarted 1 more time(s) in the last 0s; warning event BackOff on pod/mongodb-geo-7db569d69-nwrhf repeated 4 more time(s) in the last 0s; warning events: BackOff x10.",
+   "grade": {
+    "judgment": "True",
+    "reasoning": "Verdict: True (composite=0.89). D1 Fault Localization: 1.00 | D2 Fault Characterization: 0.67 | D3 Scope Precision: 1.00. Weakest dimension: Fault Characterization (0.67). Checklist details: [{\"id\": \"D1-Q1\", \"answer\": \"Yes\", \"evidence\": \"Names all six MongoDB deployments in namespace hotel-reservation, matching the fault specification.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q2\", \"answer\": \"Yes\", \"evidence\": \"Identifies the MongoDB deployment image changes as the root cause, rather than blaming downstream application services.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q3\", \"answer\": \"Yes\", \"evidence\": \"Every deployment identified as a fault origin appears in the ground-truth component list.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q1\", \"answer\": \"Yes\", \"evidence\": \"Identifies the image upgrade from mongo:4.4.6 to mongo:8.0.14-rc0 across the six deployments.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q2\", \"answer\": \"Yes\", \"evidence\": \"Explicitly names the mutated image tag mongo:8.0.14-rc0, matching ground truth.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q3\", \"answer\": \"No\", \"evidence\": \"Labels a sysfs setting recommendation as the mechanism, which does not explain the ground-truth database version incompatibility.\", \"confidence\": \"Medium\"}, {\"id\": \"D3-Q1\", \"answer\": \"Yes\", \"evidence\": \"Blames only the six MongoDB deployments specified in ground truth.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q2\", \"answer\": \"Yes\", \"evidence\": \"Includes mongodb-geo, mongodb-profile, mongodb-rate, mongodb-recommendation, mongodb-reservation, and mongodb-user.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q3\", \"answer\": \"Yes\", \"evidence\": \"Reports mongodb-geo in CrashLoopBackOff with zero ready replicas and endpoints, consistent with database runtime failure, although cross-service persistence failures are not described.\", \"confidence\": \"Medium\"}]",
+    "success": true,
+    "accuracy": 89.0,
+    "composite_score": 0.89,
+    "dimensions": {
+     "D1": {
+      "name": "Fault Localization",
+      "score": 1.0
+     },
+     "D2": {
+      "name": "Fault Characterization",
+      "score": 0.67
+     },
+     "D3": {
+      "name": "Scope Precision",
+      "score": 1.0
+     }
+    },
+    "checklist": [
+     {
+      "id": "D1-Q1",
+      "answer": "Yes",
+      "evidence": "Names all six MongoDB deployments in namespace hotel-reservation, matching the fault specification.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q2",
+      "answer": "Yes",
+      "evidence": "Identifies the MongoDB deployment image changes as the root cause, rather than blaming downstream application services.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q3",
+      "answer": "Yes",
+      "evidence": "Every deployment identified as a fault origin appears in the ground-truth component list.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q1",
+      "answer": "Yes",
+      "evidence": "Identifies the image upgrade from mongo:4.4.6 to mongo:8.0.14-rc0 across the six deployments.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q2",
+      "answer": "Yes",
+      "evidence": "Explicitly names the mutated image tag mongo:8.0.14-rc0, matching ground truth.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q3",
+      "answer": "No",
+      "evidence": "Labels a sysfs setting recommendation as the mechanism, which does not explain the ground-truth database version incompatibility.",
+      "confidence": "Medium"
+     },
+     {
+      "id": "D3-Q1",
+      "answer": "Yes",
+      "evidence": "Blames only the six MongoDB deployments specified in ground truth.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q2",
+      "answer": "Yes",
+      "evidence": "Includes mongodb-geo, mongodb-profile, mongodb-rate, mongodb-recommendation, mongodb-reservation, and mongodb-user.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q3",
+      "answer": "Yes",
+      "evidence": "Reports mongodb-geo in CrashLoopBackOff with zero ready replicas and endpoints, consistent with database runtime failure, although cross-service persistence failures are not described.",
+      "confidence": "Medium"
+     }
+    ]
+   }
+  },
+  {
+   "arm": 9,
+   "kind": "v2",
+   "model": "upstage/solar-decide",
+   "position": 9,
+   "seconds": 33.6,
+   "requests": 3,
+   "input_tokens": 147142,
+   "error": null,
+   "model_failed": false,
+   "component": "deployment/mongodb-geo",
+   "investigation": {
+    "steps": [
+     {
+      "step": 1,
+      "node": "investigate",
+      "component": "deployment/mongodb-geo",
+      "verdict": "origin",
+      "origin_p": 0.9993,
+      "victim_p": 0.0006,
+      "next": "none",
+      "next_p": 0.9074,
+      "category": "image_or_binary",
+      "spec_checks": [
+       "service mongodb-geo has no ready endpoints"
+      ],
+      "blocked_input": null,
+      "key_evidence": "pod template changed in revision 3: container hotel-reserv-geo-mongo image: mongo:4.4.6 -> mongo:8.0.14-rc0"
+     }
+    ],
+    "concluded": "deployment/mongodb-geo",
+    "fallback": null,
+    "triage_top": [
+     [
+      "deployment/mongodb-geo",
+      0.8503
+     ],
+     [
+      "other",
+      0.051
+     ],
+     [
+      "deployment/geo",
+      0.0254
+     ],
+     [
+      "deployment/consul",
+      0.0175
+     ],
+     [
+      "deployment/mongodb-rate",
+      0.0133
+     ]
+    ],
+    "second": null
+   },
+   "text": "Root cause: Deployments `mongodb-geo`, `mongodb-profile`, `mongodb-rate`, `mongodb-recommendation`, `mongodb-reservation`, `mongodb-user` in namespace `hotel-reservation` (the same change on 6): pod template changed in revision 3: container hotel-reserv-geo-mongo image: mongo:4.4.6 -> mongo:8.0.14-rc0.\nMechanism: the component logs \"We suggest setting the contents of sysfsFile to 0\".\nDetails: container hotel-reserv-geo-mongo image: mongo:4.4.6 -> mongo:8.0.14-rc0; service mongodb-geo has no ready endpoints.\nEffect: only 0 of 1 desired replicas are ready; pod mongodb-geo-7db569d69-nwrhf: container hotel-reserv-geo-mongo waiting in CrashLoopBackOff.\nObserved: pod mongodb-geo-7db569d69-nwrhf: container hotel-reserv-geo-mongo restarted 4 times; service mongodb-geo selects this component but has 0 ready endpoints; pod mongodb-geo-7db569d69-nwrhf: container hotel-reserv-geo-mongo restarted 1 more time(s) in the last 0s; warning event BackOff on pod/mongodb-geo-7db569d69-nwrhf repeated 4 more time(s) in the last 0s; warning events: BackOff x10.",
+   "grade": {
+    "judgment": "True",
+    "reasoning": "Verdict: True (composite=0.89). D1 Fault Localization: 1.00 | D2 Fault Characterization: 0.67 | D3 Scope Precision: 1.00. Weakest dimension: Fault Characterization (0.67). Checklist details: [{\"id\": \"D1-Q1\", \"answer\": \"Yes\", \"evidence\": \"Names all six MongoDB deployments in namespace hotel-reservation, matching the fault specification.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q2\", \"answer\": \"Yes\", \"evidence\": \"Identifies the MongoDB deployment image changes as the root cause, rather than blaming downstream application services.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q3\", \"answer\": \"Yes\", \"evidence\": \"Every deployment identified as a fault origin appears in the ground-truth component list.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q1\", \"answer\": \"Yes\", \"evidence\": \"Identifies the image upgrade from mongo:4.4.6 to mongo:8.0.14-rc0 across the six deployments.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q2\", \"answer\": \"Yes\", \"evidence\": \"Explicitly names the mutated image tag mongo:8.0.14-rc0, matching ground truth.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q3\", \"answer\": \"No\", \"evidence\": \"Labels a sysfs setting recommendation as the mechanism, which does not explain the ground-truth database version incompatibility.\", \"confidence\": \"Medium\"}, {\"id\": \"D3-Q1\", \"answer\": \"Yes\", \"evidence\": \"Blames only the six MongoDB deployments specified in ground truth.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q2\", \"answer\": \"Yes\", \"evidence\": \"Includes mongodb-geo, mongodb-profile, mongodb-rate, mongodb-recommendation, mongodb-reservation, and mongodb-user.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q3\", \"answer\": \"Yes\", \"evidence\": \"Reports mongodb-geo in CrashLoopBackOff with zero ready replicas and endpoints, consistent with database runtime failure, although cross-service persistence failures are not described.\", \"confidence\": \"Medium\"}]",
+    "success": true,
+    "accuracy": 89.0,
+    "composite_score": 0.89,
+    "dimensions": {
+     "D1": {
+      "name": "Fault Localization",
+      "score": 1.0
+     },
+     "D2": {
+      "name": "Fault Characterization",
+      "score": 0.67
+     },
+     "D3": {
+      "name": "Scope Precision",
+      "score": 1.0
+     }
+    },
+    "checklist": [
+     {
+      "id": "D1-Q1",
+      "answer": "Yes",
+      "evidence": "Names all six MongoDB deployments in namespace hotel-reservation, matching the fault specification.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q2",
+      "answer": "Yes",
+      "evidence": "Identifies the MongoDB deployment image changes as the root cause, rather than blaming downstream application services.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q3",
+      "answer": "Yes",
+      "evidence": "Every deployment identified as a fault origin appears in the ground-truth component list.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q1",
+      "answer": "Yes",
+      "evidence": "Identifies the image upgrade from mongo:4.4.6 to mongo:8.0.14-rc0 across the six deployments.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q2",
+      "answer": "Yes",
+      "evidence": "Explicitly names the mutated image tag mongo:8.0.14-rc0, matching ground truth.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q3",
+      "answer": "No",
+      "evidence": "Labels a sysfs setting recommendation as the mechanism, which does not explain the ground-truth database version incompatibility.",
+      "confidence": "Medium"
+     },
+     {
+      "id": "D3-Q1",
+      "answer": "Yes",
+      "evidence": "Blames only the six MongoDB deployments specified in ground truth.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q2",
+      "answer": "Yes",
+      "evidence": "Includes mongodb-geo, mongodb-profile, mongodb-rate, mongodb-recommendation, mongodb-reservation, and mongodb-user.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q3",
+      "answer": "Yes",
+      "evidence": "Reports mongodb-geo in CrashLoopBackOff with zero ready replicas and endpoints, consistent with database runtime failure, although cross-service persistence failures are not described.",
+      "confidence": "Medium"
+     }
+    ]
+   }
+  },
+  {
+   "arm": 10,
+   "kind": "v1",
+   "model": "typesafe/jev-1.13",
+   "position": 10,
+   "seconds": 1.5,
+   "requests": 2,
+   "input_tokens": 36795,
+   "error": null,
+   "model_failed": false,
+   "component": "deployment/mongodb-geo",
+   "investigation": {
+    "steps": [
+     {
+      "step": 1,
+      "node": "investigate",
+      "component": "deployment/mongodb-geo",
+      "verdict": "origin",
+      "origin_p": 1.0,
+      "victim_p": 0.0,
+      "next": "none",
+      "next_p": 0.93,
+      "category": "image_or_binary",
+      "spec_checks": [
+       "service mongodb-geo has no ready endpoints"
+      ],
+      "blocked_input": null,
+      "key_evidence": "log x1 (ongoing, last seen 0s ago): hotel-reserv-geo-mongo: {\"t\":{\"$date\":\"2026-10-19T08:00:12.940+00:00\"},\"s\":\"F\", \"c\":\"CONTROL\", \"id\":20573, \"ctx\":\"initandlisten\",\"msg\":\"Wrong mongod version\",\"attr\":{\"error\":\"UPGRADE PROBLEM: Found an invalid featureCompatibilityVersion do\u2026"
+     }
+    ],
+    "concluded": "deployment/mongodb-geo",
+    "fallback": null,
+    "triage_top": [
+     [
+      "deployment/mongodb-geo",
+      0.81
+     ],
+     [
+      "deployment/mongodb-user",
+      0.08
+     ],
+     [
+      "deployment/rate",
+      0.06
+     ],
+     [
+      "deployment/geo",
+      0.03
+     ],
+     [
+      "deployment/mongodb-rate",
+      0.01
+     ]
+    ]
+   },
+   "text": "Root cause component: Deployment `mongodb-geo` in namespace `hotel-reservation`.\nMechanism: log x1 (ongoing, last seen 0s ago): hotel-reserv-geo-mongo: {\"t\":{\"$date\":\"2026-10-19T08:00:12.940+00:00\"},\"s\":\"F\", \"c\":\"CONTROL\", \"id\":20573, \"ctx\":\"initandlisten\",\"msg\":\"Wrong mongod version\",\"attr\":{\"error\":\"UPGRADE PROBLEM: Found an invalid featureCompatibilityVersion do\u2026.\nFault type: image or binary (the container image or binary is wrong).\nAbnormal state observed on this component:\n- only 0 of 1 desired replicas are ready\n- pod mongodb-geo-7db569d69-nwrhf: container hotel-reserv-geo-mongo waiting in CrashLoopBackOff\n- pod mongodb-geo-7db569d69-nwrhf: container hotel-reserv-geo-mongo restarted 4 times\n- service mongodb-geo selects this component but has 0 ready endpoints\n- pod mongodb-geo-7db569d69-nwrhf: container hotel-reserv-geo-mongo restarted 1 more time(s) in the last 0s\n- warning event BackOff on pod/mongodb-geo-7db569d69-nwrhf repeated 4 more time(s) in the last 0s\n- warning events: BackOff x10\n- spec modified 76s ago, 14s after this object was created (fields: spec.replicas, containers[hotel-reserv-geo-mongo].image); pod template changes: pod label pod-template-hash: 5ff578bcb8 -> 7db569d69; container hotel-reserv-geo-mongo image: mongo:4.4.6 -> mongo:8.0.14-rc0; 4s before the first active symptom\n- 2 error-like log lines still occurring in the recent pod logs\nNotable spec settings:\n- Available=False (MinimumReplicasUnavailable)\n- container hotel-reserv-geo-mongo: image mongo:8.0.14-rc0, limits {'cpu': '1'}\nWarning events:\n- BackOff x10 on pod/mongodb-geo-7db569d69-nwrhf: Back-off restarting failed container hotel-reserv-geo-mongo in pod mongodb-geo-7db569d69-nwrhf_hotel-reservation(6b9cc9c2-1532-4040-8783-64a5ea8bac13)\nError-like log lines still occurring:\n- x1: hotel-reserv-geo-mongo: {\"t\":{\"$date\":\"2026-10-19T08:00:12.931+00:00\"},\"s\":\"W\", \"c\":\"CONTROL\", \"id\":8640302, \"ctx\":\"initandlisten\",\"msg\":\"We suggest setting the contents of sysfsFile to 0.\",\"attr\":{\"sysfsFile\":\"/sys/kernel/mm/transparent_h\u2026\n- x1: hotel-reserv-geo-mongo: {\"t\":{\"$date\":\"2026-10-19T08:00:12.940+00:00\"},\"s\":\"F\", \"c\":\"CONTROL\", \"id\":20573, \"ctx\":\"initandlisten\",\"msg\":\"Wrong mongod version\",\"attr\":{\"error\":\"UPGRADE PROBLEM: Found an invalid featureCompatibilityVersion do\u2026\nLast lines of the previous (crashed) run of container hotel-reserv-geo-mongo:\n- \"c\":\"-\", \"id\":4784931, \"ctx\":\"initandlisten\",\"msg\":\"Dropping the scope cache for shutdown\"}\n- \"c\":\"CONTROL\", \"id\":20565, \"ctx\":\"initandlisten\",\"msg\":\"Now exiting\"}\n- \"c\":\"CONTROL\", \"id\":8423404, \"ctx\":\"initandlisten\",\"msg\":\"mongod shutdown complete\",\"attr\":{\"Summary of time elapsed\":{\"Statistics\":{\"Enter terminal shutdown\":\"0 ms\",\"Step down the replication coordinator for shutdown\":\"2 ms\",\"Time spent i\u2026\n- \"c\":\"CONTROL\", \"id\":23138, \"ctx\":\"initandlisten\",\"msg\":\"Shutting down\",\"attr\":{\"exitCode\":62}}\nClassification: Jev (typesafe/jev-1.13-20260917) confirmed this origin at investigation step 1 with probability 1.00 (triage probability 0.81).",
+   "grade": {
+    "judgment": "True",
+    "reasoning": "Verdict: True (composite=0.89). D1 Fault Localization: 1.00 | D2 Fault Characterization: 1.00 | D3 Scope Precision: 0.67. Weakest dimension: Scope Precision (0.67). Checklist details: [{\"id\": \"D1-Q1\", \"answer\": \"Yes\", \"evidence\": \"Names Deployment mongodb-geo in namespace hotel-reservation, matching one of the ground-truth fault origins.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q2\", \"answer\": \"Yes\", \"evidence\": \"Locates the fault in the MongoDB deployment itself and cites its incompatible version, rather than blaming a downstream service.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q3\", \"answer\": \"Yes\", \"evidence\": \"The only blamed component, mongodb-geo, is explicitly included in the ground-truth fault specification.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q1\", \"answer\": \"Yes\", \"evidence\": \"Identifies a wrong container image or binary and cites a fatal 'Wrong mongod version' upgrade error.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q2\", \"answer\": \"Yes\", \"evidence\": \"Explicitly reports the image change from mongo:4.4.6 to mongo:8.0.14-rc0, matching the injected incompatible image tag.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q3\", \"answer\": \"Yes\", \"evidence\": \"Attributes the failure to an incompatible MongoDB image and featureCompatibilityVersion error, consistent with the ground-truth fault type.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q1\", \"answer\": \"Yes\", \"evidence\": \"Blames only mongodb-geo, a ground-truth contributing component; no uninvolved components are blamed.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q2\", \"answer\": \"No\", \"evidence\": \"Mentions only mongodb-geo; omits mongodb-profile, mongodb-rate, mongodb-recommendation, mongodb-reservation, and mongodb-user.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q3\", \"answer\": \"Yes\", \"evidence\": \"Reports version incompatibility, CrashLoopBackOff, zero ready replicas, and zero ready endpoints, consistent with an incompatible MongoDB backend becoming unavailable.\", \"confidence\": \"High\"}]",
+    "success": true,
+    "accuracy": 89.0,
+    "composite_score": 0.89,
+    "dimensions": {
+     "D1": {
+      "name": "Fault Localization",
+      "score": 1.0
+     },
+     "D2": {
+      "name": "Fault Characterization",
+      "score": 1.0
+     },
+     "D3": {
+      "name": "Scope Precision",
+      "score": 0.67
+     }
+    },
+    "checklist": [
+     {
+      "id": "D1-Q1",
+      "answer": "Yes",
+      "evidence": "Names Deployment mongodb-geo in namespace hotel-reservation, matching one of the ground-truth fault origins.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q2",
+      "answer": "Yes",
+      "evidence": "Locates the fault in the MongoDB deployment itself and cites its incompatible version, rather than blaming a downstream service.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q3",
+      "answer": "Yes",
+      "evidence": "The only blamed component, mongodb-geo, is explicitly included in the ground-truth fault specification.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q1",
+      "answer": "Yes",
+      "evidence": "Identifies a wrong container image or binary and cites a fatal 'Wrong mongod version' upgrade error.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q2",
+      "answer": "Yes",
+      "evidence": "Explicitly reports the image change from mongo:4.4.6 to mongo:8.0.14-rc0, matching the injected incompatible image tag.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q3",
+      "answer": "Yes",
+      "evidence": "Attributes the failure to an incompatible MongoDB image and featureCompatibilityVersion error, consistent with the ground-truth fault type.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q1",
+      "answer": "Yes",
+      "evidence": "Blames only mongodb-geo, a ground-truth contributing component; no uninvolved components are blamed.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q2",
+      "answer": "No",
+      "evidence": "Mentions only mongodb-geo; omits mongodb-profile, mongodb-rate, mongodb-recommendation, mongodb-reservation, and mongodb-user.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q3",
+      "answer": "Yes",
+      "evidence": "Reports version incompatibility, CrashLoopBackOff, zero ready replicas, and zero ready endpoints, consistent with an incompatible MongoDB backend becoming unavailable.",
+      "confidence": "High"
+     }
+    ]
+   }
+  },
+  {
+   "arm": 11,
+   "kind": "v1",
+   "model": "openai/gpt-6-luna-decisions",
+   "position": 11,
+   "seconds": 1.3,
+   "requests": 2,
+   "input_tokens": 26538,
+   "error": null,
+   "model_failed": false,
+   "component": "deployment/mongodb-geo",
+   "investigation": {
+    "steps": [
+     {
+      "step": 1,
+      "node": "investigate",
+      "component": "deployment/mongodb-geo",
+      "verdict": "origin",
+      "origin_p": 0.95,
+      "victim_p": 0.03,
+      "next": "deployment/mongodb-user",
+      "next_p": 0.54,
+      "category": "config_value",
+      "spec_checks": [
+       "service mongodb-geo has no ready endpoints"
+      ],
+      "blocked_input": null,
+      "key_evidence": "pod template changed in revision 3: container hotel-reserv-geo-mongo image: mongo:4.4.6 -> mongo:8.0.14-rc0"
+     }
+    ],
+    "concluded": "deployment/mongodb-geo",
+    "fallback": null,
+    "triage_top": [
+     [
+      "deployment/mongodb-geo",
+      0.46
+     ],
+     [
+      "deployment/mongodb-user",
+      0.37
+     ],
+     [
+      "deployment/mongodb-rate",
+      0.07
+     ],
+     [
+      "deployment/mongodb-profile",
+      0.04
+     ],
+     [
+      "deployment/mongodb-recommendation",
+      0.02
+     ]
+    ]
+   },
+   "text": "Root cause component: Deployment `mongodb-geo` in namespace `hotel-reservation`.\nMechanism: pod template changed in revision 3: container hotel-reserv-geo-mongo image: mongo:4.4.6 -> mongo:8.0.14-rc0.\nFault type: config value (a wrong, missing, or shadowed value in this component's own configuration).\nAbnormal state observed on this component:\n- only 0 of 1 desired replicas are ready\n- pod mongodb-geo-7db569d69-nwrhf: container hotel-reserv-geo-mongo waiting in CrashLoopBackOff\n- pod mongodb-geo-7db569d69-nwrhf: container hotel-reserv-geo-mongo restarted 4 times\n- service mongodb-geo selects this component but has 0 ready endpoints\n- pod mongodb-geo-7db569d69-nwrhf: container hotel-reserv-geo-mongo restarted 1 more time(s) in the last 0s\n- warning event BackOff on pod/mongodb-geo-7db569d69-nwrhf repeated 4 more time(s) in the last 0s\n- warning events: BackOff x10\n- spec modified 76s ago, 14s after this object was created (fields: spec.replicas, containers[hotel-reserv-geo-mongo].image); pod template changes: pod label pod-template-hash: 5ff578bcb8 -> 7db569d69; container hotel-reserv-geo-mongo image: mongo:4.4.6 -> mongo:8.0.14-rc0; 4s before the first active symptom\n- 2 error-like log lines still occurring in the recent pod logs\nNotable spec settings:\n- Available=False (MinimumReplicasUnavailable)\n- container hotel-reserv-geo-mongo: image mongo:8.0.14-rc0, limits {'cpu': '1'}\nWarning events:\n- BackOff x10 on pod/mongodb-geo-7db569d69-nwrhf: Back-off restarting failed container hotel-reserv-geo-mongo in pod mongodb-geo-7db569d69-nwrhf_hotel-reservation(6b9cc9c2-1532-4040-8783-64a5ea8bac13)\nError-like log lines still occurring:\n- x1: hotel-reserv-geo-mongo: {\"t\":{\"$date\":\"2026-10-19T08:00:12.931+00:00\"},\"s\":\"W\", \"c\":\"CONTROL\", \"id\":8640302, \"ctx\":\"initandlisten\",\"msg\":\"We suggest setting the contents of sysfsFile to 0.\",\"attr\":{\"sysfsFile\":\"/sys/kernel/mm/transparent_h\u2026\n- x1: hotel-reserv-geo-mongo: {\"t\":{\"$date\":\"2026-10-19T08:00:12.940+00:00\"},\"s\":\"F\", \"c\":\"CONTROL\", \"id\":20573, \"ctx\":\"initandlisten\",\"msg\":\"Wrong mongod version\",\"attr\":{\"error\":\"UPGRADE PROBLEM: Found an invalid featureCompatibilityVersion do\u2026\nLast lines of the previous (crashed) run of container hotel-reserv-geo-mongo:\n- \"c\":\"-\", \"id\":4784931, \"ctx\":\"initandlisten\",\"msg\":\"Dropping the scope cache for shutdown\"}\n- \"c\":\"CONTROL\", \"id\":20565, \"ctx\":\"initandlisten\",\"msg\":\"Now exiting\"}\n- \"c\":\"CONTROL\", \"id\":8423404, \"ctx\":\"initandlisten\",\"msg\":\"mongod shutdown complete\",\"attr\":{\"Summary of time elapsed\":{\"Statistics\":{\"Enter terminal shutdown\":\"0 ms\",\"Step down the replication coordinator for shutdown\":\"2 ms\",\"Time spent i\u2026\n- \"c\":\"CONTROL\", \"id\":23138, \"ctx\":\"initandlisten\",\"msg\":\"Shutting down\",\"attr\":{\"exitCode\":62}}\nClassification: Jev (openai/gpt-6-luna-decisions-20261006) confirmed this origin at investigation step 1 with probability 0.95 (triage probability 0.46).",
+   "grade": {
+    "judgment": "True",
+    "reasoning": "Verdict: True (composite=0.89). D1 Fault Localization: 1.00 | D2 Fault Characterization: 1.00 | D3 Scope Precision: 0.67. Weakest dimension: Scope Precision (0.67). Checklist details: [{\"id\": \"D1-Q1\", \"answer\": \"Yes\", \"evidence\": \"Names Deployment mongodb-geo in namespace hotel-reservation, matching one of the ground-truth fault origins.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q2\", \"answer\": \"Yes\", \"evidence\": \"Attributes the fault to mongodb-geo's image change, identifying a database fault origin rather than a downstream service.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q3\", \"answer\": \"Yes\", \"evidence\": \"The blamed deployment, mongodb-geo, is explicitly included in the ground-truth fault specification.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q1\", \"answer\": \"Yes\", \"evidence\": \"Identifies the container image upgrade from mongo:4.4.6 to mongo:8.0.14-rc0 and reports 'Wrong mongod version.'\", \"confidence\": \"High\"}, {\"id\": \"D2-Q2\", \"answer\": \"Yes\", \"evidence\": \"Explicitly names the mutated image tag mongo:8.0.14-rc0, exactly matching the ground truth.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q3\", \"answer\": \"Yes\", \"evidence\": \"Classifies the fault as a wrong configuration value and ties it to the incompatible MongoDB image upgrade.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q1\", \"answer\": \"Yes\", \"evidence\": \"Blames only mongodb-geo, a deployment identified in the ground truth as contributing to the fault.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q2\", \"answer\": \"No\", \"evidence\": \"Mentions only mongodb-geo; omits mongodb-profile, mongodb-rate, mongodb-recommendation, mongodb-reservation, and mongodb-user.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q3\", \"answer\": \"Yes\", \"evidence\": \"Reports 'Wrong mongod version,' an invalid featureCompatibilityVersion, CrashLoopBackOff, and zero ready endpoints, consistent with database incompatibility and persistence failure.\", \"confidence\": \"High\"}]",
+    "success": true,
+    "accuracy": 89.0,
+    "composite_score": 0.89,
+    "dimensions": {
+     "D1": {
+      "name": "Fault Localization",
+      "score": 1.0
+     },
+     "D2": {
+      "name": "Fault Characterization",
+      "score": 1.0
+     },
+     "D3": {
+      "name": "Scope Precision",
+      "score": 0.67
+     }
+    },
+    "checklist": [
+     {
+      "id": "D1-Q1",
+      "answer": "Yes",
+      "evidence": "Names Deployment mongodb-geo in namespace hotel-reservation, matching one of the ground-truth fault origins.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q2",
+      "answer": "Yes",
+      "evidence": "Attributes the fault to mongodb-geo's image change, identifying a database fault origin rather than a downstream service.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q3",
+      "answer": "Yes",
+      "evidence": "The blamed deployment, mongodb-geo, is explicitly included in the ground-truth fault specification.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q1",
+      "answer": "Yes",
+      "evidence": "Identifies the container image upgrade from mongo:4.4.6 to mongo:8.0.14-rc0 and reports 'Wrong mongod version.'",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q2",
+      "answer": "Yes",
+      "evidence": "Explicitly names the mutated image tag mongo:8.0.14-rc0, exactly matching the ground truth.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q3",
+      "answer": "Yes",
+      "evidence": "Classifies the fault as a wrong configuration value and ties it to the incompatible MongoDB image upgrade.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q1",
+      "answer": "Yes",
+      "evidence": "Blames only mongodb-geo, a deployment identified in the ground truth as contributing to the fault.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q2",
+      "answer": "No",
+      "evidence": "Mentions only mongodb-geo; omits mongodb-profile, mongodb-rate, mongodb-recommendation, mongodb-reservation, and mongodb-user.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q3",
+      "answer": "Yes",
+      "evidence": "Reports 'Wrong mongod version,' an invalid featureCompatibilityVersion, CrashLoopBackOff, and zero ready endpoints, consistent with database incompatibility and persistence failure.",
+      "confidence": "High"
+     }
+    ]
+   }
+  },
+  {
+   "arm": 12,
+   "kind": "v1",
+   "model": "microsoft/microsoft-decision-1",
+   "position": 12,
+   "seconds": 2.6,
+   "requests": 2,
+   "input_tokens": 28619,
+   "error": null,
+   "model_failed": false,
+   "component": "deployment/mongodb-geo",
+   "investigation": {
+    "steps": [
+     {
+      "step": 1,
+      "node": "investigate",
+      "component": "deployment/mongodb-geo",
+      "verdict": "origin",
+      "origin_p": 0.9683,
+      "victim_p": 0.0177,
+      "next": "none",
+      "next_p": 0.8621,
+      "category": "image_or_binary",
+      "spec_checks": [
+       "service mongodb-geo has no ready endpoints"
+      ],
+      "blocked_input": null,
+      "key_evidence": "log x1 (ongoing, last seen 0s ago): hotel-reserv-geo-mongo: {\"t\":{\"$date\":\"2026-10-19T08:00:12.940+00:00\"},\"s\":\"F\", \"c\":\"CONTROL\", \"id\":20573, \"ctx\":\"initandlisten\",\"msg\":\"Wrong mongod version\",\"attr\":{\"error\":\"UPGRADE PROBLEM: Found an invalid featureCompatibilityVersion do\u2026"
+     }
+    ],
+    "concluded": "deployment/mongodb-geo",
+    "fallback": null,
+    "triage_top": [
+     [
+      "deployment/mongodb-geo",
+      0.9464
+     ],
+     [
+      "deployment/geo",
+      0.0252
+     ],
+     [
+      "deployment/rate",
+      0.0173
+     ],
+     [
+      "deployment/frontend",
+      0.0014
+     ],
+     [
+      "deployment/mongodb-profile",
+      0.0013
+     ]
+    ]
+   },
+   "text": "Root cause component: Deployment `mongodb-geo` in namespace `hotel-reservation`.\nMechanism: log x1 (ongoing, last seen 0s ago): hotel-reserv-geo-mongo: {\"t\":{\"$date\":\"2026-10-19T08:00:12.940+00:00\"},\"s\":\"F\", \"c\":\"CONTROL\", \"id\":20573, \"ctx\":\"initandlisten\",\"msg\":\"Wrong mongod version\",\"attr\":{\"error\":\"UPGRADE PROBLEM: Found an invalid featureCompatibilityVersion do\u2026.\nFault type: image or binary (the container image or binary is wrong).\nAbnormal state observed on this component:\n- only 0 of 1 desired replicas are ready\n- pod mongodb-geo-7db569d69-nwrhf: container hotel-reserv-geo-mongo waiting in CrashLoopBackOff\n- pod mongodb-geo-7db569d69-nwrhf: container hotel-reserv-geo-mongo restarted 4 times\n- service mongodb-geo selects this component but has 0 ready endpoints\n- pod mongodb-geo-7db569d69-nwrhf: container hotel-reserv-geo-mongo restarted 1 more time(s) in the last 0s\n- warning event BackOff on pod/mongodb-geo-7db569d69-nwrhf repeated 4 more time(s) in the last 0s\n- warning events: BackOff x10\n- spec modified 76s ago, 14s after this object was created (fields: spec.replicas, containers[hotel-reserv-geo-mongo].image); pod template changes: pod label pod-template-hash: 5ff578bcb8 -> 7db569d69; container hotel-reserv-geo-mongo image: mongo:4.4.6 -> mongo:8.0.14-rc0; 4s before the first active symptom\n- 2 error-like log lines still occurring in the recent pod logs\nNotable spec settings:\n- Available=False (MinimumReplicasUnavailable)\n- container hotel-reserv-geo-mongo: image mongo:8.0.14-rc0, limits {'cpu': '1'}\nWarning events:\n- BackOff x10 on pod/mongodb-geo-7db569d69-nwrhf: Back-off restarting failed container hotel-reserv-geo-mongo in pod mongodb-geo-7db569d69-nwrhf_hotel-reservation(6b9cc9c2-1532-4040-8783-64a5ea8bac13)\nError-like log lines still occurring:\n- x1: hotel-reserv-geo-mongo: {\"t\":{\"$date\":\"2026-10-19T08:00:12.931+00:00\"},\"s\":\"W\", \"c\":\"CONTROL\", \"id\":8640302, \"ctx\":\"initandlisten\",\"msg\":\"We suggest setting the contents of sysfsFile to 0.\",\"attr\":{\"sysfsFile\":\"/sys/kernel/mm/transparent_h\u2026\n- x1: hotel-reserv-geo-mongo: {\"t\":{\"$date\":\"2026-10-19T08:00:12.940+00:00\"},\"s\":\"F\", \"c\":\"CONTROL\", \"id\":20573, \"ctx\":\"initandlisten\",\"msg\":\"Wrong mongod version\",\"attr\":{\"error\":\"UPGRADE PROBLEM: Found an invalid featureCompatibilityVersion do\u2026\nLast lines of the previous (crashed) run of container hotel-reserv-geo-mongo:\n- \"c\":\"-\", \"id\":4784931, \"ctx\":\"initandlisten\",\"msg\":\"Dropping the scope cache for shutdown\"}\n- \"c\":\"CONTROL\", \"id\":20565, \"ctx\":\"initandlisten\",\"msg\":\"Now exiting\"}\n- \"c\":\"CONTROL\", \"id\":8423404, \"ctx\":\"initandlisten\",\"msg\":\"mongod shutdown complete\",\"attr\":{\"Summary of time elapsed\":{\"Statistics\":{\"Enter terminal shutdown\":\"0 ms\",\"Step down the replication coordinator for shutdown\":\"2 ms\",\"Time spent i\u2026\n- \"c\":\"CONTROL\", \"id\":23138, \"ctx\":\"initandlisten\",\"msg\":\"Shutting down\",\"attr\":{\"exitCode\":62}}\nClassification: Jev (microsoft/microsoft-decision-1-20261009) confirmed this origin at investigation step 1 with probability 0.97 (triage probability 0.95).",
+   "grade": {
+    "judgment": "True",
+    "reasoning": "Verdict: True (composite=0.89). D1 Fault Localization: 1.00 | D2 Fault Characterization: 1.00 | D3 Scope Precision: 0.67. Weakest dimension: Scope Precision (0.67). Checklist details: [{\"id\": \"D1-Q1\", \"answer\": \"Yes\", \"evidence\": \"The diagnosis names Deployment mongodb-geo in namespace hotel-reservation, one of the fault origins explicitly listed in the ground truth.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q2\", \"answer\": \"Yes\", \"evidence\": \"The diagnosis attributes the fault to the mongodb-geo backend's incompatible image, identifying an actual origin rather than a downstream service.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q3\", \"answer\": \"Yes\", \"evidence\": \"The blamed component, mongodb-geo, is explicitly included among the ground-truth faulty deployments.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q1\", \"answer\": \"Yes\", \"evidence\": \"The diagnosis identifies a wrong container image and reports an upgrade from mongo:4.4.6 to mongo:8.0.14-rc0, matching the incompatible-image mechanism.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q2\", \"answer\": \"Yes\", \"evidence\": \"The diagnosis explicitly identifies the mutated image tag mongo:8.0.14-rc0, matching the ground truth.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q3\", \"answer\": \"Yes\", \"evidence\": \"The stated fault type is image or binary, supported by 'Wrong mongod version' and an invalid featureCompatibilityVersion upgrade error.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q1\", \"answer\": \"Yes\", \"evidence\": \"The diagnosis blames only mongodb-geo, a ground-truth contributor, and does not attribute the fault to uninvolved components.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q2\", \"answer\": \"No\", \"evidence\": \"The diagnosis names only mongodb-geo; it omits mongodb-profile, mongodb-rate, mongodb-recommendation, mongodb-reservation, and mongodb-user.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q3\", \"answer\": \"Yes\", \"evidence\": \"The diagnosis reports version incompatibility, CrashLoopBackOff, zero ready replicas, and zero ready endpoints, consistent with failure of an affected MongoDB backend.\", \"confidence\": \"High\"}]",
+    "success": true,
+    "accuracy": 89.0,
+    "composite_score": 0.89,
+    "dimensions": {
+     "D1": {
+      "name": "Fault Localization",
+      "score": 1.0
+     },
+     "D2": {
+      "name": "Fault Characterization",
+      "score": 1.0
+     },
+     "D3": {
+      "name": "Scope Precision",
+      "score": 0.67
+     }
+    },
+    "checklist": [
+     {
+      "id": "D1-Q1",
+      "answer": "Yes",
+      "evidence": "The diagnosis names Deployment mongodb-geo in namespace hotel-reservation, one of the fault origins explicitly listed in the ground truth.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q2",
+      "answer": "Yes",
+      "evidence": "The diagnosis attributes the fault to the mongodb-geo backend's incompatible image, identifying an actual origin rather than a downstream service.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q3",
+      "answer": "Yes",
+      "evidence": "The blamed component, mongodb-geo, is explicitly included among the ground-truth faulty deployments.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q1",
+      "answer": "Yes",
+      "evidence": "The diagnosis identifies a wrong container image and reports an upgrade from mongo:4.4.6 to mongo:8.0.14-rc0, matching the incompatible-image mechanism.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q2",
+      "answer": "Yes",
+      "evidence": "The diagnosis explicitly identifies the mutated image tag mongo:8.0.14-rc0, matching the ground truth.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q3",
+      "answer": "Yes",
+      "evidence": "The stated fault type is image or binary, supported by 'Wrong mongod version' and an invalid featureCompatibilityVersion upgrade error.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q1",
+      "answer": "Yes",
+      "evidence": "The diagnosis blames only mongodb-geo, a ground-truth contributor, and does not attribute the fault to uninvolved components.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q2",
+      "answer": "No",
+      "evidence": "The diagnosis names only mongodb-geo; it omits mongodb-profile, mongodb-rate, mongodb-recommendation, mongodb-reservation, and mongodb-user.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q3",
+      "answer": "Yes",
+      "evidence": "The diagnosis reports version incompatibility, CrashLoopBackOff, zero ready replicas, and zero ready endpoints, consistent with failure of an affected MongoDB backend.",
+      "confidence": "High"
+     }
+    ]
+   }
+  },
+  {
+   "arm": 13,
+   "kind": "v1",
+   "model": "liquid/d1",
+   "position": 13,
+   "seconds": 2.9,
+   "requests": 2,
+   "input_tokens": 33275,
+   "error": null,
+   "model_failed": false,
+   "component": "deployment/mongodb-geo",
+   "investigation": {
+    "steps": [
+     {
+      "step": 1,
+      "node": "investigate",
+      "component": "deployment/mongodb-geo",
+      "verdict": "origin",
+      "origin_p": 0.9985,
+      "victim_p": 0.0009,
+      "next": "none",
+      "next_p": 0.7905,
+      "category": "image_or_binary",
+      "spec_checks": [
+       "service mongodb-geo has no ready endpoints"
+      ],
+      "blocked_input": null,
+      "key_evidence": "log x1 (ongoing, last seen 0s ago): hotel-reserv-geo-mongo: {\"t\":{\"$date\":\"2026-10-19T08:00:12.940+00:00\"},\"s\":\"F\", \"c\":\"CONTROL\", \"id\":20573, \"ctx\":\"initandlisten\",\"msg\":\"Wrong mongod version\",\"attr\":{\"error\":\"UPGRADE PROBLEM: Found an invalid featureCompatibilityVersion do\u2026"
+     }
+    ],
+    "concluded": "deployment/mongodb-geo",
+    "fallback": null,
+    "triage_top": [
+     [
+      "deployment/mongodb-geo",
+      0.8284
+     ],
+     [
+      "deployment/mongodb-profile",
+      0.068
+     ],
+     [
+      "deployment/mongodb-user",
+      0.06
+     ],
+     [
+      "deployment/rate",
+      0.0221
+     ],
+     [
+      "deployment/geo",
+      0.0063
+     ]
+    ]
+   },
+   "text": "Root cause component: Deployment `mongodb-geo` in namespace `hotel-reservation`.\nMechanism: log x1 (ongoing, last seen 0s ago): hotel-reserv-geo-mongo: {\"t\":{\"$date\":\"2026-10-19T08:00:12.940+00:00\"},\"s\":\"F\", \"c\":\"CONTROL\", \"id\":20573, \"ctx\":\"initandlisten\",\"msg\":\"Wrong mongod version\",\"attr\":{\"error\":\"UPGRADE PROBLEM: Found an invalid featureCompatibilityVersion do\u2026.\nFault type: image or binary (the container image or binary is wrong).\nAbnormal state observed on this component:\n- only 0 of 1 desired replicas are ready\n- pod mongodb-geo-7db569d69-nwrhf: container hotel-reserv-geo-mongo waiting in CrashLoopBackOff\n- pod mongodb-geo-7db569d69-nwrhf: container hotel-reserv-geo-mongo restarted 4 times\n- service mongodb-geo selects this component but has 0 ready endpoints\n- pod mongodb-geo-7db569d69-nwrhf: container hotel-reserv-geo-mongo restarted 1 more time(s) in the last 0s\n- warning event BackOff on pod/mongodb-geo-7db569d69-nwrhf repeated 4 more time(s) in the last 0s\n- warning events: BackOff x10\n- spec modified 76s ago, 14s after this object was created (fields: spec.replicas, containers[hotel-reserv-geo-mongo].image); pod template changes: pod label pod-template-hash: 5ff578bcb8 -> 7db569d69; container hotel-reserv-geo-mongo image: mongo:4.4.6 -> mongo:8.0.14-rc0; 4s before the first active symptom\n- 2 error-like log lines still occurring in the recent pod logs\nNotable spec settings:\n- Available=False (MinimumReplicasUnavailable)\n- container hotel-reserv-geo-mongo: image mongo:8.0.14-rc0, limits {'cpu': '1'}\nWarning events:\n- BackOff x10 on pod/mongodb-geo-7db569d69-nwrhf: Back-off restarting failed container hotel-reserv-geo-mongo in pod mongodb-geo-7db569d69-nwrhf_hotel-reservation(6b9cc9c2-1532-4040-8783-64a5ea8bac13)\nError-like log lines still occurring:\n- x1: hotel-reserv-geo-mongo: {\"t\":{\"$date\":\"2026-10-19T08:00:12.931+00:00\"},\"s\":\"W\", \"c\":\"CONTROL\", \"id\":8640302, \"ctx\":\"initandlisten\",\"msg\":\"We suggest setting the contents of sysfsFile to 0.\",\"attr\":{\"sysfsFile\":\"/sys/kernel/mm/transparent_h\u2026\n- x1: hotel-reserv-geo-mongo: {\"t\":{\"$date\":\"2026-10-19T08:00:12.940+00:00\"},\"s\":\"F\", \"c\":\"CONTROL\", \"id\":20573, \"ctx\":\"initandlisten\",\"msg\":\"Wrong mongod version\",\"attr\":{\"error\":\"UPGRADE PROBLEM: Found an invalid featureCompatibilityVersion do\u2026\nLast lines of the previous (crashed) run of container hotel-reserv-geo-mongo:\n- \"c\":\"-\", \"id\":4784931, \"ctx\":\"initandlisten\",\"msg\":\"Dropping the scope cache for shutdown\"}\n- \"c\":\"CONTROL\", \"id\":20565, \"ctx\":\"initandlisten\",\"msg\":\"Now exiting\"}\n- \"c\":\"CONTROL\", \"id\":8423404, \"ctx\":\"initandlisten\",\"msg\":\"mongod shutdown complete\",\"attr\":{\"Summary of time elapsed\":{\"Statistics\":{\"Enter terminal shutdown\":\"0 ms\",\"Step down the replication coordinator for shutdown\":\"2 ms\",\"Time spent i\u2026\n- \"c\":\"CONTROL\", \"id\":23138, \"ctx\":\"initandlisten\",\"msg\":\"Shutting down\",\"attr\":{\"exitCode\":62}}\nClassification: Jev (liquid/d1-20260930) confirmed this origin at investigation step 1 with probability 1.00 (triage probability 0.83).",
+   "grade": {
+    "judgment": "True",
+    "reasoning": "Verdict: True (composite=0.89). D1 Fault Localization: 1.00 | D2 Fault Characterization: 1.00 | D3 Scope Precision: 0.67. Weakest dimension: Scope Precision (0.67). Checklist details: [{\"id\": \"D1-Q1\", \"answer\": \"Yes\", \"evidence\": \"Names Deployment mongodb-geo in namespace hotel-reservation, matching one of the ground-truth fault origins.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q2\", \"answer\": \"Yes\", \"evidence\": \"Identifies mongodb-geo itself as the origin, rather than a downstream service experiencing persistence failures.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q3\", \"answer\": \"Yes\", \"evidence\": \"The blamed deployment, mongodb-geo, is explicitly included in the fault specification.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q1\", \"answer\": \"Yes\", \"evidence\": \"Identifies a wrong container image or binary and reports a MongoDB version incompatibility after an image upgrade.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q2\", \"answer\": \"Yes\", \"evidence\": \"Explicitly reports the image change from mongo:4.4.6 to mongo:8.0.14-rc0, matching the incompatible injected image.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q3\", \"answer\": \"Yes\", \"evidence\": \"Attributes the fault to image or binary incompatibility, supported by 'Wrong mongod version' and an invalid featureCompatibilityVersion error.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q1\", \"answer\": \"Yes\", \"evidence\": \"Blames only mongodb-geo, a deployment identified in the ground truth as contributing to the fault.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q2\", \"answer\": \"No\", \"evidence\": \"Mentions only mongodb-geo; omits mongodb-profile, mongodb-rate, mongodb-recommendation, mongodb-reservation, and mongodb-user.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q3\", \"answer\": \"Yes\", \"evidence\": \"Reports version incompatibility, CrashLoopBackOff, zero ready replicas, and zero ready endpoints, consistent with database failure from the incompatible image.\", \"confidence\": \"High\"}]",
+    "success": true,
+    "accuracy": 89.0,
+    "composite_score": 0.89,
+    "dimensions": {
+     "D1": {
+      "name": "Fault Localization",
+      "score": 1.0
+     },
+     "D2": {
+      "name": "Fault Characterization",
+      "score": 1.0
+     },
+     "D3": {
+      "name": "Scope Precision",
+      "score": 0.67
+     }
+    },
+    "checklist": [
+     {
+      "id": "D1-Q1",
+      "answer": "Yes",
+      "evidence": "Names Deployment mongodb-geo in namespace hotel-reservation, matching one of the ground-truth fault origins.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q2",
+      "answer": "Yes",
+      "evidence": "Identifies mongodb-geo itself as the origin, rather than a downstream service experiencing persistence failures.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q3",
+      "answer": "Yes",
+      "evidence": "The blamed deployment, mongodb-geo, is explicitly included in the fault specification.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q1",
+      "answer": "Yes",
+      "evidence": "Identifies a wrong container image or binary and reports a MongoDB version incompatibility after an image upgrade.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q2",
+      "answer": "Yes",
+      "evidence": "Explicitly reports the image change from mongo:4.4.6 to mongo:8.0.14-rc0, matching the incompatible injected image.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q3",
+      "answer": "Yes",
+      "evidence": "Attributes the fault to image or binary incompatibility, supported by 'Wrong mongod version' and an invalid featureCompatibilityVersion error.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q1",
+      "answer": "Yes",
+      "evidence": "Blames only mongodb-geo, a deployment identified in the ground truth as contributing to the fault.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q2",
+      "answer": "No",
+      "evidence": "Mentions only mongodb-geo; omits mongodb-profile, mongodb-rate, mongodb-recommendation, mongodb-reservation, and mongodb-user.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q3",
+      "answer": "Yes",
+      "evidence": "Reports version incompatibility, CrashLoopBackOff, zero ready replicas, and zero ready endpoints, consistent with database failure from the incompatible image.",
+      "confidence": "High"
+     }
+    ]
+   }
+  },
+  {
+   "arm": 14,
+   "kind": "v1",
+   "model": "liquid/d1-ultra",
+   "position": 14,
+   "seconds": 2.8,
+   "requests": 2,
+   "input_tokens": 33297,
+   "error": null,
+   "model_failed": false,
+   "component": "deployment/mongodb-geo",
+   "investigation": {
+    "steps": [
+     {
+      "step": 1,
+      "node": "investigate",
+      "component": "deployment/mongodb-geo",
+      "verdict": "origin",
+      "origin_p": 0.9592,
+      "victim_p": 0.0022,
+      "next": "none",
+      "next_p": 0.8631,
+      "category": "image_or_binary",
+      "spec_checks": [
+       "service mongodb-geo has no ready endpoints"
+      ],
+      "blocked_input": null,
+      "key_evidence": "log x1 (ongoing, last seen 0s ago): hotel-reserv-geo-mongo: {\"t\":{\"$date\":\"2026-10-19T08:00:12.940+00:00\"},\"s\":\"F\", \"c\":\"CONTROL\", \"id\":20573, \"ctx\":\"initandlisten\",\"msg\":\"Wrong mongod version\",\"attr\":{\"error\":\"UPGRADE PROBLEM: Found an invalid featureCompatibilityVersion do\u2026"
+     }
+    ],
+    "concluded": "deployment/mongodb-geo",
+    "fallback": null,
+    "triage_top": [
+     [
+      "deployment/mongodb-geo",
+      0.4859
+     ],
+     [
+      "deployment/mongodb-user",
+      0.1723
+     ],
+     [
+      "deployment/mongodb-profile",
+      0.0907
+     ],
+     [
+      "deployment/mongodb-recommendation",
+      0.0863
+     ],
+     [
+      "deployment/mongodb-rate",
+      0.0642
+     ]
+    ]
+   },
+   "text": "Root cause component: Deployment `mongodb-geo` in namespace `hotel-reservation`.\nMechanism: log x1 (ongoing, last seen 0s ago): hotel-reserv-geo-mongo: {\"t\":{\"$date\":\"2026-10-19T08:00:12.940+00:00\"},\"s\":\"F\", \"c\":\"CONTROL\", \"id\":20573, \"ctx\":\"initandlisten\",\"msg\":\"Wrong mongod version\",\"attr\":{\"error\":\"UPGRADE PROBLEM: Found an invalid featureCompatibilityVersion do\u2026.\nFault type: image or binary (the container image or binary is wrong).\nAbnormal state observed on this component:\n- only 0 of 1 desired replicas are ready\n- pod mongodb-geo-7db569d69-nwrhf: container hotel-reserv-geo-mongo waiting in CrashLoopBackOff\n- pod mongodb-geo-7db569d69-nwrhf: container hotel-reserv-geo-mongo restarted 4 times\n- service mongodb-geo selects this component but has 0 ready endpoints\n- pod mongodb-geo-7db569d69-nwrhf: container hotel-reserv-geo-mongo restarted 1 more time(s) in the last 0s\n- warning event BackOff on pod/mongodb-geo-7db569d69-nwrhf repeated 4 more time(s) in the last 0s\n- warning events: BackOff x10\n- spec modified 76s ago, 14s after this object was created (fields: spec.replicas, containers[hotel-reserv-geo-mongo].image); pod template changes: pod label pod-template-hash: 5ff578bcb8 -> 7db569d69; container hotel-reserv-geo-mongo image: mongo:4.4.6 -> mongo:8.0.14-rc0; 4s before the first active symptom\n- 2 error-like log lines still occurring in the recent pod logs\nNotable spec settings:\n- Available=False (MinimumReplicasUnavailable)\n- container hotel-reserv-geo-mongo: image mongo:8.0.14-rc0, limits {'cpu': '1'}\nWarning events:\n- BackOff x10 on pod/mongodb-geo-7db569d69-nwrhf: Back-off restarting failed container hotel-reserv-geo-mongo in pod mongodb-geo-7db569d69-nwrhf_hotel-reservation(6b9cc9c2-1532-4040-8783-64a5ea8bac13)\nError-like log lines still occurring:\n- x1: hotel-reserv-geo-mongo: {\"t\":{\"$date\":\"2026-10-19T08:00:12.931+00:00\"},\"s\":\"W\", \"c\":\"CONTROL\", \"id\":8640302, \"ctx\":\"initandlisten\",\"msg\":\"We suggest setting the contents of sysfsFile to 0.\",\"attr\":{\"sysfsFile\":\"/sys/kernel/mm/transparent_h\u2026\n- x1: hotel-reserv-geo-mongo: {\"t\":{\"$date\":\"2026-10-19T08:00:12.940+00:00\"},\"s\":\"F\", \"c\":\"CONTROL\", \"id\":20573, \"ctx\":\"initandlisten\",\"msg\":\"Wrong mongod version\",\"attr\":{\"error\":\"UPGRADE PROBLEM: Found an invalid featureCompatibilityVersion do\u2026\nLast lines of the previous (crashed) run of container hotel-reserv-geo-mongo:\n- \"c\":\"-\", \"id\":4784931, \"ctx\":\"initandlisten\",\"msg\":\"Dropping the scope cache for shutdown\"}\n- \"c\":\"CONTROL\", \"id\":20565, \"ctx\":\"initandlisten\",\"msg\":\"Now exiting\"}\n- \"c\":\"CONTROL\", \"id\":8423404, \"ctx\":\"initandlisten\",\"msg\":\"mongod shutdown complete\",\"attr\":{\"Summary of time elapsed\":{\"Statistics\":{\"Enter terminal shutdown\":\"0 ms\",\"Step down the replication coordinator for shutdown\":\"2 ms\",\"Time spent i\u2026\n- \"c\":\"CONTROL\", \"id\":23138, \"ctx\":\"initandlisten\",\"msg\":\"Shutting down\",\"attr\":{\"exitCode\":62}}\nClassification: Jev (liquid/d1-ultra-20261015) confirmed this origin at investigation step 1 with probability 0.96 (triage probability 0.49).",
+   "grade": {
+    "judgment": "True",
+    "reasoning": "Verdict: True (composite=0.89). D1 Fault Localization: 1.00 | D2 Fault Characterization: 1.00 | D3 Scope Precision: 0.67. Weakest dimension: Scope Precision (0.67). Checklist details: [{\"id\": \"D1-Q1\", \"answer\": \"Yes\", \"evidence\": \"Names Deployment mongodb-geo in namespace hotel-reservation, matching one of the ground-truth fault origins.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q2\", \"answer\": \"Yes\", \"evidence\": \"Identifies the MongoDB deployment itself as the origin, citing its image change and fatal version error rather than a downstream service.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q3\", \"answer\": \"Yes\", \"evidence\": \"Blames mongodb-geo, which is explicitly included in the ground-truth affected deployments.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q1\", \"answer\": \"Yes\", \"evidence\": \"Identifies an incorrect image or binary and cites 'Wrong mongod version' following the MongoDB image upgrade.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q2\", \"answer\": \"Yes\", \"evidence\": \"Reports the container image mutation from mongo:4.4.6 to mongo:8.0.14-rc0, matching the injected incompatible version.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q3\", \"answer\": \"Yes\", \"evidence\": \"Attributes the fault to the image or binary, supported by an upgrade problem involving featureCompatibilityVersion.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q1\", \"answer\": \"Yes\", \"evidence\": \"Attributes the fault only to mongodb-geo and its container; no uninvolved component is blamed.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q2\", \"answer\": \"No\", \"evidence\": \"Mentions only mongodb-geo; omits mongodb-profile, mongodb-rate, mongodb-recommendation, mongodb-reservation, and mongodb-user.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q3\", \"answer\": \"Yes\", \"evidence\": \"Reports a fatal version incompatibility, CrashLoopBackOff, zero ready replicas, and zero ready endpoints, consistent with database failure from the incompatible image.\", \"confidence\": \"High\"}]",
+    "success": true,
+    "accuracy": 89.0,
+    "composite_score": 0.89,
+    "dimensions": {
+     "D1": {
+      "name": "Fault Localization",
+      "score": 1.0
+     },
+     "D2": {
+      "name": "Fault Characterization",
+      "score": 1.0
+     },
+     "D3": {
+      "name": "Scope Precision",
+      "score": 0.67
+     }
+    },
+    "checklist": [
+     {
+      "id": "D1-Q1",
+      "answer": "Yes",
+      "evidence": "Names Deployment mongodb-geo in namespace hotel-reservation, matching one of the ground-truth fault origins.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q2",
+      "answer": "Yes",
+      "evidence": "Identifies the MongoDB deployment itself as the origin, citing its image change and fatal version error rather than a downstream service.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q3",
+      "answer": "Yes",
+      "evidence": "Blames mongodb-geo, which is explicitly included in the ground-truth affected deployments.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q1",
+      "answer": "Yes",
+      "evidence": "Identifies an incorrect image or binary and cites 'Wrong mongod version' following the MongoDB image upgrade.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q2",
+      "answer": "Yes",
+      "evidence": "Reports the container image mutation from mongo:4.4.6 to mongo:8.0.14-rc0, matching the injected incompatible version.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q3",
+      "answer": "Yes",
+      "evidence": "Attributes the fault to the image or binary, supported by an upgrade problem involving featureCompatibilityVersion.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q1",
+      "answer": "Yes",
+      "evidence": "Attributes the fault only to mongodb-geo and its container; no uninvolved component is blamed.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q2",
+      "answer": "No",
+      "evidence": "Mentions only mongodb-geo; omits mongodb-profile, mongodb-rate, mongodb-recommendation, mongodb-reservation, and mongodb-user.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q3",
+      "answer": "Yes",
+      "evidence": "Reports a fatal version incompatibility, CrashLoopBackOff, zero ready replicas, and zero ready endpoints, consistent with database failure from the incompatible image.",
+      "confidence": "High"
+     }
+    ]
+   }
+  },
+  {
+   "arm": 15,
+   "kind": "v1",
+   "model": "cloudflare/clef",
+   "position": 15,
+   "seconds": 2.7,
+   "requests": 2,
+   "input_tokens": 16883,
+   "error": null,
+   "model_failed": false,
+   "component": "deployment/mongodb-geo",
+   "investigation": {
+    "steps": [
+     {
+      "step": 1,
+      "node": "investigate",
+      "component": "deployment/mongodb-geo",
+      "verdict": "origin",
+      "origin_p": 0.6181,
+      "victim_p": 0.1337,
+      "next": "none",
+      "next_p": 0.9721,
+      "category": "image_or_binary",
+      "spec_checks": [
+       "service mongodb-geo has no ready endpoints"
+      ],
+      "blocked_input": null,
+      "key_evidence": "log x1 (ongoing, last seen 0s ago): hotel-reserv-geo-mongo: {\"t\":{\"$date\":\"2026-10-19T08:00:12.940+00:00\"},\"s\":\"F\", \"c\":\"CONTROL\", \"id\":20573, \"ctx\":\"initandlisten\",\"msg\":\"Wrong mongod version\",\"attr\":{\"error\":\"UPGRADE PROBLEM: Found an invalid featureCompatibilityVersion do\u2026"
+     }
+    ],
+    "concluded": "deployment/mongodb-geo",
+    "fallback": null,
+    "triage_top": [
+     [
+      "deployment/mongodb-geo",
+      0.5703
+     ],
+     [
+      "deployment/mongodb-user",
+      0.1323
+     ],
+     [
+      "deployment/mongodb-profile",
+      0.1039
+     ],
+     [
+      "deployment/mongodb-rate",
+      0.0259
+     ],
+     [
+      "deployment/mongodb-reservation",
+      0.0214
+     ]
+    ]
+   },
+   "text": "Root cause component: Deployment `mongodb-geo` in namespace `hotel-reservation`.\nMechanism: log x1 (ongoing, last seen 0s ago): hotel-reserv-geo-mongo: {\"t\":{\"$date\":\"2026-10-19T08:00:12.940+00:00\"},\"s\":\"F\", \"c\":\"CONTROL\", \"id\":20573, \"ctx\":\"initandlisten\",\"msg\":\"Wrong mongod version\",\"attr\":{\"error\":\"UPGRADE PROBLEM: Found an invalid featureCompatibilityVersion do\u2026.\nFault type: image or binary (the container image or binary is wrong).\nAbnormal state observed on this component:\n- only 0 of 1 desired replicas are ready\n- pod mongodb-geo-7db569d69-nwrhf: container hotel-reserv-geo-mongo waiting in CrashLoopBackOff\n- pod mongodb-geo-7db569d69-nwrhf: container hotel-reserv-geo-mongo restarted 4 times\n- service mongodb-geo selects this component but has 0 ready endpoints\n- pod mongodb-geo-7db569d69-nwrhf: container hotel-reserv-geo-mongo restarted 1 more time(s) in the last 0s\n- warning event BackOff on pod/mongodb-geo-7db569d69-nwrhf repeated 4 more time(s) in the last 0s\n- warning events: BackOff x10\n- spec modified 76s ago, 14s after this object was created (fields: spec.replicas, containers[hotel-reserv-geo-mongo].image); pod template changes: pod label pod-template-hash: 5ff578bcb8 -> 7db569d69; container hotel-reserv-geo-mongo image: mongo:4.4.6 -> mongo:8.0.14-rc0; 4s before the first active symptom\n- 2 error-like log lines still occurring in the recent pod logs\nNotable spec settings:\n- Available=False (MinimumReplicasUnavailable)\n- container hotel-reserv-geo-mongo: image mongo:8.0.14-rc0, limits {'cpu': '1'}\nWarning events:\n- BackOff x10 on pod/mongodb-geo-7db569d69-nwrhf: Back-off restarting failed container hotel-reserv-geo-mongo in pod mongodb-geo-7db569d69-nwrhf_hotel-reservation(6b9cc9c2-1532-4040-8783-64a5ea8bac13)\nError-like log lines still occurring:\n- x1: hotel-reserv-geo-mongo: {\"t\":{\"$date\":\"2026-10-19T08:00:12.931+00:00\"},\"s\":\"W\", \"c\":\"CONTROL\", \"id\":8640302, \"ctx\":\"initandlisten\",\"msg\":\"We suggest setting the contents of sysfsFile to 0.\",\"attr\":{\"sysfsFile\":\"/sys/kernel/mm/transparent_h\u2026\n- x1: hotel-reserv-geo-mongo: {\"t\":{\"$date\":\"2026-10-19T08:00:12.940+00:00\"},\"s\":\"F\", \"c\":\"CONTROL\", \"id\":20573, \"ctx\":\"initandlisten\",\"msg\":\"Wrong mongod version\",\"attr\":{\"error\":\"UPGRADE PROBLEM: Found an invalid featureCompatibilityVersion do\u2026\nLast lines of the previous (crashed) run of container hotel-reserv-geo-mongo:\n- \"c\":\"-\", \"id\":4784931, \"ctx\":\"initandlisten\",\"msg\":\"Dropping the scope cache for shutdown\"}\n- \"c\":\"CONTROL\", \"id\":20565, \"ctx\":\"initandlisten\",\"msg\":\"Now exiting\"}\n- \"c\":\"CONTROL\", \"id\":8423404, \"ctx\":\"initandlisten\",\"msg\":\"mongod shutdown complete\",\"attr\":{\"Summary of time elapsed\":{\"Statistics\":{\"Enter terminal shutdown\":\"0 ms\",\"Step down the replication coordinator for shutdown\":\"2 ms\",\"Time spent i\u2026\n- \"c\":\"CONTROL\", \"id\":23138, \"ctx\":\"initandlisten\",\"msg\":\"Shutting down\",\"attr\":{\"exitCode\":62}}\nClassification: Jev (cloudflare/clef) confirmed this origin at investigation step 1 with probability 0.62 (triage probability 0.57).",
+   "grade": {
+    "judgment": "True",
+    "reasoning": "Verdict: True (composite=0.89). D1 Fault Localization: 1.00 | D2 Fault Characterization: 1.00 | D3 Scope Precision: 0.67. Weakest dimension: Scope Precision (0.67). Checklist details: [{\"id\": \"D1-Q1\", \"answer\": \"Yes\", \"evidence\": \"Names Deployment mongodb-geo in namespace hotel-reservation, matching one of the ground-truth fault origins.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q2\", \"answer\": \"Yes\", \"evidence\": \"Identifies the MongoDB deployment and its changed image as the origin, rather than a downstream service experiencing persistence failures.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q3\", \"answer\": \"Yes\", \"evidence\": \"The blamed component, mongodb-geo, is explicitly included in the ground-truth fault specification.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q1\", \"answer\": \"Yes\", \"evidence\": \"Identifies a wrong container image or binary and reports an incompatible MongoDB upgrade with 'Wrong mongod version.'\", \"confidence\": \"High\"}, {\"id\": \"D2-Q2\", \"answer\": \"Yes\", \"evidence\": \"Explicitly reports the image mutation mongo:4.4.6 -> mongo:8.0.14-rc0, matching the injected incompatible image tag.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q3\", \"answer\": \"Yes\", \"evidence\": \"Attributes the failure to the image or binary version, supported by an invalid featureCompatibilityVersion upgrade error.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q1\", \"answer\": \"Yes\", \"evidence\": \"Blames only mongodb-geo, which is among the components identified in the ground truth.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q2\", \"answer\": \"No\", \"evidence\": \"Mentions only mongodb-geo; omits mongodb-profile, mongodb-rate, mongodb-recommendation, mongodb-reservation, and mongodb-user.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q3\", \"answer\": \"Yes\", \"evidence\": \"Reports version incompatibility, CrashLoopBackOff, zero ready replicas, and zero ready endpoints, consistent with database unavailability from the incompatible upgrade.\", \"confidence\": \"High\"}]",
+    "success": true,
+    "accuracy": 89.0,
+    "composite_score": 0.89,
+    "dimensions": {
+     "D1": {
+      "name": "Fault Localization",
+      "score": 1.0
+     },
+     "D2": {
+      "name": "Fault Characterization",
+      "score": 1.0
+     },
+     "D3": {
+      "name": "Scope Precision",
+      "score": 0.67
+     }
+    },
+    "checklist": [
+     {
+      "id": "D1-Q1",
+      "answer": "Yes",
+      "evidence": "Names Deployment mongodb-geo in namespace hotel-reservation, matching one of the ground-truth fault origins.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q2",
+      "answer": "Yes",
+      "evidence": "Identifies the MongoDB deployment and its changed image as the origin, rather than a downstream service experiencing persistence failures.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q3",
+      "answer": "Yes",
+      "evidence": "The blamed component, mongodb-geo, is explicitly included in the ground-truth fault specification.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q1",
+      "answer": "Yes",
+      "evidence": "Identifies a wrong container image or binary and reports an incompatible MongoDB upgrade with 'Wrong mongod version.'",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q2",
+      "answer": "Yes",
+      "evidence": "Explicitly reports the image mutation mongo:4.4.6 -> mongo:8.0.14-rc0, matching the injected incompatible image tag.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q3",
+      "answer": "Yes",
+      "evidence": "Attributes the failure to the image or binary version, supported by an invalid featureCompatibilityVersion upgrade error.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q1",
+      "answer": "Yes",
+      "evidence": "Blames only mongodb-geo, which is among the components identified in the ground truth.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q2",
+      "answer": "No",
+      "evidence": "Mentions only mongodb-geo; omits mongodb-profile, mongodb-rate, mongodb-recommendation, mongodb-reservation, and mongodb-user.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q3",
+      "answer": "Yes",
+      "evidence": "Reports version incompatibility, CrashLoopBackOff, zero ready replicas, and zero ready endpoints, consistent with database unavailability from the incompatible upgrade.",
+      "confidence": "High"
+     }
+    ]
+   }
+  },
+  {
+   "arm": 16,
+   "kind": "v1",
+   "model": "cloudflare/clef-omni",
+   "position": 16,
+   "seconds": 6.7,
+   "requests": 9,
+   "input_tokens": 81152,
+   "error": null,
+   "model_failed": false,
+   "component": "deployment/mongodb-geo",
+   "investigation": {
+    "steps": [
+     {
+      "step": 1,
+      "node": "investigate",
+      "component": "deployment/mongodb-geo",
+      "verdict": "origin",
+      "origin_p": 0.4003,
+      "victim_p": 0.2812,
+      "next": "none",
+      "next_p": 0.9571,
+      "category": "image_or_binary",
+      "spec_checks": [
+       "service mongodb-geo has no ready endpoints"
+      ],
+      "blocked_input": null,
+      "key_evidence": "log x1 (ongoing, last seen 0s ago): hotel-reserv-geo-mongo: {\"t\":{\"$date\":\"2026-10-19T08:00:12.940+00:00\"},\"s\":\"F\", \"c\":\"CONTROL\", \"id\":20573, \"ctx\":\"initandlisten\",\"msg\":\"Wrong mongod version\",\"attr\":{\"error\":\"UPGRADE PROBLEM: Found an invalid featureCompatibilityVersion do\u2026"
+     },
+     {
+      "step": 2,
+      "node": "investigate",
+      "component": "deployment/mongodb-profile",
+      "verdict": "origin",
+      "origin_p": 0.3706,
+      "victim_p": 0.3458,
+      "next": "none",
+      "next_p": 0.9495,
+      "category": "image_or_binary",
+      "spec_checks": [
+       "service mongodb-profile has no ready endpoints"
+      ],
+      "blocked_input": null,
+      "key_evidence": "log x1 (ongoing, last seen 0s ago): hotel-reserv-profile-mongo: {\"t\":{\"$date\":\"2026-10-19T08:00:07.459+00:00\"},\"s\":\"F\", \"c\":\"CONTROL\", \"id\":20573, \"ctx\":\"initandlisten\",\"msg\":\"Wrong mongod version\",\"attr\":{\"error\":\"UPGRADE PROBLEM: Found an invalid featureCompatibilityVersio\u2026"
+     },
+     {
+      "step": 3,
+      "node": "investigate",
+      "component": "deployment/geo",
+      "verdict": "unrelated",
+      "origin_p": 0.0932,
+      "victim_p": 0.2341,
+      "next": "none",
+      "next_p": 0.9167,
+      "category": "other",
+      "spec_checks": [],
+      "blocked_input": null,
+      "key_evidence": null
+     },
+     {
+      "step": 4,
+      "node": "investigate",
+      "component": "deployment/mongodb-rate",
+      "verdict": "origin",
+      "origin_p": 0.3624,
+      "victim_p": 0.3526,
+      "next": "none",
+      "next_p": 0.9315,
+      "category": "image_or_binary",
+      "spec_checks": [
+       "service mongodb-rate has no ready endpoints"
+      ],
+      "blocked_input": null,
+      "key_evidence": "log x1 (ongoing, last seen 0s ago): hotel-reserv-rate-mongo: {\"t\":{\"$date\":\"2026-10-19T08:00:16.161+00:00\"},\"s\":\"F\", \"c\":\"CONTROL\", \"id\":20573, \"ctx\":\"initandlisten\",\"msg\":\"Wrong mongod version\",\"attr\":{\"error\":\"UPGRADE PROBLEM: Found an invalid featureCompatibilityVersion d\u2026"
+     },
+     {
+      "step": 5,
+      "node": "investigate",
+      "component": "deployment/mongodb-user",
+      "verdict": "victim",
+      "origin_p": 0.2852,
+      "victim_p": 0.4754,
+      "next": "none",
+      "next_p": 0.8768,
+      "category": "image_or_binary",
+      "spec_checks": [
+       "service mongodb-user has no ready endpoints"
+      ],
+      "blocked_input": null,
+      "key_evidence": "pod template changed in revision 2: container hotel-reserv-user-mongo image: mongo:4.4.6 -> mongo:8.0.14-rc0"
+     },
+     {
+      "step": 6,
+      "node": "investigate",
+      "component": "deployment/rate",
+      "verdict": "victim",
+      "origin_p": 0.1198,
+      "victim_p": 0.6757,
+      "next": "none",
+      "next_p": 0.7593,
+      "category": "dns_resolution",
+      "spec_checks": [
+       "service rate has no ready endpoints"
+      ],
+      "blocked_input": null,
+      "key_evidence": "log x1 (ongoing, last seen 0s ago): hotel-reserv-rate: panic: no reachable servers"
+     },
+     {
+      "step": 7,
+      "node": "investigate",
+      "component": "deployment/mongodb-recommendation",
+      "verdict": "victim",
+      "origin_p": 0.2755,
+      "victim_p": 0.4383,
+      "next": "none",
+      "next_p": 0.882,
+      "category": "image_or_binary",
+      "spec_checks": [
+       "service mongodb-recommendation has no ready endpoints"
+      ],
+      "blocked_input": null,
+      "key_evidence": "log x1 (ongoing, last seen 0s ago): hotel-reserv-recommendation-mongo: {\"t\":{\"$date\":\"2026-10-19T08:00:14.676+00:00\"},\"s\":\"F\", \"c\":\"CONTROL\", \"id\":20573, \"ctx\":\"initandlisten\",\"msg\":\"Wrong mongod version\",\"attr\":{\"error\":\"UPGRADE PROBLEM: Found an invalid featureCompatibilit\u2026"
+     },
+     {
+      "step": 8,
+      "node": "investigate",
+      "component": "deployment/mongodb-reservation",
+      "verdict": "victim",
+      "origin_p": 0.283,
+      "victim_p": 0.4361,
+      "next": "none",
+      "next_p": 0.8568,
+      "category": "image_or_binary",
+      "spec_checks": [
+       "service mongodb-reservation has no ready endpoints"
+      ],
+      "blocked_input": null,
+      "key_evidence": "pod template changed in revision 2: container hotel-reserv-reservation-mongo image: mongo:4.4.6 -> mongo:8.0.14-rc0"
+     }
+    ],
+    "concluded": "deployment/mongodb-geo",
+    "fallback": "most likely origin among investigated components",
+    "triage_top": [
+     [
+      "deployment/mongodb-geo",
+      0.418
+     ],
+     [
+      "deployment/mongodb-profile",
+      0.0871
+     ],
+     [
+      "deployment/geo",
+      0.0838
+     ],
+     [
+      "deployment/mongodb-rate",
+      0.0807
+     ],
+     [
+      "deployment/mongodb-user",
+      0.0696
+     ]
+    ]
+   },
+   "text": "Root cause component: Deployment `mongodb-geo` in namespace `hotel-reservation`.\nMechanism: log x1 (ongoing, last seen 0s ago): hotel-reserv-geo-mongo: {\"t\":{\"$date\":\"2026-10-19T08:00:12.940+00:00\"},\"s\":\"F\", \"c\":\"CONTROL\", \"id\":20573, \"ctx\":\"initandlisten\",\"msg\":\"Wrong mongod version\",\"attr\":{\"error\":\"UPGRADE PROBLEM: Found an invalid featureCompatibilityVersion do\u2026.\nFault type: image or binary (the container image or binary is wrong).\nAbnormal state observed on this component:\n- only 0 of 1 desired replicas are ready\n- pod mongodb-geo-7db569d69-nwrhf: container hotel-reserv-geo-mongo waiting in CrashLoopBackOff\n- pod mongodb-geo-7db569d69-nwrhf: container hotel-reserv-geo-mongo restarted 4 times\n- service mongodb-geo selects this component but has 0 ready endpoints\n- pod mongodb-geo-7db569d69-nwrhf: container hotel-reserv-geo-mongo restarted 1 more time(s) in the last 0s\n- warning event BackOff on pod/mongodb-geo-7db569d69-nwrhf repeated 4 more time(s) in the last 0s\n- warning events: BackOff x10\n- spec modified 76s ago, 14s after this object was created (fields: spec.replicas, containers[hotel-reserv-geo-mongo].image); pod template changes: pod label pod-template-hash: 5ff578bcb8 -> 7db569d69; container hotel-reserv-geo-mongo image: mongo:4.4.6 -> mongo:8.0.14-rc0; 4s before the first active symptom\n- 2 error-like log lines still occurring in the recent pod logs\nNotable spec settings:\n- Available=False (MinimumReplicasUnavailable)\n- container hotel-reserv-geo-mongo: image mongo:8.0.14-rc0, limits {'cpu': '1'}\nWarning events:\n- BackOff x10 on pod/mongodb-geo-7db569d69-nwrhf: Back-off restarting failed container hotel-reserv-geo-mongo in pod mongodb-geo-7db569d69-nwrhf_hotel-reservation(6b9cc9c2-1532-4040-8783-64a5ea8bac13)\nError-like log lines still occurring:\n- x1: hotel-reserv-geo-mongo: {\"t\":{\"$date\":\"2026-10-19T08:00:12.931+00:00\"},\"s\":\"W\", \"c\":\"CONTROL\", \"id\":8640302, \"ctx\":\"initandlisten\",\"msg\":\"We suggest setting the contents of sysfsFile to 0.\",\"attr\":{\"sysfsFile\":\"/sys/kernel/mm/transparent_h\u2026\n- x1: hotel-reserv-geo-mongo: {\"t\":{\"$date\":\"2026-10-19T08:00:12.940+00:00\"},\"s\":\"F\", \"c\":\"CONTROL\", \"id\":20573, \"ctx\":\"initandlisten\",\"msg\":\"Wrong mongod version\",\"attr\":{\"error\":\"UPGRADE PROBLEM: Found an invalid featureCompatibilityVersion do\u2026\nLast lines of the previous (crashed) run of container hotel-reserv-geo-mongo:\n- \"c\":\"-\", \"id\":4784931, \"ctx\":\"initandlisten\",\"msg\":\"Dropping the scope cache for shutdown\"}\n- \"c\":\"CONTROL\", \"id\":20565, \"ctx\":\"initandlisten\",\"msg\":\"Now exiting\"}\n- \"c\":\"CONTROL\", \"id\":8423404, \"ctx\":\"initandlisten\",\"msg\":\"mongod shutdown complete\",\"attr\":{\"Summary of time elapsed\":{\"Statistics\":{\"Enter terminal shutdown\":\"0 ms\",\"Step down the replication coordinator for shutdown\":\"2 ms\",\"Time spent i\u2026\n- \"c\":\"CONTROL\", \"id\":23138, \"ctx\":\"initandlisten\",\"msg\":\"Shutting down\",\"attr\":{\"exitCode\":62}}\nClassification: Jev (cloudflare/clef-omni-20261009) selected this origin as the most likely candidate after 8 investigation step(s) (origin probability 0.40, triage probability 0.42).",
+   "grade": {
+    "judgment": "True",
+    "reasoning": "Verdict: True (composite=0.89). D1 Fault Localization: 1.00 | D2 Fault Characterization: 1.00 | D3 Scope Precision: 0.67. Weakest dimension: Scope Precision (0.67). Checklist details: [{\"id\": \"D1-Q1\", \"answer\": \"Yes\", \"evidence\": \"Names Deployment mongodb-geo in namespace hotel-reservation, one of the fault origins listed in the ground truth.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q2\", \"answer\": \"Yes\", \"evidence\": \"Identifies mongodb-geo itself as the origin and reports its incompatible MongoDB version, rather than blaming a downstream service.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q3\", \"answer\": \"Yes\", \"evidence\": \"The blamed component, mongodb-geo, is explicitly included in the ground-truth fault specification.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q1\", \"answer\": \"Yes\", \"evidence\": \"Describes a wrong container image or binary and reports a MongoDB upgrade causing a version incompatibility.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q2\", \"answer\": \"Yes\", \"evidence\": \"Explicitly reports the image mutation mongo:4.4.6 -> mongo:8.0.14-rc0, matching the incompatible target image.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q3\", \"answer\": \"Yes\", \"evidence\": \"Attributes the fault to the image or binary, supported by 'Wrong mongod version' and an invalid featureCompatibilityVersion error.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q1\", \"answer\": \"Yes\", \"evidence\": \"Blames only mongodb-geo, a listed contributing component; no uninvolved component is identified as a fault origin.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q2\", \"answer\": \"No\", \"evidence\": \"Mentions only mongodb-geo; omits mongodb-profile, mongodb-rate, mongodb-recommendation, mongodb-reservation, and mongodb-user.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q3\", \"answer\": \"Yes\", \"evidence\": \"Reports version incompatibility, CrashLoopBackOff, zero ready replicas, and zero ready endpoints, consistent with database unavailability caused by the incompatible image.\", \"confidence\": \"High\"}]",
+    "success": true,
+    "accuracy": 89.0,
+    "composite_score": 0.89,
+    "dimensions": {
+     "D1": {
+      "name": "Fault Localization",
+      "score": 1.0
+     },
+     "D2": {
+      "name": "Fault Characterization",
+      "score": 1.0
+     },
+     "D3": {
+      "name": "Scope Precision",
+      "score": 0.67
+     }
+    },
+    "checklist": [
+     {
+      "id": "D1-Q1",
+      "answer": "Yes",
+      "evidence": "Names Deployment mongodb-geo in namespace hotel-reservation, one of the fault origins listed in the ground truth.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q2",
+      "answer": "Yes",
+      "evidence": "Identifies mongodb-geo itself as the origin and reports its incompatible MongoDB version, rather than blaming a downstream service.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q3",
+      "answer": "Yes",
+      "evidence": "The blamed component, mongodb-geo, is explicitly included in the ground-truth fault specification.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q1",
+      "answer": "Yes",
+      "evidence": "Describes a wrong container image or binary and reports a MongoDB upgrade causing a version incompatibility.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q2",
+      "answer": "Yes",
+      "evidence": "Explicitly reports the image mutation mongo:4.4.6 -> mongo:8.0.14-rc0, matching the incompatible target image.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q3",
+      "answer": "Yes",
+      "evidence": "Attributes the fault to the image or binary, supported by 'Wrong mongod version' and an invalid featureCompatibilityVersion error.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q1",
+      "answer": "Yes",
+      "evidence": "Blames only mongodb-geo, a listed contributing component; no uninvolved component is identified as a fault origin.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q2",
+      "answer": "No",
+      "evidence": "Mentions only mongodb-geo; omits mongodb-profile, mongodb-rate, mongodb-recommendation, mongodb-reservation, and mongodb-user.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q3",
+      "answer": "Yes",
+      "evidence": "Reports version incompatibility, CrashLoopBackOff, zero ready replicas, and zero ready endpoints, consistent with database unavailability caused by the incompatible image.",
+      "confidence": "High"
+     }
+    ]
+   }
+  },
+  {
+   "arm": 17,
+   "kind": "v1",
+   "model": "nace-ai/drex-v2.0",
+   "position": 17,
+   "seconds": 7.5,
+   "requests": 8,
+   "input_tokens": 71279,
+   "error": null,
+   "model_failed": false,
+   "component": "deployment/mongodb-profile",
+   "investigation": {
+    "steps": [
+     {
+      "step": 1,
+      "node": "investigate",
+      "component": "deployment/mongodb-profile",
+      "verdict": "origin",
+      "origin_p": 0.4164,
+      "victim_p": 0.3096,
+      "next": "none",
+      "next_p": 0.7368,
+      "category": "image_or_binary",
+      "spec_checks": [
+       "service mongodb-profile has no ready endpoints"
+      ],
+      "blocked_input": null,
+      "key_evidence": "pod template changed in revision 2: container hotel-reserv-profile-mongo image: mongo:4.4.6 -> mongo:8.0.14-rc0"
+     },
+     {
+      "step": 2,
+      "node": "investigate",
+      "component": "deployment/mongodb-reservation",
+      "verdict": "undetermined",
+      "origin_p": 0.301,
+      "victim_p": 0.2754,
+      "next": "none",
+      "next_p": 0.7651,
+      "category": "image_or_binary",
+      "spec_checks": [
+       "service mongodb-reservation has no ready endpoints"
+      ],
+      "blocked_input": null,
+      "key_evidence": "pod template changed in revision 2: container hotel-reserv-reservation-mongo image: mongo:4.4.6 -> mongo:8.0.14-rc0"
+     },
+     {
+      "step": 3,
+      "node": "investigate",
+      "component": "deployment/rate",
+      "verdict": "victim",
+      "origin_p": 0.054,
+      "victim_p": 0.6174,
+      "next": "none",
+      "next_p": 0.5186,
+      "category": "other",
+      "spec_checks": [
+       "service rate has no ready endpoints"
+      ],
+      "blocked_input": null,
+      "key_evidence": "log x1 (ongoing, last seen 0s ago): hotel-reserv-rate: panic: no reachable servers"
+     },
+     {
+      "step": 4,
+      "node": "investigate",
+      "component": "deployment/mongodb-user",
+      "verdict": "undetermined",
+      "origin_p": 0.2712,
+      "victim_p": 0.2336,
+      "next": "none",
+      "next_p": 0.7805,
+      "category": "image_or_binary",
+      "spec_checks": [
+       "service mongodb-user has no ready endpoints"
+      ],
+      "blocked_input": null,
+      "key_evidence": "pod template changed in revision 2: container hotel-reserv-user-mongo image: mongo:4.4.6 -> mongo:8.0.14-rc0"
+     },
+     {
+      "step": 5,
+      "node": "investigate",
+      "component": "deployment/mongodb-geo",
+      "verdict": "undetermined",
+      "origin_p": 0.3247,
+      "victim_p": 0.2992,
+      "next": "none",
+      "next_p": 0.8046,
+      "category": "image_or_binary",
+      "spec_checks": [
+       "service mongodb-geo has no ready endpoints"
+      ],
+      "blocked_input": null,
+      "key_evidence": "pod template changed in revision 3: container hotel-reserv-geo-mongo image: mongo:4.4.6 -> mongo:8.0.14-rc0"
+     },
+     {
+      "step": 6,
+      "node": "investigate",
+      "component": "deployment/mongodb-rate",
+      "verdict": "origin",
+      "origin_p": 0.3526,
+      "victim_p": 0.274,
+      "next": "none",
+      "next_p": 0.8326,
+      "category": "image_or_binary",
+      "spec_checks": [
+       "service mongodb-rate has no ready endpoints"
+      ],
+      "blocked_input": null,
+      "key_evidence": "pod template changed in revision 3: container hotel-reserv-rate-mongo image: mongo:4.4.6 -> mongo:8.0.14-rc0"
+     },
+     {
+      "step": 7,
+      "node": "investigate",
+      "component": "deployment/mongodb-recommendation",
+      "verdict": "origin",
+      "origin_p": 0.3734,
+      "victim_p": 0.2762,
+      "next": "none",
+      "next_p": 0.8552,
+      "category": "image_or_binary",
+      "spec_checks": [
+       "service mongodb-recommendation has no ready endpoints"
+      ],
+      "blocked_input": null,
+      "key_evidence": "pod template changed in revision 2: container hotel-reserv-recommendation-mongo image: mongo:4.4.6 -> mongo:8.0.14-rc0"
+     }
+    ],
+    "concluded": "deployment/mongodb-profile",
+    "fallback": "most likely origin among investigated components",
+    "triage_top": [
+     [
+      "deployment/mongodb-profile",
+      0.2429
+     ],
+     [
+      "deployment/mongodb-reservation",
+      0.2297
+     ],
+     [
+      "deployment/rate",
+      0.2108
+     ],
+     [
+      "deployment/mongodb-user",
+      0.0803
+     ],
+     [
+      "deployment/mongodb-geo",
+      0.0717
+     ]
+    ]
+   },
+   "text": "Root cause component: Deployment `mongodb-profile` in namespace `hotel-reservation`.\nMechanism: pod template changed in revision 2: container hotel-reserv-profile-mongo image: mongo:4.4.6 -> mongo:8.0.14-rc0.\nFault type: image or binary (the container image or binary is wrong).\nAbnormal state observed on this component:\n- only 0 of 1 desired replicas are ready\n- pod mongodb-profile-9f4bbd96-c7b5n: container hotel-reserv-profile-mongo waiting in CrashLoopBackOff\n- pod mongodb-profile-9f4bbd96-c7b5n: container hotel-reserv-profile-mongo restarted 4 times\n- warning events: BackOff x9\n- service mongodb-profile selects this component but has 0 ready endpoints\n- pod mongodb-profile-9f4bbd96-c7b5n: container hotel-reserv-profile-mongo restarted 1 more time(s) in the last 0s\n- warning event BackOff on pod/mongodb-profile-9f4bbd96-c7b5n repeated 3 more time(s) in the last 0s\n- spec modified 76s ago, 14s after this object was created (fields: spec.replicas, containers[hotel-reserv-profile-mongo].image); pod template changes: pod label pod-template-hash: 758cb77f9f -> 9f4bbd96; container hotel-reserv-profile-mongo image: mongo:4.4.6 -> mongo:8.0.14-rc0; 4s before the first active symptom\n- 2 error-like log lines still occurring in the recent pod logs\nNotable spec settings:\n- Available=False (MinimumReplicasUnavailable)\n- container hotel-reserv-profile-mongo: image mongo:8.0.14-rc0, limits {'cpu': '1'}\nWarning events:\n- BackOff x9 on pod/mongodb-profile-9f4bbd96-c7b5n: Back-off restarting failed container hotel-reserv-profile-mongo in pod mongodb-profile-9f4bbd96-c7b5n_hotel-reservation(17137043-76fb-4540-9a1d-958979d5ce7f)\nError-like log lines still occurring:\n- x1: hotel-reserv-profile-mongo: {\"t\":{\"$date\":\"2026-10-19T08:00:07.457+00:00\"},\"s\":\"W\", \"c\":\"CONTROL\", \"id\":8640302, \"ctx\":\"initandlisten\",\"msg\":\"We suggest setting the contents of sysfsFile to 0.\",\"attr\":{\"sysfsFile\":\"/sys/kernel/mm/transpare\u2026\n- x1: hotel-reserv-profile-mongo: {\"t\":{\"$date\":\"2026-10-19T08:00:07.459+00:00\"},\"s\":\"F\", \"c\":\"CONTROL\", \"id\":20573, \"ctx\":\"initandlisten\",\"msg\":\"Wrong mongod version\",\"attr\":{\"error\":\"UPGRADE PROBLEM: Found an invalid featureCompatibilityVersio\u2026\nLast lines of the previous (crashed) run of container hotel-reserv-profile-mongo:\n- \"c\":\"-\", \"id\":4784931, \"ctx\":\"initandlisten\",\"msg\":\"Dropping the scope cache for shutdown\"}\n- \"c\":\"CONTROL\", \"id\":20565, \"ctx\":\"initandlisten\",\"msg\":\"Now exiting\"}\n- \"c\":\"CONTROL\", \"id\":8423404, \"ctx\":\"initandlisten\",\"msg\":\"mongod shutdown complete\",\"attr\":{\"Summary of time elapsed\":{\"Statistics\":{\"Enter terminal shutdown\":\"0 ms\",\"Step down the replication coordinator for shutdown\":\"0 ms\",\"Time spent i\u2026\n- \"c\":\"CONTROL\", \"id\":23138, \"ctx\":\"initandlisten\",\"msg\":\"Shutting down\",\"attr\":{\"exitCode\":62}}\nClassification: Jev (nace-ai/drex-v2.0-20261009) selected this origin as the most likely candidate after 7 investigation step(s) (origin probability 0.42, triage probability 0.24).",
+   "grade": {
+    "judgment": "True",
+    "reasoning": "Verdict: True (composite=0.89). D1 Fault Localization: 1.00 | D2 Fault Characterization: 1.00 | D3 Scope Precision: 0.67. Weakest dimension: Scope Precision (0.67). Checklist details: [{\"id\": \"D1-Q1\", \"answer\": \"Yes\", \"evidence\": \"The diagnosis names Deployment mongodb-profile in hotel-reservation, one of the fault origins listed in the ground truth.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q2\", \"answer\": \"Yes\", \"evidence\": \"The diagnosis attributes the fault to mongodb-profile's image change, identifying an actual fault origin rather than a downstream service.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q3\", \"answer\": \"Yes\", \"evidence\": \"The blamed deployment, mongodb-profile, is explicitly included in the ground-truth fault specification.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q1\", \"answer\": \"Yes\", \"evidence\": \"The diagnosis identifies an image upgrade from mongo:4.4.6 to mongo:8.0.14-rc0 and reports 'Wrong mongod version,' matching the incompatible-image mechanism.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q2\", \"answer\": \"Yes\", \"evidence\": \"The diagnosis explicitly names the mutated image tag mongo:8.0.14-rc0, exactly matching the ground truth.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q3\", \"answer\": \"Yes\", \"evidence\": \"The diagnosis classifies the fault as an incorrect image or binary, consistent with the incompatible MongoDB upgrade.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q1\", \"answer\": \"Yes\", \"evidence\": \"The diagnosis blames only mongodb-profile, which is among the components identified in the ground truth.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q2\", \"answer\": \"No\", \"evidence\": \"The diagnosis mentions mongodb-profile but omits mongodb-geo, mongodb-rate, mongodb-recommendation, mongodb-reservation, and mongodb-user.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q3\", \"answer\": \"Yes\", \"evidence\": \"Wrong mongod version, invalid feature compatibility, CrashLoopBackOff, and zero ready endpoints describe database incompatibility and unavailability consistent with the injected upgrade.\", \"confidence\": \"High\"}]",
+    "success": true,
+    "accuracy": 89.0,
+    "composite_score": 0.89,
+    "dimensions": {
+     "D1": {
+      "name": "Fault Localization",
+      "score": 1.0
+     },
+     "D2": {
+      "name": "Fault Characterization",
+      "score": 1.0
+     },
+     "D3": {
+      "name": "Scope Precision",
+      "score": 0.67
+     }
+    },
+    "checklist": [
+     {
+      "id": "D1-Q1",
+      "answer": "Yes",
+      "evidence": "The diagnosis names Deployment mongodb-profile in hotel-reservation, one of the fault origins listed in the ground truth.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q2",
+      "answer": "Yes",
+      "evidence": "The diagnosis attributes the fault to mongodb-profile's image change, identifying an actual fault origin rather than a downstream service.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q3",
+      "answer": "Yes",
+      "evidence": "The blamed deployment, mongodb-profile, is explicitly included in the ground-truth fault specification.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q1",
+      "answer": "Yes",
+      "evidence": "The diagnosis identifies an image upgrade from mongo:4.4.6 to mongo:8.0.14-rc0 and reports 'Wrong mongod version,' matching the incompatible-image mechanism.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q2",
+      "answer": "Yes",
+      "evidence": "The diagnosis explicitly names the mutated image tag mongo:8.0.14-rc0, exactly matching the ground truth.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q3",
+      "answer": "Yes",
+      "evidence": "The diagnosis classifies the fault as an incorrect image or binary, consistent with the incompatible MongoDB upgrade.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q1",
+      "answer": "Yes",
+      "evidence": "The diagnosis blames only mongodb-profile, which is among the components identified in the ground truth.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q2",
+      "answer": "No",
+      "evidence": "The diagnosis mentions mongodb-profile but omits mongodb-geo, mongodb-rate, mongodb-recommendation, mongodb-reservation, and mongodb-user.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q3",
+      "answer": "Yes",
+      "evidence": "Wrong mongod version, invalid feature compatibility, CrashLoopBackOff, and zero ready endpoints describe database incompatibility and unavailability consistent with the injected upgrade.",
+      "confidence": "High"
+     }
+    ]
+   }
+  },
+  {
+   "arm": 18,
+   "kind": "v1",
+   "model": "inception/mercury-decide",
+   "position": 18,
+   "seconds": 3.6,
+   "requests": 2,
+   "input_tokens": 31869,
+   "error": null,
+   "model_failed": false,
+   "component": "deployment/mongodb-geo",
+   "investigation": {
+    "steps": [
+     {
+      "step": 1,
+      "node": "investigate",
+      "component": "deployment/mongodb-geo",
+      "verdict": "origin",
+      "origin_p": 0.9997,
+      "victim_p": 0.0,
+      "next": "none",
+      "next_p": 0.9986,
+      "category": "image_or_binary",
+      "spec_checks": [
+       "service mongodb-geo has no ready endpoints"
+      ],
+      "blocked_input": null,
+      "key_evidence": "pod template changed in revision 3: container hotel-reserv-geo-mongo image: mongo:4.4.6 -> mongo:8.0.14-rc0"
+     }
+    ],
+    "concluded": "deployment/mongodb-geo",
+    "fallback": null,
+    "triage_top": [
+     [
+      "deployment/mongodb-geo",
+      0.5682
+     ],
+     [
+      "deployment/mongodb-user",
+      0.1628
+     ],
+     [
+      "deployment/mongodb-rate",
+      0.1119
+     ],
+     [
+      "deployment/mongodb-recommendation",
+      0.0679
+     ],
+     [
+      "deployment/mongodb-profile",
+      0.0599
+     ]
+    ]
+   },
+   "text": "Root cause component: Deployment `mongodb-geo` in namespace `hotel-reservation`.\nMechanism: pod template changed in revision 3: container hotel-reserv-geo-mongo image: mongo:4.4.6 -> mongo:8.0.14-rc0.\nFault type: image or binary (the container image or binary is wrong).\nAbnormal state observed on this component:\n- only 0 of 1 desired replicas are ready\n- pod mongodb-geo-7db569d69-nwrhf: container hotel-reserv-geo-mongo waiting in CrashLoopBackOff\n- pod mongodb-geo-7db569d69-nwrhf: container hotel-reserv-geo-mongo restarted 4 times\n- service mongodb-geo selects this component but has 0 ready endpoints\n- pod mongodb-geo-7db569d69-nwrhf: container hotel-reserv-geo-mongo restarted 1 more time(s) in the last 0s\n- warning event BackOff on pod/mongodb-geo-7db569d69-nwrhf repeated 4 more time(s) in the last 0s\n- warning events: BackOff x10\n- spec modified 76s ago, 14s after this object was created (fields: spec.replicas, containers[hotel-reserv-geo-mongo].image); pod template changes: pod label pod-template-hash: 5ff578bcb8 -> 7db569d69; container hotel-reserv-geo-mongo image: mongo:4.4.6 -> mongo:8.0.14-rc0; 4s before the first active symptom\n- 2 error-like log lines still occurring in the recent pod logs\nNotable spec settings:\n- Available=False (MinimumReplicasUnavailable)\n- container hotel-reserv-geo-mongo: image mongo:8.0.14-rc0, limits {'cpu': '1'}\nWarning events:\n- BackOff x10 on pod/mongodb-geo-7db569d69-nwrhf: Back-off restarting failed container hotel-reserv-geo-mongo in pod mongodb-geo-7db569d69-nwrhf_hotel-reservation(6b9cc9c2-1532-4040-8783-64a5ea8bac13)\nError-like log lines still occurring:\n- x1: hotel-reserv-geo-mongo: {\"t\":{\"$date\":\"2026-10-19T08:00:12.931+00:00\"},\"s\":\"W\", \"c\":\"CONTROL\", \"id\":8640302, \"ctx\":\"initandlisten\",\"msg\":\"We suggest setting the contents of sysfsFile to 0.\",\"attr\":{\"sysfsFile\":\"/sys/kernel/mm/transparent_h\u2026\n- x1: hotel-reserv-geo-mongo: {\"t\":{\"$date\":\"2026-10-19T08:00:12.940+00:00\"},\"s\":\"F\", \"c\":\"CONTROL\", \"id\":20573, \"ctx\":\"initandlisten\",\"msg\":\"Wrong mongod version\",\"attr\":{\"error\":\"UPGRADE PROBLEM: Found an invalid featureCompatibilityVersion do\u2026\nLast lines of the previous (crashed) run of container hotel-reserv-geo-mongo:\n- \"c\":\"-\", \"id\":4784931, \"ctx\":\"initandlisten\",\"msg\":\"Dropping the scope cache for shutdown\"}\n- \"c\":\"CONTROL\", \"id\":20565, \"ctx\":\"initandlisten\",\"msg\":\"Now exiting\"}\n- \"c\":\"CONTROL\", \"id\":8423404, \"ctx\":\"initandlisten\",\"msg\":\"mongod shutdown complete\",\"attr\":{\"Summary of time elapsed\":{\"Statistics\":{\"Enter terminal shutdown\":\"0 ms\",\"Step down the replication coordinator for shutdown\":\"2 ms\",\"Time spent i\u2026\n- \"c\":\"CONTROL\", \"id\":23138, \"ctx\":\"initandlisten\",\"msg\":\"Shutting down\",\"attr\":{\"exitCode\":62}}\nClassification: Jev (inception/mercury-decide-20260930) confirmed this origin at investigation step 1 with probability 1.00 (triage probability 0.57).",
+   "grade": {
+    "judgment": "True",
+    "reasoning": "Verdict: True (composite=0.89). D1 Fault Localization: 1.00 | D2 Fault Characterization: 1.00 | D3 Scope Precision: 0.67. Weakest dimension: Scope Precision (0.67). Checklist details: [{\"id\": \"D1-Q1\", \"answer\": \"Yes\", \"evidence\": \"Names Deployment mongodb-geo in namespace hotel-reservation, matching one of the ground-truth fault origins.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q2\", \"answer\": \"Yes\", \"evidence\": \"Attributes the fault to the mongodb-geo deployment's image change, identifying a database fault origin rather than a downstream victim.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q3\", \"answer\": \"Yes\", \"evidence\": \"The blamed component, mongodb-geo, is explicitly included in the ground-truth affected deployments.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q1\", \"answer\": \"Yes\", \"evidence\": \"Identifies an incorrect container image upgrade from mongo:4.4.6 to mongo:8.0.14-rc0.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q2\", \"answer\": \"Yes\", \"evidence\": \"Specifies the mutated image tag mongo:8.0.14-rc0, exactly matching the ground-truth incompatible version.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q3\", \"answer\": \"Yes\", \"evidence\": \"Classifies the fault as an incorrect image or binary and cites 'Wrong mongod version' with an invalid featureCompatibilityVersion.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q1\", \"answer\": \"Yes\", \"evidence\": \"Blames only mongodb-geo, a deployment identified in the ground truth as contributing to the fault.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q2\", \"answer\": \"No\", \"evidence\": \"Mentions only mongodb-geo; omits mongodb-profile, mongodb-rate, mongodb-recommendation, mongodb-reservation, and mongodb-user.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q3\", \"answer\": \"Yes\", \"evidence\": \"Reports version incompatibility, CrashLoopBackOff, zero ready replicas, and zero ready endpoints, consistent with database unavailability caused by the incompatible image.\", \"confidence\": \"High\"}]",
+    "success": true,
+    "accuracy": 89.0,
+    "composite_score": 0.89,
+    "dimensions": {
+     "D1": {
+      "name": "Fault Localization",
+      "score": 1.0
+     },
+     "D2": {
+      "name": "Fault Characterization",
+      "score": 1.0
+     },
+     "D3": {
+      "name": "Scope Precision",
+      "score": 0.67
+     }
+    },
+    "checklist": [
+     {
+      "id": "D1-Q1",
+      "answer": "Yes",
+      "evidence": "Names Deployment mongodb-geo in namespace hotel-reservation, matching one of the ground-truth fault origins.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q2",
+      "answer": "Yes",
+      "evidence": "Attributes the fault to the mongodb-geo deployment's image change, identifying a database fault origin rather than a downstream victim.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q3",
+      "answer": "Yes",
+      "evidence": "The blamed component, mongodb-geo, is explicitly included in the ground-truth affected deployments.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q1",
+      "answer": "Yes",
+      "evidence": "Identifies an incorrect container image upgrade from mongo:4.4.6 to mongo:8.0.14-rc0.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q2",
+      "answer": "Yes",
+      "evidence": "Specifies the mutated image tag mongo:8.0.14-rc0, exactly matching the ground-truth incompatible version.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q3",
+      "answer": "Yes",
+      "evidence": "Classifies the fault as an incorrect image or binary and cites 'Wrong mongod version' with an invalid featureCompatibilityVersion.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q1",
+      "answer": "Yes",
+      "evidence": "Blames only mongodb-geo, a deployment identified in the ground truth as contributing to the fault.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q2",
+      "answer": "No",
+      "evidence": "Mentions only mongodb-geo; omits mongodb-profile, mongodb-rate, mongodb-recommendation, mongodb-reservation, and mongodb-user.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q3",
+      "answer": "Yes",
+      "evidence": "Reports version incompatibility, CrashLoopBackOff, zero ready replicas, and zero ready endpoints, consistent with database unavailability caused by the incompatible image.",
+      "confidence": "High"
+     }
+    ]
+   }
+  },
+  {
+   "arm": 19,
+   "kind": "v1",
+   "model": "upstage/solar-decide",
+   "position": 19,
+   "seconds": 22.5,
+   "requests": 2,
+   "input_tokens": 96231,
+   "error": null,
+   "model_failed": false,
+   "component": "deployment/mongodb-geo",
+   "investigation": {
+    "steps": [
+     {
+      "step": 1,
+      "node": "investigate",
+      "component": "deployment/mongodb-geo",
+      "verdict": "origin",
+      "origin_p": 0.9997,
+      "victim_p": 0.0003,
+      "next": "none",
+      "next_p": 0.9277,
+      "category": "image_or_binary",
+      "spec_checks": [
+       "service mongodb-geo has no ready endpoints"
+      ],
+      "blocked_input": null,
+      "key_evidence": "pod template changed in revision 3: container hotel-reserv-geo-mongo image: mongo:4.4.6 -> mongo:8.0.14-rc0"
+     }
+    ],
+    "concluded": "deployment/mongodb-geo",
+    "fallback": null,
+    "triage_top": [
+     [
+      "deployment/mongodb-geo",
+      0.7894
+     ],
+     [
+      "deployment/geo",
+      0.1372
+     ],
+     [
+      "other",
+      0.0347
+     ],
+     [
+      "deployment/consul",
+      0.0128
+     ],
+     [
+      "deployment/mongodb-rate",
+      0.006
+     ]
+    ]
+   },
+   "text": "Root cause component: Deployment `mongodb-geo` in namespace `hotel-reservation`.\nMechanism: pod template changed in revision 3: container hotel-reserv-geo-mongo image: mongo:4.4.6 -> mongo:8.0.14-rc0.\nFault type: image or binary (the container image or binary is wrong).\nAbnormal state observed on this component:\n- only 0 of 1 desired replicas are ready\n- pod mongodb-geo-7db569d69-nwrhf: container hotel-reserv-geo-mongo waiting in CrashLoopBackOff\n- pod mongodb-geo-7db569d69-nwrhf: container hotel-reserv-geo-mongo restarted 4 times\n- service mongodb-geo selects this component but has 0 ready endpoints\n- pod mongodb-geo-7db569d69-nwrhf: container hotel-reserv-geo-mongo restarted 1 more time(s) in the last 0s\n- warning event BackOff on pod/mongodb-geo-7db569d69-nwrhf repeated 4 more time(s) in the last 0s\n- warning events: BackOff x10\n- spec modified 76s ago, 14s after this object was created (fields: spec.replicas, containers[hotel-reserv-geo-mongo].image); pod template changes: pod label pod-template-hash: 5ff578bcb8 -> 7db569d69; container hotel-reserv-geo-mongo image: mongo:4.4.6 -> mongo:8.0.14-rc0; 4s before the first active symptom\n- 2 error-like log lines still occurring in the recent pod logs\nNotable spec settings:\n- Available=False (MinimumReplicasUnavailable)\n- container hotel-reserv-geo-mongo: image mongo:8.0.14-rc0, limits {'cpu': '1'}\nWarning events:\n- BackOff x10 on pod/mongodb-geo-7db569d69-nwrhf: Back-off restarting failed container hotel-reserv-geo-mongo in pod mongodb-geo-7db569d69-nwrhf_hotel-reservation(6b9cc9c2-1532-4040-8783-64a5ea8bac13)\nError-like log lines still occurring:\n- x1: hotel-reserv-geo-mongo: {\"t\":{\"$date\":\"2026-10-19T08:00:12.931+00:00\"},\"s\":\"W\", \"c\":\"CONTROL\", \"id\":8640302, \"ctx\":\"initandlisten\",\"msg\":\"We suggest setting the contents of sysfsFile to 0.\",\"attr\":{\"sysfsFile\":\"/sys/kernel/mm/transparent_h\u2026\n- x1: hotel-reserv-geo-mongo: {\"t\":{\"$date\":\"2026-10-19T08:00:12.940+00:00\"},\"s\":\"F\", \"c\":\"CONTROL\", \"id\":20573, \"ctx\":\"initandlisten\",\"msg\":\"Wrong mongod version\",\"attr\":{\"error\":\"UPGRADE PROBLEM: Found an invalid featureCompatibilityVersion do\u2026\nLast lines of the previous (crashed) run of container hotel-reserv-geo-mongo:\n- \"c\":\"-\", \"id\":4784931, \"ctx\":\"initandlisten\",\"msg\":\"Dropping the scope cache for shutdown\"}\n- \"c\":\"CONTROL\", \"id\":20565, \"ctx\":\"initandlisten\",\"msg\":\"Now exiting\"}\n- \"c\":\"CONTROL\", \"id\":8423404, \"ctx\":\"initandlisten\",\"msg\":\"mongod shutdown complete\",\"attr\":{\"Summary of time elapsed\":{\"Statistics\":{\"Enter terminal shutdown\":\"0 ms\",\"Step down the replication coordinator for shutdown\":\"2 ms\",\"Time spent i\u2026\n- \"c\":\"CONTROL\", \"id\":23138, \"ctx\":\"initandlisten\",\"msg\":\"Shutting down\",\"attr\":{\"exitCode\":62}}\nClassification: Jev (upstage/solar-decide-20260928) confirmed this origin at investigation step 1 with probability 1.00 (triage probability 0.79).",
+   "grade": {
+    "judgment": "True",
+    "reasoning": "Verdict: True (composite=0.89). D1 Fault Localization: 1.00 | D2 Fault Characterization: 1.00 | D3 Scope Precision: 0.67. Weakest dimension: Scope Precision (0.67). Checklist details: [{\"id\": \"D1-Q1\", \"answer\": \"Yes\", \"evidence\": \"Names Deployment mongodb-geo in namespace hotel-reservation, matching one of the ground-truth fault origins.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q2\", \"answer\": \"Yes\", \"evidence\": \"Identifies the MongoDB deployment's image change as the origin, rather than blaming a downstream service.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q3\", \"answer\": \"Yes\", \"evidence\": \"The only blamed component, mongodb-geo, is explicitly included in the ground-truth fault specification.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q1\", \"answer\": \"Yes\", \"evidence\": \"Attributes the fault to upgrading the container image from mongo:4.4.6 to mongo:8.0.14-rc0, matching the incompatible-image mechanism.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q2\", \"answer\": \"Yes\", \"evidence\": \"Specifies the mutated container image and exact injected tag: mongo:8.0.14-rc0.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q3\", \"answer\": \"Yes\", \"evidence\": \"Classifies the fault as an incorrect image or binary; logs report 'Wrong mongod version' and an invalid featureCompatibilityVersion.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q1\", \"answer\": \"Yes\", \"evidence\": \"Blames only mongodb-geo, a component identified in the ground truth as contributing to the fault.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q2\", \"answer\": \"No\", \"evidence\": \"Mentions only mongodb-geo; omits mongodb-profile, mongodb-rate, mongodb-recommendation, mongodb-reservation, and mongodb-user.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q3\", \"answer\": \"Yes\", \"evidence\": \"Reports an upgrade compatibility error, CrashLoopBackOff, zero ready replicas, and zero ready endpoints, consistent with database failure from the incompatible image.\", \"confidence\": \"High\"}]",
+    "success": true,
+    "accuracy": 89.0,
+    "composite_score": 0.89,
+    "dimensions": {
+     "D1": {
+      "name": "Fault Localization",
+      "score": 1.0
+     },
+     "D2": {
+      "name": "Fault Characterization",
+      "score": 1.0
+     },
+     "D3": {
+      "name": "Scope Precision",
+      "score": 0.67
+     }
+    },
+    "checklist": [
+     {
+      "id": "D1-Q1",
+      "answer": "Yes",
+      "evidence": "Names Deployment mongodb-geo in namespace hotel-reservation, matching one of the ground-truth fault origins.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q2",
+      "answer": "Yes",
+      "evidence": "Identifies the MongoDB deployment's image change as the origin, rather than blaming a downstream service.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q3",
+      "answer": "Yes",
+      "evidence": "The only blamed component, mongodb-geo, is explicitly included in the ground-truth fault specification.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q1",
+      "answer": "Yes",
+      "evidence": "Attributes the fault to upgrading the container image from mongo:4.4.6 to mongo:8.0.14-rc0, matching the incompatible-image mechanism.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q2",
+      "answer": "Yes",
+      "evidence": "Specifies the mutated container image and exact injected tag: mongo:8.0.14-rc0.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q3",
+      "answer": "Yes",
+      "evidence": "Classifies the fault as an incorrect image or binary; logs report 'Wrong mongod version' and an invalid featureCompatibilityVersion.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q1",
+      "answer": "Yes",
+      "evidence": "Blames only mongodb-geo, a component identified in the ground truth as contributing to the fault.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q2",
+      "answer": "No",
+      "evidence": "Mentions only mongodb-geo; omits mongodb-profile, mongodb-rate, mongodb-recommendation, mongodb-reservation, and mongodb-user.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q3",
+      "answer": "Yes",
+      "evidence": "Reports an upgrade compatibility error, CrashLoopBackOff, zero ready replicas, and zero ready endpoints, consistent with database failure from the incompatible image.",
+      "confidence": "High"
+     }
+    ]
+   }
+  }
+ ],
+ "judge": {
+  "model": "gpt-6-astra",
+  "backend": "codex",
+  "effort": "high"
+ }
+}

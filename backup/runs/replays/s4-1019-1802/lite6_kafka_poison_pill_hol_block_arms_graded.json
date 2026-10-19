@@ -1,0 +1,288 @@
+{
+ "problem_id": "kafka_poison_pill_hol_block",
+ "source": "lite6_kafka_poison_pill_hol_block",
+ "replay": true,
+ "arms": [
+  {
+   "arm": 0,
+   "kind": "v2",
+   "model": "typesafe/jev-1.13",
+   "position": 0,
+   "seconds": 3.1,
+   "requests": 3,
+   "input_tokens": 62709,
+   "error": null,
+   "model_failed": false,
+   "component": "deployment/orders-validator",
+   "investigation": {
+    "steps": [
+     {
+      "step": 1,
+      "node": "investigate",
+      "component": "deployment/orders-validator",
+      "verdict": "origin",
+      "origin_p": 0.78,
+      "victim_p": 0.14,
+      "next": "deployment/order-stream",
+      "next_p": 0.36,
+      "category": "data_or_traffic",
+      "spec_checks": [],
+      "blocked_input": {
+       "source": "logs",
+       "evidence": "2026-10-19 06:34:55,505 ERROR partition remains paused at offset=20",
+       "probability": 0.95,
+       "input": "env ORDERS_TOPIC=orders-fulfillment"
+      },
+      "key_evidence": "log x1 (stopped, last seen 78s ago): orders-validator: 2026-10-19 06:32:55,489 ERROR record validation failed at offset=20: Expecting value: line 1 column 35 (char 34)"
+     }
+    ],
+    "concluded": "deployment/orders-validator",
+    "fallback": null,
+    "triage_top": [
+     [
+      "deployment/orders-validator",
+      0.665
+     ],
+     [
+      "deployment/order-stream",
+      0.265
+     ],
+     [
+      "deployment/kafka",
+      0.05
+     ],
+     [
+      "deployment/accounting",
+      0.01
+     ],
+     [
+      "daemonset/otel-collector-agent",
+      0.005
+     ]
+    ],
+    "second": null
+   },
+   "text": "Root cause: the Kafka topic `orders-fulfillment` (named by env `ORDERS_TOPIC`) consumed by Deployment `orders-validator` in namespace `astronomy-shop`: log x1 (stopped, last seen 78s ago): orders-validator: 2026-10-19 06:32:55,489 ERROR record validation failed at offset=20: Expecting value: line 1 column 35 (char 34).\nMechanism: one input item fails processing again and again and blocks the items behind it: 2026-10-19 06:34:55,505 ERROR partition remains paused at offset=20; the component logs \"ERROR partition remains paused at offset=20\".\nObserved: created 81s ago, 48s after the workloads it calls; 33s before the first active symptom.",
+   "grade": {
+    "judgment": "True",
+    "reasoning": "Verdict: True (composite=1.00). D1 Fault Localization: 1.00 | D2 Fault Characterization: 1.00 | D3 Scope Precision: 1.00. Weakest dimension: Fault Localization (1.00). Checklist details: [{\"id\": \"D1-Q1\", \"answer\": \"Yes\", \"evidence\": \"Names Kafka topic `orders-fulfillment` in namespace `astronomy-shop` as the root cause, matching the fault specification.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q2\", \"answer\": \"Yes\", \"evidence\": \"Identifies the Kafka topic as the root cause and describes `orders-validator` as its consumer.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q3\", \"answer\": \"Yes\", \"evidence\": \"Attributes the fault to the specified Kafka topic without blaming a different, healthy component.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q1\", \"answer\": \"Yes\", \"evidence\": \"Describes one repeatedly failing input item blocking subsequent items, with a parsing error and partition paused at the same offset.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q2\", \"answer\": \"Yes\", \"evidence\": \"Identifies `orders-fulfillment` and quotes the concrete record parsing failure: `offset=20: Expecting value: line 1 column 35 (char 34)`.\", \"confidence\": \"Medium\"}, {\"id\": \"D2-Q3\", \"answer\": \"Yes\", \"evidence\": \"Attributes the blockage to a repeatedly failing record; no unrelated configuration, infrastructure, or resource fault is asserted.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q1\", \"answer\": \"Yes\", \"evidence\": \"Names only the implicated Kafka topic and its `orders-validator` consumer as involved in the fault.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q2\", \"answer\": \"Yes\", \"evidence\": \"Includes Kafka, topic `orders-fulfillment`, and consumer workload `orders-validator` in `astronomy-shop`.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q3\", \"answer\": \"Yes\", \"evidence\": \"States that the failing item blocks items behind it and the partition remains paused at offset 20, consistent with head-of-line blocking.\", \"confidence\": \"High\"}]",
+    "success": true,
+    "accuracy": 100.0,
+    "composite_score": 1.0,
+    "dimensions": {
+     "D1": {
+      "name": "Fault Localization",
+      "score": 1.0
+     },
+     "D2": {
+      "name": "Fault Characterization",
+      "score": 1.0
+     },
+     "D3": {
+      "name": "Scope Precision",
+      "score": 1.0
+     }
+    },
+    "checklist": [
+     {
+      "id": "D1-Q1",
+      "answer": "Yes",
+      "evidence": "Names Kafka topic `orders-fulfillment` in namespace `astronomy-shop` as the root cause, matching the fault specification.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q2",
+      "answer": "Yes",
+      "evidence": "Identifies the Kafka topic as the root cause and describes `orders-validator` as its consumer.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q3",
+      "answer": "Yes",
+      "evidence": "Attributes the fault to the specified Kafka topic without blaming a different, healthy component.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q1",
+      "answer": "Yes",
+      "evidence": "Describes one repeatedly failing input item blocking subsequent items, with a parsing error and partition paused at the same offset.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q2",
+      "answer": "Yes",
+      "evidence": "Identifies `orders-fulfillment` and quotes the concrete record parsing failure: `offset=20: Expecting value: line 1 column 35 (char 34)`.",
+      "confidence": "Medium"
+     },
+     {
+      "id": "D2-Q3",
+      "answer": "Yes",
+      "evidence": "Attributes the blockage to a repeatedly failing record; no unrelated configuration, infrastructure, or resource fault is asserted.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q1",
+      "answer": "Yes",
+      "evidence": "Names only the implicated Kafka topic and its `orders-validator` consumer as involved in the fault.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q2",
+      "answer": "Yes",
+      "evidence": "Includes Kafka, topic `orders-fulfillment`, and consumer workload `orders-validator` in `astronomy-shop`.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q3",
+      "answer": "Yes",
+      "evidence": "States that the failing item blocks items behind it and the partition remains paused at offset 20, consistent with head-of-line blocking.",
+      "confidence": "High"
+     }
+    ]
+   }
+  },
+  {
+   "arm": 1,
+   "kind": "v2",
+   "model": "openai/gpt-6-luna-decisions",
+   "position": 1,
+   "seconds": 3.8,
+   "requests": 2,
+   "input_tokens": 23960,
+   "error": null,
+   "model_failed": false,
+   "component": "deployment/orders-validator",
+   "investigation": {
+    "steps": [
+     {
+      "step": 1,
+      "node": "investigate",
+      "component": "deployment/orders-validator",
+      "verdict": "origin",
+      "origin_p": 0.95,
+      "victim_p": 0.03,
+      "next": "none",
+      "next_p": 0.45,
+      "category": "data_or_traffic",
+      "spec_checks": [],
+      "blocked_input": {
+       "source": "logs",
+       "evidence": "2026-10-19 06:34:55,505 ERROR partition remains paused at offset=20",
+       "probability": 0.99,
+       "input": "env ORDERS_TOPIC=orders-fulfillment"
+      },
+      "key_evidence": "ConfigMap orders-pipeline-scripts key consumer.py: \u23ce import json \u23ce import logging \u23ce import os \u23ce import signal \u23ce import time \u23ce \u23ce from confluent_kafka import Consumer, Producer \u23ce \u23ce logging.basicConfig(level=logging.INFO, format=\"%(asctime)s %(levelname)s %(message)s\") \u23ce log = logging.getLogger(\"orders-validator\") \u23ce \u23ce BOOTSTRAP = os.environ.get(\"KAFKA_BOOTSTRAP\", \"kafka:9092\") \u23ce TOPIC = os.environ.get(\"ORDERS_TOPIC\", \"orders-fulfillment\") \u23ce OUTPUT_T\u2026"
+     }
+    ],
+    "concluded": "deployment/orders-validator",
+    "fallback": null,
+    "triage_top": [
+     [
+      "deployment/orders-validator",
+      0.98
+     ],
+     [
+      "deployment/accounting",
+      0.01
+     ],
+     [
+      "deployment/order-stream",
+      0.01
+     ],
+     [
+      "deployment/ad",
+      0.0
+     ],
+     [
+      "deployment/cart",
+      0.0
+     ]
+    ],
+    "second": null
+   },
+   "text": "Root cause: the Kafka topic `orders-fulfillment` (named by env `ORDERS_TOPIC`) consumed by Deployment `orders-validator` in namespace `astronomy-shop`: ConfigMap orders-pipeline-scripts key consumer.py: \u23ce import json \u23ce import logging \u23ce import os \u23ce import signal \u23ce import time \u23ce \u23ce from confluent_kafka import Consumer, Producer \u23ce \u23ce logging.basicConfig(level=logging.INFO, format=\"%(asctime)s %(levelname)s %(message)s\") \u23ce log = logging.getLogger(\"orders-validator\") \u23ce \u23ce BOOTSTRAP = os.environ.get(\"KAFKA_BOOTSTRAP\", \"kafka:9092\") \u23ce TOPIC = os.environ.get(\"ORDERS_TOPIC\", \"orders-fulfillment\") \u23ce OUTPUT_T\u2026.\nMechanism: one input item fails processing again and again and blocks the items behind it: 2026-10-19 06:34:55,505 ERROR partition remains paused at offset=20; the component logs \"ERROR partition remains paused at offset=20\".\nObserved: created 81s ago, 48s after the workloads it calls; 33s before the first active symptom.",
+   "grade": {
+    "judgment": "True",
+    "reasoning": "Verdict: True (composite=0.89). D1 Fault Localization: 1.00 | D2 Fault Characterization: 0.67 | D3 Scope Precision: 1.00. Weakest dimension: Fault Characterization (0.67). Checklist details: [{\"id\": \"D1-Q1\", \"answer\": \"Yes\", \"evidence\": \"Names Kafka topic orders-fulfillment in namespace astronomy-shop, matching the specified fault origin.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q2\", \"answer\": \"Yes\", \"evidence\": \"Identifies the Kafka topic as the root cause and describes orders-validator as its consumer.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q3\", \"answer\": \"Yes\", \"evidence\": \"The stated fault origin is the matching Kafka topic; no different healthy component is explicitly blamed.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q1\", \"answer\": \"Yes\", \"evidence\": \"Describes one input item repeatedly failing processing and blocking subsequent items, matching poison-record head-of-line blocking, although deserialization is not specified.\", \"confidence\": \"Medium\"}, {\"id\": \"D2-Q2\", \"answer\": \"No\", \"evidence\": \"Mentions paused offset 20 and ORDERS_TOPIC, but provides no concrete injected record details or explicit deserialization failure.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q3\", \"answer\": \"Yes\", \"evidence\": \"Attributes the stall to a repeatedly failing input item; no conflicting or unrelated fault type is asserted.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q1\", \"answer\": \"Yes\", \"evidence\": \"Scopes the failure to orders-fulfillment and its orders-validator consumer without explicitly blaming additional components.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q2\", \"answer\": \"Yes\", \"evidence\": \"Includes Kafka topic orders-fulfillment and the affected orders-validator workload in astronomy-shop.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q3\", \"answer\": \"Yes\", \"evidence\": \"States that the failing item blocks items behind it and quotes a partition remaining paused at one offset, consistent with stalled processing.\", \"confidence\": \"High\"}]",
+    "success": true,
+    "accuracy": 89.0,
+    "composite_score": 0.89,
+    "dimensions": {
+     "D1": {
+      "name": "Fault Localization",
+      "score": 1.0
+     },
+     "D2": {
+      "name": "Fault Characterization",
+      "score": 0.67
+     },
+     "D3": {
+      "name": "Scope Precision",
+      "score": 1.0
+     }
+    },
+    "checklist": [
+     {
+      "id": "D1-Q1",
+      "answer": "Yes",
+      "evidence": "Names Kafka topic orders-fulfillment in namespace astronomy-shop, matching the specified fault origin.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q2",
+      "answer": "Yes",
+      "evidence": "Identifies the Kafka topic as the root cause and describes orders-validator as its consumer.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q3",
+      "answer": "Yes",
+      "evidence": "The stated fault origin is the matching Kafka topic; no different healthy component is explicitly blamed.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q1",
+      "answer": "Yes",
+      "evidence": "Describes one input item repeatedly failing processing and blocking subsequent items, matching poison-record head-of-line blocking, although deserialization is not specified.",
+      "confidence": "Medium"
+     },
+     {
+      "id": "D2-Q2",
+      "answer": "No",
+      "evidence": "Mentions paused offset 20 and ORDERS_TOPIC, but provides no concrete injected record details or explicit deserialization failure.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q3",
+      "answer": "Yes",
+      "evidence": "Attributes the stall to a repeatedly failing input item; no conflicting or unrelated fault type is asserted.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q1",
+      "answer": "Yes",
+      "evidence": "Scopes the failure to orders-fulfillment and its orders-validator consumer without explicitly blaming additional components.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q2",
+      "answer": "Yes",
+      "evidence": "Includes Kafka topic orders-fulfillment and the affected orders-validator workload in astronomy-shop.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q3",
+      "answer": "Yes",
+      "evidence": "States that the failing item blocks items behind it and quotes a partition remaining paused at one offset, consistent with stalled processing.",
+      "confidence": "High"
+     }
+    ]
+   }
+  }
+ ],
+ "judge": {
+  "model": "gpt-6-astra",
+  "backend": "codex",
+  "effort": "high"
+ }
+}

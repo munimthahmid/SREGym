@@ -1,0 +1,1210 @@
+[
+ {
+  "label": "decide:1",
+  "state": {
+   "application": {
+    "name": "OpenTelemetry Demo Astronomy Shop",
+    "description": "An online shopping platform built with a microservices architecture, showcasing OpenTelemetry instrumentation for distributed tracing across services.",
+    "namespaces": [
+     "astronomy-shop"
+    ]
+   },
+   "evidence": {
+    "daemonset/otel-collector-agent": {
+     "kind": "DaemonSet",
+     "name": "otel-collector-agent",
+     "namespace": "astronomy-shop",
+     "healthy": false,
+     "signals": [
+      "spec modified 178s ago, 16s after this object was created (fields: template.annotations.kubectl.kubernetes.io/restartedAt); pod template changes: template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-18T21:27:27+06:00; 124s before the first active symptom"
+     ],
+     "template_changes": {
+      "revision": 2,
+      "changed_at": "2026-10-18T15:27:27Z",
+      "changes": [
+       "template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-18T21:27:27+06:00"
+      ]
+     }
+    },
+    "deployment/order-stream": {
+     "kind": "Deployment",
+     "name": "order-stream",
+     "namespace": "astronomy-shop",
+     "healthy": false,
+     "signals": [
+      "created 157s ago, 37s after the workloads it calls; 103s before the first active symptom"
+     ]
+    },
+    "deployment/orders-validator": {
+     "kind": "Deployment",
+     "name": "orders-validator",
+     "namespace": "astronomy-shop",
+     "healthy": false,
+     "signals": [
+      "created 142s ago, 52s after the workloads it calls; 88s before the first active symptom"
+     ]
+    },
+    "deployment/accounting": {
+     "kind": "Deployment",
+     "name": "accounting",
+     "namespace": "astronomy-shop",
+     "healthy": false,
+     "signals": [
+      "container accounting memory usage 116Mi is near its limit 120Mi"
+     ]
+    },
+    "deployment/checkout": {
+     "kind": "Deployment",
+     "name": "checkout",
+     "namespace": "astronomy-shop",
+     "healthy": false,
+     "signals": [
+      "container checkout memory usage 18Mi is near its limit 20Mi"
+     ]
+    }
+   },
+   "cluster": {
+    "symptom_onset": "2026-10-18T15:29:31+00:00",
+    "recent_changes": [
+     {
+      "object": "deployment/orders-validator",
+      "at": "2026-10-18T15:28:03Z",
+      "created_after_targets_s": 52,
+      "seconds_ago": 142,
+      "seconds_before_symptoms": 88
+     },
+     {
+      "object": "deployment/order-stream",
+      "at": "2026-10-18T15:27:48Z",
+      "created_after_targets_s": 37,
+      "seconds_ago": 157,
+      "seconds_before_symptoms": 103
+     },
+     {
+      "object": "daemonset/otel-collector-agent",
+      "at": "2026-10-18T15:27:27Z",
+      "modified_after_creation_s": 16,
+      "fields": [
+       "template.annotations.kubectl.kubernetes.io/restartedAt"
+      ],
+      "seconds_ago": 178,
+      "seconds_before_symptoms": 124,
+      "role": "observability"
+     }
+    ],
+    "findings": []
+   }
+  },
+  "questions": {
+   "best_explanation": {
+    "type": "choice",
+    "criteria": {
+     "o1": "Origin: deployment/astronomy-shop/accounting. The fault is in this component; the mechanism is not established. | Observed impact on: deployment/astronomy-shop/accounting",
+     "o2": "Origin: deployment/astronomy-shop/orders-validator. deployment orders-validator was created recently and breaks deployment/orders-validator, which it acts on. | Observed impact on: deployment/astronomy-shop/orders-validator | Checks: deployment/astronomy-shop/orders-validator was made before the symptoms began (supports); deployment/orders-validator shows symptoms of its own (supports)",
+     "o3": "Origin: deployment/astronomy-shop/order-stream. deployment order-stream was created recently and breaks deployment/order-stream, which it acts on. | Observed impact on: deployment/astronomy-shop/order-stream | Checks: deployment/astronomy-shop/order-stream was made before the symptoms began (supports); deployment/order-stream shows symptoms of its own (supports)",
+     "o4": "Origin: daemonset/astronomy-shop/otel-collector-agent. The pod template change 'template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-18T21:27:27+06:00' in revision 2 of daemonset/otel-collector-agent breaks daemonset/otel-collector-agent. | Details: template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-18T21:27:27+06:00 | Observed impact on: daemonset/astronomy-shop/otel-collector-agent | Checks: revision 2 of daemonset/otel-collector-agent was made before the symptoms began (supports); daemonset/otel-collector-agent shows symptoms of its own (supports)",
+     "o5": "Origin: deployment/astronomy-shop/checkout. The fault is in this component; the mechanism is not established. | Observed impact on: deployment/astronomy-shop/checkout",
+     "o6": "Origin: daemonset/astronomy-shop/otel-collector-agent. daemonset otel-collector-agent was changed recently and breaks daemonset/otel-collector-agent, which it acts on. | Details: daemonset otel-collector-agent fields written: template.annotations.kubectl.kubernetes.io/restartedAt | Observed impact on: daemonset/astronomy-shop/otel-collector-agent | Checks: daemonset/astronomy-shop/otel-collector-agent was made before the symptoms began (supports); daemonset/otel-collector-agent shows symptoms of its own (supports)",
+     "o7": "None of these explanations fits the evidence."
+    },
+    "instructions": {
+     "question": "Which explanation best accounts for all the observed symptoms in `evidence`?",
+     "how_to_decide": [
+      "Prefer the explanation whose chain is supported by the observed facts and explains the most symptoms; an explanation contradicted by a fact is unlikely.",
+      "A component that only fails because something it calls fails is a victim, not the origin.",
+      "Choose `o7` when none of the explanations fits the evidence."
+     ]
+    }
+   }
+  },
+  "model": "typesafe/jev-1.13-20260917",
+  "latency_ms": 953,
+  "usage": {
+   "input_tokens": 1937,
+   "output_tokens": 77,
+   "cost": 8.1354e-05
+  },
+  "answers": {
+   "best_explanation": {
+    "type": "choice",
+    "choice": "o4",
+    "confidence": 0.25,
+    "probabilities": {
+     "o1": 0.06,
+     "o2": 0.03,
+     "o3": 0.05,
+     "o4": 0.36,
+     "o5": 0.01,
+     "o6": 0.15,
+     "o7": 0.34
+    }
+   }
+  }
+ },
+ {
+  "label": "decide:2",
+  "state": {
+   "application": {
+    "name": "OpenTelemetry Demo Astronomy Shop",
+    "description": "An online shopping platform built with a microservices architecture, showcasing OpenTelemetry instrumentation for distributed tracing across services.",
+    "namespaces": [
+     "astronomy-shop"
+    ]
+   },
+   "evidence": {
+    "daemonset/otel-collector-agent": {
+     "kind": "DaemonSet",
+     "name": "otel-collector-agent",
+     "namespace": "astronomy-shop",
+     "healthy": false,
+     "signals": [
+      "spec modified 178s ago, 16s after this object was created (fields: template.annotations.kubectl.kubernetes.io/restartedAt); pod template changes: template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-18T21:27:27+06:00; 124s before the first active symptom"
+     ],
+     "template_changes": {
+      "revision": 2,
+      "changed_at": "2026-10-18T15:27:27Z",
+      "changes": [
+       "template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-18T21:27:27+06:00"
+      ]
+     }
+    },
+    "deployment/order-stream": {
+     "kind": "Deployment",
+     "name": "order-stream",
+     "namespace": "astronomy-shop",
+     "healthy": false,
+     "signals": [
+      "created 157s ago, 37s after the workloads it calls; 103s before the first active symptom"
+     ]
+    },
+    "deployment/orders-validator": {
+     "kind": "Deployment",
+     "name": "orders-validator",
+     "namespace": "astronomy-shop",
+     "healthy": false,
+     "signals": [
+      "created 142s ago, 52s after the workloads it calls; 88s before the first active symptom"
+     ]
+    },
+    "deployment/accounting": {
+     "kind": "Deployment",
+     "name": "accounting",
+     "namespace": "astronomy-shop",
+     "healthy": false,
+     "signals": [
+      "container accounting memory usage 116Mi is near its limit 120Mi"
+     ]
+    },
+    "deployment/checkout": {
+     "kind": "Deployment",
+     "name": "checkout",
+     "namespace": "astronomy-shop",
+     "healthy": false,
+     "signals": [
+      "container checkout memory usage 18Mi is near its limit 20Mi"
+     ]
+    }
+   },
+   "cluster": {
+    "symptom_onset": "2026-10-18T15:29:31+00:00",
+    "recent_changes": [
+     {
+      "object": "deployment/orders-validator",
+      "at": "2026-10-18T15:28:03Z",
+      "created_after_targets_s": 52,
+      "seconds_ago": 142,
+      "seconds_before_symptoms": 88
+     },
+     {
+      "object": "deployment/order-stream",
+      "at": "2026-10-18T15:27:48Z",
+      "created_after_targets_s": 37,
+      "seconds_ago": 157,
+      "seconds_before_symptoms": 103
+     },
+     {
+      "object": "daemonset/otel-collector-agent",
+      "at": "2026-10-18T15:27:27Z",
+      "modified_after_creation_s": 16,
+      "fields": [
+       "template.annotations.kubectl.kubernetes.io/restartedAt"
+      ],
+      "seconds_ago": 178,
+      "seconds_before_symptoms": 124,
+      "role": "observability"
+     }
+    ],
+    "findings": []
+   }
+  },
+  "questions": {
+   "best_explanation": {
+    "type": "choice",
+    "criteria": {
+     "o1": "Origin: deployment/astronomy-shop/order-stream. deployment order-stream was created recently and breaks deployment/order-stream, which it acts on. | Observed impact on: deployment/astronomy-shop/order-stream | Checks: deployment/astronomy-shop/order-stream was made before the symptoms began (supports); deployment/order-stream shows symptoms of its own (supports)",
+     "o2": "Origin: daemonset/astronomy-shop/otel-collector-agent. The pod template change 'template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-18T21:27:27+06:00' in revision 2 of daemonset/otel-collector-agent breaks daemonset/otel-collector-agent. | Details: template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-18T21:27:27+06:00 | Observed impact on: daemonset/astronomy-shop/otel-collector-agent | Checks: revision 2 of daemonset/otel-collector-agent was made before the symptoms began (supports); daemonset/otel-collector-agent shows symptoms of its own (supports)",
+     "o3": "Origin: deployment/astronomy-shop/accounting. The fault is in this component; the mechanism is not established. | Observed impact on: deployment/astronomy-shop/accounting",
+     "o4": "Origin: deployment/astronomy-shop/checkout. The fault is in this component; the mechanism is not established. | Observed impact on: deployment/astronomy-shop/checkout",
+     "o5": "None of these explanations fits the evidence.",
+     "o6": "Origin: deployment/astronomy-shop/orders-validator. deployment orders-validator was created recently and breaks deployment/orders-validator, which it acts on. | Observed impact on: deployment/astronomy-shop/orders-validator | Checks: deployment/astronomy-shop/orders-validator was made before the symptoms began (supports); deployment/orders-validator shows symptoms of its own (supports)",
+     "o7": "Origin: daemonset/astronomy-shop/otel-collector-agent. daemonset otel-collector-agent was changed recently and breaks daemonset/otel-collector-agent, which it acts on. | Details: daemonset otel-collector-agent fields written: template.annotations.kubectl.kubernetes.io/restartedAt | Observed impact on: daemonset/astronomy-shop/otel-collector-agent | Checks: daemonset/astronomy-shop/otel-collector-agent was made before the symptoms began (supports); daemonset/otel-collector-agent shows symptoms of its own (supports)"
+    },
+    "instructions": {
+     "question": "Which explanation best accounts for all the observed symptoms in `evidence`?",
+     "how_to_decide": [
+      "Prefer the explanation whose chain is supported by the observed facts and explains the most symptoms; an explanation contradicted by a fact is unlikely.",
+      "A component that only fails because something it calls fails is a victim, not the origin.",
+      "Choose `o5` when none of the explanations fits the evidence."
+     ]
+    }
+   }
+  },
+  "model": "typesafe/jev-1.13-20260917",
+  "latency_ms": 479,
+  "usage": {
+   "input_tokens": 1937,
+   "output_tokens": 77,
+   "cost": 8.1354e-05
+  },
+  "answers": {
+   "best_explanation": {
+    "type": "choice",
+    "choice": "o5",
+    "confidence": 0.33,
+    "probabilities": {
+     "o1": 0.03,
+     "o2": 0.32,
+     "o3": 0.04,
+     "o4": 0.01,
+     "o5": 0.43,
+     "o6": 0.04,
+     "o7": 0.13
+    }
+   }
+  }
+ },
+ {
+  "label": "decide:1",
+  "state": {
+   "application": {
+    "name": "OpenTelemetry Demo Astronomy Shop",
+    "description": "An online shopping platform built with a microservices architecture, showcasing OpenTelemetry instrumentation for distributed tracing across services.",
+    "namespaces": [
+     "astronomy-shop"
+    ]
+   },
+   "evidence": {
+    "daemonset/otel-collector-agent": {
+     "kind": "DaemonSet",
+     "name": "otel-collector-agent",
+     "namespace": "astronomy-shop",
+     "healthy": false,
+     "signals": [
+      "spec modified 178s ago, 16s after this object was created (fields: template.annotations.kubectl.kubernetes.io/restartedAt); pod template changes: template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-18T21:27:27+06:00; 124s before the first active symptom"
+     ],
+     "template_changes": {
+      "revision": 2,
+      "changed_at": "2026-10-18T15:27:27Z",
+      "changes": [
+       "template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-18T21:27:27+06:00"
+      ]
+     }
+    },
+    "deployment/order-stream": {
+     "kind": "Deployment",
+     "name": "order-stream",
+     "namespace": "astronomy-shop",
+     "healthy": false,
+     "signals": [
+      "created 157s ago, 37s after the workloads it calls; 103s before the first active symptom"
+     ]
+    },
+    "deployment/orders-validator": {
+     "kind": "Deployment",
+     "name": "orders-validator",
+     "namespace": "astronomy-shop",
+     "healthy": false,
+     "signals": [
+      "created 142s ago, 52s after the workloads it calls; 88s before the first active symptom"
+     ]
+    },
+    "deployment/accounting": {
+     "kind": "Deployment",
+     "name": "accounting",
+     "namespace": "astronomy-shop",
+     "healthy": false,
+     "signals": [
+      "container accounting memory usage 116Mi is near its limit 120Mi"
+     ],
+     "detail": {
+      "component": "deployment/accounting",
+      "namespace": "astronomy-shop",
+      "workload": {
+       "created": "2026-10-18T15:27:11Z",
+       "last_spec_write": "2026-10-18T15:27:11Z",
+       "spec_writers": [
+        {
+         "manager": "helm",
+         "op": "Apply",
+         "time": "2026-10-18T15:27:11Z"
+        }
+       ],
+       "replicas": 1,
+       "strategy": {
+        "rollingUpdate": {
+         "maxSurge": "25%",
+         "maxUnavailable": "25%"
+        },
+        "type": "RollingUpdate"
+       },
+       "service_account": "astronomy-shop",
+       "dns_policy": "ClusterFirst",
+       "restart_policy": "Always",
+       "init_containers": [
+        {
+         "name": "wait-for-kafka",
+         "image": "busybox:latest",
+         "command": [
+          "sh",
+          "-c",
+          "until nc -z -v -w30 kafka 9092; do echo waiting for kafka; sleep 2; done;"
+         ]
+        }
+       ],
+       "containers": [
+        {
+         "name": "accounting",
+         "image": "ghcr.io/open-telemetry/demo:nightly-20939609681-accounting@sha256:51e6720438c13d0a4fefd129b01e2422b176fdb18a9ea71ef08fd84e717e82f4",
+         "env": [
+          {
+           "name": "OTEL_SERVICE_NAME",
+           "from": "field:metadata.labels['app.kubernetes.io/component']"
+          },
+          {
+           "name": "OTEL_COLLECTOR_NAME",
+           "value": "otel-collector"
+          },
+          {
+           "name": "OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE",
+           "value": "cumulative"
+          },
+          {
+           "name": "KAFKA_ADDR",
+           "value": "kafka:9092"
+          },
+          {
+           "name": "OTEL_EXPORTER_OTLP_ENDPOINT",
+           "value": "http://$(OTEL_COLLECTOR_NAME):4318"
+          },
+          {
+           "name": "DB_CONNECTION_STRING",
+           "value": "Host=postgresql;Username=otelu;Password=otelp;Database=otel"
+          },
+          {
+           "name": "OTEL_DOTNET_AUTO_TRACES_ENTITYFRAMEWORKCORE_INSTRUMENTATION_ENABLED",
+           "value": "false"
+          }
+         ],
+         "resources": {
+          "limits": {
+           "memory": "120Mi"
+          }
+         }
+        }
+       ],
+       "template_labels": {
+        "app.kubernetes.io/component": "accounting",
+        "app.kubernetes.io/name": "accounting",
+        "app.kubernetes.io/version": "2.2.0",
+        "opentelemetry.io/name": "accounting"
+       }
+      },
+      "pods": [
+       {
+        "name": "accounting-5897477844-vtzl9",
+        "node": "kind-worker",
+        "phase": "Running",
+        "started": "2026-10-18T15:27:11Z",
+        "ready_since": "2026-10-18T15:27:25Z",
+        "conditions": [
+         "PodReadyToStartContainers=True",
+         "Initialized=True",
+         "Ready=True",
+         "ContainersReady=True",
+         "PodScheduled=True"
+        ],
+        "containers": [
+         {
+          "name": "wait-for-kafka",
+          "ready": true,
+          "restarts": 0,
+          "state": {
+           "terminated": {
+            "containerID": "containerd://367f4dde8fbdc9a2313a0e6f39de33d3f85a4ee973bff65e1259dc530e0c5779",
+            "exitCode": 0,
+            "finishedAt": "2026-10-18T15:27:23Z",
+            "reason": "Completed",
+            "startedAt": "2026-10-18T15:27:14Z"
+           }
+          }
+         },
+         {
+          "name": "accounting",
+          "ready": true,
+          "restarts": 0,
+          "state": {
+           "running": {
+            "startedAt": "2026-10-18T15:27:24Z"
+           }
+          }
+         }
+        ]
+       }
+      ],
+      "events": [
+       {
+        "type": "Normal",
+        "reason": "Pulled",
+        "count": 1,
+        "object": "pod/accounting-5897477844-vtzl9",
+        "last": "2026-10-18T15:27:24Z",
+        "message": "Container image \"ghcr.io/open-telemetry/demo:nightly-20939609681-accounting@sha256:51e6720438c13d0a4fefd129b01e2422b176fdb18a9ea71ef08fd84e717e82f4\" already present on machine"
+       },
+       {
+        "type": "Normal",
+        "reason": "Created",
+        "count": 1,
+        "object": "pod/accounting-5897477844-vtzl9",
+        "last": "2026-10-18T15:27:24Z",
+        "message": "Created container: accounting"
+       },
+       {
+        "type": "Normal",
+        "reason": "Started",
+        "count": 1,
+        "object": "pod/accounting-5897477844-vtzl9",
+        "last": "2026-10-18T15:27:24Z",
+        "message": "Started container accounting"
+       },
+       {
+        "type": "Normal",
+        "reason": "Pulled",
+        "count": 1,
+        "object": "pod/accounting-5897477844-vtzl9",
+        "last": "2026-10-18T15:27:14Z",
+        "message": "Successfully pulled image \"busybox:latest\" in 668ms (1.603s including waiting). Image size: 2236767 bytes."
+       },
+       {
+        "type": "Normal",
+        "reason": "Created",
+        "count": 1,
+        "object": "pod/accounting-5897477844-vtzl9",
+        "last": "2026-10-18T15:27:14Z",
+        "message": "Created container: wait-for-kafka"
+       },
+       {
+        "type": "Normal",
+        "reason": "Started",
+        "count": 1,
+        "object": "pod/accounting-5897477844-vtzl9",
+        "last": "2026-10-18T15:27:14Z",
+        "message": "Started container wait-for-kafka"
+       },
+       {
+        "type": "Normal",
+        "reason": "Pulling",
+        "count": 1,
+        "object": "pod/accounting-5897477844-vtzl9",
+        "last": "2026-10-18T15:27:12Z",
+        "message": "Pulling image \"busybox:latest\""
+       },
+       {
+        "type": "Normal",
+        "reason": "SuccessfulCreate",
+        "count": 1,
+        "object": "replicaset/accounting-5897477844",
+        "last": "2026-10-18T15:27:11Z",
+        "message": "Created pod: accounting-5897477844-vtzl9"
+       },
+       {
+        "type": "Normal",
+        "reason": "Scheduled",
+        "count": 1,
+        "object": "pod/accounting-5897477844-vtzl9",
+        "last": "2026-10-18T15:27:11.729435Z",
+        "message": "Successfully assigned astronomy-shop/accounting-5897477844-vtzl9 to kind-worker"
+       }
+      ],
+      "logs": {
+       "total_lines": 138,
+       "error_lines": 5,
+       "error_lines_still_occurring": 0,
+       "error_lines_stopped": 5,
+       "telemetry_export_error_lines": 0,
+       "error_samples": [
+        {
+         "count": 1,
+         "line": "accounting: fail: Accounting.Consumer[0]",
+         "first_seen_seconds_ago": 181,
+         "last_seen_seconds_ago": 181,
+         "state": "stopped"
+        },
+        {
+         "count": 1,
+         "line": "accounting: Consume error: Subscribed topic not available: orders: Broker: Unknown topic or partition",
+         "first_seen_seconds_ago": 181,
+         "last_seen_seconds_ago": 181,
+         "state": "stopped"
+        },
+        {
+         "count": 1,
+         "line": "accounting: Confluent.Kafka.ConsumeException: Subscribed topic not available: orders: Broker: Unknown topic or partition",
+         "first_seen_seconds_ago": 181,
+         "last_seen_seconds_ago": 181,
+         "state": "stopped"
+        },
+        {
+         "count": 1,
+         "line": "accounting: at Confluent.Kafka.Consumer`2.Consume(Int32 millisecondsTimeout)",
+         "first_seen_seconds_ago": 181,
+         "last_seen_seconds_ago": 181,
+         "state": "stopped"
+        },
+        {
+         "count": 1,
+         "line": "accounting: Error: libgssapi_krb5.so.2: cannot open shared object file: No such file or directory",
+         "first_seen_seconds_ago": 162,
+         "last_seen_seconds_ago": 162,
+         "state": "stopped"
+        }
+       ],
+       "tail": [
+        "2026-10-18T15:30:14.825105673Z info: Accounting.Consumer[174880625]",
+        "2026-10-18T15:30:14.825162905Z Order details: { \"orderId\": \"d0c19192-cb08-11f1-9701-96eee5ce7266\", \"shippingTrackingId\": \"b5cdbf6e-c52d-4d67-aa58-10ab0fe4c9fa\", \"shippingCost\": { \"currencyCode\": \"USD\u2026",
+        "2026-10-18T15:30:17.733133979Z info: Accounting.Consumer[174880625]",
+        "2026-10-18T15:30:17.733200815Z Order details: { \"orderId\": \"d280483c-cb08-11f1-9701-96eee5ce7266\", \"shippingTrackingId\": \"4c52bb8a-825a-4dad-af0a-c63b6972ee91\", \"shippingCost\": { \"currencyCode\": \"CAD\u2026",
+        "2026-10-18T15:30:21.686928003Z info: Accounting.Consumer[174880625]",
+        "2026-10-18T15:30:21.686987819Z Order details: { \"orderId\": \"d4ddc282-cb08-11f1-9701-96eee5ce7266\", \"shippingTrackingId\": \"876e273f-5d5d-476a-af6a-5e024db7b534\", \"shippingCost\": { \"currencyCode\": \"USD\u2026",
+        "2026-10-18T15:30:23.184585382Z info: Accounting.Consumer[174880625]",
+        "2026-10-18T15:30:23.184629442Z Order details: { \"orderId\": \"d5c2ae2b-cb08-11f1-9701-96eee5ce7266\", \"shippingTrackingId\": \"f035a2ef-ae68-4bc6-b1a3-3ae68844ea14\", \"shippingCost\": { \"currencyCode\": \"USD\u2026",
+        "2026-10-18T15:30:26.297635618Z info: Accounting.Consumer[174880625]",
+        "2026-10-18T15:30:26.297645467Z Order details: { \"orderId\": \"d79c2545-cb08-11f1-9701-96eee5ce7266\", \"shippingTrackingId\": \"117cbe1f-d834-4609-a4fa-2e369d740f77\", \"shippingCost\": { \"currencyCode\": \"USD\u2026",
+        "2026-10-18T15:30:27.104126427Z info: Accounting.Consumer[174880625]",
+        "2026-10-18T15:30:27.104169848Z Order details: { \"orderId\": \"d8185bf9-cb08-11f1-9701-96eee5ce7266\", \"shippingTrackingId\": \"7b32c2ed-dcfd-431c-b393-4b1b7b8edce5\", \"shippingCost\": { \"currencyCode\": \"CAD\u2026"
+       ]
+      },
+      "calls_services": [
+       "astronomy-shop/kafka",
+       "astronomy-shop/otel-collector"
+      ],
+      "rbac": {
+       "service_account": "astronomy-shop/astronomy-shop",
+       "can_i": [
+        "selfsubjectreviews.authentication.k8s.io [] [] [create]",
+        "selfsubjectaccessreviews.authorization.k8s.io [] [] [create]",
+        "selfsubjectrulesreviews.authorization.k8s.io [] [] [create]",
+        "[/.well-known/openid-configuration/] [] [get]",
+        "[/.well-known/openid-configuration] [] [get]",
+        "[/api/*] [] [get]",
+        "[/api] [] [get]",
+        "[/apis/*] [] [get]",
+        "[/apis] [] [get]",
+        "[/healthz] [] [get]",
+        "[/healthz] [] [get]",
+        "[/livez] [] [get]",
+        "[/livez] [] [get]"
+       ]
+      },
+      "input_candidates": [
+       {
+        "container": "accounting",
+        "env": "OTEL_COLLECTOR_NAME",
+        "value": "otel-collector"
+       },
+       {
+        "container": "accounting",
+        "env": "OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE",
+        "value": "cumulative"
+       }
+      ],
+      "calls": {
+       "daemonset/otel-collector-agent": {
+        "kind": "DaemonSet",
+        "pods_ready": "3/3",
+        "restarts": 0,
+        "own_evidence_kinds": [
+         "change"
+        ],
+        "own_signals": [
+         "spec modified 178s ago, 16s after this object was created (fields: template.annotations.kubectl.kubernetes.io/restartedAt); pod template changes: template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-18T21:27:27+06:00; 124s before the first active symptom"
+        ],
+        "own_error_log_lines": 8,
+        "last_spec_change": "2026-10-18T15:27:27Z",
+        "looks_healthy_on_its_own": false
+       },
+       "deployment/kafka": {
+        "kind": "Deployment",
+        "pods_ready": "1/1",
+        "restarts": 0,
+        "looks_healthy_on_its_own": true
+       },
+       "deployment/postgresql": {
+        "kind": "Deployment",
+        "pods_ready": "1/1",
+        "restarts": 0,
+        "looks_healthy_on_its_own": true
+       }
+      }
+     }
+    },
+    "deployment/checkout": {
+     "kind": "Deployment",
+     "name": "checkout",
+     "namespace": "astronomy-shop",
+     "healthy": false,
+     "signals": [
+      "container checkout memory usage 18Mi is near its limit 20Mi"
+     ]
+    }
+   },
+   "cluster": {
+    "symptom_onset": "2026-10-18T15:29:31+00:00",
+    "recent_changes": [
+     {
+      "object": "deployment/orders-validator",
+      "at": "2026-10-18T15:28:03Z",
+      "created_after_targets_s": 52,
+      "seconds_ago": 142,
+      "seconds_before_symptoms": 88
+     },
+     {
+      "object": "deployment/order-stream",
+      "at": "2026-10-18T15:27:48Z",
+      "created_after_targets_s": 37,
+      "seconds_ago": 157,
+      "seconds_before_symptoms": 103
+     },
+     {
+      "object": "daemonset/otel-collector-agent",
+      "at": "2026-10-18T15:27:27Z",
+      "modified_after_creation_s": 16,
+      "fields": [
+       "template.annotations.kubectl.kubernetes.io/restartedAt"
+      ],
+      "seconds_ago": 178,
+      "seconds_before_symptoms": 124,
+      "role": "observability"
+     }
+    ],
+    "findings": []
+   }
+  },
+  "questions": {
+   "best_explanation": {
+    "type": "choice",
+    "criteria": {
+     "o1": "None of these explanations fits the evidence.",
+     "o2": "Origin: daemonset/astronomy-shop/otel-collector-agent. daemonset otel-collector-agent was changed recently and breaks daemonset/otel-collector-agent, which it acts on. | Details: daemonset otel-collector-agent fields written: template.annotations.kubectl.kubernetes.io/restartedAt | Observed impact on: daemonset/astronomy-shop/otel-collector-agent | Checks: daemonset/astronomy-shop/otel-collector-agent was made before the symptoms began (supports); daemonset/otel-collector-agent shows symptoms of its own (supports)",
+     "o3": "Origin: daemonset/astronomy-shop/otel-collector-agent. The pod template change 'template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-18T21:27:27+06:00' in revision 2 of daemonset/otel-collector-agent breaks daemonset/otel-collector-agent. | Details: template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-18T21:27:27+06:00 | Observed impact on: daemonset/astronomy-shop/otel-collector-agent | Checks: revision 2 of daemonset/otel-collector-agent was made before the symptoms began (supports); daemonset/otel-collector-agent shows symptoms of its own (supports)",
+     "o4": "Origin: deployment/astronomy-shop/checkout. The fault is in this component; the mechanism is not established. | Observed impact on: deployment/astronomy-shop/checkout",
+     "o5": "Origin: deployment/astronomy-shop/orders-validator. deployment orders-validator was created recently and breaks deployment/orders-validator, which it acts on. | Observed impact on: deployment/astronomy-shop/orders-validator | Checks: deployment/astronomy-shop/orders-validator was made before the symptoms began (supports); deployment/orders-validator shows symptoms of its own (supports)",
+     "o6": "Origin: deployment/astronomy-shop/order-stream. deployment order-stream was created recently and breaks deployment/order-stream, which it acts on. | Observed impact on: deployment/astronomy-shop/order-stream | Checks: deployment/astronomy-shop/order-stream was made before the symptoms began (supports); deployment/order-stream shows symptoms of its own (supports)",
+     "o7": "Origin: deployment/astronomy-shop/accounting. The fault is in this component; the mechanism is not established. | Observed impact on: deployment/astronomy-shop/accounting"
+    },
+    "instructions": {
+     "question": "Which explanation best accounts for all the observed symptoms in `evidence`?",
+     "how_to_decide": [
+      "Prefer the explanation whose chain is supported by the observed facts and explains the most symptoms; an explanation contradicted by a fact is unlikely.",
+      "A component that only fails because something it calls fails is a victim, not the origin.",
+      "Choose `o1` when none of the explanations fits the evidence."
+     ]
+    }
+   }
+  },
+  "model": "typesafe/jev-1.13-20260917",
+  "latency_ms": 576,
+  "usage": {
+   "input_tokens": 6268,
+   "output_tokens": 77,
+   "cost": 0.000263256
+  },
+  "answers": {
+   "best_explanation": {
+    "type": "choice",
+    "choice": "o1",
+    "confidence": 0.33,
+    "probabilities": {
+     "o1": 0.43,
+     "o2": 0.14,
+     "o3": 0.31,
+     "o4": 0.0,
+     "o5": 0.02,
+     "o6": 0.01,
+     "o7": 0.09
+    }
+   }
+  }
+ },
+ {
+  "label": "decide:2",
+  "state": {
+   "application": {
+    "name": "OpenTelemetry Demo Astronomy Shop",
+    "description": "An online shopping platform built with a microservices architecture, showcasing OpenTelemetry instrumentation for distributed tracing across services.",
+    "namespaces": [
+     "astronomy-shop"
+    ]
+   },
+   "evidence": {
+    "daemonset/otel-collector-agent": {
+     "kind": "DaemonSet",
+     "name": "otel-collector-agent",
+     "namespace": "astronomy-shop",
+     "healthy": false,
+     "signals": [
+      "spec modified 178s ago, 16s after this object was created (fields: template.annotations.kubectl.kubernetes.io/restartedAt); pod template changes: template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-18T21:27:27+06:00; 124s before the first active symptom"
+     ],
+     "template_changes": {
+      "revision": 2,
+      "changed_at": "2026-10-18T15:27:27Z",
+      "changes": [
+       "template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-18T21:27:27+06:00"
+      ]
+     }
+    },
+    "deployment/order-stream": {
+     "kind": "Deployment",
+     "name": "order-stream",
+     "namespace": "astronomy-shop",
+     "healthy": false,
+     "signals": [
+      "created 157s ago, 37s after the workloads it calls; 103s before the first active symptom"
+     ]
+    },
+    "deployment/orders-validator": {
+     "kind": "Deployment",
+     "name": "orders-validator",
+     "namespace": "astronomy-shop",
+     "healthy": false,
+     "signals": [
+      "created 142s ago, 52s after the workloads it calls; 88s before the first active symptom"
+     ]
+    },
+    "deployment/accounting": {
+     "kind": "Deployment",
+     "name": "accounting",
+     "namespace": "astronomy-shop",
+     "healthy": false,
+     "signals": [
+      "container accounting memory usage 116Mi is near its limit 120Mi"
+     ],
+     "detail": {
+      "component": "deployment/accounting",
+      "namespace": "astronomy-shop",
+      "workload": {
+       "created": "2026-10-18T15:27:11Z",
+       "last_spec_write": "2026-10-18T15:27:11Z",
+       "spec_writers": [
+        {
+         "manager": "helm",
+         "op": "Apply",
+         "time": "2026-10-18T15:27:11Z"
+        }
+       ],
+       "replicas": 1,
+       "strategy": {
+        "rollingUpdate": {
+         "maxSurge": "25%",
+         "maxUnavailable": "25%"
+        },
+        "type": "RollingUpdate"
+       },
+       "service_account": "astronomy-shop",
+       "dns_policy": "ClusterFirst",
+       "restart_policy": "Always",
+       "init_containers": [
+        {
+         "name": "wait-for-kafka",
+         "image": "busybox:latest",
+         "command": [
+          "sh",
+          "-c",
+          "until nc -z -v -w30 kafka 9092; do echo waiting for kafka; sleep 2; done;"
+         ]
+        }
+       ],
+       "containers": [
+        {
+         "name": "accounting",
+         "image": "ghcr.io/open-telemetry/demo:nightly-20939609681-accounting@sha256:51e6720438c13d0a4fefd129b01e2422b176fdb18a9ea71ef08fd84e717e82f4",
+         "env": [
+          {
+           "name": "OTEL_SERVICE_NAME",
+           "from": "field:metadata.labels['app.kubernetes.io/component']"
+          },
+          {
+           "name": "OTEL_COLLECTOR_NAME",
+           "value": "otel-collector"
+          },
+          {
+           "name": "OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE",
+           "value": "cumulative"
+          },
+          {
+           "name": "KAFKA_ADDR",
+           "value": "kafka:9092"
+          },
+          {
+           "name": "OTEL_EXPORTER_OTLP_ENDPOINT",
+           "value": "http://$(OTEL_COLLECTOR_NAME):4318"
+          },
+          {
+           "name": "DB_CONNECTION_STRING",
+           "value": "Host=postgresql;Username=otelu;Password=otelp;Database=otel"
+          },
+          {
+           "name": "OTEL_DOTNET_AUTO_TRACES_ENTITYFRAMEWORKCORE_INSTRUMENTATION_ENABLED",
+           "value": "false"
+          }
+         ],
+         "resources": {
+          "limits": {
+           "memory": "120Mi"
+          }
+         }
+        }
+       ],
+       "template_labels": {
+        "app.kubernetes.io/component": "accounting",
+        "app.kubernetes.io/name": "accounting",
+        "app.kubernetes.io/version": "2.2.0",
+        "opentelemetry.io/name": "accounting"
+       }
+      },
+      "pods": [
+       {
+        "name": "accounting-5897477844-vtzl9",
+        "node": "kind-worker",
+        "phase": "Running",
+        "started": "2026-10-18T15:27:11Z",
+        "ready_since": "2026-10-18T15:27:25Z",
+        "conditions": [
+         "PodReadyToStartContainers=True",
+         "Initialized=True",
+         "Ready=True",
+         "ContainersReady=True",
+         "PodScheduled=True"
+        ],
+        "containers": [
+         {
+          "name": "wait-for-kafka",
+          "ready": true,
+          "restarts": 0,
+          "state": {
+           "terminated": {
+            "containerID": "containerd://367f4dde8fbdc9a2313a0e6f39de33d3f85a4ee973bff65e1259dc530e0c5779",
+            "exitCode": 0,
+            "finishedAt": "2026-10-18T15:27:23Z",
+            "reason": "Completed",
+            "startedAt": "2026-10-18T15:27:14Z"
+           }
+          }
+         },
+         {
+          "name": "accounting",
+          "ready": true,
+          "restarts": 0,
+          "state": {
+           "running": {
+            "startedAt": "2026-10-18T15:27:24Z"
+           }
+          }
+         }
+        ]
+       }
+      ],
+      "events": [
+       {
+        "type": "Normal",
+        "reason": "Pulled",
+        "count": 1,
+        "object": "pod/accounting-5897477844-vtzl9",
+        "last": "2026-10-18T15:27:24Z",
+        "message": "Container image \"ghcr.io/open-telemetry/demo:nightly-20939609681-accounting@sha256:51e6720438c13d0a4fefd129b01e2422b176fdb18a9ea71ef08fd84e717e82f4\" already present on machine"
+       },
+       {
+        "type": "Normal",
+        "reason": "Created",
+        "count": 1,
+        "object": "pod/accounting-5897477844-vtzl9",
+        "last": "2026-10-18T15:27:24Z",
+        "message": "Created container: accounting"
+       },
+       {
+        "type": "Normal",
+        "reason": "Started",
+        "count": 1,
+        "object": "pod/accounting-5897477844-vtzl9",
+        "last": "2026-10-18T15:27:24Z",
+        "message": "Started container accounting"
+       },
+       {
+        "type": "Normal",
+        "reason": "Pulled",
+        "count": 1,
+        "object": "pod/accounting-5897477844-vtzl9",
+        "last": "2026-10-18T15:27:14Z",
+        "message": "Successfully pulled image \"busybox:latest\" in 668ms (1.603s including waiting). Image size: 2236767 bytes."
+       },
+       {
+        "type": "Normal",
+        "reason": "Created",
+        "count": 1,
+        "object": "pod/accounting-5897477844-vtzl9",
+        "last": "2026-10-18T15:27:14Z",
+        "message": "Created container: wait-for-kafka"
+       },
+       {
+        "type": "Normal",
+        "reason": "Started",
+        "count": 1,
+        "object": "pod/accounting-5897477844-vtzl9",
+        "last": "2026-10-18T15:27:14Z",
+        "message": "Started container wait-for-kafka"
+       },
+       {
+        "type": "Normal",
+        "reason": "Pulling",
+        "count": 1,
+        "object": "pod/accounting-5897477844-vtzl9",
+        "last": "2026-10-18T15:27:12Z",
+        "message": "Pulling image \"busybox:latest\""
+       },
+       {
+        "type": "Normal",
+        "reason": "SuccessfulCreate",
+        "count": 1,
+        "object": "replicaset/accounting-5897477844",
+        "last": "2026-10-18T15:27:11Z",
+        "message": "Created pod: accounting-5897477844-vtzl9"
+       },
+       {
+        "type": "Normal",
+        "reason": "Scheduled",
+        "count": 1,
+        "object": "pod/accounting-5897477844-vtzl9",
+        "last": "2026-10-18T15:27:11.729435Z",
+        "message": "Successfully assigned astronomy-shop/accounting-5897477844-vtzl9 to kind-worker"
+       }
+      ],
+      "logs": {
+       "total_lines": 138,
+       "error_lines": 5,
+       "error_lines_still_occurring": 0,
+       "error_lines_stopped": 5,
+       "telemetry_export_error_lines": 0,
+       "error_samples": [
+        {
+         "count": 1,
+         "line": "accounting: fail: Accounting.Consumer[0]",
+         "first_seen_seconds_ago": 181,
+         "last_seen_seconds_ago": 181,
+         "state": "stopped"
+        },
+        {
+         "count": 1,
+         "line": "accounting: Consume error: Subscribed topic not available: orders: Broker: Unknown topic or partition",
+         "first_seen_seconds_ago": 181,
+         "last_seen_seconds_ago": 181,
+         "state": "stopped"
+        },
+        {
+         "count": 1,
+         "line": "accounting: Confluent.Kafka.ConsumeException: Subscribed topic not available: orders: Broker: Unknown topic or partition",
+         "first_seen_seconds_ago": 181,
+         "last_seen_seconds_ago": 181,
+         "state": "stopped"
+        },
+        {
+         "count": 1,
+         "line": "accounting: at Confluent.Kafka.Consumer`2.Consume(Int32 millisecondsTimeout)",
+         "first_seen_seconds_ago": 181,
+         "last_seen_seconds_ago": 181,
+         "state": "stopped"
+        },
+        {
+         "count": 1,
+         "line": "accounting: Error: libgssapi_krb5.so.2: cannot open shared object file: No such file or directory",
+         "first_seen_seconds_ago": 162,
+         "last_seen_seconds_ago": 162,
+         "state": "stopped"
+        }
+       ],
+       "tail": [
+        "2026-10-18T15:30:14.825105673Z info: Accounting.Consumer[174880625]",
+        "2026-10-18T15:30:14.825162905Z Order details: { \"orderId\": \"d0c19192-cb08-11f1-9701-96eee5ce7266\", \"shippingTrackingId\": \"b5cdbf6e-c52d-4d67-aa58-10ab0fe4c9fa\", \"shippingCost\": { \"currencyCode\": \"USD\u2026",
+        "2026-10-18T15:30:17.733133979Z info: Accounting.Consumer[174880625]",
+        "2026-10-18T15:30:17.733200815Z Order details: { \"orderId\": \"d280483c-cb08-11f1-9701-96eee5ce7266\", \"shippingTrackingId\": \"4c52bb8a-825a-4dad-af0a-c63b6972ee91\", \"shippingCost\": { \"currencyCode\": \"CAD\u2026",
+        "2026-10-18T15:30:21.686928003Z info: Accounting.Consumer[174880625]",
+        "2026-10-18T15:30:21.686987819Z Order details: { \"orderId\": \"d4ddc282-cb08-11f1-9701-96eee5ce7266\", \"shippingTrackingId\": \"876e273f-5d5d-476a-af6a-5e024db7b534\", \"shippingCost\": { \"currencyCode\": \"USD\u2026",
+        "2026-10-18T15:30:23.184585382Z info: Accounting.Consumer[174880625]",
+        "2026-10-18T15:30:23.184629442Z Order details: { \"orderId\": \"d5c2ae2b-cb08-11f1-9701-96eee5ce7266\", \"shippingTrackingId\": \"f035a2ef-ae68-4bc6-b1a3-3ae68844ea14\", \"shippingCost\": { \"currencyCode\": \"USD\u2026",
+        "2026-10-18T15:30:26.297635618Z info: Accounting.Consumer[174880625]",
+        "2026-10-18T15:30:26.297645467Z Order details: { \"orderId\": \"d79c2545-cb08-11f1-9701-96eee5ce7266\", \"shippingTrackingId\": \"117cbe1f-d834-4609-a4fa-2e369d740f77\", \"shippingCost\": { \"currencyCode\": \"USD\u2026",
+        "2026-10-18T15:30:27.104126427Z info: Accounting.Consumer[174880625]",
+        "2026-10-18T15:30:27.104169848Z Order details: { \"orderId\": \"d8185bf9-cb08-11f1-9701-96eee5ce7266\", \"shippingTrackingId\": \"7b32c2ed-dcfd-431c-b393-4b1b7b8edce5\", \"shippingCost\": { \"currencyCode\": \"CAD\u2026"
+       ]
+      },
+      "calls_services": [
+       "astronomy-shop/kafka",
+       "astronomy-shop/otel-collector"
+      ],
+      "rbac": {
+       "service_account": "astronomy-shop/astronomy-shop",
+       "can_i": [
+        "selfsubjectreviews.authentication.k8s.io [] [] [create]",
+        "selfsubjectaccessreviews.authorization.k8s.io [] [] [create]",
+        "selfsubjectrulesreviews.authorization.k8s.io [] [] [create]",
+        "[/.well-known/openid-configuration/] [] [get]",
+        "[/.well-known/openid-configuration] [] [get]",
+        "[/api/*] [] [get]",
+        "[/api] [] [get]",
+        "[/apis/*] [] [get]",
+        "[/apis] [] [get]",
+        "[/healthz] [] [get]",
+        "[/healthz] [] [get]",
+        "[/livez] [] [get]",
+        "[/livez] [] [get]"
+       ]
+      },
+      "input_candidates": [
+       {
+        "container": "accounting",
+        "env": "OTEL_COLLECTOR_NAME",
+        "value": "otel-collector"
+       },
+       {
+        "container": "accounting",
+        "env": "OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE",
+        "value": "cumulative"
+       }
+      ],
+      "calls": {
+       "daemonset/otel-collector-agent": {
+        "kind": "DaemonSet",
+        "pods_ready": "3/3",
+        "restarts": 0,
+        "own_evidence_kinds": [
+         "change"
+        ],
+        "own_signals": [
+         "spec modified 178s ago, 16s after this object was created (fields: template.annotations.kubectl.kubernetes.io/restartedAt); pod template changes: template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-18T21:27:27+06:00; 124s before the first active symptom"
+        ],
+        "own_error_log_lines": 8,
+        "last_spec_change": "2026-10-18T15:27:27Z",
+        "looks_healthy_on_its_own": false
+       },
+       "deployment/kafka": {
+        "kind": "Deployment",
+        "pods_ready": "1/1",
+        "restarts": 0,
+        "looks_healthy_on_its_own": true
+       },
+       "deployment/postgresql": {
+        "kind": "Deployment",
+        "pods_ready": "1/1",
+        "restarts": 0,
+        "looks_healthy_on_its_own": true
+       }
+      }
+     }
+    },
+    "deployment/checkout": {
+     "kind": "Deployment",
+     "name": "checkout",
+     "namespace": "astronomy-shop",
+     "healthy": false,
+     "signals": [
+      "container checkout memory usage 18Mi is near its limit 20Mi"
+     ]
+    }
+   },
+   "cluster": {
+    "symptom_onset": "2026-10-18T15:29:31+00:00",
+    "recent_changes": [
+     {
+      "object": "deployment/orders-validator",
+      "at": "2026-10-18T15:28:03Z",
+      "created_after_targets_s": 52,
+      "seconds_ago": 142,
+      "seconds_before_symptoms": 88
+     },
+     {
+      "object": "deployment/order-stream",
+      "at": "2026-10-18T15:27:48Z",
+      "created_after_targets_s": 37,
+      "seconds_ago": 157,
+      "seconds_before_symptoms": 103
+     },
+     {
+      "object": "daemonset/otel-collector-agent",
+      "at": "2026-10-18T15:27:27Z",
+      "modified_after_creation_s": 16,
+      "fields": [
+       "template.annotations.kubectl.kubernetes.io/restartedAt"
+      ],
+      "seconds_ago": 178,
+      "seconds_before_symptoms": 124,
+      "role": "observability"
+     }
+    ],
+    "findings": []
+   }
+  },
+  "questions": {
+   "best_explanation": {
+    "type": "choice",
+    "criteria": {
+     "o1": "Origin: deployment/astronomy-shop/orders-validator. deployment orders-validator was created recently and breaks deployment/orders-validator, which it acts on. | Observed impact on: deployment/astronomy-shop/orders-validator | Checks: deployment/astronomy-shop/orders-validator was made before the symptoms began (supports); deployment/orders-validator shows symptoms of its own (supports)",
+     "o2": "Origin: daemonset/astronomy-shop/otel-collector-agent. The pod template change 'template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-18T21:27:27+06:00' in revision 2 of daemonset/otel-collector-agent breaks daemonset/otel-collector-agent. | Details: template annotation kubectl.kubernetes.io/restartedAt added: 2026-10-18T21:27:27+06:00 | Observed impact on: daemonset/astronomy-shop/otel-collector-agent | Checks: revision 2 of daemonset/otel-collector-agent was made before the symptoms began (supports); daemonset/otel-collector-agent shows symptoms of its own (supports)",
+     "o3": "Origin: daemonset/astronomy-shop/otel-collector-agent. daemonset otel-collector-agent was changed recently and breaks daemonset/otel-collector-agent, which it acts on. | Details: daemonset otel-collector-agent fields written: template.annotations.kubectl.kubernetes.io/restartedAt | Observed impact on: daemonset/astronomy-shop/otel-collector-agent | Checks: daemonset/astronomy-shop/otel-collector-agent was made before the symptoms began (supports); daemonset/otel-collector-agent shows symptoms of its own (supports)",
+     "o4": "Origin: deployment/astronomy-shop/order-stream. deployment order-stream was created recently and breaks deployment/order-stream, which it acts on. | Observed impact on: deployment/astronomy-shop/order-stream | Checks: deployment/astronomy-shop/order-stream was made before the symptoms began (supports); deployment/order-stream shows symptoms of its own (supports)",
+     "o5": "None of these explanations fits the evidence.",
+     "o6": "Origin: deployment/astronomy-shop/checkout. The fault is in this component; the mechanism is not established. | Observed impact on: deployment/astronomy-shop/checkout",
+     "o7": "Origin: deployment/astronomy-shop/accounting. The fault is in this component; the mechanism is not established. | Observed impact on: deployment/astronomy-shop/accounting"
+    },
+    "instructions": {
+     "question": "Which explanation best accounts for all the observed symptoms in `evidence`?",
+     "how_to_decide": [
+      "Prefer the explanation whose chain is supported by the observed facts and explains the most symptoms; an explanation contradicted by a fact is unlikely.",
+      "A component that only fails because something it calls fails is a victim, not the origin.",
+      "Choose `o5` when none of the explanations fits the evidence."
+     ]
+    }
+   }
+  },
+  "model": "typesafe/jev-1.13-20260917",
+  "latency_ms": 931,
+  "usage": {
+   "input_tokens": 6268,
+   "output_tokens": 77,
+   "cost": 0.000263256
+  },
+  "answers": {
+   "best_explanation": {
+    "type": "choice",
+    "choice": "o5",
+    "confidence": 0.23,
+    "probabilities": {
+     "o1": 0.02,
+     "o2": 0.28,
+     "o3": 0.18,
+     "o4": 0.02,
+     "o5": 0.33999999999999997,
+     "o6": 0.01,
+     "o7": 0.15
+    }
+   }
+  }
+ }
+]

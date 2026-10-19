@@ -1,0 +1,358 @@
+[
+ {
+  "label": "decide:1",
+  "state": {
+   "application": {
+    "name": "Social Network",
+    "description": "A social network with unidirectional follow relationships, implemented with loosely-coupled microservices, communicating with each other via Thrift RPCs.",
+    "namespaces": [
+     "social-network"
+    ]
+   },
+   "evidence": {
+    "deployment/nginx-thrift": {
+     "kind": "Deployment",
+     "name": "nginx-thrift",
+     "namespace": "social-network",
+     "healthy": false,
+     "signals": [
+      "only 0 of 1 desired replicas are ready",
+      "pod nginx-thrift-6c5bcfcb8f-cmr7j: container nginx-thrift waiting in CrashLoopBackOff",
+      "pod nginx-thrift-6c5bcfcb8f-cmr7j: container nginx-thrift was OOMKilled",
+      "pod nginx-thrift-6c5bcfcb8f-cmr7j: container nginx-thrift restarted 4 times",
+      "warning events: BackOff x10",
+      "service nginx-thrift selects this component but has 0 ready endpoints",
+      "pod nginx-thrift-6c5bcfcb8f-cmr7j: container nginx-thrift limits.memory 16Mi, template 256Mi; container nginx-thrift requests.memory 16Mi, template 128Mi \u2014 the running pod differs from the pod template of its revision, so it was changed at admission; mutating webhooks whose rules and selectors match these pods: gatekeeper-mutating-webhook-configuration",
+      "firing alert DeploymentNotReady"
+     ],
+     "template_changes": {
+      "revision": 2,
+      "changed_at": "2026-10-18T17:01:43Z",
+      "changes": [
+       "pod label pod-template-hash: 5d54468559 -> 6c5bcfcb8f",
+       "container nginx-thrift limits.memory: unset -> 256Mi",
+       "container nginx-thrift requests.memory: unset -> 128Mi"
+      ]
+     }
+    }
+   },
+   "cluster": {
+    "symptom_onset": "2026-10-18T17:01:55+00:00",
+    "recent_changes": [
+     {
+      "object": "mutatingwebhookconfiguration/cert-manager-webhook",
+      "at": "2026-10-18T17:01:47Z",
+      "created_after_targets_s": 11,
+      "seconds_ago": 135,
+      "seconds_before_symptoms": 8
+     },
+     {
+      "object": "mutatingwebhookconfiguration/gatekeeper-mutating-webhook-configuration",
+      "at": "2026-10-18T17:01:47Z",
+      "created_after_targets_s": 11,
+      "seconds_ago": 135,
+      "seconds_before_symptoms": 8
+     },
+     {
+      "object": "mutatingwebhookconfiguration/istio-sidecar-injector",
+      "at": "2026-10-18T17:01:47Z",
+      "created_after_targets_s": 11,
+      "seconds_ago": 135,
+      "seconds_before_symptoms": 8
+     },
+     {
+      "object": "mutatingwebhookconfiguration/kyverno-resource-mutating-webhook-cfg",
+      "at": "2026-10-18T17:01:47Z",
+      "created_after_targets_s": 11,
+      "seconds_ago": 135,
+      "seconds_before_symptoms": 8
+     },
+     {
+      "object": "mutatingwebhookconfiguration/linkerd-proxy-injector-webhook-config",
+      "at": "2026-10-18T17:01:47Z",
+      "created_after_targets_s": 11,
+      "seconds_ago": 135,
+      "seconds_before_symptoms": 8
+     },
+     {
+      "object": "configmap/kube-system/coredns",
+      "at": "2026-10-18T16:57:47Z",
+      "modified_after_creation_s": 29766,
+      "fields": [
+       "data.Corefile"
+      ],
+      "seconds_ago": 375,
+      "seconds_before_symptoms": 248
+     }
+    ],
+    "findings": [
+     {
+      "kind": "MutatingWebhookConfiguration",
+      "name": "cert-manager-webhook",
+      "signal": "mutating webhook webhook.cert-manager.io rewrites objects matching CREATE/UPDATE certificates,issuers; MutatingWebhookConfiguration cert-manager-webhook was created 135s ago, 11s after the workloads it intercepts; 8s before the first active symptom"
+     },
+     {
+      "kind": "MutatingWebhookConfiguration",
+      "name": "gatekeeper-mutating-webhook-configuration",
+      "signal": "mutating webhook mutation.gatekeeper.sh rewrites objects matching CREATE pods; MutatingWebhookConfiguration gatekeeper-mutating-webhook-configuration was created 135s ago, 11s after the workloads it intercepts; 8s before the first active symptom",
+      "components": [
+       "deployment/nginx-thrift"
+      ]
+     },
+     {
+      "kind": "MutatingWebhookConfiguration",
+      "name": "gatekeeper-mutating-webhook-configuration",
+      "signal": "rewrites pods of deployment/nginx-thrift at admission (container nginx-thrift limits.memory 16Mi, template 256Mi)",
+      "components": [
+       "deployment/nginx-thrift"
+      ]
+     },
+     {
+      "kind": "MutatingWebhookConfiguration",
+      "name": "istio-sidecar-injector",
+      "signal": "mutating webhook rev.namespace.sidecar-injector.istio.io rewrites objects matching CREATE pods; MutatingWebhookConfiguration istio-sidecar-injector was created 135s ago, 11s after the workloads it intercepts; 8s before the first active symptom"
+     },
+     {
+      "kind": "MutatingWebhookConfiguration",
+      "name": "kyverno-resource-mutating-webhook-cfg",
+      "signal": "mutating webhook mutate.kyverno.svc rewrites objects matching CREATE/UPDATE pods; MutatingWebhookConfiguration kyverno-resource-mutating-webhook-cfg was created 135s ago, 11s after the workloads it intercepts; 8s before the first active symptom"
+     },
+     {
+      "kind": "MutatingWebhookConfiguration",
+      "name": "linkerd-proxy-injector-webhook-config",
+      "signal": "mutating webhook linkerd-proxy-injector.linkerd.io rewrites objects matching CREATE pods; MutatingWebhookConfiguration linkerd-proxy-injector-webhook-config was created 135s ago, 11s after the workloads it intercepts; 8s before the first active symptom"
+     },
+     {
+      "kind": "ConfigMap",
+      "name": "coredns",
+      "namespace": "kube-system",
+      "signal": "ConfigMap coredns was modified 375s ago, 29766s after it was created (fields: data.Corefile); 248s before the first active symptom"
+     }
+    ]
+   }
+  },
+  "questions": {
+   "best_explanation": {
+    "type": "choice",
+    "criteria": {
+     "o1": "Origin: deployment/social-network/nginx-thrift. The fault is in this component; the mechanism is not established. | Observed impact on: deployment/social-network/nginx-thrift",
+     "o2": "Origin: deployment/social-network/nginx-thrift. The pod template changes in revision 2 of deployment/nginx-thrift, which only cause the fault together, break deployment/nginx-thrift. | Details: container nginx-thrift limits.memory: unset -> 256Mi; container nginx-thrift requests.memory: unset -> 128Mi | Observed impact on: deployment/social-network/nginx-thrift | Checks: revision 2 of deployment/nginx-thrift was made before the symptoms began (supports); deployment/nginx-thrift shows symptoms of its own (supports)",
+     "o3": "Origin: deployment/social-network/nginx-thrift. The pod template change 'container nginx-thrift requests.memory: unset -> 128Mi' in revision 2 of deployment/nginx-thrift breaks deployment/nginx-thrift. | Details: container nginx-thrift requests.memory: unset -> 128Mi | Observed impact on: deployment/social-network/nginx-thrift | Checks: revision 2 of deployment/nginx-thrift was made before the symptoms began (supports); deployment/nginx-thrift shows symptoms of its own (supports)",
+     "o4": "Origin: deployment/social-network/nginx-thrift. The pod template change 'container nginx-thrift limits.memory: unset -> 256Mi' in revision 2 of deployment/nginx-thrift breaks deployment/nginx-thrift. | Details: container nginx-thrift limits.memory: unset -> 256Mi | Observed impact on: deployment/social-network/nginx-thrift | Checks: revision 2 of deployment/nginx-thrift was made before the symptoms began (supports); deployment/nginx-thrift shows symptoms of its own (supports)",
+     "o5": "Origin: mutatingwebhookconfiguration/cert-manager-webhook. mutatingwebhookconfiguration cert-manager-webhook acts on the application: mutating webhook webhook.cert-manager.io rewrites objects matching CREATE/UPDATE certificates,issuers; MutatingWebhookConfiguration cert-manager-webhook was created 135s ago, 11s after the workloads it intercepts; 8s before the first active symptom. | Details: mutating webhook webhook.cert-manager.io rewrites objects matching CREATE/UPDATE certificates,issuers; MutatingWebhookConfiguration cert-manager-webhook was created 135s ago, 11s after the workloads it intercepts; 8s before the first active symptom",
+     "o6": "Origin: mutatingwebhookconfiguration/gatekeeper-mutating-webhook-configuration. mutatingwebhookconfiguration gatekeeper-mutating-webhook-configuration was created recently and breaks deployment/nginx-thrift, which it acts on. | Details: mutating webhook mutation.gatekeeper.sh rewrites objects matching CREATE pods; MutatingWebhookConfiguration gatekeeper-mutating-webhook-configuration was created 135s ago, 11s after the workloads it intercepts; 8s before the first active symptom; rewrites pods of deployment/nginx-thrift at admission (container nginx-thrift limits.memory 16Mi, template 256Mi) | Observed impact on: deployment/social-network/nginx-thrift | Checks: mutatingwebhookconfiguration/gatekeeper-mutating-webhook-configuration was made before the symptoms began (supports); deployment/nginx-thrift shows symptoms of its own (supports)",
+     "o7": "None of these explanations fits the evidence."
+    },
+    "instructions": {
+     "question": "Which explanation best accounts for all the observed symptoms in `evidence`?",
+     "how_to_decide": [
+      "Prefer the explanation whose chain is supported by the observed facts and explains the most symptoms; an explanation contradicted by a fact is unlikely.",
+      "A component that only fails because something it calls fails is a victim, not the origin.",
+      "Choose `o7` when none of the explanations fits the evidence."
+     ]
+    }
+   }
+  },
+  "model": "typesafe/jev-1.13-20260917",
+  "latency_ms": 526,
+  "usage": {
+   "input_tokens": 3032,
+   "output_tokens": 77,
+   "cost": 0.000127344
+  },
+  "answers": {
+   "best_explanation": {
+    "type": "choice",
+    "choice": "o6",
+    "confidence": 0.96,
+    "probabilities": {
+     "o1": 0.0,
+     "o2": 0.01,
+     "o3": 0.0,
+     "o4": 0.01,
+     "o5": 0.0,
+     "o6": 0.97,
+     "o7": 0.01
+    }
+   }
+  }
+ },
+ {
+  "label": "decide:2",
+  "state": {
+   "application": {
+    "name": "Social Network",
+    "description": "A social network with unidirectional follow relationships, implemented with loosely-coupled microservices, communicating with each other via Thrift RPCs.",
+    "namespaces": [
+     "social-network"
+    ]
+   },
+   "evidence": {
+    "deployment/nginx-thrift": {
+     "kind": "Deployment",
+     "name": "nginx-thrift",
+     "namespace": "social-network",
+     "healthy": false,
+     "signals": [
+      "only 0 of 1 desired replicas are ready",
+      "pod nginx-thrift-6c5bcfcb8f-cmr7j: container nginx-thrift waiting in CrashLoopBackOff",
+      "pod nginx-thrift-6c5bcfcb8f-cmr7j: container nginx-thrift was OOMKilled",
+      "pod nginx-thrift-6c5bcfcb8f-cmr7j: container nginx-thrift restarted 4 times",
+      "warning events: BackOff x10",
+      "service nginx-thrift selects this component but has 0 ready endpoints",
+      "pod nginx-thrift-6c5bcfcb8f-cmr7j: container nginx-thrift limits.memory 16Mi, template 256Mi; container nginx-thrift requests.memory 16Mi, template 128Mi \u2014 the running pod differs from the pod template of its revision, so it was changed at admission; mutating webhooks whose rules and selectors match these pods: gatekeeper-mutating-webhook-configuration",
+      "firing alert DeploymentNotReady"
+     ],
+     "template_changes": {
+      "revision": 2,
+      "changed_at": "2026-10-18T17:01:43Z",
+      "changes": [
+       "pod label pod-template-hash: 5d54468559 -> 6c5bcfcb8f",
+       "container nginx-thrift limits.memory: unset -> 256Mi",
+       "container nginx-thrift requests.memory: unset -> 128Mi"
+      ]
+     }
+    }
+   },
+   "cluster": {
+    "symptom_onset": "2026-10-18T17:01:55+00:00",
+    "recent_changes": [
+     {
+      "object": "mutatingwebhookconfiguration/cert-manager-webhook",
+      "at": "2026-10-18T17:01:47Z",
+      "created_after_targets_s": 11,
+      "seconds_ago": 135,
+      "seconds_before_symptoms": 8
+     },
+     {
+      "object": "mutatingwebhookconfiguration/gatekeeper-mutating-webhook-configuration",
+      "at": "2026-10-18T17:01:47Z",
+      "created_after_targets_s": 11,
+      "seconds_ago": 135,
+      "seconds_before_symptoms": 8
+     },
+     {
+      "object": "mutatingwebhookconfiguration/istio-sidecar-injector",
+      "at": "2026-10-18T17:01:47Z",
+      "created_after_targets_s": 11,
+      "seconds_ago": 135,
+      "seconds_before_symptoms": 8
+     },
+     {
+      "object": "mutatingwebhookconfiguration/kyverno-resource-mutating-webhook-cfg",
+      "at": "2026-10-18T17:01:47Z",
+      "created_after_targets_s": 11,
+      "seconds_ago": 135,
+      "seconds_before_symptoms": 8
+     },
+     {
+      "object": "mutatingwebhookconfiguration/linkerd-proxy-injector-webhook-config",
+      "at": "2026-10-18T17:01:47Z",
+      "created_after_targets_s": 11,
+      "seconds_ago": 135,
+      "seconds_before_symptoms": 8
+     },
+     {
+      "object": "configmap/kube-system/coredns",
+      "at": "2026-10-18T16:57:47Z",
+      "modified_after_creation_s": 29766,
+      "fields": [
+       "data.Corefile"
+      ],
+      "seconds_ago": 375,
+      "seconds_before_symptoms": 248
+     }
+    ],
+    "findings": [
+     {
+      "kind": "MutatingWebhookConfiguration",
+      "name": "cert-manager-webhook",
+      "signal": "mutating webhook webhook.cert-manager.io rewrites objects matching CREATE/UPDATE certificates,issuers; MutatingWebhookConfiguration cert-manager-webhook was created 135s ago, 11s after the workloads it intercepts; 8s before the first active symptom"
+     },
+     {
+      "kind": "MutatingWebhookConfiguration",
+      "name": "gatekeeper-mutating-webhook-configuration",
+      "signal": "mutating webhook mutation.gatekeeper.sh rewrites objects matching CREATE pods; MutatingWebhookConfiguration gatekeeper-mutating-webhook-configuration was created 135s ago, 11s after the workloads it intercepts; 8s before the first active symptom",
+      "components": [
+       "deployment/nginx-thrift"
+      ]
+     },
+     {
+      "kind": "MutatingWebhookConfiguration",
+      "name": "gatekeeper-mutating-webhook-configuration",
+      "signal": "rewrites pods of deployment/nginx-thrift at admission (container nginx-thrift limits.memory 16Mi, template 256Mi)",
+      "components": [
+       "deployment/nginx-thrift"
+      ]
+     },
+     {
+      "kind": "MutatingWebhookConfiguration",
+      "name": "istio-sidecar-injector",
+      "signal": "mutating webhook rev.namespace.sidecar-injector.istio.io rewrites objects matching CREATE pods; MutatingWebhookConfiguration istio-sidecar-injector was created 135s ago, 11s after the workloads it intercepts; 8s before the first active symptom"
+     },
+     {
+      "kind": "MutatingWebhookConfiguration",
+      "name": "kyverno-resource-mutating-webhook-cfg",
+      "signal": "mutating webhook mutate.kyverno.svc rewrites objects matching CREATE/UPDATE pods; MutatingWebhookConfiguration kyverno-resource-mutating-webhook-cfg was created 135s ago, 11s after the workloads it intercepts; 8s before the first active symptom"
+     },
+     {
+      "kind": "MutatingWebhookConfiguration",
+      "name": "linkerd-proxy-injector-webhook-config",
+      "signal": "mutating webhook linkerd-proxy-injector.linkerd.io rewrites objects matching CREATE pods; MutatingWebhookConfiguration linkerd-proxy-injector-webhook-config was created 135s ago, 11s after the workloads it intercepts; 8s before the first active symptom"
+     },
+     {
+      "kind": "ConfigMap",
+      "name": "coredns",
+      "namespace": "kube-system",
+      "signal": "ConfigMap coredns was modified 375s ago, 29766s after it was created (fields: data.Corefile); 248s before the first active symptom"
+     }
+    ]
+   }
+  },
+  "questions": {
+   "best_explanation": {
+    "type": "choice",
+    "criteria": {
+     "o1": "Origin: deployment/social-network/nginx-thrift. The pod template change 'container nginx-thrift requests.memory: unset -> 128Mi' in revision 2 of deployment/nginx-thrift breaks deployment/nginx-thrift. | Details: container nginx-thrift requests.memory: unset -> 128Mi | Observed impact on: deployment/social-network/nginx-thrift | Checks: revision 2 of deployment/nginx-thrift was made before the symptoms began (supports); deployment/nginx-thrift shows symptoms of its own (supports)",
+     "o2": "Origin: deployment/social-network/nginx-thrift. The pod template change 'container nginx-thrift limits.memory: unset -> 256Mi' in revision 2 of deployment/nginx-thrift breaks deployment/nginx-thrift. | Details: container nginx-thrift limits.memory: unset -> 256Mi | Observed impact on: deployment/social-network/nginx-thrift | Checks: revision 2 of deployment/nginx-thrift was made before the symptoms began (supports); deployment/nginx-thrift shows symptoms of its own (supports)",
+     "o3": "Origin: deployment/social-network/nginx-thrift. The fault is in this component; the mechanism is not established. | Observed impact on: deployment/social-network/nginx-thrift",
+     "o4": "Origin: mutatingwebhookconfiguration/cert-manager-webhook. mutatingwebhookconfiguration cert-manager-webhook acts on the application: mutating webhook webhook.cert-manager.io rewrites objects matching CREATE/UPDATE certificates,issuers; MutatingWebhookConfiguration cert-manager-webhook was created 135s ago, 11s after the workloads it intercepts; 8s before the first active symptom. | Details: mutating webhook webhook.cert-manager.io rewrites objects matching CREATE/UPDATE certificates,issuers; MutatingWebhookConfiguration cert-manager-webhook was created 135s ago, 11s after the workloads it intercepts; 8s before the first active symptom",
+     "o5": "None of these explanations fits the evidence.",
+     "o6": "Origin: deployment/social-network/nginx-thrift. The pod template changes in revision 2 of deployment/nginx-thrift, which only cause the fault together, break deployment/nginx-thrift. | Details: container nginx-thrift limits.memory: unset -> 256Mi; container nginx-thrift requests.memory: unset -> 128Mi | Observed impact on: deployment/social-network/nginx-thrift | Checks: revision 2 of deployment/nginx-thrift was made before the symptoms began (supports); deployment/nginx-thrift shows symptoms of its own (supports)",
+     "o7": "Origin: mutatingwebhookconfiguration/gatekeeper-mutating-webhook-configuration. mutatingwebhookconfiguration gatekeeper-mutating-webhook-configuration was created recently and breaks deployment/nginx-thrift, which it acts on. | Details: mutating webhook mutation.gatekeeper.sh rewrites objects matching CREATE pods; MutatingWebhookConfiguration gatekeeper-mutating-webhook-configuration was created 135s ago, 11s after the workloads it intercepts; 8s before the first active symptom; rewrites pods of deployment/nginx-thrift at admission (container nginx-thrift limits.memory 16Mi, template 256Mi) | Observed impact on: deployment/social-network/nginx-thrift | Checks: mutatingwebhookconfiguration/gatekeeper-mutating-webhook-configuration was made before the symptoms began (supports); deployment/nginx-thrift shows symptoms of its own (supports)"
+    },
+    "instructions": {
+     "question": "Which explanation best accounts for all the observed symptoms in `evidence`?",
+     "how_to_decide": [
+      "Prefer the explanation whose chain is supported by the observed facts and explains the most symptoms; an explanation contradicted by a fact is unlikely.",
+      "A component that only fails because something it calls fails is a victim, not the origin.",
+      "Choose `o5` when none of the explanations fits the evidence."
+     ]
+    }
+   }
+  },
+  "model": "typesafe/jev-1.13-20260917",
+  "latency_ms": 716,
+  "usage": {
+   "input_tokens": 3032,
+   "output_tokens": 77,
+   "cost": 0.000127344
+  },
+  "answers": {
+   "best_explanation": {
+    "type": "choice",
+    "choice": "o7",
+    "confidence": 0.95,
+    "probabilities": {
+     "o1": 0.01,
+     "o2": 0.01,
+     "o3": 0.0,
+     "o4": 0.0,
+     "o5": 0.01,
+     "o6": 0.01,
+     "o7": 0.96
+    }
+   }
+  }
+ }
+]

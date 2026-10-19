@@ -1,0 +1,232 @@
+[
+ {
+  "label": "decide:1",
+  "state": {
+   "application": {
+    "name": "Social Network",
+    "description": "A social network with unidirectional follow relationships, implemented with loosely-coupled microservices, communicating with each other via Thrift RPCs.",
+    "namespaces": [
+     "social-network"
+    ]
+   },
+   "evidence": {
+    "deployment/user-service": {
+     "kind": "Deployment",
+     "name": "user-service",
+     "namespace": "social-network",
+     "healthy": false,
+     "signals": [
+      "CoreDNS rule in kube-system/coredns overrides name resolution for this component's Service user-service: template ANY ANY user-service.social-network.svc.cluster.local { \u23ce match \"^user-service.social-network.svc.cluster.local\\.$\" \u23ce rcode NXDOMAIN \u23ce fallthrough \u23ce }",
+      "firing alert ServiceEndpointDown",
+      "errors logged by 1 other component(s) (deployment/compose-post-service) name this component (DNS resolution failure, 54 lines, still occurring), e.g. 'Thrift: Sun Oct 18 16:57:20 2026 TSocket::open() getaddrinfo() <Host: user-service Port: 9090>Temporary failure in name resolution'",
+      "ConfigMap coredns was modified 134s ago, 29609s after it was created (fields: data.Corefile); 39s before the first active symptom"
+     ],
+     "referenced_by_errors_from": [
+      "deployment/compose-post-service"
+     ]
+    },
+    "deployment/compose-post-service": {
+     "kind": "Deployment",
+     "name": "compose-post-service",
+     "namespace": "social-network",
+     "healthy": false,
+     "errors_point_to": [
+      "deployment/user-service"
+     ]
+    },
+    "deployment/nginx-thrift": {
+     "kind": "Deployment",
+     "name": "nginx-thrift",
+     "namespace": "social-network",
+     "healthy": false
+    }
+   },
+   "cluster": {
+    "symptom_onset": "2026-10-18T16:55:49+00:00",
+    "recent_changes": [
+     {
+      "object": "configmap/kube-system/coredns",
+      "at": "2026-10-18T16:55:10Z",
+      "modified_after_creation_s": 29609,
+      "fields": [
+       "data.Corefile"
+      ],
+      "seconds_ago": 134,
+      "seconds_before_symptoms": 39
+     }
+    ],
+    "findings": [
+     {
+      "kind": "ConfigMap",
+      "name": "coredns",
+      "namespace": "kube-system",
+      "signal": "rule overrides name resolution for Service social-network/user-service (deployment/user-service): template ANY ANY user-service.social-network.svc.cluster.local { \u23ce match \"^user-service.social-network.svc.cluster.local\\.$\" \u23ce rcode NXDOMAIN \u23ce fallthrough \u23ce }; ConfigMap coredns was modified 134s ago, 29609s after it was created (fields: data.Corefile); 39s before the first active symptom",
+      "components": [
+       "deployment/user-service"
+      ]
+     }
+    ]
+   }
+  },
+  "questions": {
+   "best_explanation": {
+    "type": "choice",
+    "criteria": {
+     "o1": "Origin: deployment/social-network/compose-post-service. The fault is in this component; the mechanism is not established. | Observed impact on: deployment/social-network/compose-post-service",
+     "o2": "Origin: configmap/kube-system/coredns. configmap coredns was changed recently and breaks deployment/user-service, which it acts on. | Details: configmap coredns fields written: data.Corefile; rule overrides name resolution for Service social-network/user-service (deployment/user-service): template ANY ANY user-service.social-network.svc.cluster.local { \u23ce match \"^user-service.social-network.svc.cluster.local\\.$\" \u23ce rcode NXDOMAIN \u23ce fallthrough \u23ce }; ConfigMap coredns was modified 134s ago, 29609s after it was created (fields: data.Corefile); 39s before the first active symptom | Observed impact on: deployment/social-network/compose-post-service, deployment/social-network/user-service | Checks: configmap/kube-system/coredns was made before the symptoms began (supports); deployment/user-service shows symptoms of its own (supports)",
+     "o3": "Origin: interaction/social-network/compose-post-service--user-service. Calls from deployment/compose-post-service to deployment/user-service time out; deployment/compose-post-service retries them, and the retries add load that keeps deployment/user-service saturated, so the failure sustains itself. | Together with: deployment/social-network/compose-post-service, deployment/social-network/user-service | Observed impact on: deployment/social-network/compose-post-service, deployment/social-network/user-service | Checks: errors of deployment/compose-post-service on deployment/user-service are timeouts or overload (supports)",
+     "o4": "Origin: deployment/social-network/user-service. deployment/user-service fails or rejects requests, so deployment/compose-post-service fail when calling it. | Observed impact on: deployment/social-network/compose-post-service, deployment/social-network/user-service | Checks: still-occurring errors of deployment/compose-post-service name deployment/user-service (supports); deployment/user-service shows failures of its own (supports)",
+     "o5": "Origin: deployment/social-network/nginx-thrift. The fault is in this component; the mechanism is not established. | Observed impact on: deployment/social-network/nginx-thrift",
+     "o6": "Origin: deployment/social-network/user-service. The fault is in this component; the mechanism is not established. | Observed impact on: deployment/social-network/user-service, deployment/social-network/compose-post-service",
+     "o7": "None of these explanations fits the evidence."
+    },
+    "instructions": {
+     "question": "Which explanation best accounts for all the observed symptoms in `evidence`?",
+     "how_to_decide": [
+      "Prefer the explanation whose chain is supported by the observed facts and explains the most symptoms; an explanation contradicted by a fact is unlikely.",
+      "A component that only fails because something it calls fails is a victim, not the origin.",
+      "Choose `o7` when none of the explanations fits the evidence."
+     ]
+    }
+   }
+  },
+  "model": "typesafe/jev-1.13-20260917",
+  "latency_ms": 618,
+  "usage": {
+   "input_tokens": 1758,
+   "output_tokens": 77,
+   "cost": 7.3836e-05
+  },
+  "answers": {
+   "best_explanation": {
+    "type": "choice",
+    "choice": "o2",
+    "confidence": 1.0,
+    "probabilities": {
+     "o1": 0.0,
+     "o2": 1.0,
+     "o3": 0.0,
+     "o4": 0.0,
+     "o5": 0.0,
+     "o6": 0.0,
+     "o7": 0.0
+    }
+   }
+  }
+ },
+ {
+  "label": "decide:2",
+  "state": {
+   "application": {
+    "name": "Social Network",
+    "description": "A social network with unidirectional follow relationships, implemented with loosely-coupled microservices, communicating with each other via Thrift RPCs.",
+    "namespaces": [
+     "social-network"
+    ]
+   },
+   "evidence": {
+    "deployment/user-service": {
+     "kind": "Deployment",
+     "name": "user-service",
+     "namespace": "social-network",
+     "healthy": false,
+     "signals": [
+      "CoreDNS rule in kube-system/coredns overrides name resolution for this component's Service user-service: template ANY ANY user-service.social-network.svc.cluster.local { \u23ce match \"^user-service.social-network.svc.cluster.local\\.$\" \u23ce rcode NXDOMAIN \u23ce fallthrough \u23ce }",
+      "firing alert ServiceEndpointDown",
+      "errors logged by 1 other component(s) (deployment/compose-post-service) name this component (DNS resolution failure, 54 lines, still occurring), e.g. 'Thrift: Sun Oct 18 16:57:20 2026 TSocket::open() getaddrinfo() <Host: user-service Port: 9090>Temporary failure in name resolution'",
+      "ConfigMap coredns was modified 134s ago, 29609s after it was created (fields: data.Corefile); 39s before the first active symptom"
+     ],
+     "referenced_by_errors_from": [
+      "deployment/compose-post-service"
+     ]
+    },
+    "deployment/compose-post-service": {
+     "kind": "Deployment",
+     "name": "compose-post-service",
+     "namespace": "social-network",
+     "healthy": false,
+     "errors_point_to": [
+      "deployment/user-service"
+     ]
+    },
+    "deployment/nginx-thrift": {
+     "kind": "Deployment",
+     "name": "nginx-thrift",
+     "namespace": "social-network",
+     "healthy": false
+    }
+   },
+   "cluster": {
+    "symptom_onset": "2026-10-18T16:55:49+00:00",
+    "recent_changes": [
+     {
+      "object": "configmap/kube-system/coredns",
+      "at": "2026-10-18T16:55:10Z",
+      "modified_after_creation_s": 29609,
+      "fields": [
+       "data.Corefile"
+      ],
+      "seconds_ago": 134,
+      "seconds_before_symptoms": 39
+     }
+    ],
+    "findings": [
+     {
+      "kind": "ConfigMap",
+      "name": "coredns",
+      "namespace": "kube-system",
+      "signal": "rule overrides name resolution for Service social-network/user-service (deployment/user-service): template ANY ANY user-service.social-network.svc.cluster.local { \u23ce match \"^user-service.social-network.svc.cluster.local\\.$\" \u23ce rcode NXDOMAIN \u23ce fallthrough \u23ce }; ConfigMap coredns was modified 134s ago, 29609s after it was created (fields: data.Corefile); 39s before the first active symptom",
+      "components": [
+       "deployment/user-service"
+      ]
+     }
+    ]
+   }
+  },
+  "questions": {
+   "best_explanation": {
+    "type": "choice",
+    "criteria": {
+     "o1": "Origin: interaction/social-network/compose-post-service--user-service. Calls from deployment/compose-post-service to deployment/user-service time out; deployment/compose-post-service retries them, and the retries add load that keeps deployment/user-service saturated, so the failure sustains itself. | Together with: deployment/social-network/compose-post-service, deployment/social-network/user-service | Observed impact on: deployment/social-network/compose-post-service, deployment/social-network/user-service | Checks: errors of deployment/compose-post-service on deployment/user-service are timeouts or overload (supports)",
+     "o2": "Origin: deployment/social-network/user-service. deployment/user-service fails or rejects requests, so deployment/compose-post-service fail when calling it. | Observed impact on: deployment/social-network/compose-post-service, deployment/social-network/user-service | Checks: still-occurring errors of deployment/compose-post-service name deployment/user-service (supports); deployment/user-service shows failures of its own (supports)",
+     "o3": "Origin: deployment/social-network/compose-post-service. The fault is in this component; the mechanism is not established. | Observed impact on: deployment/social-network/compose-post-service",
+     "o4": "Origin: deployment/social-network/nginx-thrift. The fault is in this component; the mechanism is not established. | Observed impact on: deployment/social-network/nginx-thrift",
+     "o5": "None of these explanations fits the evidence.",
+     "o6": "Origin: configmap/kube-system/coredns. configmap coredns was changed recently and breaks deployment/user-service, which it acts on. | Details: configmap coredns fields written: data.Corefile; rule overrides name resolution for Service social-network/user-service (deployment/user-service): template ANY ANY user-service.social-network.svc.cluster.local { \u23ce match \"^user-service.social-network.svc.cluster.local\\.$\" \u23ce rcode NXDOMAIN \u23ce fallthrough \u23ce }; ConfigMap coredns was modified 134s ago, 29609s after it was created (fields: data.Corefile); 39s before the first active symptom | Observed impact on: deployment/social-network/compose-post-service, deployment/social-network/user-service | Checks: configmap/kube-system/coredns was made before the symptoms began (supports); deployment/user-service shows symptoms of its own (supports)",
+     "o7": "Origin: deployment/social-network/user-service. The fault is in this component; the mechanism is not established. | Observed impact on: deployment/social-network/user-service, deployment/social-network/compose-post-service"
+    },
+    "instructions": {
+     "question": "Which explanation best accounts for all the observed symptoms in `evidence`?",
+     "how_to_decide": [
+      "Prefer the explanation whose chain is supported by the observed facts and explains the most symptoms; an explanation contradicted by a fact is unlikely.",
+      "A component that only fails because something it calls fails is a victim, not the origin.",
+      "Choose `o5` when none of the explanations fits the evidence."
+     ]
+    }
+   }
+  },
+  "model": "typesafe/jev-1.13-20260917",
+  "latency_ms": 607,
+  "usage": {
+   "input_tokens": 1758,
+   "output_tokens": 77,
+   "cost": 7.3836e-05
+  },
+  "answers": {
+   "best_explanation": {
+    "type": "choice",
+    "choice": "o6",
+    "confidence": 1.0,
+    "probabilities": {
+     "o1": 0.0,
+     "o2": 0.0,
+     "o3": 0.0,
+     "o4": 0.0,
+     "o5": 0.0,
+     "o6": 1.0,
+     "o7": 0.0
+    }
+   }
+  }
+ }
+]

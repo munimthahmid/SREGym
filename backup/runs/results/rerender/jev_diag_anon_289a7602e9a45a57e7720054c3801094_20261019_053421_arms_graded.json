@@ -1,0 +1,274 @@
+{
+ "problem_id": "jev_diag_anon_289a7602e9a45a57e7720054c3801094_20261019_053421",
+ "submit_arm": 0,
+ "order": [
+  1,
+  0,
+  3,
+  2
+ ],
+ "arms": [
+  {
+   "arm": 0,
+   "kind": "v2",
+   "model": "openrouter/typesafe/jev-1.13",
+   "position": 1,
+   "seconds": 5.9,
+   "requests": 4,
+   "input_tokens": 34082,
+   "cost_usd": 0.001431,
+   "error": null,
+   "investigation": {
+    "rounds": [
+     {
+      "candidates": [
+       "change:networkpolicy/hotel-reservation/deny-all-recommendation",
+       "partial:deployment/recommendation",
+       "change:deployment/mongodb-geo:volume failure-script added: {\"configMap\": {\"defaultMode\": 420, \"name\": \"failure-admin-geo\"}}",
+       "change:deployment/mongodb-geo:container hotel-reserv-geo-mongo mounts volume failure-script at /scripts",
+       "change:deployment/mongodb-geo:together",
+       "change:deployment/mongodb-rate:volume failure-script added: {\"configMap\": {\"defaultMode\": 420, \"name\": \"failure-admin-rate\"}}"
+      ],
+      "probabilities": {
+       "change:networkpolicy/hotel-reservation/deny-all-recommendation": 0.985,
+       "partial:deployment/recommendation": 0.0,
+       "change:deployment/mongodb-geo:volume failure-script added: {\"configMap\": {\"defaultMode\": 420, \"name\": \"failure-admin-geo\"}}": 0.0,
+       "change:deployment/mongodb-geo:container hotel-reserv-geo-mongo mounts volume failure-script at /scripts": 0.0,
+       "change:deployment/mongodb-geo:together": 0.0,
+       "change:deployment/mongodb-rate:volume failure-script added: {\"configMap\": {\"defaultMode\": 420, \"name\": \"failure-admin-rate\"}}": 0.0,
+       "none_of_these": 0.015
+      },
+      "picks": [
+       "change:networkpolicy/hotel-reservation/deny-all-recommendation",
+       "change:networkpolicy/hotel-reservation/deny-all-recommendation"
+      ],
+      "route": "accept"
+     }
+    ],
+    "explanations": 8,
+    "winner": "change:networkpolicy/hotel-reservation/deny-all-recommendation",
+    "pattern": "acts-on",
+    "key_fact": "selected by NetworkPolicy deny-all-recommendation (denies all ingress; denies all egress)",
+    "key_fact_probability": 0.98,
+    "fault_type": "network_policy",
+    "fault_object": null,
+    "uncertain": false
+   },
+   "text": "Root cause: networkpolicy `deny-all-recommendation` in namespace `hotel-reservation`.\nMechanism: selected by NetworkPolicy deny-all-recommendation (denies all ingress; denies all egress).\nHow it fails: networkpolicy deny-all-recommendation was created recently and breaks deployment/recommendation, which it acts on.\nConcrete details: selected by NetworkPolicy deny-all-recommendation (denies all ingress; denies all egress); denies all ingress; denies all egress; NetworkPolicy deny-all-recommendation was created 127s ago, 13s after the workloads it selects.\nObserved impact: deployment `recommendation` in namespace `hotel-reservation`.\nFault type: network policy (a NetworkPolicy blocks traffic to or from this component).\nEvidence:\n- selected by NetworkPolicy deny-all-recommendation (denies all ingress; denies all egress)\n- denies all ingress; denies all egress; NetworkPolicy deny-all-recommendation was created 127s ago, 13s after the workloads it selects\n- deployment/recommendation: selected by NetworkPolicy deny-all-recommendation (denies all ingress; denies all egress)",
+   "text_before_rerender": "Root cause: networkpolicy `deny-all-recommendation` in namespace `hotel-reservation`.\nMechanism: networkpolicy deny-all-recommendation was created recently and breaks deployment/recommendation, which it acts on.\nConcrete details: selected by NetworkPolicy deny-all-recommendation (denies all ingress; denies all egress); denies all ingress; denies all egress; NetworkPolicy deny-all-recommendation was created 127s ago, 13s after the workloads it selects.\nObserved impact: deployment `recommendation` in namespace `hotel-reservation`.\nFault type: network policy (a NetworkPolicy blocks traffic to or from this component).\nEvidence:\n- selected by NetworkPolicy deny-all-recommendation (denies all ingress; denies all egress)\n- denies all ingress; denies all egress; NetworkPolicy deny-all-recommendation was created 127s ago, 13s after the workloads it selects\n- deployment/recommendation: selected by NetworkPolicy deny-all-recommendation (denies all ingress; denies all egress)",
+   "grade": {
+    "judgment": "True",
+    "reasoning": "Verdict: True (composite=1.00). D1 Fault Localization: 1.00 | D2 Fault Characterization: 1.00 | D3 Scope Precision: 1.00. Weakest dimension: Fault Localization (1.00). Checklist details: [{\"id\": \"D1-Q1\", \"answer\": \"Yes\", \"evidence\": \"Names deployment/recommendation in namespace hotel-reservation as the workload affected by deny-all-recommendation.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q2\", \"answer\": \"Yes\", \"evidence\": \"Attributes the failure to deny-all-recommendation acting on recommendation, without identifying downstream victims as the origin.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q3\", \"answer\": \"Yes\", \"evidence\": \"Identifies recommendation as the affected deployment and does not blame a different workload.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q1\", \"answer\": \"Yes\", \"evidence\": \"States that NetworkPolicy deny-all-recommendation denies all ingress and all egress, matching the injected network isolation.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q2\", \"answer\": \"Yes\", \"evidence\": \"Provides the exact policy name deny-all-recommendation, namespace hotel-reservation, and concrete restrictions denying all ingress and egress.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q3\", \"answer\": \"Yes\", \"evidence\": \"Explicitly classifies the fault as a network policy blocking traffic to or from the component.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q1\", \"answer\": \"Yes\", \"evidence\": \"Blames only deny-all-recommendation acting on recommendation; no uninvolved components are implicated.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q2\", \"answer\": \"Yes\", \"evidence\": \"Includes recommendation in hotel-reservation, the only specifically identified affected workload in the ground truth.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q3\", \"answer\": \"Yes\", \"evidence\": \"States that the policy breaks deployment/recommendation by denying all ingress and egress, consistent with complete network isolation.\", \"confidence\": \"High\"}]",
+    "success": true,
+    "accuracy": 100.0,
+    "composite_score": 1.0,
+    "dimensions": {
+     "D1": {
+      "name": "Fault Localization",
+      "score": 1.0
+     },
+     "D2": {
+      "name": "Fault Characterization",
+      "score": 1.0
+     },
+     "D3": {
+      "name": "Scope Precision",
+      "score": 1.0
+     }
+    },
+    "checklist": [
+     {
+      "id": "D1-Q1",
+      "answer": "Yes",
+      "evidence": "Names deployment/recommendation in namespace hotel-reservation as the workload affected by deny-all-recommendation.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q2",
+      "answer": "Yes",
+      "evidence": "Attributes the failure to deny-all-recommendation acting on recommendation, without identifying downstream victims as the origin.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q3",
+      "answer": "Yes",
+      "evidence": "Identifies recommendation as the affected deployment and does not blame a different workload.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q1",
+      "answer": "Yes",
+      "evidence": "States that NetworkPolicy deny-all-recommendation denies all ingress and all egress, matching the injected network isolation.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q2",
+      "answer": "Yes",
+      "evidence": "Provides the exact policy name deny-all-recommendation, namespace hotel-reservation, and concrete restrictions denying all ingress and egress.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q3",
+      "answer": "Yes",
+      "evidence": "Explicitly classifies the fault as a network policy blocking traffic to or from the component.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q1",
+      "answer": "Yes",
+      "evidence": "Blames only deny-all-recommendation acting on recommendation; no uninvolved components are implicated.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q2",
+      "answer": "Yes",
+      "evidence": "Includes recommendation in hotel-reservation, the only specifically identified affected workload in the ground truth.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q3",
+      "answer": "Yes",
+      "evidence": "States that the policy breaks deployment/recommendation by denying all ingress and egress, consistent with complete network isolation.",
+      "confidence": "High"
+     }
+    ]
+   }
+  },
+  {
+   "arm": 1,
+   "kind": "v2",
+   "model": "openrouter/openai/gpt-6-luna-decisions",
+   "position": 0,
+   "seconds": 6.9,
+   "requests": 4,
+   "input_tokens": 23594,
+   "cost_usd": 0.002359,
+   "error": null,
+   "investigation": {
+    "rounds": [
+     {
+      "candidates": [
+       "change:networkpolicy/hotel-reservation/deny-all-recommendation",
+       "partial:deployment/recommendation",
+       "change:deployment/mongodb-geo:volume failure-script added: {\"configMap\": {\"defaultMode\": 420, \"name\": \"failure-admin-geo\"}}",
+       "change:deployment/mongodb-geo:container hotel-reserv-geo-mongo mounts volume failure-script at /scripts",
+       "change:deployment/mongodb-geo:together",
+       "change:deployment/mongodb-rate:volume failure-script added: {\"configMap\": {\"defaultMode\": 420, \"name\": \"failure-admin-rate\"}}"
+      ],
+      "probabilities": {
+       "change:networkpolicy/hotel-reservation/deny-all-recommendation": 0.925,
+       "partial:deployment/recommendation": 0.0,
+       "change:deployment/mongodb-geo:volume failure-script added: {\"configMap\": {\"defaultMode\": 420, \"name\": \"failure-admin-geo\"}}": 0.0,
+       "change:deployment/mongodb-geo:container hotel-reserv-geo-mongo mounts volume failure-script at /scripts": 0.0,
+       "change:deployment/mongodb-geo:together": 0.07,
+       "change:deployment/mongodb-rate:volume failure-script added: {\"configMap\": {\"defaultMode\": 420, \"name\": \"failure-admin-rate\"}}": 0.005,
+       "none_of_these": 0.0
+      },
+      "picks": [
+       "change:networkpolicy/hotel-reservation/deny-all-recommendation",
+       "change:networkpolicy/hotel-reservation/deny-all-recommendation"
+      ],
+      "route": "accept"
+     }
+    ],
+    "explanations": 8,
+    "winner": "change:networkpolicy/hotel-reservation/deny-all-recommendation",
+    "pattern": "acts-on",
+    "key_fact": "selected by NetworkPolicy deny-all-recommendation (denies all ingress; denies all egress)",
+    "key_fact_probability": 0.995,
+    "fault_type": "network_policy",
+    "fault_object": null,
+    "uncertain": false
+   },
+   "text": "Root cause: networkpolicy `deny-all-recommendation` in namespace `hotel-reservation`.\nMechanism: selected by NetworkPolicy deny-all-recommendation (denies all ingress; denies all egress).\nHow it fails: networkpolicy deny-all-recommendation was created recently and breaks deployment/recommendation, which it acts on.\nConcrete details: selected by NetworkPolicy deny-all-recommendation (denies all ingress; denies all egress); denies all ingress; denies all egress; NetworkPolicy deny-all-recommendation was created 127s ago, 13s after the workloads it selects.\nObserved impact: deployment `recommendation` in namespace `hotel-reservation`.\nFault type: network policy (a NetworkPolicy blocks traffic to or from this component).\nEvidence:\n- selected by NetworkPolicy deny-all-recommendation (denies all ingress; denies all egress)\n- denies all ingress; denies all egress; NetworkPolicy deny-all-recommendation was created 127s ago, 13s after the workloads it selects\n- deployment/recommendation: selected by NetworkPolicy deny-all-recommendation (denies all ingress; denies all egress)",
+   "text_before_rerender": "Root cause: networkpolicy `deny-all-recommendation` in namespace `hotel-reservation`.\nMechanism: networkpolicy deny-all-recommendation was created recently and breaks deployment/recommendation, which it acts on.\nConcrete details: selected by NetworkPolicy deny-all-recommendation (denies all ingress; denies all egress); denies all ingress; denies all egress; NetworkPolicy deny-all-recommendation was created 127s ago, 13s after the workloads it selects.\nObserved impact: deployment `recommendation` in namespace `hotel-reservation`.\nFault type: network policy (a NetworkPolicy blocks traffic to or from this component).\nEvidence:\n- selected by NetworkPolicy deny-all-recommendation (denies all ingress; denies all egress)\n- denies all ingress; denies all egress; NetworkPolicy deny-all-recommendation was created 127s ago, 13s after the workloads it selects\n- deployment/recommendation: selected by NetworkPolicy deny-all-recommendation (denies all ingress; denies all egress)",
+   "grade": {
+    "judgment": "True",
+    "reasoning": "Verdict: True (composite=1.00). D1 Fault Localization: 1.00 | D2 Fault Characterization: 1.00 | D3 Scope Precision: 1.00. Weakest dimension: Fault Localization (1.00). Checklist details: [{\"id\": \"D1-Q1\", \"answer\": \"Yes\", \"evidence\": \"Names deployment/recommendation in namespace hotel-reservation, matching the ground-truth target.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q2\", \"answer\": \"Yes\", \"evidence\": \"Locates the fault in deny-all-recommendation acting on recommendation, without attributing the origin to dependent services.\", \"confidence\": \"High\"}, {\"id\": \"D1-Q3\", \"answer\": \"Yes\", \"evidence\": \"Identifies recommendation as the affected workload and blames no different component.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q1\", \"answer\": \"Yes\", \"evidence\": \"States that NetworkPolicy deny-all-recommendation denies all ingress and all egress, matching the isolation mechanism.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q2\", \"answer\": \"Yes\", \"evidence\": \"Specifies policy deny-all-recommendation, namespace hotel-reservation, and denial of all ingress and egress.\", \"confidence\": \"High\"}, {\"id\": \"D2-Q3\", \"answer\": \"Yes\", \"evidence\": \"Explicitly identifies the fault type as a NetworkPolicy blocking traffic to or from the component.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q1\", \"answer\": \"Yes\", \"evidence\": \"Attributes the fault solely to deny-all-recommendation acting on deployment/recommendation.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q2\", \"answer\": \"Yes\", \"evidence\": \"Includes recommendation in hotel-reservation, the only specifically identified affected component in the ground truth.\", \"confidence\": \"High\"}, {\"id\": \"D3-Q3\", \"answer\": \"Yes\", \"evidence\": \"Says the policy breaks deployment/recommendation by denying all ingress and egress, consistent with complete network isolation.\", \"confidence\": \"High\"}]",
+    "success": true,
+    "accuracy": 100.0,
+    "composite_score": 1.0,
+    "dimensions": {
+     "D1": {
+      "name": "Fault Localization",
+      "score": 1.0
+     },
+     "D2": {
+      "name": "Fault Characterization",
+      "score": 1.0
+     },
+     "D3": {
+      "name": "Scope Precision",
+      "score": 1.0
+     }
+    },
+    "checklist": [
+     {
+      "id": "D1-Q1",
+      "answer": "Yes",
+      "evidence": "Names deployment/recommendation in namespace hotel-reservation, matching the ground-truth target.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q2",
+      "answer": "Yes",
+      "evidence": "Locates the fault in deny-all-recommendation acting on recommendation, without attributing the origin to dependent services.",
+      "confidence": "High"
+     },
+     {
+      "id": "D1-Q3",
+      "answer": "Yes",
+      "evidence": "Identifies recommendation as the affected workload and blames no different component.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q1",
+      "answer": "Yes",
+      "evidence": "States that NetworkPolicy deny-all-recommendation denies all ingress and all egress, matching the isolation mechanism.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q2",
+      "answer": "Yes",
+      "evidence": "Specifies policy deny-all-recommendation, namespace hotel-reservation, and denial of all ingress and egress.",
+      "confidence": "High"
+     },
+     {
+      "id": "D2-Q3",
+      "answer": "Yes",
+      "evidence": "Explicitly identifies the fault type as a NetworkPolicy blocking traffic to or from the component.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q1",
+      "answer": "Yes",
+      "evidence": "Attributes the fault solely to deny-all-recommendation acting on deployment/recommendation.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q2",
+      "answer": "Yes",
+      "evidence": "Includes recommendation in hotel-reservation, the only specifically identified affected component in the ground truth.",
+      "confidence": "High"
+     },
+     {
+      "id": "D3-Q3",
+      "answer": "Yes",
+      "evidence": "Says the policy breaks deployment/recommendation by denying all ingress and egress, consistent with complete network isolation.",
+      "confidence": "High"
+     }
+    ]
+   }
+  }
+ ],
+ "submission": {
+  "status": "200",
+  "message": "Submission received",
+  "stage": "diagnosis"
+ },
+ "judge": {
+  "model": "gpt-6-astra",
+  "backend": "codex",
+  "effort": "high"
+ }
+}
