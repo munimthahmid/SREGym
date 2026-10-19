@@ -142,3 +142,37 @@ def test_a_change_made_before_the_application_existed_is_dropped():
     finally:
         set_now(None)
     assert ranked == [] and cluster["recent_changes"] == [] and comps["deployment/frontend"]["signals"] == []
+
+
+def test_probe_description_carries_timing_with_defaults_for_unset_fields():
+    from clients.jev_diag.v2.checks import describe_probe
+
+    text = describe_probe({"httpGet": {"path": "/health", "port": 8080}, "periodSeconds": 1, "failureThreshold": 1})
+    assert text.startswith("httpGet HTTP :8080/health")
+    assert "periodSeconds=1" in text and "failureThreshold=1" in text
+    assert "initialDelaySeconds=0 (default)" in text and "timeoutSeconds=1 (default)" in text
+
+
+def test_evidence_cap_keeps_some_logs_events_and_dependencies():
+    from clients.jev_diag.v2.tree import MAX_EVIDENCE, cap_evidence
+
+    head = [f"setting {i}" for i in range(40)]
+    logs = [f"log {i}" for i in range(10)]
+    events = [f"event {i}" for i in range(5)]
+    deps = ["dependency x looks healthy on its own"]
+    out = cap_evidence(head, logs, events, deps, ["env A=1"])
+    assert len(out) == MAX_EVIDENCE and out[0] == "setting 0"
+    assert sum(i.startswith("log ") for i in out) == 4 and sum(i.startswith("event ") for i in out) == 3
+    assert deps[0] in out
+    short = cap_evidence(["s"], ["l"], [], [], ["env A=1"])
+    assert short == ["s", "l", "env A=1"]
+
+
+def test_a_line_naming_several_components_points_at_the_one_it_called():
+    from clients.jev_diag.v2.derive import _called
+
+    aliases = {"shipping": "s", "quote": "q", "email": "e", "cart": "c", "valkey-cart": "v"}
+    line = "shipping quote failure: failed POST to email service"
+    assert _called(line, aliases, {"s", "q", "e"}) == {"e"}
+    assert _called("failed to connect to valkey-cart:6379 for cart", aliases, {"c", "v"}) == {"v"}
+    assert _called("cart and email unavailable", aliases, {"c", "e"}) == set()  # no called position: keep all
