@@ -101,7 +101,8 @@ def main() -> None:
     parser.add_argument("--out", help="directory for *_arms.json and request files")
     parser.add_argument("--no-model", action="store_true", help="collection only")
     args = parser.parse_args()
-    rows = {r["label"]: r for r in csv.DictReader(open(args.index), delimiter="\t")}
+    with open(args.index) as handle:
+        rows = {r["label"]: r for r in csv.DictReader(handle, delimiter="\t")}
     out = Path(args.out) if args.out else None
     if out:
         out.mkdir(parents=True, exist_ok=True)
