@@ -21,8 +21,15 @@ def openrouter_client(model: str):
 SMALL_CONTEXT_BUDGETS = {"cloudflare/clef": (9000, 9000), "cloudflare/clef-flash": (9000, 9000)}
 
 
+# Models that accept at most this many options per choice question (their API rejects more).
+OPTION_LIMITS = {"upstage/solar-decide": 26}
+
+
 def fit_to_model(diagnoser, model: str) -> None:
-    budgets = SMALL_CONTEXT_BUDGETS.get(model.removeprefix("openrouter/"))
+    model = model.removeprefix("openrouter/")
+    if diagnoser is not None and model in OPTION_LIMITS:
+        diagnoser.max_choice_options = OPTION_LIMITS[model]  # used by v2; v1 has no such setting
+    budgets = SMALL_CONTEXT_BUDGETS.get(model)
     if budgets and diagnoser is not None:
         diagnoser.state_token_budget = budgets[0]
         if hasattr(diagnoser, "detail_token_budget"):
