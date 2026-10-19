@@ -77,6 +77,7 @@ MIN_PAIR_PROBABILITY = 0.5
 MIN_BOTH_PROBABILITY = 0.5  # two independent causes are reported only on this much support
 MIN_PATH_PROBABILITY = 0.5  # the call path is reported as the cause only on this much support
 DECISIVE_TRIAGE_PROBABILITY = 0.9  # a first triage answer this sure is not asked again
+CLOSE_ORIGIN_GAP = 0.2  # unconfirmed origins this close are compared side by side, not by probability
 MAX_NEXT_OPTIONS = 12
 MAX_EVIDENCE = 32
 DETAIL_TOKEN_BUDGET = 22000
@@ -862,9 +863,11 @@ class IterativeDiagnoser(JevDiagnoser):
             "config_objects": comp.get("config_objects"),
         }
 
-    def tiebreak(self, snapshot: ClusterSnapshot, a: str, b: str, investigated: dict, reason: str) -> list[str]:
-        """Two confirmed origins: the one where the fault started, or both when they are independent faults. Without
-        a clear answer, the higher origin probability."""
+    def tiebreak(
+        self, snapshot: ClusterSnapshot, a: str, b: str, investigated: dict, reason: str, *, allow_both: bool = True
+    ) -> list[str]:
+        """Two origins: the one where the fault started, or (when allowed) both when they are independent faults.
+        Without a clear answer, the higher origin probability."""
         links = link_facts(snapshot, a, b, investigated)
         own_change = all("change" in (snapshot.components[c].get("evidence_kinds") or []) for c in (a, b))
         state = {
@@ -873,7 +876,8 @@ class IterativeDiagnoser(JevDiagnoser):
             "links": links or ["none found"],
             "sides": {a: self.side(snapshot, a, investigated), b: self.side(snapshot, b, investigated)},
         }
-        response = self._ask(f"tiebreak:{a}|{b}", state, build_tiebreak_questions(a, b, bool(links) or not own_change))
+        single = bool(links) or not own_change or not allow_both
+        response = self._ask(f"tiebreak:{a}|{b}", state, build_tiebreak_questions(a, b, single))
         answer = ChoiceResult.from_answer(response.choices[TIEBREAK_QUESTION])
         p = answer.probabilities.get(answer.choice, 0.0)
         higher = max((a, b), key=lambda c: investigated[c]["origin_p"])
@@ -1042,11 +1046,12 @@ class IterativeDiagnoser(JevDiagnoser):
                 # This was the other side of an earlier confirmed origin: settle between the two, or examine the
                 # next candidate when this one is not an origin.
                 original, reason, rest = waiting_on.pop(cid)
-                if result["origin_p"] >= MIN_ORIGIN_PROBABILITY:
+                rest = [(c, r) for c, r in rest if c in snapshot.components and c not in investigated]
+                if result["origin_p"] >= MIN_ORIGIN_PROBABILITY or (not rest and result["verdict"] != "unrelated"):
+                    # both sides are known now: which one holds the wrong or stale value is asked side by side
                     concluded = self.pair_node(snapshot, original, cid, investigated, reason)
                     pair_decided = True
                     break
-                rest = [(c, r) for c, r in rest if c in snapshot.components and c not in investigated]
                 if rest:
                     nxt_side, nxt_reason = rest[0]
                     waiting_on[nxt_side] = (original, nxt_reason, rest[1:])
@@ -1145,6 +1150,19 @@ class IterativeDiagnoser(JevDiagnoser):
             second = picks[1] if len(picks) > 1 else None
         if concluded is None:
             concluded, fallback_reason = self.fallback(snapshot, component, investigated)
+            close = sorted(
+                (
+                    r
+                    for r in investigated.values()
+                    if r["verdict"] == "origin" and r["origin_p"] >= FALLBACK_ORIGIN_PROBABILITY
+                ),
+                key=lambda r: -r["origin_p"],
+            )
+            if len(close) > 1 and close[0]["origin_p"] - close[1]["origin_p"] <= CLOSE_ORIGIN_GAP:
+                a, b = close[0]["component"], close[1]["component"]
+                reason = "neither was confirmed as the origin and their origin probabilities are close"
+                concluded = self.tiebreak(snapshot, a, b, investigated, reason, allow_both=False)[0]
+                fallback_reason = f"{fallback_reason}; the two closest were compared side by side"
         if not paired:
             second = None
 
