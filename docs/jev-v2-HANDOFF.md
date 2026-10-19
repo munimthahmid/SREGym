@@ -47,9 +47,10 @@
    slow link, pull those on every node first (`docker exec <node> crictl pull <image>`); otherwise attempt 1 fails
    and SREGym retries (attempt 2 then works because the image is cached).
 
-## Frozen v2: commit 272123ae (2026-10-19 06:58; was 1d22d925 + the outside-object fix)
-Held-out runs use 272123ae. Lite faults whose v2 candidates are identical under the fix keep their 1d22d925
-final-pass result; the two that change (secret rotation, unschedulable) are rerun on 272123ae (`chain8.sh`). `chain5.sh` = final pass of all 17 Lite faults on it, then one grading
+## Frozen v2: commit 676024e9 (2026-10-19 07:10; 1d22d925 + outside-object fix + v1's key-evidence step)
+Held-out runs use 676024e9 (`chain9.sh`). Lite faults whose v2 candidates and concrete winner are unchanged keep
+their 1d22d925 final-pass result; the three that can change (retry collapse, secret rotation, unschedulable) are
+rerun on 676024e9. `chain5.sh` = final pass of all 17 Lite faults on it, then one grading
 pass (results in `results/<problem>/final/`). Earlier Lite runs (mixed versions, during development) stay in the
 results file as history.
 
