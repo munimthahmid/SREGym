@@ -102,3 +102,19 @@ improvements. Redrawn with seed "jev-v2-heldout-C" from the remaining pool (hote
 
 Their details are not looked at before the run; a code change made after seeing their results takes them out of the
 held-out set.
+
+## Targeted set T (fixed 2026-10-19 11:30): chosen for v2's strengths, reported separately
+Not held-out evidence: picked on purpose, from the public one-line descriptions in Problem List.md only (no fault
+code, logs or runs looked at), because their mechanism matches what v2 was designed for (feedback loops, causes
+spread over components, outside objects, victim-vs-origin traps). Reported as its own table, never mixed into the
+held-out numbers, and every result is reported (including v2 losses). None is in Lite, sample A or sample C.
+
+| Fault | App | Prediction before running |
+|---|---|---|
+| capacity_decrease_rpc_retry_storm | Blueprint hotel | retry storm: v1 blames the saturated callee, v2 names the loop |
+| gc_capacity_degradation | Blueprint hotel | GC/load feedback loop: v1 blames one symptom, v2 the loop |
+| ingress_misroute | hotel | Ingress (outside object) routes to wrong backends: v1 blames a backend |
+| update_incompatible_correlated | hotel | one change breaks all mongodb pods: scope across components |
+| missing_env_variable_astronomy_shop | astronomy | frontend misses CART_ADDR: victim (cart) vs origin (frontend) |
+
+Runs on the final v2 code (jev-v2-dev at the time of running), four arms each, after the Lite and held-out reruns.
