@@ -285,10 +285,13 @@ def _run_wait(monkeypatch, samples):
 
 
 def test_adaptive_wait_reads_early_once_the_same_pods_stay_abnormal(monkeypatch):
-    crash = {"pods": {"shop/a-1": {"phase": "Running", "restarts": {"a": 3}}}}
-    ok = {"pods": {"shop/a-1": {"phase": "Running", "restarts": {"a": 0}}}}
-    assert _run_wait(monkeypatch, [crash, crash]) == 60  # 45 s minimum, one poll
-    assert _run_wait(monkeypatch, [ok] * 10) == 120  # nothing abnormal in pods: v1's full wait
+    def pod(restarts: int) -> dict:
+        return {"pods": {"shop/a-1": {"phase": "Running", "restarts": {"a": restarts}}}}
+
+    # restarting again and again after the baseline: read once stable and a trend window has passed (45 + 45 s)
+    assert _run_wait(monkeypatch, [pod(1), pod(2), pod(3), pod(4), pod(5)]) == 90
+    # restarts left over from the application's start-up are not a fault surfacing: v1's full wait
+    assert _run_wait(monkeypatch, [pod(3)] * 10) == 120
 
 
 def test_outside_objects_link_to_the_components_they_act_on(monkeypatch):
@@ -355,3 +358,291 @@ def test_a_revision_made_while_deploying_is_not_a_change():
     assert changes.object_change("d/x", "Deployment", "x", NS, meta, revised_at="2026-10-19T05:34:10Z") is None
     later = changes.object_change("d/x", "Deployment", "x", NS, meta, revised_at="2026-10-19T05:34:40Z")
     assert later is None or later.get("revision_changed")  # None only when outside the change horizon
+
+
+def test_one_change_on_several_workloads_is_reported_as_one_cause():
+    from clients.jev_diag.v2.report import build_report
+
+    def db(name: str) -> dict:
+        return {
+            **_comp(name, "t"),
+            "evidence_kinds": ["change", "symptoms"],
+            "template_changes": {
+                "changed_at": "2026-10-19T07:58:38Z",
+                "changes": [f"container hotel-reserv-{name}-c image: mongo:4.4.6 -> mongo:8.0.14-rc0"],
+            },
+        }
+
+    comps = {f"deployment/{n}": db(n) for n in ("mongodb-geo", "mongodb-rate")}
+    comps["deployment/rate"] = {**_comp("rate", "t"), "signals": ["container waiting in CrashLoopBackOff"]}
+    text = build_report(_snap(comps), _diag("deployment/mongodb-geo", "image: mongo:4.4.6 -> mongo:8.0.14-rc0"))
+    assert text.startswith(
+        "Root cause: Deployments `mongodb-geo`, `mongodb-rate` in namespace `shop` (the same change on 2)"
+    )
+
+
+class _Answers:
+    """A fake decision model: triage picks from a script; each investigated candidate gets its scripted origin
+    probability; every other question takes its first option."""
+
+    def __init__(self, triage: list[dict[str, float]], origin: dict[str, float], picks: dict | None = None):
+        self.triage, self.origin, self.picks, self.model = list(triage), origin, picks or {}, "fake"
+
+    def system_one(self, state, questions, **kwargs):
+        from typesafe_sdk import Choice, ChoiceAnswer, NoulAnswer
+
+        from clients.jev_diag.v2.classifier import COMPONENT_QUESTION
+
+        answers = {}
+        for name, q in questions.items():
+            if name == COMPONENT_QUESTION:
+                probs = self.triage.pop(0)
+            elif name == "verdict":
+                p = self.origin.get(state["candidate"]["id"], 0.1)
+                probs = {"origin": p, "victim": 1 - p, "unrelated": 0.0, "undetermined": 0.0}
+            elif isinstance(q, Choice):
+                opts = list(q.criteria)
+                pick = self.picks.get(name, opts[0])
+                probs = {o: (1.0 if o == pick else 0.0) for o in opts}
+            else:
+                answers[name] = NoulAnswer(noul=0.1)
+                continue
+            best = max(probs, key=probs.get)
+            answers[name] = ChoiceAnswer(choice=best, confidence=probs[best], probabilities=probs)
+
+        from types import SimpleNamespace
+
+        choices = {k: v for k, v in answers.items() if isinstance(v, ChoiceAnswer)}
+        nouls = {k: v for k, v in answers.items() if isinstance(v, NoulAnswer)}
+        return SimpleNamespace(model="fake", usage=None, choices=choices, nouls=nouls, answers=dict(answers))
+
+
+def test_when_the_two_triage_asks_disagree_both_picks_are_examined_and_the_stronger_origin_wins():
+    from clients.jev_diag.v2.tree import IterativeDiagnoser
+
+    comps = {f"deployment/{n}": {**_comp(n, "t"), "signals": ["x"], "healthy": False} for n in ("a", "b", "c")}
+    triage = [
+        {"deployment/a": 0.6, "deployment/b": 0.3, "deployment/c": 0.1, "other": 0.0},
+        {"deployment/a": 0.3, "deployment/b": 0.6, "deployment/c": 0.1, "other": 0.0},
+    ]
+    client = _Answers(triage, {"deployment/a": 0.65, "deployment/b": 0.95})
+    d = IterativeDiagnoser(client, fetch_detail=lambda s, c: {}).diagnose(_snap(comps))
+    assert d.component == "deployment/b"
+    examined = [s["component"] for s in d.investigation["steps"] if s.get("component")]
+    assert set(examined[:2]) == {"deployment/a", "deployment/b"}
+    # only one pick is an origin: it is concluded once both picks are examined, with no walk to other candidates
+    client = _Answers(triage, {"deployment/a": 0.95, "deployment/b": 0.1})
+    d = IterativeDiagnoser(client, fetch_detail=lambda s, c: {}).diagnose(_snap(comps))
+    assert d.component == "deployment/a" and d.investigation["fallback"] is None
+    assert [s["component"] for s in d.investigation["steps"]] == ["deployment/a", "deployment/b"]
+
+
+def test_telemetry_lines_come_from_the_team_tools_and_skip_empty_results(monkeypatch):
+    from types import SimpleNamespace
+
+    from clients.jev_agent import metrics
+    from clients.jev_agent.tools import call_edges
+    from clients.jev_diag.v2 import telemetry
+
+    monkeypatch.setattr(telemetry, "_available", True)
+    monkeypatch.setenv("JEV_DIAG_V2_TELEMETRY", "1")
+    by_family = {"cpu": ["cpu 0.95 cores of a 1.0 limit (95%)"], "memory": ["no memory series found for x"], "rpc": []}
+    monkeypatch.setattr(metrics, "metric_lines", lambda ctx, cid, fam: SimpleNamespace(lines=by_family[fam]))
+    monkeypatch.setattr(
+        call_edges, "run_call_edges", lambda ctx, cid: SimpleNamespace(lines=["frontend -> cart 40% errors"])
+    )
+    lines = telemetry.component_lines(_snap({"deployment/cart": _comp("cart", "t")}), "deployment/cart")
+    assert lines == ["cpu metrics: cpu 0.95 cores of a 1.0 limit (95%)", "observed calls: frontend -> cart 40% errors"]
+    monkeypatch.setenv("JEV_DIAG_V2_TELEMETRY", "0")
+    assert telemetry.component_lines(_snap({}), "deployment/cart") == []
+
+
+def test_a_caller_retrying_into_a_capped_callee_is_reported_as_the_call_path():
+    from clients.jev_diag.v2 import paths, report
+
+    line = "b-svc: request failed dependency=b code=DeadlineExceeded"
+    caller = {
+        **_comp("a", "t"),
+        "log_findings": [
+            {"classes": ["connectivity or timeout"], "count": 60, "targets": ["deployment/b"], "line": line}
+        ],
+        "_call_settings": {"B_RPC_TIMEOUT_MS": "750", "B_RPC_MAX_ATTEMPTS": "3", "C_RPC_TIMEOUT_MS": "500"},
+    }
+    callee = {**_comp("b", "t"), "_call_settings": {"B_BACKEND_QPS_LIMIT": "20"}}
+    comps = {"deployment/a": caller, "deployment/b": callee, "deployment/c": _comp("c", "t")}
+    found = paths.call_paths(comps)
+    assert found[0]["caller_settings"] == ["B_RPC_TIMEOUT_MS=750", "B_RPC_MAX_ATTEMPTS=3"]
+    assert found[0]["feedback_loop"] and comps["deployment/b"]["call_paths"]
+    snap = _snap(comps)
+    snap.cluster["call_paths"] = found
+    assert report.build_report(snap, _diag("deployment/b")).startswith("Root cause: Deployment `b`")  # model's pick
+    text = report.build_report(snap, _diag("deployment/b", call_path=found[0]))  # the model chose the path
+    assert text.startswith("Root cause: the call path from Deployment `a` to Deployment `b` in namespace `shop`")
+    assert "B_BACKEND_QPS_LIMIT=20" in text and "DeadlineExceeded" in text
+    callee["signals"] = ["pod b-1: restarted 3 times"]  # a callee failing on its own is not a call-path fault
+    assert paths.call_paths(comps) == []
+    cm = paths.setting_pairs({"rpc.yaml": "timeout: 50ms\nretries: 30\nname: x", "LOG_LEVEL": "info"})
+    assert cm == {"rpc.yaml:timeout": "50ms", "rpc.yaml:retries": "30"}
+
+
+def _two_faults(link: bool):
+    comps = {
+        "deployment/a": {**_comp("a", "t"), "signals": ["s"], "evidence_kinds": ["change", "symptoms"]},
+        "deployment/b": {**_comp("b", "t"), "signals": ["s"], "evidence_kinds": ["change", "symptoms"]},
+        "deployment/c": _comp("c", "t"),
+    }
+    if link:
+        comps["deployment/b"]["_calls"] = ["deployment/a"]  # b calls a: a explains b
+    return _snap(comps)
+
+
+def test_failures_the_cause_does_not_explain_can_add_a_second_independent_cause():
+    from clients.jev_diag.v2.tree import IterativeDiagnoser
+
+    triage = [{"deployment/a": 0.8, "deployment/b": 0.15, "deployment/c": 0.05, "other": 0.0}] * 2
+    origin = {"deployment/a": 0.95, "deployment/b": 0.9}
+    client = _Answers(triage, origin, picks={"fault_start": "both"})
+    d = IterativeDiagnoser(client, fetch_detail=lambda s, c: {}).diagnose(_two_faults(link=False))
+    assert d.component == "deployment/a" and d.second.component == "deployment/b"
+    assert "A second, independent root cause:\nRoot cause: Deployment `b`" in d.text
+    # b calls a: a explains b, so b is never offered as a second cause
+    client = _Answers(triage, origin, picks={"fault_start": "both"})
+    d = IterativeDiagnoser(client, fetch_detail=lambda s, c: {}).diagnose(_two_faults(link=True))
+    assert d.second is None and [s["component"] for s in d.investigation["steps"]] == ["deployment/a"]
+
+
+def test_report_states_only_what_the_facts_show_for_a_job_that_never_completes():
+    from clients.jev_diag.v2.report import build_report
+
+    comp = {
+        **_comp("archiver", "t"),
+        "kind": "CronJob",
+        "signals": [
+            "4 jobs of this cronjob are active without completing (they pile up)",
+            "pod a-1: container main completed but container side keeps running, so this job pod never completes",
+        ],
+    }
+    text = build_report(_snap({"cronjob/archiver": comp}), _diag("cronjob/archiver", "container side command: nc -lk"))
+    assert "Mechanism: pod a-1: container main completed but container side keeps running" in text
+    assert "Running and Ready" not in text and text.count("nc -lk") == 1
+    assert "Effect: 4 jobs of this cronjob are active without completing (they pile up)." in text
+
+
+def test_a_job_driving_a_failing_component_and_a_topic_input_are_named_as_the_broken_things():
+    import base64
+
+    from clients.jev_diag.v2 import checks
+    from clients.jev_diag.v2.report import build_report
+
+    script = base64.b64encode(b"import redis\nc = redis.Redis(host='store-b', port=6379)\nc.set('k', 'x' * 1000000)")
+    assert "store-b" in checks.command_host_candidates(f"exec(base64.b64decode('{script.decode()}'))")
+    job = {**_comp("filler", "t"), "kind": "Job", "signals": ["job has 1 active pod(s) and has not completed"]}
+    job["_calls"] = ["deployment/store-b"]
+    job["containers"] = [{"name": "f", "command": ["python3", "-c", f"exec(base64.b64decode('{script.decode()}'))"]}]
+    store = {
+        **_comp("store-b", "t"),
+        "evidence_kinds": ["symptoms"],
+        "services": [{"name": "store-b"}],
+        "signals": ["pod s-1: container store-b was OOMKilled", "only 0 of 1 desired replicas are ready"],
+    }
+    text = build_report(_snap({"job/filler": job, "deployment/store-b": store}), _diag("job/filler", "command"))
+    assert text.startswith(
+        "Root cause: Service `store-b` (Deployment `store-b`) in namespace `shop`, driven by Job `filler`, which calls "
+        "it: pod s-1: container store-b was OOMKilled."
+    )
+    assert "decoded from base64" in text and "x' * 1000000" in text
+    broker = {**_comp("queue-a", "t"), "containers": [{"image": "apache/kafka:3.7"}]}
+    consumer = {**_comp("reader", "t"), "signals": []}
+    d = _diag("deployment/reader", blocked_input={"source": "logs", "input": "env IN_TOPIC=events-x"})
+    text = build_report(_snap({"deployment/reader": consumer, "deployment/queue-a": broker}), d)
+    assert text.startswith("Root cause: the Kafka topic `events-x` (named by env `IN_TOPIC`) consumed by Deployment")
+
+
+def test_a_decided_client_server_pair_is_not_reported_as_two_causes():
+    from clients.jev_diag.v2.tree import IterativeDiagnoser
+
+    server = {
+        **_comp("db", "t"),
+        "signals": ["server rejects logins for account app (12 lines, still occurring)"],
+        "evidence_kinds": ["own_failure_logs", "symptoms"],
+        "login_candidates": ["deployment/client"],
+        "healthy": False,
+    }
+    client_comp = {**_comp("client", "t"), "signals": ["s"], "evidence_kinds": ["configuration", "symptoms"]}
+    snap = _snap({"deployment/db": server, "deployment/client": client_comp, "deployment/c": _comp("c", "t")})
+    triage = [{"deployment/db": 0.8, "deployment/client": 0.15, "deployment/c": 0.05, "other": 0.0}] * 2
+    picks = {"fault_category": "credentials_or_auth", "faulty_side": "deployment/client", "fault_start": "both"}
+    client = _Answers(triage, {"deployment/db": 0.9, "deployment/client": 0.95}, picks=picks)
+    d = IterativeDiagnoser(client, fetch_detail=lambda s, c: {}).diagnose(snap)
+    assert d.component == "deployment/client" and d.second is None
+
+
+def test_a_model_failure_after_an_origin_is_confirmed_keeps_that_origin():
+    from clients.jev_diag.v2.tree import IterativeDiagnoser
+
+    class FailsAfter(_Answers):  # the decision model stops answering after triage (2 asks) and one examination
+        calls = 0
+
+        def system_one(self, state, questions, **kwargs):
+            self.calls += 1
+            if self.calls > 3:
+                raise RuntimeError("Decisions API HTTP 402: insufficient credits")
+            return super().system_one(state, questions, **kwargs)
+
+    snap = _two_faults(link=False)
+    snap.components["deployment/a"]["evidence_kinds"] = ["configuration", "symptoms"]
+    snap.components["deployment/b"]["evidence_kinds"] = ["change", "symptoms"]
+    triage = [{"deployment/a": 0.8, "deployment/b": 0.15, "deployment/c": 0.05, "other": 0.0}] * 2
+    d = IterativeDiagnoser(
+        FailsAfter(triage, {"deployment/a": 0.95, "deployment/b": 0.9}), fetch_detail=lambda s, c: {}
+    ).diagnose(snap)
+    assert d.component == "deployment/a"
+
+
+def test_telemetry_lines_never_push_the_dependency_facts_out_of_the_evidence():
+    from clients.jev_diag.v2.tree import detail_evidence
+
+    comp = {**_comp("cart", "t"), "signals": [f"signal {i}" for i in range(30)]}  # a long list of settings/signals
+    detail = {
+        "telemetry": [f"cpu metrics: line {i}" for i in range(6)],
+        "failing_targets": ["deployment/valkey-cart"],
+        "calls": {"deployment/valkey-cart": {"looks_healthy_on_its_own": True, "pods_ready": "1/1"}},
+    }
+    texts = [e["text"] for e in detail_evidence(comp, detail)]
+    assert any("refer to its dependency deployment/valkey-cart" in x for x in texts)
+    assert any("deployment/valkey-cart looks healthy on its own" in x for x in texts)
+
+
+def test_two_confirmed_origins_that_share_a_config_object_are_never_two_causes():
+    from clients.jev_diag.v2.tree import IterativeDiagnoser
+
+    snap = _two_faults(link=False)
+    for cid in ("deployment/a", "deployment/b"):
+        snap.components[cid]["config_objects"] = {"configmap/shared": {"keys": ["k"]}}
+    triage = [{"deployment/a": 0.8, "deployment/b": 0.15, "deployment/c": 0.05, "other": 0.0}] * 2
+    # the model would say "both", but linked sides are never offered that option; an unclear answer keeps the stronger
+    client = _Answers(triage, {"deployment/a": 0.95, "deployment/b": 0.9}, picks={"fault_start": "both"})
+    d = IterativeDiagnoser(client, fetch_detail=lambda s, c: {}).diagnose(snap)
+    assert d.investigation["fallback"] is None
+    assert d.component == "deployment/a" and d.second is None
+    assert [s["component"] for s in d.investigation["steps"]] == ["deployment/a", "deployment/b"]
+
+
+def test_queue_puts_the_top_workload_before_the_cluster_node_and_telemetry_last():
+    from clients.jev_diag.v2.classifier import ChoiceResult
+    from clients.jev_diag.v2.tree import OTHER_OPTION, IterativeDiagnoser
+
+    comps = {
+        "deployment/otel": {**_comp("otel", "t"), "role": "observability", "evidence_kinds": ["change"]},
+        "deployment/front": {**_comp("front", "t"), "evidence_kinds": ["configuration", "symptoms"]},
+    }
+    snap = _snap(comps)
+    snap.cluster["findings"] = [{"kind": "ConfigMap", "name": "coredns", "signal": "written", "components": []}]
+    triage = ChoiceResult(
+        choice=OTHER_OPTION,
+        confidence=0.5,
+        probabilities={OTHER_OPTION: 0.5, "deployment/otel": 0.3, "deployment/front": 0.2},
+    )
+    kind = ChoiceResult(choice="node_or_cluster", confidence=0.6, probabilities={"node_or_cluster": 0.6})
+    queue = IterativeDiagnoser(_Answers([], {}), fetch_detail=lambda s, c: {}).initial_queue(snap, triage, kind)
+    assert queue == ["deployment/front", OTHER_OPTION, "deployment/otel"]

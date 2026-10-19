@@ -21,6 +21,7 @@ from __future__ import annotations
 
 import logging
 import re
+import traceback
 from collections.abc import Callable
 from typing import Any
 
@@ -54,7 +55,10 @@ CLUSTER_OBJECT_QUESTION = "cluster_object"
 BLOCKED_QUESTION = "blocked_input"
 INPUT_QUESTION = "input_source"
 PAIR_QUESTION = "faulty_side"
+TIEBREAK_QUESTION = "fault_start"
+LOCATION_QUESTION = "fault_location"
 NONE_OPTION = "none"
+BOTH_OPTION = "both"
 
 DEFAULT_MAX_STEPS = 18
 MIN_ORIGIN_PROBABILITY = 0.6  # confirm and stop
@@ -70,6 +74,9 @@ CHAIN_VICTIM_PROBABILITY = 0.9  # a victim this certain, naming its dependency t
 CHAIN_NEXT_PROBABILITY = 0.9
 MIN_BLOCKED_PROBABILITY = 0.5
 MIN_PAIR_PROBABILITY = 0.5
+MIN_BOTH_PROBABILITY = 0.5  # two independent causes are reported only on this much support
+MIN_PATH_PROBABILITY = 0.5  # the call path is reported as the cause only on this much support
+DECISIVE_TRIAGE_PROBABILITY = 0.9  # a first triage answer this sure is not asked again
 MAX_NEXT_OPTIONS = 12
 MAX_EVIDENCE = 32
 DETAIL_TOKEN_BUDGET = 22000
@@ -138,6 +145,8 @@ def detail_evidence(comp: dict, detail: dict) -> list[dict]:
     changed_env: set[tuple[str, str]] = set()
     tc = detail.get("template_changes") or {}
     for change in tc.get("changes") or []:
+        if "pod-template-hash" in change or "restartedAt" in change:
+            continue  # bookkeeping of every rollout, not a setting
         items.append(f"pod template changed in revision {tc.get('revision')}: {change}")
         m = re.match(r"container (\S+) env (\S+) ", change)
         if m:
@@ -145,6 +154,7 @@ def detail_evidence(comp: dict, detail: dict) -> list[dict]:
     for sig in comp.get("signals") or []:
         if "is terminating" not in sig:
             items.append(sig)
+    items += comp.get("call_paths") or []
     items += detail.get("spec_checks") or []
     items += detail.get("service_checks") or []
     if detail.get("probe_text"):
@@ -226,6 +236,7 @@ def detail_evidence(comp: dict, detail: dict) -> list[dict]:
             dep_items.append(f"dependency {cid} looks healthy on its own ({info.get('pods_ready')} pods ready)")
     for src, classes in (detail.get("called_by_with_errors") or {}).items():
         dep_items.append(f"still-occurring errors from {src} name this component: {classes}")
+    dep_items += list(detail.get("telemetry") or [])  # metrics after the dependency facts they support
     return [
         {"id": f"E{i + 1}", "text": text}
         for i, text in enumerate(cap_evidence(items, log_items, event_items, dep_items, other_env))
@@ -233,7 +244,7 @@ def detail_evidence(comp: dict, detail: dict) -> list[dict]:
 
 
 # Slots kept for each kind of evidence, so a long settings list never crowds out every log line or event.
-EVIDENCE_RESERVE = {"logs": 4, "events": 3, "dependencies": 3}
+EVIDENCE_RESERVE = {"logs": 4, "events": 3, "dependencies": 4}  # dependencies include telemetry facts
 
 
 def cap_evidence(head: list[str], logs: list[str], events: list[str], deps: list[str], tail: list[str]) -> list[str]:
@@ -379,7 +390,29 @@ def build_investigation_questions(
             "`candidate.detail.input_candidates` names that source?",
             criteria=options,
         )
+    loops = component_loops(snapshot, cid)
+    if loops:
+        options = {"component": "The fault is in `candidate`'s own state or settings."}
+        for i, path in enumerate(loops):
+            options[f"P{i + 1}"] = (
+                f"The fault is the interaction on the call path from `{path['caller']}` to `{path['callee']}` "
+                "(`call_paths` in `candidate`): each side's settings may look valid alone, but the caller's timeouts "
+                "and retries together with the callee's capacity limits keep the calls failing."
+            )
+        questions[LOCATION_QUESTION] = Choice(
+            instructions={"question": "Is the fault in `candidate` itself, or in the interaction on a call path?"},
+            criteria=options,
+        )
     return questions
+
+
+def component_loops(snapshot: ClusterSnapshot, cid: str) -> list[dict]:
+    """Timing-out call paths with a retry/capacity loop that `cid` is one end of."""
+    return [
+        p
+        for p in snapshot.cluster.get("call_paths") or []
+        if p.get("feedback_loop") and cid in (p["caller"], p["callee"])
+    ]
 
 
 def build_cluster_questions(findings: list[dict]) -> dict[str, Choice]:
@@ -429,6 +462,117 @@ def build_pair_questions(a: str, b: str, reason: str) -> dict[str, Choice]:
     }
 
 
+def build_tiebreak_questions(a: str, b: str, linked: bool) -> dict[str, Choice]:
+    criteria = {
+        a: f'The fault started at `sides["{a}"]`; the other side\'s abnormal signals follow from it or are unrelated.',
+        b: f'The fault started at `sides["{b}"]`; the other side\'s abnormal signals follow from it or are unrelated.',
+    }
+    if not linked:
+        criteria[BOTH_OPTION] = (
+            "Two independent faults: each side has its own abnormal configuration, change, or state, and neither "
+            "side's signals can follow from the other."
+        )
+    return {
+        TIEBREAK_QUESTION: Choice(
+            instructions={
+                "question": "Both `sides` were judged origins of the fault. Where did the fault start?",
+                "how_to_decide": [
+                    "A side whose failures are calls to the other side, or that uses what the other side changed, "
+                    "is not where the fault started.",
+                    "Prefer the side whose own configuration, change, or state explains its signals and the "
+                    "application's symptoms.",
+                    "`links` lists every connection code found between the two sides.",
+                ],
+            },
+            criteria=criteria,
+        )
+    }
+
+
+def _change_time(comp: dict):
+    from clients.jev_diag.timeutil import parse_time
+
+    return parse_time((comp.get("template_changes") or {}).get("changed_at") or comp.get("modified"))
+
+
+def link_facts(snapshot: ClusterSnapshot, a: str, b: str, investigated: dict | None = None) -> list[str]:
+    """Every connection code can see between two components (each taken with the workloads that got the same change
+    as it): error lines naming the other, logins one rejects from the other, addresses one calls, examined calls
+    and failing targets, timing-out call paths, shared config objects, and changes made within the same seconds."""
+    from clients.jev_diag.timeutil import seconds_between
+    from clients.jev_diag.v2.report import SAME_CHANGE_SECONDS, same_change
+
+    investigated = investigated or {}
+    side_a, side_b = {a, *same_change(snapshot, a)}, {b, *same_change(snapshot, b)}
+    out = []
+    if side_a & side_b:
+        out.append("the same pod template change was applied to both")
+    for xs, ys in ((side_a, side_b), (side_b, side_a)):
+        for x in sorted(xs):
+            cx, r = snapshot.components.get(x) or {}, investigated.get(x) or {}
+            for y in sorted(ys):
+                if y in (cx.get("errors_point_to") or []):
+                    out.append(f"{x}'s still-occurring error lines name {y}")
+                if y in (cx.get("login_candidates") or []):
+                    out.append(f"{x} rejects logins that {y} may present")
+                if (
+                    y in (cx.get("_calls") or [])
+                    or y in (r.get("calls") or [])
+                    or y in (r.get("failing_targets") or [])
+                ):
+                    out.append(f"{x} calls {y}")
+    shared = set((snapshot.components[a]).get("config_objects") or {}) & set(
+        (snapshot.components[b]).get("config_objects") or {}
+    )
+    out += [f"both use {obj}" for obj in sorted(shared)]
+    for path in snapshot.cluster.get("call_paths") or []:
+        if {path["caller"], path["callee"]} & side_a and {path["caller"], path["callee"]} & side_b:
+            out.append(f"calls from {path['caller']} to {path['callee']} time out")
+    ta, tb = _change_time(snapshot.components[a]), _change_time(snapshot.components[b])
+    if ta and tb and abs(seconds_between(ta, tb)) <= SAME_CHANGE_SECONDS:
+        out.append("both were changed within the same few seconds")
+    return list(dict.fromkeys(out))
+
+
+def explained_by(snapshot: ClusterSnapshot, cid: str | None, fault_object: dict | None) -> set[str]:
+    """Components whose failures one cause accounts for: the cause, the same change on other workloads, the users of
+    its fault object, and, transitively, every component whose errors name an explained one, that calls one, or that
+    rejects logins from one."""
+    from clients.jev_diag.v2.report import same_change
+
+    out = set((fault_object or {}).get("components") or [])
+    if cid in snapshot.components:
+        out |= {cid, *same_change(snapshot, cid)}
+    grew = True
+    while grew:
+        grew = False
+        for other, comp in snapshot.components.items():
+            reaches = set(comp.get("errors_point_to") or []) | set(comp.get("_calls") or [])
+            reaches |= set(comp.get("login_candidates") or [])
+            if other not in out and reaches & out:
+                out.add(other)
+                grew = True
+    return out
+
+
+def unexplained_frontier(
+    snapshot: ClusterSnapshot, explained: set[str], investigated: dict, triage: ChoiceResult
+) -> list[str]:
+    """Failing components the concluded cause does not account for and that were changed on their own, most
+    plausible first. Components already judged victims or unrelated are left out."""
+    out = []
+    for cid, comp in snapshot.components.items():
+        kinds = set(comp.get("evidence_kinds") or [])
+        if cid in explained or comp.get("role") == "observability":
+            continue
+        if "change" not in kinds or not kinds & {"symptoms", "own_failure_logs"}:
+            continue
+        if cid in investigated and investigated[cid]["origin_p"] < MIN_ORIGIN_PROBABILITY:
+            continue
+        out.append(cid)
+    return sorted(out, key=lambda c: -triage.probabilities.get(c, 0.0))
+
+
 class IterativeDiagnoser(JevDiagnoser):
     """Decision-tree diagnosis on top of the one-shot triage."""
 
@@ -439,12 +583,14 @@ class IterativeDiagnoser(JevDiagnoser):
         fetch_detail: Callable[[ClusterSnapshot, str], dict],
         max_steps: int = DEFAULT_MAX_STEPS,
         probe: Callable[[ClusterSnapshot, str, str | None], dict | None] | None = None,
+        detail_token_budget: int = DETAIL_TOKEN_BUDGET,
         **kwargs: Any,
     ) -> None:
         super().__init__(client, **kwargs)
         self.fetch_detail = fetch_detail
         self.max_steps = max_steps
         self.probe = probe
+        self.detail_token_budget = detail_token_budget
 
     # ------------------------------------------------------------------ nodes
 
@@ -460,14 +606,29 @@ class IterativeDiagnoser(JevDiagnoser):
             tokens_after=estimate_tokens(state),
             applied=trims,
         )
-        response = self._ask("triage", state, build_component_questions(snapshot))
-        component = ChoiceResult.from_answer(response.choices[COMPONENT_QUESTION])
+        # Asked twice, the second time with the options in reverse order; the two answers are averaged, and when
+        # their picks differ both are examined before an origin is concluded (see _diagnose).
+        questions = build_component_questions(snapshot)
+        answers = [self._ask("triage", state, questions)]
+        first = answers[0].choices[COMPONENT_QUESTION]
+        if (first.probabilities or {}).get(first.choice, 0.0) < DECISIVE_TRIAGE_PROBABILITY:
+            answers.append(self._ask("triage:reversed", state, reversed_options(questions)))
+        picks = [a.choices[COMPONENT_QUESTION].choice for a in answers]
+        self.triage_picks = list(dict.fromkeys(picks))
+        if len(self.triage_picks) == 2:
+            from clients.jev_diag.v2.report import same_change
+
+            if self.triage_picks[1] in same_change(snapshot, self.triage_picks[0]):
+                self.triage_picks = self.triage_picks[:1]  # the same change on both: the asks agree
+        component = averaged([ChoiceResult.from_answer(a.choices[COMPONENT_QUESTION]) for a in answers])
         kind = (
-            ChoiceResult.from_answer(response.choices[FAULT_KIND_QUESTION])
-            if FAULT_KIND_QUESTION in response.choices
+            averaged([ChoiceResult.from_answer(a.choices[FAULT_KIND_QUESTION]) for a in answers])
+            if all(FAULT_KIND_QUESTION in a.choices for a in answers)
             else None
         )
-        visible = response.nouls[FAULT_VISIBLE_QUESTION].noul if FAULT_VISIBLE_QUESTION in response.nouls else None
+        nouls = [a.nouls[FAULT_VISIBLE_QUESTION].noul for a in answers if FAULT_VISIBLE_QUESTION in a.nouls]
+        visible = sum(nouls) / len(nouls) if nouls else None
+        self._trace("decide", "triage_agreement", picks=picks, agreed=len(self.triage_picks) == 1)
         return component, kind, visible
 
     def initial_queue(
@@ -558,13 +719,13 @@ class IterativeDiagnoser(JevDiagnoser):
             "cluster_findings": snapshot.cluster.get("findings") or [],
             "components": {},
         }
-        fitted, trims = fit_state_to_budget(state, DETAIL_TOKEN_BUDGET)
+        fitted, trims = fit_state_to_budget(state, self.detail_token_budget)
         fitted.pop("components", None)
         self._trace(
             "jev",
             "budget_fit",
             label=f"investigate:{cid}",
-            budget=DETAIL_TOKEN_BUDGET,
+            budget=self.detail_token_budget,
             tokens_before=estimate_tokens(state),
             tokens_after=estimate_tokens(fitted),
             applied=trims,
@@ -589,6 +750,15 @@ class IterativeDiagnoser(JevDiagnoser):
             ChoiceResult.from_answer(response.choices[INPUT_QUESTION]) if INPUT_QUESTION in response.choices else None
         )
         key_text = next((e["text"] for e in evidence if key and e["id"] == key.choice), None)
+        location = (
+            ChoiceResult.from_answer(response.choices[LOCATION_QUESTION])
+            if LOCATION_QUESTION in response.choices
+            else None
+        )
+        call_path = None
+        if location and location.choice.startswith("P"):
+            if location.probabilities.get(location.choice, 0.0) >= MIN_PATH_PROBABILITY:
+                call_path = component_loops(snapshot, cid)[int(location.choice[1:]) - 1]
         blocked = None
         if blocked_p is not None and blocked_p >= MIN_BLOCKED_PROBABILITY:
             repeated = (detail.get("logs") or {}).get("repeated_failures") or []
@@ -615,6 +785,7 @@ class IterativeDiagnoser(JevDiagnoser):
             "category": category,
             "key_evidence": key,
             "blocked_input": blocked,
+            "call_path": call_path,
             "probe": detail.get("probe"),
             "evidence": evidence,
             "detail_tokens": estimate_tokens(fitted),
@@ -664,7 +835,7 @@ class IterativeDiagnoser(JevDiagnoser):
             "affected_components": affected,
             "cluster_dns": snapshot.cluster.get("cluster_dns"),
         }
-        fitted, _ = fit_state_to_budget({**state, "components": {}}, DETAIL_TOKEN_BUDGET)
+        fitted, _ = fit_state_to_budget({**state, "components": {}}, self.detail_token_budget)
         fitted.pop("components", None)
         response = self._ask("cluster_objects", fitted, build_cluster_questions(fitted.get("findings") or []))
         result = ChoiceResult.from_answer(response.choices[CLUSTER_OBJECT_QUESTION])
@@ -673,26 +844,51 @@ class IterativeDiagnoser(JevDiagnoser):
             chosen = findings[int(result.choice[1:]) - 1]
         return {"result": result, "object": chosen}
 
+    @staticmethod
+    def side(snapshot: ClusterSnapshot, cid: str, investigated: dict) -> dict:
+        r = investigated[cid]
+        comp = snapshot.components[cid]
+        key = next(
+            (e["text"] for e in r["evidence"] if r["key_evidence"] and e["id"] == r["key_evidence"].choice), None
+        )
+        return {
+            "component": cid,
+            "kind": comp["kind"],
+            "origin_probability": r["origin_p"],
+            "cause_category": r["category"].choice,
+            "key_evidence": key,
+            "code_checks": r["spec_checks"],
+            "signals": (comp.get("signals") or [])[:12],
+            "config_objects": comp.get("config_objects"),
+        }
+
+    def tiebreak(self, snapshot: ClusterSnapshot, a: str, b: str, investigated: dict, reason: str) -> list[str]:
+        """Two confirmed origins: the one where the fault started, or both when they are independent faults. Without
+        a clear answer, the higher origin probability."""
+        links = link_facts(snapshot, a, b, investigated)
+        own_change = all("change" in (snapshot.components[c].get("evidence_kinds") or []) for c in (a, b))
+        state = {
+            "application": snapshot.app,
+            "why_asked": reason,
+            "links": links or ["none found"],
+            "sides": {a: self.side(snapshot, a, investigated), b: self.side(snapshot, b, investigated)},
+        }
+        response = self._ask(f"tiebreak:{a}|{b}", state, build_tiebreak_questions(a, b, bool(links) or not own_change))
+        answer = ChoiceResult.from_answer(response.choices[TIEBREAK_QUESTION])
+        p = answer.probabilities.get(answer.choice, 0.0)
+        higher = max((a, b), key=lambda c: investigated[c]["origin_p"])
+        if answer.choice == BOTH_OPTION and p >= MIN_BOTH_PROBABILITY:
+            picks = [higher, a if higher == b else b]
+        elif answer.choice in (a, b) and p >= MIN_PAIR_PROBABILITY:
+            picks = [answer.choice]
+        else:
+            picks = [higher]
+        self._trace("decide", "tiebreak", sides=[a, b], reason=reason, links=links, ranked=answer.ranked(), picks=picks)
+        return picks
+
     def pair_node(self, snapshot: ClusterSnapshot, a: str, b: str, investigated: dict, reason: str) -> str:
         """Ask which of two confirmed origins holds the faulty setting; fall back to the higher origin probability."""
-
-        def side(cid: str) -> dict:
-            r = investigated[cid]
-            comp = snapshot.components[cid]
-            key = next(
-                (e["text"] for e in r["evidence"] if r["key_evidence"] and e["id"] == r["key_evidence"].choice), None
-            )
-            return {
-                "component": cid,
-                "kind": comp["kind"],
-                "origin_probability": r["origin_p"],
-                "cause_category": r["category"].choice,
-                "key_evidence": key,
-                "code_checks": r["spec_checks"],
-                "signals": (comp.get("signals") or [])[:12],
-                "config_objects": comp.get("config_objects"),
-            }
-
+        side = lambda cid: self.side(snapshot, cid, investigated)  # noqa: E731
         state = {"application": snapshot.app, "connection": reason, "sides": {a: side(a), b: side(b)}}
         response = self._ask(f"pair:{a}|{b}", state, build_pair_questions(a, b, reason))
         answer = ChoiceResult.from_answer(response.choices[PAIR_QUESTION])
@@ -743,16 +939,51 @@ class IterativeDiagnoser(JevDiagnoser):
         """The decision tree; when the decision model cannot be reached (credit, outage), a report from code alone."""
         if not snapshot.components:
             raise ValueError("No workloads found in the application namespaces; nothing to classify.")
+        self._progress: dict = {}
         try:
             return self._diagnose(snapshot)
         except Exception as exc:  # noqa: BLE001 - a diagnosis without the model beats submitting nothing
-            logger.error("decision model unavailable, reporting from code alone: %s", exc)
-            self._trace("decide", "fallback_without_model", error=f"{type(exc).__name__}: {exc}")
-            return code_only_diagnosis(snapshot, f"{type(exc).__name__}: {exc}")
+            reason = f"{type(exc).__name__}: {exc}"
+            logger.error("decision model unavailable, reporting from what is known: %s", reason)
+            self._trace("decide", "fallback_without_model", error=reason, traceback=traceback.format_exc())
+            try:
+                return self._from_progress(snapshot, reason)
+            except Exception:  # noqa: BLE001
+                return code_only_diagnosis(snapshot, reason)
+
+    def _from_progress(self, snapshot: ClusterSnapshot, reason: str) -> Diagnosis:
+        """The conclusion the work done so far supports when a later model request fails: the strongest confirmed
+        origin, else the fallback over triage and the examined components; without a triage, code alone."""
+        p = self._progress
+        component, kind = p.get("component"), p.get("kind")
+        if component is None:
+            return code_only_diagnosis(snapshot, reason)
+        investigated, confirmed = p["investigated"], p["confirmed"]
+        if confirmed:
+            concluded, why = max(confirmed, key=confirmed.get), "confirmed origin"
+        else:
+            concluded, why = self.fallback(snapshot, component, investigated)
+        info = self._characterize(snapshot, concluded, investigated, kind, None, why)
+        final = ChoiceResult(
+            choice=concluded, confidence=component.confidence, probabilities=dict(component.probabilities)
+        )
+        diagnosis = self._diagnosis(snapshot, concluded, final, info, kind)
+        diagnosis.investigation = {
+            "steps": p["steps"],
+            "concluded": concluded,
+            "fallback": f"{why}; decision model failed later: {reason}",
+        }
+        diagnosis.text = build_report(snapshot, diagnosis)
+        return diagnosis
 
     def _diagnose(self, snapshot: ClusterSnapshot) -> Diagnosis:
         component, kind, visible = self.triage(snapshot)
         queue = self.initial_queue(snapshot, component, kind)
+        if OTHER_OPTION in getattr(self, "triage_picks", []) and snapshot.cluster.get("findings"):
+            # one of the two asks put the fault on a cluster-level object: that is checked right after the top pick
+            if OTHER_OPTION in queue:
+                queue.remove(OTHER_OPTION)
+            queue.insert(1 if queue else 0, OTHER_OPTION)
         self._trace(
             "decide",
             "component",
@@ -768,10 +999,20 @@ class IterativeDiagnoser(JevDiagnoser):
         investigated: dict[str, dict] = {}
         steps: list[dict] = []
         concluded: str | None = None
+        confirmed: dict[str, float] = {}  # origin probability of every confirmed origin; the strongest is concluded
         cluster_pick: dict | None = None
         # other side -> (component waiting to be concluded, reason, further candidates to examine after this one)
         waiting_on: dict[str, tuple[str, str, list[tuple[str, str]]]] = {}
         checked_other_side: set[str] = set()
+        pair_decided = False
+        awaiting: set[str] = set()  # candidates a confirmed origin's conclusion waits for
+        self._progress = {
+            "component": component,
+            "kind": kind,
+            "investigated": investigated,
+            "confirmed": confirmed,
+            "steps": steps,
+        }
         while queue and len(steps) < self.max_steps:
             cid = queue.pop(0)
             if cid == OTHER_OPTION:
@@ -794,27 +1035,7 @@ class IterativeDiagnoser(JevDiagnoser):
             remaining = [c for c in snapshot.components if c != cid and c not in investigated]
             result = self.investigate(snapshot, cid, component, investigated, remaining)
             investigated[cid] = result
-            step = {
-                "step": len(steps) + 1,
-                "node": "investigate",
-                "component": cid,
-                "verdict": result["verdict"],
-                "origin_p": result["origin_p"],
-                "victim_p": result["victim_p"],
-                "next": result["next"],
-                "next_p": result["next_p"],
-                "category": result["category"].choice,
-                "spec_checks": result["spec_checks"],
-                "blocked_input": result["blocked_input"],
-                "key_evidence": next(
-                    (
-                        e["text"]
-                        for e in result["evidence"]
-                        if result["key_evidence"] and e["id"] == result["key_evidence"].choice
-                    ),
-                    None,
-                ),
-            }
+            step = self._step(len(steps) + 1, cid, result)
             steps.append(step)
             self._trace("decide", "step", **step)
             if cid in waiting_on:
@@ -823,6 +1044,7 @@ class IterativeDiagnoser(JevDiagnoser):
                 original, reason, rest = waiting_on.pop(cid)
                 if result["origin_p"] >= MIN_ORIGIN_PROBABILITY:
                     concluded = self.pair_node(snapshot, original, cid, investigated, reason)
+                    pair_decided = True
                     break
                 rest = [(c, r) for c, r in rest if c in snapshot.components and c not in investigated]
                 if rest:
@@ -860,15 +1082,29 @@ class IterativeDiagnoser(JevDiagnoser):
                     and c not in investigated
                     and p > component.probabilities.get(cid, 0.0)
                 ]
-                if not higher or result["origin_p"] >= STRONG_ORIGIN_PROBABILITY:
-                    concluded = cid
+                confirmed[cid] = result["origin_p"]
+                split = [
+                    c
+                    for c in getattr(self, "triage_picks", [])
+                    if c != cid and c in snapshot.components and c not in investigated
+                ]
+                if split:  # the two triage asks disagreed: examine the other pick before concluding
+                    higher = list(dict.fromkeys([*split, *higher]))
+                if not higher or (not split and result["origin_p"] >= STRONG_ORIGIN_PROBABILITY):
+                    concluded = max(confirmed, key=confirmed.get)
                     break
                 for c in reversed(higher[:2]):
                     if c in queue:
                         queue.remove(c)
                     queue.insert(0, c)
+                awaiting = set(higher[:2])
                 self._trace("decide", "defer_conclusion", component=cid, origin_p=result["origin_p"], first=higher[:2])
                 continue
+            if confirmed and cid in awaiting:
+                awaiting.discard(cid)
+                if not awaiting:  # what the conclusion waited for is examined and is not an origin
+                    concluded = max(confirmed, key=confirmed.get)
+                    break
             nxt = result["next"]
             is_victim = result["victim_p"] >= MIN_VICTIM_PROBABILITY
             usable = nxt != NONE_OPTION and nxt in snapshot.components and nxt not in investigated
@@ -894,13 +1130,92 @@ class IterativeDiagnoser(JevDiagnoser):
                         insert_at += 1
 
         fallback_reason = None
+        paired = False
         if concluded is None and waiting_on:
             # The budget ran out before the other side was examined: the confirmed origin stands.
             concluded = next(iter(waiting_on.values()))[0]
             fallback_reason = "confirmed origin; the other side was not examined within the budget"
+        elif not pair_decided and concluded in confirmed and len(confirmed) > 1:
+            # Several origins were confirmed (a split triage, or a higher-ranked candidate examined after the first):
+            # the two strongest are compared side by side instead of by their separate probabilities.
+            a, b = sorted(confirmed, key=confirmed.get, reverse=True)[:2]
+            reason = "both were confirmed as origins in separate examinations"
+            picks = self.tiebreak(snapshot, a, b, investigated, reason)
+            concluded, paired = picks[0], True
+            second = picks[1] if len(picks) > 1 else None
         if concluded is None:
             concluded, fallback_reason = self.fallback(snapshot, component, investigated)
+        if not paired:
+            second = None
 
+        info = self._characterize(snapshot, concluded, investigated, kind, cluster_pick, fallback_reason)
+        if not (paired or pair_decided) and concluded in investigated and len(steps) < self.max_steps:
+            explained = explained_by(snapshot, concluded, info["fault_object"])
+            frontier = unexplained_frontier(snapshot, explained, investigated, component)
+            if frontier:
+                # Failing components the concluded cause does not account for: the most plausible one is examined,
+                # and when it is an origin too, the two are compared (one of them, or two independent faults).
+                cand = frontier[0]
+                self._trace("decide", "unexplained", concluded=concluded, explained=sorted(explained), first=cand)
+                if cand not in investigated:
+                    remaining = [c for c in snapshot.components if c != cand and c not in investigated]
+                    investigated[cand] = self.investigate(snapshot, cand, component, investigated, remaining)
+                    steps.append(self._step(len(steps) + 1, cand, investigated[cand]))
+                    self._trace("decide", "step", **steps[-1])
+                if investigated[cand]["origin_p"] >= MIN_ORIGIN_PROBABILITY:
+                    reason = f"{cand} was also judged an origin in its own examination"
+                    picks = self.tiebreak(snapshot, concluded, cand, investigated, reason)
+                    if picks[0] != concluded:
+                        concluded = picks[0]
+                        info = self._characterize(snapshot, concluded, investigated, kind, None, None)
+                    second = picks[1] if len(picks) > 1 else None
+
+        probabilities = dict(component.probabilities)
+        final = ChoiceResult(
+            choice=concluded,
+            confidence=round(info["origin_p"], 4) if info["origin_p"] is not None else component.confidence,
+            probabilities=probabilities,
+        )
+        diagnosis = self._diagnosis(snapshot, concluded, final, info, kind)
+        diagnosis.fault_visible = None if visible is None else round(float(visible), 4)
+        diagnosis.investigation = {
+            "steps": steps,
+            "concluded": concluded,
+            "fallback": fallback_reason,
+            "triage_top": component.ranked()[:5],
+            "second": second,
+        }
+        if second:
+            info2 = self._characterize(snapshot, second, investigated, kind, None, None)
+            p2 = info2["origin_p"] or 0.0
+            diagnosis.second = self._diagnosis(
+                snapshot, second, ChoiceResult(choice=second, confidence=round(p2, 4), probabilities={}), info2, kind
+            )
+            diagnosis.second.investigation = {"steps": steps, "concluded": second}
+        diagnosis.text = build_report(snapshot, diagnosis)
+        self._trace(
+            "decide",
+            "diagnosis_text",
+            component=concluded,
+            second=second,
+            text=diagnosis.text,
+            chars=len(diagnosis.text),
+            steps=len(steps),
+            fallback=fallback_reason,
+            fault_object=info["fault_object"],
+        )
+        return diagnosis
+
+    def _characterize(
+        self,
+        snapshot: ClusterSnapshot,
+        concluded: str,
+        investigated: dict,
+        kind: ChoiceResult | None,
+        cluster_pick: dict | None,
+        fallback_reason: str | None,
+    ) -> dict:
+        """Category, key evidence, fault object and blocked input of a concluded cause."""
         chosen_result = investigated.get(concluded)
         category = chosen_result["category"] if chosen_result else None
         key = chosen_result["key_evidence"] if chosen_result else None
@@ -914,8 +1229,6 @@ class IterativeDiagnoser(JevDiagnoser):
             # The dependency was chosen because a victim fails against it, not because of its own evidence, so
             # its category and key evidence are judged again from the victim's failure.
             category, key, evidence = self.chain_characterization(snapshot, chain_victim, concluded, investigated)
-        origin_p = chosen_result["origin_p"] if chosen_result else None
-        fault_object = cluster_pick or self.fault_object(snapshot, concluded, category, kind)
         blocked = None
         if concluded in snapshot.components:
             blocked = snapshot.components[concluded].get("blocked_input")
@@ -927,45 +1240,59 @@ class IterativeDiagnoser(JevDiagnoser):
                 and category.choice in ("data_or_traffic", "code_bug")
             ):
                 blocked = chosen_result["blocked_input"]
-        probabilities = dict(component.probabilities)
-        final = ChoiceResult(
-            choice=concluded,
-            confidence=round(origin_p, 4) if origin_p is not None else component.confidence,
-            probabilities=probabilities,
-        )
-        diagnosis = Diagnosis(
-            component=concluded,
+        return {
+            "category": category,
+            "key": key,
+            "evidence": evidence,
+            "call_path": (chosen_result or {}).get("call_path"),
+            "origin_p": chosen_result["origin_p"] if chosen_result else None,
+            "fault_object": cluster_pick or self.fault_object(snapshot, concluded, category, kind),
+            "blocked": blocked,
+        }
+
+    def _diagnosis(
+        self, snapshot: ClusterSnapshot, cid: str, final: ChoiceResult, info: dict, kind: ChoiceResult | None
+    ) -> Diagnosis:
+        return Diagnosis(
+            component=cid,
             component_result=final,
-            fault_visible=None if visible is None else round(float(visible), 4),
-            category_result=category,
-            evidence_result=key,
-            evidence=evidence,
+            fault_visible=None,
+            category_result=info["category"],
+            evidence_result=info["key"],
+            evidence=info["evidence"],
             model=str(self.requests[-1].get("model") or ""),
             input_tokens=_sum(self.requests, "input_tokens"),
             output_tokens=_sum(self.requests, "output_tokens"),
             fault_kind_result=kind,
-            fault_object=fault_object,
-            blocked_input=blocked,
+            fault_object=info["fault_object"],
+            blocked_input=info["blocked"],
+            call_path=info.get("call_path"),
             trims={},
-            investigation={
-                "steps": steps,
-                "concluded": concluded,
-                "fallback": fallback_reason,
-                "triage_top": component.ranked()[:5],
-            },
         )
-        diagnosis.text = build_report(snapshot, diagnosis)
-        self._trace(
-            "decide",
-            "diagnosis_text",
-            component=concluded,
-            text=diagnosis.text,
-            chars=len(diagnosis.text),
-            steps=len(steps),
-            fallback=fallback_reason,
-            fault_object=fault_object,
-        )
-        return diagnosis
+
+    @staticmethod
+    def _step(n: int, cid: str, result: dict) -> dict:
+        return {
+            "step": n,
+            "node": "investigate",
+            "component": cid,
+            "verdict": result["verdict"],
+            "origin_p": result["origin_p"],
+            "victim_p": result["victim_p"],
+            "next": result["next"],
+            "next_p": result["next_p"],
+            "category": result["category"].choice,
+            "spec_checks": result["spec_checks"],
+            "blocked_input": result["blocked_input"],
+            "key_evidence": next(
+                (
+                    e["text"]
+                    for e in result["evidence"]
+                    if result["key_evidence"] and e["id"] == result["key_evidence"].choice
+                ),
+                None,
+            ),
+        }
 
     @staticmethod
     def _chain_victim(snapshot: ClusterSnapshot, dep: str, investigated: dict) -> str | None:
@@ -1168,3 +1495,18 @@ def code_only_diagnosis(snapshot: ClusterSnapshot, reason: str) -> Diagnosis:
     )
     diagnosis.text = build_report(snapshot, diagnosis)
     return diagnosis
+
+
+def reversed_options(questions: dict) -> dict:
+    """The same questions with the component options in reverse order (position bias check)."""
+    q = questions[COMPONENT_QUESTION]
+    flipped = Choice(instructions=q.instructions, criteria=dict(reversed(list(q.criteria.items()))))
+    return {**questions, COMPONENT_QUESTION: flipped}
+
+
+def averaged(results: list[ChoiceResult]) -> ChoiceResult:
+    """The mean of several answers to one choice question."""
+    keys = list(dict.fromkeys(k for r in results for k in r.probabilities))
+    probs = {k: round(sum(r.probabilities.get(k, 0.0) for r in results) / len(results), 4) for k in keys}
+    best = max(probs, key=probs.get)
+    return ChoiceResult(choice=best, confidence=probs[best], probabilities=probs)

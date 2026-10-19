@@ -6,6 +6,7 @@ from __future__ import annotations
 
 import argparse
 import logging
+import os
 import time
 from pathlib import Path
 from types import ModuleType
@@ -120,25 +121,33 @@ def collect(args: argparse.Namespace, app_info: dict, trace: DecisionTrace, stan
 
 MIN_WAIT_SECONDS = 45  # never read the cluster sooner: a fault needs time to show in pods and logs
 POLL_SECONDS = 15
+TREND_SECONDS = 45  # the read comes at least this long after the baseline, so restarts and errors can recur
 
 
-def abnormal_pods(sample: dict) -> set[str]:
-    """Pods in a trend sample that are not running cleanly: not Running/Succeeded, or restarted at least once."""
-    return {
-        key
-        for key, pod in (sample.get("pods") or {}).items()
-        if pod.get("phase") not in ("Running", "Succeeded") or any(n > 0 for n in (pod.get("restarts") or {}).values())
-    }
+def abnormal_pods(sample: dict, baseline: dict) -> set[str]:
+    """Pods that are not running cleanly now: not Running/Succeeded, or restarted since the baseline (restarts from
+    the application's own start-up do not count)."""
+    before = baseline.get("pods") or {}
+    out = set()
+    for key, pod in (sample.get("pods") or {}).items():
+        restarts = (before.get(key) or {}).get("restarts") or {}
+        grew = any(n > restarts.get(c, 0) for c, n in (pod.get("restarts") or {}).items())
+        if pod.get("phase") not in ("Running", "Succeeded") or grew:
+            out.add(key)
+    return out
 
 
 def wait(args: argparse.Namespace, app_info: dict, trace: DecisionTrace, standalone: bool, host: ModuleType):
     """Wait until the fault has surfaced; returns the trend baseline sample (or None).
 
-    After MIN_WAIT_SECONDS, light samples (pods and events) are taken every POLL_SECONDS; the cluster is read as
-    soon as the same set of abnormal pods shows in two samples in a row, and at the latest after the configured
-    start delay (v1's fixed wait). Faults that show only in logs (pods stay healthy) wait the full delay.
+    The baseline is taken after MIN_WAIT_SECONDS; then light samples (pods and events) every POLL_SECONDS. The
+    cluster is read once the same set of abnormal pods shows in two samples in a row and at least TREND_SECONDS have
+    passed since the baseline, and at the latest after the configured start delay (v1's fixed wait). Faults that
+    show only in logs (pods stay healthy) wait the full delay. The polls are not recorded, so an offline replay
+    serves the snapshot's own reads.
     """
     from clients.jev_diag.v2 import trend
+    from clients.jev_diag.v2.collector import recording_paused
 
     delay = 0.0 if standalone else max(0.0, args.start_delay)
     if delay <= 0:
@@ -148,11 +157,13 @@ def wait(args: argparse.Namespace, app_info: dict, trace: DecisionTrace, standal
     with trace.timed("setup", "start_delay", seconds=delay, adaptive=True) as info:
         time.sleep(min(MIN_WAIT_SECONDS, delay))
         baseline = trend.collect_sample(namespaces)
-        previous = abnormal_pods(baseline)
+        sampled_at = time.monotonic()
+        previous: set[str] = set()
         while time.monotonic() - started + POLL_SECONDS <= delay:
             time.sleep(POLL_SECONDS)
-            current = abnormal_pods(trend.collect_sample(namespaces))
-            if current and current == previous:
+            with recording_paused():
+                current = abnormal_pods(trend.collect_sample(namespaces), baseline)
+            if current and current == previous and time.monotonic() - sampled_at >= TREND_SECONDS:
                 info["stable_abnormal_pods"] = len(current)
                 break
             previous = current
@@ -189,7 +200,9 @@ def read_cluster(
 def make_diagnoser(args: argparse.Namespace, trace: DecisionTrace, client=None) -> IterativeDiagnoser:
     """v2's diagnoser; `client` overrides the decision model client (one per arm in experiments)."""
     probe = None
-    if args.exec_probes:
+    if args.exec_probes or os.environ.get("JEV_DIAG_V2_PROBES", "1") != "0":
+        # v1's read-only health command inside a healthy-looking data store that a victim's errors name (native
+        # tools only, after a memory headroom check); on by default in v2
         from clients.jev_diag.v2.probes import backend_probe as probe
     return IterativeDiagnoser(
         client,
