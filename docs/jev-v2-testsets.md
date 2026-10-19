@@ -57,3 +57,25 @@ this laptop; those wait for the bigger machine.
 - Some splits are judgement calls (for example port conflicts count as Unseen: Lite's port fault is a hostPort
   that blocks scheduling, a different mechanism).
 - Cohort problems not in today's registry (about 26 page ids) are not used.
+
+## Held-out sample of 10 (fixed 2026-10-19 06:25, before any of the 8 drawn ran)
+Running all 58 is more than the PR needs. The sample keeps the 2 already run (whatever their result) and draws 8
+more with `random.Random("jev-v2-heldout-10")` from the held-out faults on the Lite apps that run on kind (not the
+disk-corruption faults or kubelet_crash), keeping Lite's app mix (3 hotel, 3 social, 4 astronomy in total):
+
+| Fault | App | Group |
+|---|---|---|
+| service_dns_resolution_failure_astronomy_shop | astronomy | Transfer (already run) |
+| wrong_service_selector_astronomy_shop | astronomy | Near (already run) |
+| sidecar_port_conflict_hotel_reservation | hotel | Unseen |
+| duplicate_pvc_mounts_hotel_reservation | hotel | Transfer |
+| readiness_probe_misconfiguration_hotel_reservation | hotel | Near |
+| liveness_probe_too_aggressive_social_network | social | Unseen |
+| service_port_conflict_social_network | social | Unseen |
+| auth_miss_mongodb | social | Near |
+| valkey_memory_disruption | astronomy | Unseen |
+| incorrect_image | astronomy | Unseen |
+
+All on the frozen v2 1d22d925, four arms each, reported as they come out. Two failed held-out attempts at
+00:49 (stale_coredns_config_astronomy_shop, astronomy_shop_failed_readiness_probe) never started (OpenRouter credits)
+and are not part of the sample.
