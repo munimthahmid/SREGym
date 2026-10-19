@@ -70,6 +70,17 @@ def run(
             },
         )
 
+    # one read of each component's detail per pipeline, shared by every arm, so all models see the same evidence
+    detail_cache: dict[str, dict] = {"v1": {}, "v2": {}}
+
+    def cached(kind: str, fetch):
+        def read(snapshot, cid):
+            if cid not in detail_cache[kind]:
+                detail_cache[kind][cid] = fetch(snapshot, cid)
+            return copy.deepcopy(detail_cache[kind][cid])
+
+        return read
+
     order = list(range(len(arms)))
     random.Random(problem_id).shuffle(order)
     records: list[dict] = [{} for _ in arms]
@@ -82,10 +93,11 @@ def run(
             client = openrouter_client(model)
             if kind == "v2":
                 diagnoser = v2_driver.make_diagnoser(args, trace, client)
+                diagnoser.fetch_detail = cached("v2", diagnoser.fetch_detail)
             else:
                 diagnoser = V1Diagnoser(
                     client,
-                    fetch_detail=v1_detail,
+                    fetch_detail=cached("v1", v1_detail),
                     max_steps=args.max_steps,
                     state_token_budget=args.state_token_budget,
                     trace=trace,
@@ -101,6 +113,7 @@ def run(
             )
         trace.record("arm", "done", arm=i, seconds=records[i]["seconds"], error=error)
 
+    host.write_json(prefix.with_name(prefix.name + "_details.json"), detail_cache)
     summary = {"problem_id": problem_id, "submit_arm": submit_index, "order": order, "arms": records}
     text = records[submit_index]["text"] or next((r["text"] for r in records if r["text"]), "")
     try:
