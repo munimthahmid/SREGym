@@ -79,3 +79,26 @@ disk-corruption faults or kubelet_crash), keeping Lite's app mix (3 hotel, 3 soc
 All on the frozen v2 1d22d925, four arms each, reported as they come out. Two failed held-out attempts at
 00:49 (stale_coredns_config_astronomy_shop, astronomy_shop_failed_readiness_probe) never started (OpenRouter credits)
 and are not part of the sample.
+
+## Fresh held-out sample C (fixed 2026-10-19 10:20, before the next round of general improvements)
+For testing the next improvements (contrast checks; claims only when the evidence supports them) on faults that did
+not inform them. Rule: exclude every fault type already studied (the 10 of sample A and the 17 Lite types).
+A first draw (seed "jev-v2-heldout-B") was discarded by that rule before anything ran: it contained service port
+conflict, sidecar port conflict and liveness probe on other apps, the types whose sample-A failures motivated the
+improvements. Redrawn with seed "jev-v2-heldout-C" from the remaining pool (hotel 9, social 5, astronomy 12):
+
+| Fault | App |
+|---|---|
+| configmap_drift_hotel_reservation | hotel |
+| resource_request_too_small | hotel |
+| missing_service_hotel_reservation | hotel |
+| stale_coredns_config_social_network | social |
+| scale_pod_zero_social_net | social |
+| persistent_volume_affinity_violation | social |
+| astronomy_shop_payment_service_failure | astronomy |
+| kafka_queue_problems | astronomy |
+| stale_coredns_config_astronomy_shop | astronomy |
+| astronomy_shop_ad_service_manual_gc | astronomy |
+
+Their details are not looked at before the run; a code change made after seeing their results takes them out of the
+held-out set.
