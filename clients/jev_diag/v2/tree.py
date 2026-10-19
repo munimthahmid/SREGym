@@ -77,7 +77,6 @@ MIN_PAIR_PROBABILITY = 0.5
 MIN_BOTH_PROBABILITY = 0.5  # two independent causes are reported only on this much support
 MIN_PATH_PROBABILITY = 0.5  # the call path is reported as the cause only on this much support
 DECISIVE_TRIAGE_PROBABILITY = 0.9  # a first triage answer this sure is not asked again
-CLOSE_ORIGIN_GAP = 0.2  # unconfirmed origins this close are compared side by side, not by probability
 MAX_NEXT_OPTIONS = 12
 MAX_EVIDENCE = 32
 DETAIL_TOKEN_BUDGET = 22000
@@ -1150,19 +1149,6 @@ class IterativeDiagnoser(JevDiagnoser):
             second = picks[1] if len(picks) > 1 else None
         if concluded is None:
             concluded, fallback_reason = self.fallback(snapshot, component, investigated)
-            close = sorted(
-                (
-                    r
-                    for r in investigated.values()
-                    if r["verdict"] == "origin" and r["origin_p"] >= FALLBACK_ORIGIN_PROBABILITY
-                ),
-                key=lambda r: -r["origin_p"],
-            )
-            if len(close) > 1 and close[0]["origin_p"] - close[1]["origin_p"] <= CLOSE_ORIGIN_GAP:
-                a, b = close[0]["component"], close[1]["component"]
-                reason = "neither was confirmed as the origin and their origin probabilities are close"
-                concluded = self.tiebreak(snapshot, a, b, investigated, reason, allow_both=False)[0]
-                fallback_reason = f"{fallback_reason}; the two closest were compared side by side"
         if not paired:
             second = None
 
