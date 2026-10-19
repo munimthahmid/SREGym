@@ -19,7 +19,7 @@ from sregym.service.internet_policy import InternetPolicy
 logger = logging.getLogger(__name__)
 JUDGE_BACKENDS = ("api", "codex", "claudecode", "copilot", "cursor")
 BRIDGE_PORT = 4100
-STARTUP_TIMEOUT_SECONDS = 180
+STARTUP_TIMEOUT_SECONDS = int(os.environ.get("SREGYM_JUDGE_STARTUP_TIMEOUT", "180"))
 AUTH_VARIABLES = {
     "claudecode": "CLAUDE_CODE_OAUTH_TOKEN",
     "copilot": "COPILOT_GITHUB_TOKEN",

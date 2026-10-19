@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
 set -euo pipefail
 VERSION="${AGENT_VERSION:-latest}"
+if [ "$VERSION" = "latest" ] && command -v codex >/dev/null 2>&1; then
+    echo "[$(date -Iseconds)] Codex CLI preinstalled: $(codex --version)"
+    exit 0
+fi
 echo "[$(date -Iseconds)] Installing Codex CLI (version: $VERSION)..."
 if [ "$VERSION" = "latest" ]; then
     npm install -g --include=optional @openai/codex
