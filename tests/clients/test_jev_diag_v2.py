@@ -850,3 +850,28 @@ def test_a_crashed_containers_quote_is_its_last_error_line_not_a_startup_notice(
         == "FATAL: data files are incompatible with this version"
     )
     assert own_error_line({"previous_container_logs": {"c": ["starting server", "listening on 8080"]}}) is None
+
+
+def test_close_unconfirmed_origins_and_a_login_pair_are_decided_side_by_side():
+    from clients.jev_diag.v2.tree import IterativeDiagnoser
+
+    comps = {f"deployment/{n}": {**_comp(n, "t"), "signals": ["s"], "evidence_kinds": ["symptoms"]} for n in "abc"}
+    triage = [{"deployment/a": 0.6, "deployment/b": 0.3, "deployment/c": 0.1, "other": 0.0}] * 2
+    # a 0.55 and b 0.5 are both below the confirmation bar: the side-by-side answer (b) decides, not the max
+    client = _Answers(triage, {"deployment/a": 0.55, "deployment/b": 0.5}, picks={"fault_start": "deployment/b"})
+    d = IterativeDiagnoser(client, fetch_detail=lambda s, c: {}).diagnose(_snap(comps))
+    assert d.component == "deployment/b" and "side by side" in d.investigation["fallback"]
+    # a server that rejects the client's logins is confirmed; the client, examined as the other side, is not an
+    # origin on its own, yet the side-by-side question still decides which side holds the stale value
+    server = {
+        **_comp("db", "t"),
+        "signals": ["s"],
+        "evidence_kinds": ["symptoms"],
+        "login_candidates": ["deployment/app"],
+    }
+    app = {**_comp("app", "t"), "signals": ["s"], "evidence_kinds": ["change"]}
+    snap = _snap({"deployment/db": server, "deployment/app": app})
+    picks = {"fault_category": "credentials_or_auth", "faulty_side": "deployment/app"}
+    triage = [{"deployment/db": 0.7, "deployment/app": 0.3, "other": 0.0}] * 2
+    client = _Answers(triage, {"deployment/db": 0.95, "deployment/app": 0.4}, picks=picks)
+    assert IterativeDiagnoser(client, fetch_detail=lambda s, c: {}).diagnose(snap).component == "deployment/app"
