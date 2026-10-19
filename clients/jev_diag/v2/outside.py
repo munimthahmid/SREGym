@@ -6,13 +6,15 @@ through its own configuration.
 * DaemonSets and CronJobs in kube-system (they run on every node or on a schedule and touch every workload).
 * Namespaces named in the application's own addresses (`name.other-ns.svc`), read like the application's own.
 
-Each object becomes a cluster finding linked to the components it acts on, and a change record when it was written
-after the application was deployed (earlier writes are dropped when changes are ranked).
+Each object is listed with the components it acts on. Only an abnormal signal (a missing backend, no ready
+endpoints) or a write made after the application was deployed makes it a cluster finding; its routes or settings
+are context only. Earlier writes are dropped when changes are ranked.
 """
 
 from __future__ import annotations
 
 import re
+from datetime import datetime
 
 from clients.jev_diag.v2 import changes as change_log
 from clients.jev_diag.v2.collector import kubectl_items
@@ -55,7 +57,8 @@ def _backends(ingress: dict) -> list[tuple[str, str, str]]:
     out = []
     default = ((spec.get("defaultBackend") or {}).get("service")) or {}
     if default.get("name"):
-        out.append(("(default)", default["name"], str((default.get("port") or {}).get("number") or "")))
+        port = (default.get("port") or {}).get("number") or (default.get("port") or {}).get("name") or ""
+        out.append(("(default)", default["name"], str(port)))
     for rule in spec.get("rules") or []:
         for path in (rule.get("http") or {}).get("paths") or []:
             svc = (path.get("backend") or {}).get("service") or {}
@@ -71,10 +74,12 @@ def collect_outside(
     pod_priority: dict[str, set[str]],
     errors: list[str],
     changes: list[dict],
+    deployed: datetime | None = None,
 ) -> list[dict]:
     """Outside objects as findings ({kind, name, namespace, signals, components}); change records are appended to
-    `changes`. `pod_priority` maps a PriorityClass name to the components whose pods use it."""
-    apps_created = [c.get("created") for c in components.values()]
+    `changes`. `pod_priority` maps a PriorityClass name to the components whose pods use it. A kube-system object
+    is a finding only when it was written after the application was `deployed`."""
+    apps_created = [c.get("created") for c in components.values() if not c.get("related")]
     services = _service_index(components)
     ready = {
         f"{c['namespace']}/{s.get('name')}": s.get("ready_endpoints")
@@ -86,20 +91,20 @@ def collect_outside(
     for ing in kubectl_items("ingresses", None, errors):
         meta = ing.get("metadata") or {}
         ns, name = meta.get("namespace"), meta.get("name")
-        linked, signals = set(), []
+        linked, signals, routes = set(), [], []
         for route, svc, port in _backends(ing):
             key = f"{ns}/{svc}"
+            routes.append(f"{route} -> Service {svc}:{port}")
             if key in services:
                 linked.add(services[key])
-                signals.append(f"routes {route} to Service {svc}:{port}")
                 if ready.get(key) == 0:
-                    signals.append(f"its backend Service {svc} has 0 ready endpoints")
+                    signals.append(f"routes {route} to Service {svc}, which has 0 ready endpoints")
             elif ns in namespaces:
                 signals.append(f"routes {route} to Service {svc}:{port}, which selects no workload or does not exist")
         if not linked and ns not in namespaces:
             continue
-        out.append(_finding("Ingress", name, ns, signals, linked))
-        _change(changes, "Ingress", name, ns, meta, linked, apps_created)
+        out.append({**_finding("Ingress", name, ns, signals, linked), "routes": routes})
+        _change(changes, "Ingress", name, ns, meta, linked, apps_created, deployed)
 
     for pc in kubectl_items("priorityclasses", None, errors, cluster_scoped=True):
         meta = pc.get("metadata") or {}
@@ -109,17 +114,17 @@ def collect_outside(
             users |= set(components)
         if not users:
             continue
-        signal = (
+        settings = (
             f"value {pc.get('value')}, globalDefault {bool(pc.get('globalDefault'))}, "
             f"preemptionPolicy {pc.get('preemptionPolicy') or 'PreemptLowerPriority'}"
         )
-        out.append(_finding("PriorityClass", name, None, [signal], users))
-        _change(changes, "PriorityClass", name, None, meta, users, apps_created)
+        out.append({**_finding("PriorityClass", name, None, [], users), "settings": settings})
+        _change(changes, "PriorityClass", name, None, meta, users, apps_created, deployed)
 
     for resource, kind in (("daemonsets", "DaemonSet"), ("cronjobs", "CronJob")):
         for obj in kubectl_items(resource, "kube-system", errors):
             meta = obj.get("metadata") or {}
-            if _change(changes, kind, meta.get("name"), "kube-system", meta, set(), apps_created):
+            if _change(changes, kind, meta.get("name"), "kube-system", meta, set(), apps_created, deployed):
                 out.append(_finding(kind, meta.get("name"), "kube-system", [f"kube-system {kind} written"], set()))
     return out
 
@@ -129,12 +134,20 @@ def _finding(kind: str, name: str, ns: str | None, signals: list[str], comps: se
 
 
 def _change(
-    changes: list[dict], kind: str, name: str, ns: str | None, meta: dict, affects: set[str], apps_created: list
+    changes: list[dict],
+    kind: str,
+    name: str,
+    ns: str | None,
+    meta: dict,
+    affects: set[str],
+    apps_created: list,
+    deployed: datetime | None,
 ) -> bool:
+    """Record the object's change, if any; True when it was made after the application was deployed."""
     obj_id = f"{kind.lower()}/{ns}/{name}" if ns else f"{kind.lower()}/{name}"
     change = change_log.object_change(
         obj_id, kind, name, ns, meta, affects=sorted(affects), targets_created=apps_created
     )
     if change:
         changes.append(change)
-    return change is not None
+    return change is not None and not change_log.before_deploy(change, deployed)

@@ -6,12 +6,14 @@ import argparse
 from pathlib import Path
 
 import msgspec
+import pytest
 
 from clients.jev_diag import collector as v1_collector
 from clients.jev_diag import driver as v1_driver
 from clients.jev_diag.classifier import build_component_questions as v1_questions
 from clients.jev_diag.v2 import collector as v2_collector
 from clients.jev_diag.v2 import driver as v2_driver
+from clients.jev_diag.v2 import probes
 from clients.jev_diag.v2.classifier import build_component_questions as v2_questions
 
 NS = "shop"
@@ -119,6 +121,42 @@ def test_revision_diff_without_a_spec_write_is_a_change_and_a_restart_is_not():
     assert comps["deployment/frontend"].get("most_recent_change") and not comps["daemonset/agent"].get(
         "most_recent_change"
     )
+    from clients.jev_diag.v2.derive import classify_evidence
+
+    classify_evidence(comps)  # a restart is neither a change nor a symptom nor a configuration
+    assert comps["daemonset/agent"]["evidence_kinds"] == [] and comps["deployment/frontend"]["evidence_kinds"] == [
+        "change"
+    ]
+
+
+def test_template_changes_are_diffed_against_the_revision_current_at_deploy():
+    from clients.jev_diag.v2 import changes
+
+    def rev(n: int, at: str, value: str, restarted: str | None = None) -> dict:
+        meta = {"labels": {"app": "a", "pod-template-hash": f"h{n}"}}
+        if restarted:
+            meta["annotations"] = {changes.RESTART_ANNOTATION: restarted}
+        env = [{"name": "DB", "value": value}]
+        spec = {"containers": [{"name": "a", "image": "i", "env": env}]}
+        if n > 1:  # revision 2 is a patch made while deploying: part of the deployed template
+            spec["volumes"] = [{"name": "v", "configMap": {"name": "c"}}]
+        return {"revision": n, "created": at, "template": {"metadata": meta, "spec": spec}}
+
+    history = [rev(1, "2026-10-19T07:50:00Z", "old"), rev(2, "2026-10-19T07:50:04Z", "old")]
+    set_then_restart = [*history, rev(3, "2026-10-19T07:55:00Z", "new"), rev(4, "2026-10-19T07:56:00Z", "new", "x")]
+    comps = {"deployment/a": _comp("a", "2026-10-19T07:50:00Z"), "deployment/b": _comp("b", "2026-10-19T07:50:00Z")}
+    revisions = {
+        (NS, "Deployment", "a"): set_then_restart,
+        (NS, "Deployment", "b"): [*history, rev(3, "2026-10-19T07:56:00Z", "old", "x")],
+    }
+    recreated = [rev(1, "2026-10-19T07:52:00Z", "old"), rev(2, "2026-10-19T07:52:06Z", "new")]
+    comps["deployment/c"] = _comp("c", "2026-10-19T07:52:00Z")  # deleted and re-created after the deploy
+    revisions[(NS, "Deployment", "c")] = recreated
+    changes.attach_template_changes(comps, revisions, changes.parse_time("2026-10-19T07:50:00Z"))
+    a, b = comps["deployment/a"]["template_changes"], comps["deployment/b"]["template_changes"]
+    assert "container a env DB: old -> new" in a["changes"] and not a["restart_only"] and len(a["changes"]) == 2
+    assert b["restart_only"] and len(b["changes"]) == 1  # no pod-template-hash line, no deploy-time volume
+    assert "container a env DB: old -> new" in comps["deployment/c"]["template_changes"]["changes"]
 
 
 def test_a_change_made_before_the_application_existed_is_dropped():
@@ -142,6 +180,33 @@ def test_a_change_made_before_the_application_existed_is_dropped():
     finally:
         set_now(None)
     assert ranked == [] and cluster["recent_changes"] == [] and comps["deployment/frontend"]["signals"] == []
+
+
+def test_a_write_made_before_the_deploy_sets_no_changed_flag_and_no_finding(monkeypatch):
+    from clients.jev_diag.timeutil import set_now
+    from clients.jev_diag.v2 import changes, outside
+
+    def written(name: str, ns: str, at: str) -> dict:
+        created = {"manager": "a", "time": "2026-10-19T07:00:00Z", "fieldsV1": {"f:spec": {}}}
+        later = {"manager": "b", "time": at, "fieldsV1": {"f:spec": {"f:x": {}}}}
+        meta = {"name": name, "namespace": ns, "creationTimestamp": "2026-10-19T07:00:00Z"}
+        return {"metadata": {**meta, "managedFields": [created, later]}, "spec": {"podSelector": {}}}
+
+    before, after = "2026-10-19T07:30:00Z", "2026-10-19T07:55:00Z"  # the application is deployed at 07:50
+    deployed = changes.parse_time("2026-10-19T07:50:00Z")
+    items = {"daemonsets": [written("proxy", "kube-system", before), written("agent", "kube-system", after)]}
+    monkeypatch.setattr(outside, "kubectl_items", lambda resource, ns, errors, **k: items.get(resource, []))
+    comps = {"deployment/a": _comp("a", "2026-10-19T07:50:00Z", template_labels={}, network_policies=[])}
+    set_now(changes.parse_time("2026-10-19T08:00:00Z"))
+    try:
+        recorded: list[dict] = []
+        found = outside.collect_outside([NS], comps, {}, [], recorded, deployed)
+        policies = [written("early", NS, before), written("late", NS, after)]
+        early, late = v2_collector.attach_network_policies(policies, comps, [], deployed)
+    finally:
+        set_now(None)
+    assert [f["name"] for f in found] == ["agent"] and len(recorded) == 2  # ranking drops the early record
+    assert not early.get("changed") and late["changed"]
 
 
 def test_probe_description_carries_timing_with_defaults_for_unset_fields():
@@ -168,14 +233,14 @@ def test_evidence_cap_keeps_some_logs_events_and_dependencies():
     assert short == ["s", "l", "env A=1"]
 
 
-def test_a_line_naming_several_components_points_at_the_one_it_called():
-    from clients.jev_diag.v2.derive import _called
+def test_an_error_line_naming_several_components_points_at_each_of_them():
+    from clients.jev_diag.v2.derive import classify_logs
 
-    aliases = {"shipping": "s", "quote": "q", "email": "e", "cart": "c", "valkey-cart": "v"}
-    line = "shipping quote failure: failed POST to email service"
-    assert _called(line, aliases, {"s", "q", "e"}) == {"e"}
-    assert _called("failed to connect to valkey-cart:6379 for cart", aliases, {"c", "v"}) == {"v"}
-    assert _called("cart and email unavailable", aliases, {"c", "e"}) == set()  # no called position: keep all
+    line = {"line": "web: ledger sync failure: failed POST to notifier service", "state": "ongoing", "count": 3}
+    comps = {f"deployment/{n}": _comp(n, "t") for n in ("ledger", "notifier")}
+    comps["deployment/web"] = {**_comp("web", "t"), "log_signals": [line]}
+    classify_logs(comps)  # word order does not say which one was called
+    assert comps["deployment/web"]["log_findings"][0]["targets"] == ["deployment/ledger", "deployment/notifier"]
 
 
 def _diag(component: str, fact: str | None = None, **kw):
@@ -296,6 +361,7 @@ def test_adaptive_wait_reads_early_once_the_same_pods_stay_abnormal(monkeypatch)
 
 def test_outside_objects_link_to_the_components_they_act_on(monkeypatch):
     from clients.jev_diag.v2 import outside
+    from clients.jev_diag.v2.derive import cluster_findings
 
     ingress = {
         "metadata": {"name": "web", "namespace": NS, "creationTimestamp": "2026-10-19T07:50:00Z"},
@@ -321,9 +387,87 @@ def test_outside_objects_link_to_the_components_they_act_on(monkeypatch):
     }
     found = outside.collect_outside([NS], comps, {}, [], [])
     ing = next(f for f in found if f["kind"] == "Ingress")
-    assert ing["components"] == ["deployment/front"] and any("0 ready endpoints" in s for s in ing["signals"])
+    assert ing["components"] == ["deployment/front"] and ing["routes"] == ["shop/ -> Service front:80"]
     pc = next(f for f in found if f["kind"] == "PriorityClass")
-    assert pc["components"] == ["deployment/front"] and "globalDefault True" in pc["signals"][0]
+    assert pc["components"] == ["deployment/front"] and "globalDefault True" in pc["settings"]
+    findings = cluster_findings({"outside_objects": found}, [])  # a healthy route or a setting is no finding
+    assert [f["signal"] for f in findings] == ["routes shop/ to Service front, which has 0 ready endpoints"]
+    comps["deployment/front"]["services"][0]["ready_endpoints"] = 1
+    assert cluster_findings({"outside_objects": outside.collect_outside([NS], comps, {}, [], [])}, []) == []
+
+
+@pytest.mark.parametrize(
+    "role,index", [(r, i) for r, cmds in probes._BACKEND_COMMANDS.items() for i in range(len(cmds))]
+)
+def test_every_backend_probe_command_renders_and_reports_an_auth_requirement(monkeypatch, role, index):
+    template = probes._BACKEND_COMMANDS[role][index][0]
+    comp = {
+        **_comp(role, "t"),
+        "pods": [{"name": "p-1", "phase": "Running", "ready": "1/1"}],
+        "containers": [{"name": role, "image": f"{role}:1", "ports": [4321]}],
+    }
+    ran = []
+
+    def run(ns, pod, container, command):  # only the template under test is installed
+        ran.append(command)
+        if command[0] != template[0]:
+            return 127, "executable file not found"
+        return 0, "command listDatabases requires authentication"
+
+    monkeypatch.setattr(probes, "run_in_pod", run)
+    result = probes.backend_probe(_snap({"deployment/db": comp}), "deployment/db")
+    assert ran[-1] == [part.replace("{port}", "4321") for part in template] and "4321" in ran[-1]
+    assert result["meaning"] == "the server requires authentication for this command"
+
+
+def _fake_cluster(monkeypatch, items: dict, related: list[str]) -> None:
+    """kubectl reads served from `items` ({(resource, namespace): [objects]}); every other read fails."""
+    import copy
+
+    from clients.jev_diag.v2 import outside
+
+    def read(resource, namespace, errors, **kwargs):
+        return copy.deepcopy(items.get((resource, namespace), []))
+
+    def no_cluster(*args, **kwargs):
+        raise RuntimeError("no cluster")
+
+    monkeypatch.setattr(v2_collector, "kubectl_items", read)
+    monkeypatch.setattr(outside, "kubectl_items", read)
+    monkeypatch.setattr(outside, "related_namespaces", lambda namespaces, errors: related)
+    monkeypatch.setattr(v2_collector, "run_kubectl", no_cluster)
+
+
+def test_a_related_namespace_never_replaces_or_dates_the_application(monkeypatch):
+    from clients.jev_diag.v2 import changes
+
+    def dep(name: str, ns: str, created: str) -> dict:
+        obj = deployment(name)
+        obj["metadata"].update(namespace=ns, creationTimestamp=created)
+        return obj
+
+    pending = {
+        "metadata": {
+            "name": "frontend-x-1",
+            "namespace": "data",
+            "labels": {"app": "frontend"},
+            "ownerReferences": [{"kind": "ReplicaSet", "name": "frontend-x"}],
+        },
+        "spec": {"containers": [{"name": "frontend"}]},
+        "status": {"phase": "Pending"},
+    }
+    old = "2026-10-19T06:00:00Z"
+    items = {
+        ("deployments", NS): [dep("frontend", NS, "2026-10-19T07:50:00Z")],
+        ("deployments", "data"): [dep("frontend", "data", old), dep("db", "data", old)],
+        ("pods", "data"): [pending],
+    }
+    _fake_cluster(monkeypatch, items, ["data"])
+    snap = v2_collector.collect_snapshot({"namespaces": [NS]}, alerts_fetcher=None, include_logs=False)
+    front = snap.components["deployment/frontend"]
+    assert front["namespace"] == NS and not front.get("related") and not front.get("pods")  # the Pending pod is not its
+    assert snap.components["deployment/db"]["related"]
+    assert changes.application_created(snap.components) == changes.parse_time("2026-10-19T07:50:00Z")
 
 
 def test_namespaces_the_app_addresses_are_read_too(monkeypatch):
@@ -473,6 +617,8 @@ def test_a_caller_retrying_into_a_capped_callee_is_reported_as_the_call_path():
     found = paths.call_paths(comps)
     assert found[0]["caller_settings"] == ["B_RPC_TIMEOUT_MS=750", "B_RPC_MAX_ATTEMPTS=3"]
     assert found[0]["feedback_loop"] and comps["deployment/b"]["call_paths"]
+    loop = "a retries a timed-out call (B_RPC_MAX_ATTEMPTS=3), adding requests to b, which caps its throughput"
+    assert loop in comps["deployment/b"]["call_paths"][0] and "multiplies" not in comps["deployment/b"]["call_paths"][0]
     snap = _snap(comps)
     snap.cluster["call_paths"] = found
     assert report.build_report(snap, _diag("deployment/b")).startswith("Root cause: Deployment `b`")  # model's pick
@@ -483,6 +629,53 @@ def test_a_caller_retrying_into_a_capped_callee_is_reported_as_the_call_path():
     assert paths.call_paths(comps) == []
     cm = paths.setting_pairs({"rpc.yaml": "timeout: 50ms\nretries: 30\nname: x", "LOG_LEVEL": "info"})
     assert cm == {"rpc.yaml:timeout": "50ms", "rpc.yaml:retries": "30"}
+    shared = '{"a": {"timeout_ms": 100, "workers": 4}, "b": {"timeout_ms": 9000, "workers": 4}}'
+    assert paths.setting_pairs({"svc.json": shared}) == {"svc.json:workers": "4"}  # whose timeout_ms is unknown
+
+
+def test_call_settings_need_a_number_and_the_callee_named_as_a_whole_word():
+    from clients.jev_diag.v2 import paths
+
+    assert paths.setting_pairs({"QUEUE_NAME": "orders", "AD_TIMEOUT_MS": "300"}) == {"AD_TIMEOUT_MS": "300"}
+    line = "request to ad failed: context deadline exceeded"
+    caller = {
+        **_comp("front", "t"),
+        "log_findings": [
+            {"classes": ["connectivity or timeout"], "count": 9, "targets": ["deployment/ad"], "line": line}
+        ],
+        "_call_settings": {"READ_TIMEOUT": "5", "AD_TIMEOUT_MS": "300", "tracing:jaeger.yml:timeout": "1"},
+    }
+    comps = {"deployment/front": caller, "deployment/ad": _comp("ad", "t")}
+    assert paths.call_paths(comps)[0]["caller_settings"] == ["AD_TIMEOUT_MS=300"]
+
+
+def test_a_callee_with_its_own_recent_change_is_no_timing_out_call_path():
+    from clients.jev_diag.timeutil import set_now
+    from clients.jev_diag.v2 import changes, derive
+
+    set_now(changes.parse_time("2026-10-19T08:00:00Z"))
+    try:
+        line = "front: call to backend failed: context deadline exceeded"
+        errors = {"line": line, "state": "ongoing", "count": 30, "first_seen_seconds_ago": 60}
+        caller = {**_comp("front", "t"), "log_signals": [errors], "_call_settings": {"BACKEND_TIMEOUT_MS": "500"}}
+        snap = _snap({"deployment/front": caller, "deployment/backend": _comp("backend", "2026-10-19T07:50:00Z")})
+        found = []
+        change = {
+            "object": "deployment/backend",
+            "kind": "Deployment",
+            "name": "backend",
+            "at": "2026-10-19T07:58:00Z",
+            "affects": ["deployment/backend"],
+            "revision_changed": True,
+            "template_changes": ["container backend env WORKERS: 16 -> 1"],
+        }
+        for changed in ([], [{**change, "restart_only": True}], [change]):
+            snap.cluster["_changes"] = changed
+            derive.post_process(snap)
+            found.append(len(snap.cluster["call_paths"]))
+    finally:
+        set_now(None)
+    assert found == [1, 1, 0]  # a restart changes no setting; the WORKERS change is the callee's own
 
 
 def _two_faults(link: bool):
@@ -646,3 +839,14 @@ def test_queue_puts_the_top_workload_before_the_cluster_node_and_telemetry_last(
     kind = ChoiceResult(choice="node_or_cluster", confidence=0.6, probabilities={"node_or_cluster": 0.6})
     queue = IterativeDiagnoser(_Answers([], {}), fetch_detail=lambda s, c: {}).initial_queue(snap, triage, kind)
     assert queue == ["deployment/front", OTHER_OPTION, "deployment/otel"]
+
+
+def test_a_crashed_containers_quote_is_its_last_error_line_not_a_startup_notice():
+    from clients.jev_diag.v2.report import own_error_line
+
+    logs = ["starting server", "FATAL: data files are incompatible with this version", "We suggest setting x to 0"]
+    assert (
+        own_error_line({"previous_container_logs": {"c": logs}})
+        == "FATAL: data files are incompatible with this version"
+    )
+    assert own_error_line({"previous_container_logs": {"c": ["starting server", "listening on 8080"]}}) is None

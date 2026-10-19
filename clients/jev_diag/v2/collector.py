@@ -641,19 +641,24 @@ def summarize_pod(pod: dict) -> dict:
     }
 
 
+def _in_namespace(cid: str | None, components: dict[str, dict], namespace: str | None) -> bool:
+    return cid in components and components[cid]["namespace"] == namespace
+
+
 def component_for_pod(
     pod_summary: dict, components: dict[str, dict], job_owner: dict[str, str] | None = None
 ) -> str | None:
     """Owner chain first (StatefulSet/DaemonSet/Job direct, ReplicaSet -> Deployment, Job -> CronJob), then selector."""
     job_owner = job_owner or {}
+    ns = pod_summary.get("_namespace")
     for kind, name in pod_summary.get("owner", []):
-        if kind in ("StatefulSet", "DaemonSet", "Job") and component_id(kind, name) in components:
+        if kind in ("StatefulSet", "DaemonSet", "Job") and _in_namespace(component_id(kind, name), components, ns):
             return component_id(kind, name)
-        if kind == "Job" and f"{pod_summary.get('_namespace')}/{name}" in job_owner:
-            return job_owner[f"{pod_summary.get('_namespace')}/{name}"]
+        if kind == "Job" and f"{ns}/{name}" in job_owner:
+            return job_owner[f"{ns}/{name}"]
         if kind == "ReplicaSet":
             dep = component_id("Deployment", _strip_hash_suffix(name, 1))
-            if dep in components:
+            if _in_namespace(dep, components, ns):
                 return dep
     for cid, comp in components.items():
         if comp["namespace"] == pod_summary.get("_namespace") and selector_matches(
@@ -671,11 +676,11 @@ def component_for_object(
         return job_owner[f"{namespace}/{name}"]
     if kind in WORKLOAD_KINDS:
         cid = component_id(kind, name)
-        if cid in components:
+        if _in_namespace(cid, components, namespace):
             return cid
         if kind == "Job":
             cron = component_id("CronJob", _strip_hash_suffix(name, 1))
-            return cron if cron in components else None
+            return cron if _in_namespace(cron, components, namespace) else None
         return None
     candidates: list[str] = []
     if kind == "ReplicaSet":
@@ -885,7 +890,10 @@ def summarize_network_policy(policy: dict) -> dict:
 
 
 def attach_network_policies(
-    policies: list[dict], components: dict[str, dict], changes: list[dict] | None = None
+    policies: list[dict],
+    components: dict[str, dict],
+    changes: list[dict] | None = None,
+    deployed: datetime | None = None,
 ) -> list[dict]:
     summaries = []
     for raw in policies:
@@ -914,8 +922,9 @@ def attach_network_policies(
                 targets_created=[components[c].get("created") for c in selected],
             )
             if change:
-                pol["changed"] = True
                 changes.append(change)
+                if not change_log.before_deploy(change, deployed):
+                    pol["changed"] = True
         else:
             pol.pop("_meta", None)
     return summaries
@@ -1707,7 +1716,11 @@ def _grants(rules: list[dict], verb: str, resource: str) -> bool:
 
 
 def summarize_rbac(
-    namespaces: list[str], components: dict[str, dict], errors: list[str], changes: list[dict] | None = None
+    namespaces: list[str],
+    components: dict[str, dict],
+    errors: list[str],
+    changes: list[dict] | None = None,
+    deployed: datetime | None = None,
 ) -> list[dict]:
     """Roles and ClusterRoles reachable from the ServiceAccounts the application's workloads run as.
 
@@ -1819,8 +1832,9 @@ def summarize_rbac(
                 targets_created=[components[c].get("created") for c in entry["components"] if c in components],
             )
             if change:
-                entry["changed"] = True
                 changes.append(change)
+                if not change_log.before_deploy(change, deployed):
+                    entry["changed"] = True
         entry["signals"] = list(dict.fromkeys(entry["signals"]))
         entry["bindings"] = sorted(set(entry["bindings"]))
         entry["service_accounts"] = sorted(set(entry["service_accounts"]))
@@ -1868,7 +1882,8 @@ def collect_snapshot(
     errors: list[str] = []
     namespaces = list(app_info.get("namespaces") or [app_info.get("namespace")])
     namespaces = [ns for ns in namespaces if ns]
-    namespaces += outside.related_namespaces(namespaces, errors)
+    related = outside.related_namespaces(namespaces, errors)
+    namespaces += related
     components: dict[str, dict] = {}
     pods_by_component: dict[str, list[dict]] = {}
     pod_to_component: dict[str, str] = {}
@@ -1885,18 +1900,27 @@ def collect_snapshot(
     controllerrevisions: list[dict] = []
 
     job_owner: dict[str, str] = {}  # "ns/job-name" -> CronJob component id
+
+    def add_workload(cid: str, comp: dict, ns: str) -> None:
+        # ids carry no namespace: a related namespace's workload never replaces one of the application's own
+        if ns in related:
+            if cid in components:
+                return
+            comp["related"] = True
+        components[cid] = comp
+
     for ns in namespaces:
         for resource in ("deployments", "statefulsets", "daemonsets", "cronjobs"):
             for obj in kubectl_items(resource, ns, errors):
                 comp = summarize_workload(obj)
-                components[component_id(comp["kind"], comp["name"])] = comp
+                add_workload(component_id(comp["kind"], comp["name"]), comp, ns)
                 deletable.append((comp["kind"], obj))
         for obj in kubectl_items("jobs", ns, errors):
             deletable.append(("Job", obj))
             owners = [(o.get("kind"), o.get("name")) for o in obj.get("metadata", {}).get("ownerReferences") or []]
             cron = next((component_id("CronJob", n) for k, n in owners if k == "CronJob"), None)
             job_name = obj.get("metadata", {}).get("name")
-            if cron and cron in components:
+            if _in_namespace(cron, components, ns):
                 status = obj.get("status", {})
                 job_owner[f"{ns}/{job_name}"] = cron
                 components[cron]["jobs"].append(
@@ -1912,8 +1936,7 @@ def collect_snapshot(
                     )
                 )
                 continue
-            comp = summarize_workload(obj)
-            components[component_id("Job", job_name)] = comp
+            add_workload(component_id("Job", job_name), summarize_workload(obj), ns)
         replicasets += kubectl_items("replicasets", ns, errors, managed_fields=False)
         controllerrevisions += kubectl_items("controllerrevisions", ns, errors, managed_fields=False)
     for comp in components.values():
@@ -1925,7 +1948,8 @@ def collect_snapshot(
                 )
             comp["jobs"] = sorted(comp["jobs"], key=lambda j: j.get("start_time") or "", reverse=True)[:5]
     revisions = change_log.revision_templates(replicasets, controllerrevisions)
-    change_log.attach_template_changes(components, revisions)
+    deployed = change_log.application_created(components)
+    change_log.attach_template_changes(components, revisions, deployed)
 
     for ns in namespaces:
         raw_pods[ns] = kubectl_items("pods", ns, errors, managed_fields=False)
@@ -1971,7 +1995,9 @@ def collect_snapshot(
         dangling_services += attach_services(
             services, kubectl_items("endpoints", ns, errors, managed_fields=False), components, changes
         )
-        all_policies += attach_network_policies(kubectl_items("networkpolicies", ns, errors), components, changes)
+        all_policies += attach_network_policies(
+            kubectl_items("networkpolicies", ns, errors), components, changes, deployed
+        )
         attach_hpas(kubectl_items("horizontalpodautoscalers", ns, errors, managed_fields=False), components)
         claims = kubectl_items("persistentvolumeclaims", ns, errors)
         deletable += [("PersistentVolumeClaim", pvc) for pvc in claims]
@@ -2021,8 +2047,9 @@ def collect_snapshot(
             targets_created=in_namespace,
         )
         if change:
-            c["changed"] = True
             changes.append(change)
+            if not change_log.before_deploy(change, deployed):
+                c["changed"] = True
 
     namespace_labels: dict[str, dict] = {}
     for ns_obj in kubectl_items("namespaces", None, errors, cluster_scoped=True, managed_fields=False):
@@ -2062,16 +2089,16 @@ def collect_snapshot(
         if change:
             changes.append(change)
             for w in webhooks:
-                if w["configuration"] == name:
+                if w["configuration"] == name and not change_log.before_deploy(change, deployed):
                     w["changed"] = True
     pod_priority: dict[str, set[str]] = {}
-    for pods in raw_pods.values():
+    for ns, pods in raw_pods.items():
         for pod in pods:
             pc = (pod.get("spec") or {}).get("priorityClassName")
             cid = pod_to_component.get((pod.get("metadata") or {}).get("name"))
-            if pc and cid:
+            if pc and _in_namespace(cid, components, ns):
                 pod_priority.setdefault(pc, set()).add(cid)
-    outside_objects = outside.collect_outside(namespaces, components, pod_priority, errors, changes)
+    outside_objects = outside.collect_outside(namespaces, components, pod_priority, errors, changes, deployed)
     cluster_dns = summarize_cluster_dns(errors)
     dns_affected = coredns_service_overrides(cluster_dns, components)
     if dns_affected:
@@ -2082,12 +2109,14 @@ def collect_snapshot(
             "configmap/kube-system/coredns", "ConfigMap", "coredns", "kube-system", dns_meta, affects=dns_affected
         )
         if change:
-            cluster_dns["changed"] = True
             changes.append(change)
+            if not change_log.before_deploy(change, deployed):
+                cluster_dns["changed"] = True
     for ns in namespaces:
         try:
             top = run_kubectl(["top", "pods", "-n", ns, "--containers", "--no-headers"], timeout=KUBECTL_TIMEOUT)
-            attach_resource_usage(top, components, pod_to_component)
+            in_ns = {pod: cid for pod, cid in pod_to_component.items() if components[cid]["namespace"] == ns}
+            attach_resource_usage(top, components, in_ns)
         except Exception as exc:  # noqa: BLE001 - metrics-server is optional
             errors.append(f"kubectl top {ns}: {exc}")
 
@@ -2102,7 +2131,7 @@ def collect_snapshot(
             errors.append(f"alerts: {exc}")
         attach_alerts(alerts, components)
 
-    rbac = summarize_rbac(namespaces, components, errors, changes)
+    rbac = summarize_rbac(namespaces, components, errors, changes, deployed)
     stuck = checks.stuck_terminating(deletable)
     checks.link_stuck_objects(stuck, components, rbac)
     nodes = summarize_nodes(kubectl_items("nodes", None, errors, managed_fields=False))

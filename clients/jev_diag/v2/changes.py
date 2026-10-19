@@ -6,8 +6,8 @@ assumed deployment time:
 * a spec write made after the object was created (managedFields; status and scale writes excluded);
 * an object created after the workloads it acts on already existed (a NetworkPolicy after the pods it selects,
   a webhook after the workloads it intercepts, a workload after the workloads it calls);
-* a pod template that differs from the previous revision (Deployment ReplicaSets, StatefulSet and DaemonSet
-  ControllerRevisions), diffed field by field.
+* a pod template that differs from the one current when the application was deployed (Deployment ReplicaSets,
+  StatefulSet and DaemonSet ControllerRevisions), diffed field by field.
 
 Changes are then ranked by when they happened relative to the first active symptom, which is estimated from the
 symptoms themselves: errors that are still occurring, readiness loss, crash loops, Pending pods, current warning
@@ -30,6 +30,7 @@ MAX_FIELD_PATHS = 10
 MAX_TEMPLATE_CHANGES = 12
 MAX_RECENT_CHANGES = 10
 RESTART_ANNOTATION = "kubectl.kubernetes.io/restartedAt"  # written by a rollout restart; no setting changes
+POD_TEMPLATE_HASH = "pod-template-hash"  # the label a Deployment puts on each ReplicaSet's template; never a setting
 DEPLOY_TOLERANCE_SECONDS = 5  # a change this close to the application's creation still counts as after it
 
 _IGNORED_SUBRESOURCES = {"status", "scale"}
@@ -202,7 +203,7 @@ def template_diff(old: dict, new: dict) -> list[str]:
     for key, label in (("annotations", "template annotation"), ("labels", "pod label")):
         a, b = old_meta.get(key) or {}, new_meta.get(key) or {}
         for k in sorted(set(a) | set(b)):
-            if a.get(k) == b.get(k):
+            if a.get(k) == b.get(k) or k == POD_TEMPLATE_HASH:
                 continue
             if k not in b:
                 changes.append(f"{label} {k} removed")
@@ -309,13 +310,25 @@ def restart_only(diffs: list[str]) -> bool:
     return bool(diffs) and all(RESTART_ANNOTATION in d for d in diffs)
 
 
-def attach_template_changes(components: dict[str, dict], revisions: dict) -> None:
-    """For workloads with revision history, the differences between the previous and the current pod template."""
+def deploy_revision(revs: list[dict], deployed: datetime | None) -> dict:
+    """The revision current when the application was deployed: the newest one created by MIN_CHANGE_SECONDS after
+    the deploy time (a write that close is part of deploying), else the oldest one kept. A workload created later,
+    for example deleted and re-created by the fault, is compared with its first revision."""
+    if deployed is None:
+        return revs[0]
+    cutoff = deployed + timedelta(seconds=MIN_CHANGE_SECONDS)
+    deployed_revs = [r for r in revs if (at := parse_time(r.get("created"))) and at <= cutoff]
+    return deployed_revs[-1] if deployed_revs else revs[0]
+
+
+def attach_template_changes(components: dict[str, dict], revisions: dict, deployed: datetime | None = None) -> None:
+    """For workloads with revision history, how the current pod template differs from the one current when the
+    application was deployed. A setting changed and then restarted therefore still shows its old and new value."""
     for comp in components.values():
         revs = revisions.get((comp["namespace"], comp["kind"], comp["name"])) or []
         if len(revs) < 2:
             continue
-        previous, current = revs[-2], revs[-1]
+        previous, current = deploy_revision(revs, deployed), revs[-1]
         diff = template_diff(previous["template"], current["template"])
         if diff:
             comp["template_changes"] = {
@@ -472,10 +485,19 @@ def describe_change(change: dict, component_id: str | None = None) -> str:
 
 
 def application_created(components: dict[str, dict]) -> datetime | None:
-    """When the application was deployed: the earliest creation time among its workloads."""
-    times = [parse_time(c.get("created")) for c in components.values()]
+    """When the application was deployed: the earliest creation time among its own workloads (a related
+    namespace's workloads may be older)."""
+    times = [parse_time(c.get("created")) for c in components.values() if not c.get("related")]
     times = [t for t in times if t]
     return min(times) if times else None
+
+
+def before_deploy(change: dict, deployed: datetime | None) -> bool:
+    """Whether a change was made before the application was deployed. One fault is injected after the application
+    is deployed, so such a write (left by an earlier problem or by cluster setup) cannot be it."""
+    at = parse_time(change.get("at"))
+    gap = seconds_between(deployed, at) if deployed and at else None
+    return gap is not None and gap > DEPLOY_TOLERANCE_SECONDS
 
 
 def rank_changes(components: dict[str, dict], cluster: dict, collected_at: datetime | None = None) -> list[dict]:
@@ -492,16 +514,9 @@ def rank_changes(components: dict[str, dict], cluster: dict, collected_at: datet
     deployed = application_created(components)
     for raw in cluster.get("_changes") or []:
         change = dict(raw)
-        at = parse_time(change.get("at"))
-        # one fault is injected after the application is deployed: an earlier write (left by an earlier problem
-        # or by cluster setup) cannot be it
-        if (
-            deployed
-            and at
-            and seconds_between(deployed, at) is not None
-            and seconds_between(deployed, at) > DEPLOY_TOLERANCE_SECONDS
-        ):
+        if before_deploy(change, deployed):
             continue
+        at = parse_time(change.get("at"))
         change["seconds_ago"] = seconds_ago(at)
         change["seconds_before_symptoms"] = seconds_between(onset, at) if onset else None
         affected = [components[c] for c in change.get("affects") or [] if c in components]
