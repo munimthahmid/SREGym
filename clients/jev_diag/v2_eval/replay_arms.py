@@ -14,6 +14,7 @@ import argparse
 import copy
 import csv
 import json
+import os
 import sys
 import time
 from pathlib import Path
@@ -22,7 +23,9 @@ sregym_root = Path(__file__).resolve().parents[3]
 if str(sregym_root) not in sys.path:
     sys.path.insert(0, str(sregym_root))
 
-from clients.jev_diag.v2_eval import arm_record, openrouter_client, parse_arms  # noqa: E402
+from clients.jev_diag.v2_eval import arm_record, fit_to_model, openrouter_client, parse_arms  # noqa: E402
+
+os.environ["JEV_DIAG_V2_TELEMETRY"] = "0"  # a replay must not read today's Prometheus into an old fault
 
 
 def app_info_of(trace_path: Path) -> dict:
@@ -78,6 +81,7 @@ def replay_one(label: str, prefix: str, problem: str, arms: list[tuple[str, str]
         set_kubectl_replay(str(bundle))  # detail reads come from the recording too
         try:
             diagnoser = Diagnoser(openrouter_client(model), fetch_detail=detail)
+            fit_to_model(diagnoser, model)
             diagnosis = diagnoser.diagnose(copy.deepcopy(snaps[kind]))
         except Exception as exc:  # noqa: BLE001
             error = f"{type(exc).__name__}: {exc}"

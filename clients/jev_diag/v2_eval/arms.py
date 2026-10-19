@@ -15,7 +15,7 @@ from pathlib import Path
 from types import ModuleType
 
 from clients.jev_diag.trace import DecisionTrace
-from clients.jev_diag.v2_eval import arm_record, openrouter_client, parse_arms
+from clients.jev_diag.v2_eval import arm_record, fit_to_model, openrouter_client, parse_arms
 
 logger = logging.getLogger("all.jev_diag.v2_eval.arms")
 
@@ -81,6 +81,17 @@ def run(
 
         return read
 
+    # one data-store probe per component and client for the whole run, shared by every v2 arm
+    probe_cache: dict[tuple, dict | None] = {}
+
+    def cached_probe(probe):
+        def run_probe(snapshot, cid, client):
+            if (cid, client) not in probe_cache:
+                probe_cache[(cid, client)] = probe(snapshot, cid, client)
+            return copy.deepcopy(probe_cache[(cid, client)])
+
+        return run_probe
+
     order = list(range(len(arms)))
     random.Random(problem_id).shuffle(order)
     records: list[dict] = [{} for _ in arms]
@@ -94,6 +105,8 @@ def run(
             if kind == "v2":
                 diagnoser = v2_driver.make_diagnoser(args, trace, client)
                 diagnoser.fetch_detail = cached("v2", diagnoser.fetch_detail)
+                if diagnoser.probe is not None:
+                    diagnoser.probe = cached_probe(diagnoser.probe)
             else:
                 diagnoser = V1Diagnoser(
                     client,
@@ -102,6 +115,7 @@ def run(
                     state_token_budget=args.state_token_budget,
                     trace=trace,
                 )
+            fit_to_model(diagnoser, model)
             diagnosis = diagnoser.diagnose(copy.deepcopy(snapshots[kind]))
         except Exception as exc:  # noqa: BLE001 - one arm failing must not stop the others
             error = f"{type(exc).__name__}: {exc}"

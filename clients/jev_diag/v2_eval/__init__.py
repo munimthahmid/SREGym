@@ -16,6 +16,19 @@ def openrouter_client(model: str):
     return OpenRouterClient(model.removeprefix("openrouter/"), timeout=float(os.getenv("JEV_DIAG_HTTP_TIMEOUT", "90")))
 
 
+# Models whose context window is smaller than the default state budgets need: (triage, investigation) token budgets
+# that leave room for the questions. The same budget applies to v1 and v2.
+SMALL_CONTEXT_BUDGETS = {"cloudflare/clef": (9000, 9000), "cloudflare/clef-flash": (9000, 9000)}
+
+
+def fit_to_model(diagnoser, model: str) -> None:
+    budgets = SMALL_CONTEXT_BUDGETS.get(model.removeprefix("openrouter/"))
+    if budgets and diagnoser is not None:
+        diagnoser.state_token_budget = budgets[0]
+        if hasattr(diagnoser, "detail_token_budget"):
+            diagnoser.detail_token_budget = budgets[1]
+
+
 def parse_arms(spec: str) -> list[tuple[str, str]]:
     """'v1=model,v2=model' -> [('v1', 'model'), ('v2', 'model')]."""
     arms = []
@@ -41,6 +54,8 @@ def arm_record(i: int, kind: str, model: str, position: int, seconds: float, dia
             (r.get("usage") or {}).get("input_tokens") or 0 for r in (diagnoser.requests if diagnoser else [])
         ),
         "error": error,
+        "model_failed": "decision model"
+        in str(((getattr(diagnosis, "investigation", None) or {}).get("fallback")) or ""),
         "component": getattr(diagnosis, "component", None),
         "investigation": getattr(diagnosis, "investigation", None),
         "text": getattr(diagnosis, "text", "") or "",
