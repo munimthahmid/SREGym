@@ -1,0 +1,152 @@
+name: Kind containerd validation
+'on':
+  push:
+    branches:
+    - ci/kind-containerd-validation
+  workflow_dispatch: {}
+permissions:
+  contents: read
+jobs:
+  smoke-test:
+    name: ${{ matrix.attempt }} / ${{ matrix.image }}
+    if: github.repository == 'munimthahmid/SREGym'
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      max-parallel: 20
+      matrix:
+        attempt:
+        - 1
+        - 2
+        - 3
+        - 4
+        - 5
+        - 6
+        - 7
+        - 8
+        - 9
+        - 10
+        - 11
+        - 12
+        - 13
+        - 14
+        - 15
+        - 16
+        - 17
+        - 18
+        - 19
+        - 20
+        - 21
+        - 22
+        - 23
+        - 24
+        - 25
+        - 26
+        - 27
+        - 28
+        - 29
+        - 30
+        image:
+        - old
+        - fixed
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        submodules: recursive
+        fetch-depth: 0
+    - name: Install Kind
+      run: |
+        curl -Lo /tmp/kind https://kind.sigs.k8s.io/dl/${KIND_VERSION}/kind-linux-amd64
+        chmod +x /tmp/kind
+        sudo mv /tmp/kind /usr/local/bin/kind
+        kind version
+      env:
+        KIND_VERSION: ${{ matrix.image == 'fixed' && 'v0.28.0' || 'v0.27.0' }}
+    - name: Install Helm
+      uses: azure/setup-helm@v4
+    - name: Pre-pull kind node image
+      run: docker pull jacksonarthurclark/aiopslab-kind-x86:latest
+      if: matrix.image == 'old'
+    - name: Build kind node image with fixed containerd
+      if: matrix.image == 'fixed'
+      run: |
+        docker build -t sregym-kind:smoke \
+          --build-arg KIND_NODE_IMAGE=kindest/node:v1.32.5@sha256:36187f6c542fa9b78d2d499de4c857249c5a0ac8cc2241bef2ccd92729a7a259 \
+          -f kind/Dockerfile kind
+    - name: Prepare /run/udev for OpenEBS NDM
+      run: sudo mkdir -p /run/udev
+    - name: Create kind cluster with Calico
+      run: bash kind/setup_kind_cluster.sh x86
+      env:
+        KIND_NODE_IMAGE: ${{ matrix.image == 'fixed' && 'sregym-kind:smoke' || '' }}
+      id: cluster
+    - name: Install uv
+      uses: astral-sh/setup-uv@v4
+    - name: Install dependencies
+      run: uv sync
+    - name: Generate tasklist.yml (mitigation-only)
+      run: |
+        cat > sregym/conductor/tasklist.yml << 'EOF'
+        all:
+          problems:
+            misconfig_app_hotel_res:
+              - mitigation
+        EOF
+    - name: Run smoke test
+      run: uv run pytest tests/integration/smoke_test.py -v -s -m integration
+      id: smoke
+    - name: Verify every node runtime
+      id: runtime
+      if: always()
+      env:
+        VALIDATION_IMAGE: ${{ matrix.image }}
+      run: bash .github/scripts/validation-runtime.sh
+    - name: Collect final cluster state
+      if: always()
+      run: |
+        mkdir -p /tmp/validation
+        kubectl --request-timeout=20s get nodes -o json > /tmp/validation/nodes.json 2>&1 || true
+        kubectl --request-timeout=20s get pods -A -o json > /tmp/validation/pods.json 2>&1 || true
+        kubectl --request-timeout=20s get events -A -o json > /tmp/validation/events.json 2>&1 || true
+    - name: Capture containerd stacks and CRI status on failure
+      if: failure()
+      run: |
+        for node in $(kind get nodes 2>/dev/null); do
+          timeout 15s docker exec "$node" systemctl kill --kill-who=main --signal=SIGUSR1 containerd || true
+          timeout 15s docker exec "$node" crictl info > "/tmp/validation/${node}-cri.txt" 2>&1 || true
+          timeout 20s docker exec "$node" journalctl -u containerd --no-pager > "/tmp/validation/${node}-containerd.log" 2>&1 || true
+        done
+    - name: Export kind logs
+      if: failure() || matrix.attempt <= 3
+      run: timeout 240s kind export logs /tmp/kind-logs || true
+    - name: Record attempt metadata
+      if: always()
+      env:
+        STEPS_JSON: ${{ toJSON(steps) }}
+        VALIDATION_IMAGE: ${{ matrix.image }}
+        VALIDATION_ATTEMPT: ${{ matrix.attempt }}
+      run: |
+        mkdir -p /tmp/validation
+        python3 - <<'PYTHON'
+        import json, os, platform
+        from pathlib import Path
+        record = {key: os.environ.get(key) for key in (
+            "VALIDATION_IMAGE", "VALIDATION_ATTEMPT", "GITHUB_RUN_ID", "GITHUB_RUN_ATTEMPT",
+            "GITHUB_SHA", "RUNNER_OS", "RUNNER_ARCH", "ImageOS", "ImageVersion")}
+        record["steps"] = json.loads(os.environ["STEPS_JSON"])
+        record["platform"] = platform.platform()
+        Path("/tmp/validation/metadata.json").write_text(json.dumps(record, indent=2) + "\n")
+        print(json.dumps(record, indent=2))
+        PYTHON
+    - name: Upload attempt evidence
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: validation-${{ matrix.attempt }}-${{ matrix.image }}
+        path: |-
+          /tmp/validation/
+          /tmp/kind-logs/
+        if-no-files-found: error
+        retention-days: 30
